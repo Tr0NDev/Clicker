@@ -498,6 +498,8 @@
       padding: 15px;
       margin: 0;
       font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -845,6 +847,37 @@
       } catch (error) {
         inventory = [];
       }
+
+      // Listen for inventory changes from other pages
+      window.addEventListener("storage", (event) => {
+        if (event.key === "clicker_inventory") {
+          try {
+            inventory = event.newValue ? JSON.parse(event.newValue) : [];
+            if (!Array.isArray(inventory)) {
+              inventory = [];
+            }
+          } catch (error) {
+            inventory = [];
+          }
+        }
+      });
+
+      // Reload inventory when page becomes visible (after returning from inventory page)
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+          try {
+            const storedInventory = localStorage.getItem("clicker_inventory");
+            inventory = storedInventory ? JSON.parse(storedInventory) : [];
+            if (!Array.isArray(inventory)) {
+              inventory = [];
+            }
+            // Also reload money since it changes when selling fish
+            money = Number(localStorage.getItem("clicker_money")) || 0;
+          } catch (error) {
+            inventory = [];
+          }
+        }
+      });
 
       function getSizeUpgradeCost(level) {
         return Math.floor(1500 * Math.pow(2.15, level));
