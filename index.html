@@ -765,15 +765,6 @@
       }
 
       function catchCurrentFish(source) {
-        if (source === "manual") {
-          const now = Date.now();
-          if (now - lastManualCatchMs < 3000) {
-            return false;
-          }
-
-          lastManualCatchMs = now;
-        }
-
         const fishToStore = {
           type: currentFish.type,
           rarity: currentFish.rarity,
@@ -783,9 +774,9 @@
           caughtAt: new Date().toISOString()
         };
 
-        money += fishToStore.price;
-
-        if (!shouldAutoSell(fishToStore)) {
+        if (shouldAutoSell(fishToStore)) {
+          money += fishToStore.price;
+        } else {
           inventory.push(fishToStore);
         }
 
@@ -839,19 +830,17 @@
       }
 
       clicker.addEventListener("click", () => {
-        const fishPerClick = 1 + tripleHookLevel;
-        let caughtAny = false;
-        for (let i = 0; i < fishPerClick; i++) {
-          const caught = catchCurrentFish("manual");
-          if (!caught) {
-            break;
-          }
-          caughtAny = true;
+        const now = Date.now();
+        if (now - lastManualCatchMs < 200) {
+          return;
         }
 
-        if (caughtAny) {
-          render();
+        lastManualCatchMs = now;
+        const fishPerClick = 1 + tripleHookLevel;
+        for (let i = 0; i < fishPerClick; i++) {
+          catchCurrentFish("manual");
         }
+        render();
       });
 
       tripleHookUpgrade.addEventListener("click", () => {

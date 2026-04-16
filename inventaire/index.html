@@ -97,24 +97,9 @@
       background: #172028;
     }
 
-    .turn-panel {
-      margin-top: 14px;
-      padding: 12px;
-      border: 1px solid #4a455f;
-      border-radius: 10px;
-      background: #1a1622;
-    }
-
     .auto-sell-title {
       font-size: 14px;
       color: #cfe0ea;
-      margin-bottom: 8px;
-      font-weight: bold;
-    }
-
-    .turn-title {
-      font-size: 14px;
-      color: #e0d6ff;
       margin-bottom: 8px;
       font-weight: bold;
     }
@@ -137,28 +122,6 @@
       color: #fff;
     }
 
-    .turn-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .turn-row input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #635b85;
-      background: #0f1519;
-      color: #fff;
-    }
-
-    .turn-note {
-      margin-top: 8px;
-      color: #a9a0c4;
-      font-size: 13px;
-    }
 
     .fish-left {
       display: grid;
@@ -244,17 +207,6 @@
       </div>
     </div>
 
-    <div class="turn-panel">
-      <div class="turn-title">Gestion du frigo</div>
-      <div class="turn-row">
-        <div>
-          <div id="turnCountLabel">Tour actuel: 0</div>
-          <div class="turn-note">Plus un poisson reste hors du frigo, plus sa valeur peut monter. S'il attend trop longtemps, il peut se périmer sans prévenir.</div>
-        </div>
-        <button id="advanceTurn" class="btn">Passer un tour</button>
-      </div>
-    </div>
-
     <div class="auto-sell-panel">
       <div class="auto-sell-title">Conditions auto-sell</div>
       <div class="auto-sell-row">
@@ -295,11 +247,8 @@
     const autoSellMaxPriceInput = document.getElementById("autoSellMaxPrice");
     const autoSellMaxRaritySelect = document.getElementById("autoSellMaxRarity");
     const sellByFilter = document.getElementById("sellByFilter");
-    const advanceTurn = document.getElementById("advanceTurn");
-    const turnCountLabel = document.getElementById("turnCountLabel");
 
     let money = Number(localStorage.getItem("clicker_money")) || 0;
-    let inventoryTurn = Number(localStorage.getItem("clicker_inventoryTurn")) || 0;
     let inventory = [];
     let autoSellEnabled = localStorage.getItem("clicker_autoSellEnabled") === "true";
     let autoSellMaxPrice = Number(localStorage.getItem("clicker_autoSellMaxPrice"));
@@ -397,7 +346,6 @@
         currentValue: Number.isNaN(currentValue) ? basePrice : currentValue,
         spoiledValue: spoiledValue,
         storageState: fish && fish.storageState ? fish.storageState : "fridge",
-        turnsLeft: Math.max(0, Number(fish && fish.turnsLeft) || 0),
         turnsOut: Math.max(0, turnsOut),
         hiddenSpoilTurns: hiddenSpoilTurns,
         hiddenResistance: hiddenResistance,
@@ -416,10 +364,6 @@
       }
 
       if (fish.storageState === "out") {
-        if (fish.turnsLeft > 0) {
-          return "Sorti: " + fish.turnsLeft + " tour(s) restant(s)";
-        }
-
         return "Sorti";
       }
 
@@ -448,7 +392,6 @@
 
       const duration = Math.max(1, Math.floor(Number(turns) || 0));
       fish.storageState = "out";
-      fish.turnsLeft = duration;
       if (!Number.isFinite(fish.turnsOut)) {
         fish.turnsOut = 0;
       }
@@ -458,7 +401,13 @@
       if (!Number.isFinite(fish.hiddenResistance)) {
         fish.hiddenResistance = randomBetween(1.08, 1.42, 3);
       }
+      fish.turnsOut = duration;
       refreshFishValue(fish);
+      if (duration >= fish.hiddenSpoilTurns) {
+        fish.spoiled = true;
+        fish.storageState = "fridge";
+        fish.currentValue = fish.spoiledValue;
+      }
       saveState();
       render();
     }
@@ -470,48 +419,7 @@
       }
 
       fish.storageState = "fridge";
-      fish.turnsLeft = 0;
       refreshFishValue(fish);
-      saveState();
-      render();
-    }
-
-    function advanceOneTurn() {
-      inventoryTurn += 1;
-
-      for (const fish of inventory) {
-        if (fish.spoiled) {
-          fish.currentValue = fish.spoiledValue;
-          continue;
-        }
-
-        if (fish.storageState !== "out") {
-          refreshFishValue(fish);
-          continue;
-        }
-
-        fish.turnsOut = (Number(fish.turnsOut) || 0) + 1;
-        fish.turnsLeft = Math.max(0, (Number(fish.turnsLeft) || 0) - 1);
-
-        const growthRate = Number(fish.growthRate) || 0;
-        const basePrice = Number(fish.basePrice) || 0;
-        const resistance = Math.max(1, Number(fish.hiddenResistance) || 1);
-        const boostedValue = Math.round(basePrice * Math.pow(1 + growthRate * resistance, fish.turnsOut));
-        fish.currentValue = Math.max(Number(fish.currentValue) || 0, boostedValue);
-
-        if (fish.turnsOut >= (Number(fish.hiddenSpoilTurns) || 0)) {
-          fish.spoiled = true;
-          fish.storageState = "fridge";
-          fish.turnsLeft = 0;
-          fish.currentValue = fish.spoiledValue;
-          continue;
-        }
-
-        if (fish.turnsLeft <= 0) {
-          fish.storageState = "fridge";
-        }
-      }
-
       saveState();
       render();
     }
@@ -529,7 +437,6 @@
 
     function saveState() {
       localStorage.setItem("clicker_money", String(money));
-      localStorage.setItem("clicker_inventoryTurn", String(inventoryTurn));
       localStorage.setItem("clicker_inventory", JSON.stringify(inventory));
       localStorage.setItem("clicker_autoSellEnabled", String(autoSellEnabled));
       localStorage.setItem("clicker_autoSellMaxPrice", String(autoSellMaxPrice));
@@ -571,7 +478,6 @@
       moneyDisplay.textContent = String(money);
       countDisplay.textContent = String(inventory.length);
       valueDisplay.textContent = String(totalValue);
-      turnCountLabel.textContent = "Tour actuel: " + inventoryTurn;
       autoSellEnabledInput.checked = autoSellEnabled;
       autoSellMaxPriceInput.value = String(autoSellMaxPrice);
       autoSellMaxRaritySelect.value = autoSellMaxRarity;
@@ -664,10 +570,6 @@
       autoSellMaxRarity = autoSellMaxRaritySelect.value;
       saveState();
       render();
-    });
-
-    advanceTurn.addEventListener("click", () => {
-      advanceOneTurn();
     });
 
     loadInventory();
