@@ -42,6 +42,7 @@
       border: 1px solid #aaa;
       padding: 15px;
       margin: 0;
+      margin-right: 8px;
       font-size: 16px;
       cursor: pointer;
       border-radius: 10px;
@@ -732,8 +733,7 @@
           "<div class='fish-actions'>" +
             (fish.storageState !== "out" ?
               "<div class='fish-turn-row'>" +
-                "<input type='number' min='1' step='1' value='3' data-turns-for='" + originalIndex + "' data-preview-for='" + originalIndex + "'>" +
-                "<span class='fish-preview' data-preview-value='" + originalIndex + "'>0</span>" +
+                "<input type='number' min='1' step='1' value='3' data-turns-for='" + originalIndex + "'>" +
                 "<button class='btn' data-action='" + turnAction + "' data-index='" + originalIndex + "'>Take out of fridge</button>" +
               "</div>"
               : "") +
@@ -756,32 +756,6 @@
         button.addEventListener("click", () => {
           returnFishToFridge(Number(button.getAttribute("data-return")));
         });
-      });
-
-      const turnInputs = list.querySelectorAll("input[data-preview-for]");
-      turnInputs.forEach((input) => {
-        const updatePreview = () => {
-          const index = Number(input.getAttribute("data-preview-for"));
-          const fish = inventory[index];
-          if (!fish || fish.spoiled) return;
-
-          const turns = Math.max(1, Math.floor(Number(input.value) || 1));
-          const previewUnits = turns;
-          const growthRate = Number(fish.growthRate) || 0;
-          const resistance = 1;
-          const previewBase = Math.max(getFishValue(fish), Number(fish.basePrice) || 0);
-          const baseReference = Math.max(Number(fish.basePrice) || 0, 1);
-          const previewValue = Math.round(previewBase + (baseReference * growthRate * resistance * previewUnits));
-          const finalValue = Math.max(getFishValue(fish), previewValue);
-
-          const preview = list.querySelector("span[data-preview-value='" + index + "']");
-          if (preview) {
-            preview.textContent = String(finalValue);
-          }
-        };
-
-        input.addEventListener("input", updatePreview);
-        updatePreview();
       });
 
       const turnButtons = list.querySelectorAll("button[data-action]");

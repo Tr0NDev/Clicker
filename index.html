@@ -497,6 +497,7 @@
       border: 1px solid #aaa;
       padding: 15px;
       margin: 0;
+      margin-right: 8px;
       font-size: 16px;
       border-radius: 10px;
       cursor: pointer;
@@ -711,7 +712,7 @@
         }
       ];
 
-      const ROD_UPGRADE_COSTS = [8000, 35000, 140000];
+      const ROD_UPGRADE_COSTS = [5600, 24500, 98000];
 
       const RARITY_MULTIPLIERS = {
         common: 1,
@@ -880,11 +881,11 @@
       });
 
       function getSizeUpgradeCost(level) {
-        return Math.floor(1500 * Math.pow(2.15, level));
+        return Math.floor(1050 * Math.pow(2.15, level));
       }
 
       function getTripleHookCost(level) {
-        return Math.floor(2500 * Math.pow(2.2, level));
+        return Math.floor(1750 * Math.pow(2.2, level));
       }
 
       function getRodUpgradeCost(level) {
@@ -896,15 +897,15 @@
       }
 
       function getAutoUpgradeCost(level) {
-        return Math.floor(3000 * Math.pow(2.25, level));
+        return Math.floor(2100 * Math.pow(2.25, level));
       }
 
       function getWeightUpgradeCost(level) {
-        return Math.floor(2000 * Math.pow(2.05, level));
+        return Math.floor(1400 * Math.pow(2.05, level));
       }
 
       function getWaitUpgradeCost(level) {
-        return Math.floor(4000 * Math.pow(2.3, level));
+        return Math.floor(2800 * Math.pow(2.3, level));
       }
 
       function getAutoIntervalMs() {
@@ -1108,7 +1109,7 @@
         const weightMultiplier = 1 + (weightBoostLevel * 0.01);
         const size = Number((baseSize * sizeMultiplier).toFixed(1));
         const weight = Number((baseWeight * weightMultiplier).toFixed(2));
-        const price = Math.max(1, Math.round((size * 0.35 + weight * 10) * RARITY_MULTIPLIERS[rarity]));
+        const price = Math.max(1, Math.round((size * 0.315 + weight * 9) * RARITY_MULTIPLIERS[rarity]));
 
         return {
           type: species.type,
