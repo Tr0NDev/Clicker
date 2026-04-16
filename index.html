@@ -32,20 +32,33 @@
     }
 
     .shell {
-      max-width: 900px;
+      max-width: 1080px;
       margin: 0 auto;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #0c1217;
+      border-bottom: 1px solid #22313b;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+      margin: -24px -16px 18px;
+      padding: 10px 16px;
     }
 
     .top-nav {
       display: flex;
-      justify-content: center;
+      justify-content: flex-start;
       gap: 10px;
       flex-wrap: wrap;
+      max-width: 1080px;
+      margin: 0 auto;
     }
 
     .fish-panel {
       max-width: 720px;
-      margin: 18px auto 0;
+      margin: 0;
       padding: 18px;
       border: 1px solid #2f4d5c;
       border-radius: 16px;
@@ -53,11 +66,32 @@
       box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
     }
 
-    .upgrades {
-      max-width: 720px;
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 500px;
+      gap: 20px;
+      align-items: start;
+      max-width: 1080px;
       margin: 18px auto 0;
+    }
+
+    .main-column {
+      display: grid;
+      gap: 16px;
+    }
+
+    .upgrades {
+      width: 460px;
+      max-width: none;
+      justify-self: end;
+      margin: 0;
       display: grid;
       gap: 12px;
+      position: sticky;
+      top: 72px;
+      max-height: calc(100vh - 88px);
+      overflow-y: auto;
+      padding-right: 6px;
     }
 
     .upgrade-name {
@@ -186,7 +220,7 @@
 
     .auto-sell-panel {
       max-width: 720px;
-      margin: 16px auto 0;
+      margin: 0;
       padding: 14px;
       border: 1px solid #354854;
       border-radius: 12px;
@@ -225,6 +259,26 @@
     .rarity-epic { color: #d2a8ff; }
     .rarity-legendary { color: #ffa657; }
 
+    @media (max-width: 980px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .fish-panel,
+      .auto-sell-panel {
+        margin: 0 auto;
+      }
+
+      .upgrades {
+        max-width: 720px;
+        margin: 0 auto;
+        position: static;
+        max-height: none;
+        overflow-y: visible;
+        padding-right: 0;
+      }
+    }
+
     .nav-button {
       display: inline-block;
       text-decoration: none;
@@ -232,7 +286,7 @@
       color: white;
       border: 1px solid #aaa;
       padding: 15px;
-      margin: 10px;
+      margin: 0;
       font-size: 16px;
     }
   </style>
@@ -240,13 +294,15 @@
 
 <body>
 
-  <div class="shell">
-    <h1>Clicker</h1>
-
+  <div class="top-bar">
     <div class="top-nav">
       <button class="nav-button" onclick="window.location.href='settings/'">Settings</button>
       <button class="nav-button" onclick="window.location.href='inventaire/'">Inventaire</button>
     </div>
+  </div>
+
+  <div class="shell">
+    <h1>Clicker</h1>
 
     <h2 id="money">Money: 0</h2>
     <div class="stats">
@@ -260,88 +316,114 @@
       </div>
     </div>
 
-    <div class="fish-panel">
-      <button id="clicker" class="fish-button">
-        <div class="fish-info">
-          <div class="fish-title" id="fishButtonLabel">Poisson</div>
-          <div class="fish-subtitle" id="fishDescription">Clique pour pêcher un poisson aléatoire.</div>
-        </div>
-        <div class="fish-price" id="fishPrice">0</div>
-      </button>
+    <div class="content-grid">
+      <div class="main-column">
+        <div class="fish-panel">
+          <button id="clicker" class="fish-button">
+            <div class="fish-info">
+              <div class="fish-title" id="fishButtonLabel">Poisson</div>
+              <div class="fish-subtitle" id="fishDescription">Clique pour pêcher un poisson aléatoire.</div>
+            </div>
+            <div class="fish-price" id="fishPrice">0</div>
+          </button>
 
-      <div class="legend" id="fishDetails">
-        Rareté, taille et poids apparaîtront ici.
+          <div class="legend" id="fishDetails">
+            Rareté, taille et poids apparaîtront ici.
+          </div>
+        </div>
+
+        <div class="auto-sell-panel">
+          <div class="auto-sell-title">Auto-vente (vendre si prix <= seuil et rareté <= seuil)</div>
+          <div class="auto-sell-row">
+            <label>
+              <input type="checkbox" id="autoSellEnabled">
+              Activer l'auto-vente
+            </label>
+            <label>
+              Prix max
+              <input type="number" min="0" step="1" id="autoSellMaxPrice" value="25">
+            </label>
+            <label>
+              Rareté max
+              <select id="autoSellMaxRarity">
+                <option value="common">Commune</option>
+                <option value="uncommon">Peu commune</option>
+                <option value="rare">Rare</option>
+                <option value="epic">Épique</option>
+                <option value="legendary">Légendaire</option>
+              </select>
+            </label>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div class="auto-sell-panel">
-      <div class="auto-sell-title">Auto-vente (vendre si prix <= seuil et rareté <= seuil)</div>
-      <div class="auto-sell-row">
-        <label>
-          <input type="checkbox" id="autoSellEnabled">
-          Activer l'auto-vente
-        </label>
-        <label>
-          Prix max
-          <input type="number" min="0" step="1" id="autoSellMaxPrice" value="25">
-        </label>
-        <label>
-          Rareté max
-          <select id="autoSellMaxRarity">
-            <option value="common">Commune</option>
-            <option value="uncommon">Peu commune</option>
-            <option value="rare">Rare</option>
-            <option value="epic">Épique</option>
-            <option value="legendary">Légendaire</option>
-          </select>
-        </label>
+      <div class="upgrades">
+        <button id="tripleHookUpgrade" class="upgrade">
+          <div class="upgrade-content">
+            <div class="upgrade-left">
+              <div class="upgrade-name">Hamecon triple</div>
+              <div class="upgrade-desc">Chaque niveau ajoute +1 poisson peche par clic.</div>
+              <div class="upgrade-meta">Coût: <span id="tripleHookUpgradeCost">0</span> | Par clic: <span id="fishPerClickLabel">1</span></div>
+            </div>
+            <div class="upgrade-right">x<span id="tripleHookUpgradeCount">0</span></div>
+          </div>
+        </button>
+
+        <button id="rodUpgrade" class="upgrade">
+          <div class="upgrade-content">
+            <div class="upgrade-left">
+              <div class="upgrade-name">Evolution de canne</div>
+              <div class="upgrade-desc" id="rodUpgradeDesc">Canne classique: surtout des poissons communs.</div>
+              <div class="upgrade-meta">Niveau: <span id="rodTierLabel">Classique</span> | Coût: <span id="rodUpgradeCost">-</span></div>
+            </div>
+            <div class="upgrade-right">x<span id="rodUpgradeCount">0</span></div>
+          </div>
+        </button>
+
+        <button id="sizeUpgrade" class="upgrade">
+          <div class="upgrade-content">
+            <div class="upgrade-left">
+              <div class="upgrade-name">Canne de précision</div>
+              <div class="upgrade-desc">Augmente très légèrement la taille des poissons (+1% par niveau).</div>
+              <div class="upgrade-meta">Coût: <span id="sizeUpgradeCost">0</span></div>
+            </div>
+            <div class="upgrade-right">x<span id="sizeUpgradeCount">0</span></div>
+          </div>
+        </button>
+
+        <button id="autoUpgrade" class="upgrade">
+          <div class="upgrade-content">
+            <div class="upgrade-left">
+              <div class="upgrade-name">Filet automatique</div>
+              <div class="upgrade-desc">Pêche automatiquement toutes les 10 secondes (+1 poisson par niveau).</div>
+              <div class="upgrade-meta">Coût: <span id="autoUpgradeCost">0</span></div>
+            </div>
+            <div class="upgrade-right">x<span id="autoUpgradeCount">0</span></div>
+          </div>
+        </button>
+
+        <button id="weightUpgrade" class="upgrade">
+          <div class="upgrade-content">
+            <div class="upgrade-left">
+              <div class="upgrade-name">Ligne renforcée</div>
+              <div class="upgrade-desc">Augmente légèrement le poids des poissons (+1% par niveau).</div>
+              <div class="upgrade-meta">Coût: <span id="weightUpgradeCost">0</span></div>
+            </div>
+            <div class="upgrade-right">x<span id="weightUpgradeCount">0</span></div>
+          </div>
+        </button>
+
+        <button id="waitUpgrade" class="upgrade">
+          <div class="upgrade-content">
+            <div class="upgrade-left">
+              <div class="upgrade-name">Moteur de chalut</div>
+              <div class="upgrade-desc">Réduit le délai de pêche auto de 0.5s par niveau.</div>
+              <div class="upgrade-meta">Coût: <span id="waitUpgradeCost">0</span> | Délai actuel: <span id="autoDelayLabel">10.0</span>s</div>
+            </div>
+            <div class="upgrade-right">x<span id="waitUpgradeCount">0</span></div>
+          </div>
+        </button>
       </div>
-    </div>
-
-    <div class="upgrades">
-      <button id="sizeUpgrade" class="upgrade">
-        <div class="upgrade-content">
-          <div class="upgrade-left">
-            <div class="upgrade-name">Canne de précision</div>
-            <div class="upgrade-desc">Augmente très légèrement la taille des poissons (+1% par niveau).</div>
-            <div class="upgrade-meta">Coût: <span id="sizeUpgradeCost">0</span></div>
-          </div>
-          <div class="upgrade-right">x<span id="sizeUpgradeCount">0</span></div>
-        </div>
-      </button>
-
-      <button id="autoUpgrade" class="upgrade">
-        <div class="upgrade-content">
-          <div class="upgrade-left">
-            <div class="upgrade-name">Filet automatique</div>
-            <div class="upgrade-desc">Pêche automatiquement toutes les 10 secondes (+1 poisson par niveau).</div>
-            <div class="upgrade-meta">Coût: <span id="autoUpgradeCost">0</span></div>
-          </div>
-          <div class="upgrade-right">x<span id="autoUpgradeCount">0</span></div>
-        </div>
-      </button>
-
-      <button id="weightUpgrade" class="upgrade">
-        <div class="upgrade-content">
-          <div class="upgrade-left">
-            <div class="upgrade-name">Ligne renforcée</div>
-            <div class="upgrade-desc">Augmente légèrement le poids des poissons (+1% par niveau).</div>
-            <div class="upgrade-meta">Coût: <span id="weightUpgradeCost">0</span></div>
-          </div>
-          <div class="upgrade-right">x<span id="weightUpgradeCount">0</span></div>
-        </div>
-      </button>
-
-      <button id="waitUpgrade" class="upgrade">
-        <div class="upgrade-content">
-          <div class="upgrade-left">
-            <div class="upgrade-name">Moteur de chalut</div>
-            <div class="upgrade-desc">Réduit le délai de pêche auto de 0.5s par niveau.</div>
-            <div class="upgrade-meta">Coût: <span id="waitUpgradeCost">0</span> | Délai actuel: <span id="autoDelayLabel">10.0</span>s</div>
-          </div>
-          <div class="upgrade-right">x<span id="waitUpgradeCount">0</span></div>
-        </div>
-      </button>
     </div>
 
     <script>
@@ -363,12 +445,37 @@
       ];
 
       const RARITY_WEIGHTS = [
-        { rarity: "common", weight: 72 },
-        { rarity: "uncommon", weight: 20 },
-        { rarity: "rare", weight: 6 },
-        { rarity: "epic", weight: 1.8 },
-        { rarity: "legendary", weight: 0.2 }
+        { rarity: "common", weight: 88 },
+        { rarity: "uncommon", weight: 9 },
+        { rarity: "rare", weight: 2.2 },
+        { rarity: "epic", weight: 0.7 },
+        { rarity: "legendary", weight: 0.1 }
       ];
+
+      const ROD_TIERS = [
+        {
+          name: "Classique",
+          desc: "Canne classique: surtout des poissons communs.",
+          multipliers: { common: 1, uncommon: 1, rare: 1, epic: 1, legendary: 1 }
+        },
+        {
+          name: "Amateur",
+          desc: "Augmente un peu les rares et baisse les communs.",
+          multipliers: { common: 0.78, uncommon: 1.25, rare: 1.8, epic: 2.4, legendary: 3.5 }
+        },
+        {
+          name: "Pro",
+          desc: "Ameliore fortement les chances de poissons rares.",
+          multipliers: { common: 0.55, uncommon: 1.35, rare: 2.6, epic: 4, legendary: 6.5 }
+        },
+        {
+          name: "Ultime",
+          desc: "Canne ultime: bien meilleure qualite de prises.",
+          multipliers: { common: 0.35, uncommon: 1.25, rare: 3.5, epic: 6.5, legendary: 10 }
+        }
+      ];
+
+      const ROD_UPGRADE_COSTS = [8000, 35000, 140000];
 
       const RARITY_MULTIPLIERS = {
         common: 1,
@@ -389,14 +496,23 @@
       const autoSellEnabledInput = document.getElementById("autoSellEnabled");
       const autoSellMaxPriceInput = document.getElementById("autoSellMaxPrice");
       const autoSellMaxRaritySelect = document.getElementById("autoSellMaxRarity");
+      const tripleHookUpgrade = document.getElementById("tripleHookUpgrade");
+      const rodUpgrade = document.getElementById("rodUpgrade");
       const sizeUpgrade = document.getElementById("sizeUpgrade");
       const autoUpgrade = document.getElementById("autoUpgrade");
       const weightUpgrade = document.getElementById("weightUpgrade");
       const waitUpgrade = document.getElementById("waitUpgrade");
+      const tripleHookUpgradeCount = document.getElementById("tripleHookUpgradeCount");
+      const rodUpgradeCount = document.getElementById("rodUpgradeCount");
       const sizeUpgradeCount = document.getElementById("sizeUpgradeCount");
       const autoUpgradeCount = document.getElementById("autoUpgradeCount");
       const weightUpgradeCount = document.getElementById("weightUpgradeCount");
       const waitUpgradeCount = document.getElementById("waitUpgradeCount");
+      const tripleHookUpgradeCost = document.getElementById("tripleHookUpgradeCost");
+      const rodUpgradeCost = document.getElementById("rodUpgradeCost");
+      const fishPerClickLabel = document.getElementById("fishPerClickLabel");
+      const rodTierLabel = document.getElementById("rodTierLabel");
+      const rodUpgradeDesc = document.getElementById("rodUpgradeDesc");
       const sizeUpgradeCost = document.getElementById("sizeUpgradeCost");
       const autoUpgradeCost = document.getElementById("autoUpgradeCost");
       const weightUpgradeCost = document.getElementById("weightUpgradeCost");
@@ -409,6 +525,8 @@
       let autoFisherLevel = Number(localStorage.getItem("clicker_autoFisherLevel")) || 0;
       let weightBoostLevel = Number(localStorage.getItem("clicker_weightBoostLevel")) || 0;
       let autoWaitReductionLevel = Number(localStorage.getItem("clicker_autoWaitReductionLevel")) || 0;
+      let tripleHookLevel = Number(localStorage.getItem("clicker_tripleHookLevel")) || 0;
+      let rodTierLevel = Number(localStorage.getItem("clicker_rodTierLevel")) || 0;
       let inventory = [];
       let autoSellEnabled = localStorage.getItem("clicker_autoSellEnabled") === "true";
       let autoSellMaxPrice = Number(localStorage.getItem("clicker_autoSellMaxPrice"));
@@ -430,19 +548,31 @@
       }
 
       function getSizeUpgradeCost(level) {
-        return Math.floor(40 * Math.pow(1.55, level));
+        return Math.floor(1500 * Math.pow(2.15, level));
+      }
+
+      function getTripleHookCost(level) {
+        return Math.floor(2500 * Math.pow(2.2, level));
+      }
+
+      function getRodUpgradeCost(level) {
+        if (level >= ROD_UPGRADE_COSTS.length) {
+          return null;
+        }
+
+        return ROD_UPGRADE_COSTS[level];
       }
 
       function getAutoUpgradeCost(level) {
-        return Math.floor(120 * Math.pow(1.8, level));
+        return Math.floor(3000 * Math.pow(2.25, level));
       }
 
       function getWeightUpgradeCost(level) {
-        return Math.floor(60 * Math.pow(1.6, level));
+        return Math.floor(2000 * Math.pow(2.05, level));
       }
 
       function getWaitUpgradeCost(level) {
-        return Math.floor(180 * Math.pow(1.9, level));
+        return Math.floor(4000 * Math.pow(2.3, level));
       }
 
       function getAutoIntervalMs() {
@@ -508,6 +638,42 @@
         return classes[rarity] || "rarity-common";
       }
 
+      function getAdjustedRarityWeights() {
+        const tier = ROD_TIERS[Math.min(rodTierLevel, ROD_TIERS.length - 1)];
+
+        return RARITY_WEIGHTS.map((entry) => {
+          const multiplier = tier.multipliers[entry.rarity] || 1;
+          return {
+            rarity: entry.rarity,
+            weight: entry.weight * multiplier
+          };
+        });
+      }
+
+      function getFishDescriptors(fish) {
+        const tags = [];
+
+        if (fish.size >= 180) {
+          tags.push("immense");
+        } else if (fish.size >= 95) {
+          tags.push("gros");
+        } else if (fish.size <= 28) {
+          tags.push("petit");
+        }
+
+        if (fish.weight >= 40) {
+          tags.push("lourd");
+        } else if (fish.weight <= 1.2) {
+          tags.push("leger");
+        }
+
+        if (tags.length === 0) {
+          return "(moyen)";
+        }
+
+        return "(" + tags.join(", ") + ")";
+      }
+
       function shouldAutoSell(fish) {
         if (!autoSellEnabled) {
           return false;
@@ -519,7 +685,7 @@
       }
 
       function createFish() {
-        const rarity = pickWeighted(RARITY_WEIGHTS);
+        const rarity = pickWeighted(getAdjustedRarityWeights());
         const pool = FISH_SPECIES.filter((fish) => fish.rarity === rarity);
         const species = pickRandom(pool);
         const baseSize = randomBetween(species.sizeMin, species.sizeMax, 1);
@@ -564,6 +730,8 @@
         localStorage.setItem("clicker_caughtCount", String(caughtCount));
         localStorage.setItem("clicker_currentFish", JSON.stringify(currentFish));
         localStorage.setItem("clicker_inventory", JSON.stringify(inventory));
+        localStorage.setItem("clicker_tripleHookLevel", String(tripleHookLevel));
+        localStorage.setItem("clicker_rodTierLevel", String(rodTierLevel));
         localStorage.setItem("clicker_sizeBoostLevel", String(sizeBoostLevel));
         localStorage.setItem("clicker_autoFisherLevel", String(autoFisherLevel));
         localStorage.setItem("clicker_weightBoostLevel", String(weightBoostLevel));
@@ -583,9 +751,9 @@
           caughtAt: new Date().toISOString()
         };
 
-        if (shouldAutoSell(fishToStore)) {
-          money += fishToStore.price;
-        } else {
+        money += fishToStore.price;
+
+        if (!shouldAutoSell(fishToStore)) {
           inventory.push(fishToStore);
         }
 
@@ -594,22 +762,34 @@
       }
 
       function render() {
+        const nextTripleHookCost = getTripleHookCost(tripleHookLevel);
+        const nextRodUpgradeCost = getRodUpgradeCost(rodTierLevel);
         const nextSizeCost = getSizeUpgradeCost(sizeBoostLevel);
         const nextAutoCost = getAutoUpgradeCost(autoFisherLevel);
         const nextWeightCost = getWeightUpgradeCost(weightBoostLevel);
         const nextWaitCost = getWaitUpgradeCost(autoWaitReductionLevel);
         const autoDelaySeconds = (getAutoIntervalMs() / 1000).toFixed(1);
         const rarityClass = getRarityClass(currentFish.rarity);
+        const fishDescriptors = getFishDescriptors(currentFish);
+        const fishPerClick = 1 + tripleHookLevel;
+        const rodTier = ROD_TIERS[Math.min(rodTierLevel, ROD_TIERS.length - 1)];
 
         moneyDisplay.textContent = "Money: " + money;
         caughtCountDisplay.textContent = String(caughtCount);
-        fishTypeDisplay.textContent = currentFish.type;
+        fishTypeDisplay.textContent = currentFish.type + " " + fishDescriptors;
         fishTypeDisplay.className = "stat-value " + rarityClass;
-        fishButtonLabel.textContent = currentFish.type;
+        fishButtonLabel.textContent = currentFish.type + " " + fishDescriptors;
         fishButtonLabel.className = "fish-title " + rarityClass;
         fishDescription.textContent = "Clique pour pêcher ce poisson. Sa valeur dépend de sa taille, de son poids et de sa rareté.";
         fishPrice.textContent = String(currentFish.price);
-        fishDetails.innerHTML = "Type: " + currentFish.type + " | Rareté: <span class='" + getRarityClass(currentFish.rarity) + "'>" + formatRarityLabel(currentFish.rarity) + "</span> | Taille: " + currentFish.size + " cm | Poids: " + currentFish.weight + " kg | Prix: " + currentFish.price + " | Inventaire: " + inventory.length;
+        fishDetails.innerHTML = "Type: " + currentFish.type + " " + fishDescriptors + " | Rareté: <span class='" + getRarityClass(currentFish.rarity) + "'>" + formatRarityLabel(currentFish.rarity) + "</span> | Taille: " + currentFish.size + " cm | Poids: " + currentFish.weight + " kg | Prix: " + currentFish.price + " | Inventaire: " + inventory.length;
+        tripleHookUpgradeCount.textContent = String(tripleHookLevel);
+        rodUpgradeCount.textContent = String(rodTierLevel);
+        fishPerClickLabel.textContent = String(fishPerClick);
+        rodTierLabel.textContent = rodTier.name;
+        rodUpgradeDesc.textContent = rodTier.desc;
+        tripleHookUpgradeCost.textContent = String(nextTripleHookCost);
+        rodUpgradeCost.textContent = nextRodUpgradeCost === null ? "MAX" : String(nextRodUpgradeCost);
         sizeUpgradeCount.textContent = String(sizeBoostLevel);
         autoUpgradeCount.textContent = String(autoFisherLevel);
         weightUpgradeCount.textContent = String(weightBoostLevel);
@@ -626,8 +806,29 @@
       }
 
       clicker.addEventListener("click", () => {
-        catchCurrentFish();
+        const fishPerClick = 1 + tripleHookLevel;
+        for (let i = 0; i < fishPerClick; i++) {
+          catchCurrentFish();
+        }
         render();
+      });
+
+      tripleHookUpgrade.addEventListener("click", () => {
+        const cost = getTripleHookCost(tripleHookLevel);
+        if (money >= cost) {
+          money -= cost;
+          tripleHookLevel++;
+          render();
+        }
+      });
+
+      rodUpgrade.addEventListener("click", () => {
+        const cost = getRodUpgradeCost(rodTierLevel);
+        if (cost !== null && money >= cost) {
+          money -= cost;
+          rodTierLevel++;
+          render();
+        }
       });
 
       sizeUpgrade.addEventListener("click", () => {
