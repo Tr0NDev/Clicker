@@ -147,9 +147,10 @@
 
     .fish-turn-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) auto auto;
       gap: 8px;
       width: 100%;
+      align-items: center;
     }
 
     .fish-turn-row input {
@@ -160,6 +161,14 @@
       border: 1px solid #635b85;
       background: #0f1519;
       color: #fff;
+    }
+
+    .fish-preview {
+      font-size: 13px;
+      color: #f7f0c4;
+      font-weight: bold;
+      min-width: 80px;
+      text-align: right;
     }
 
     .fish-actions .btn {
@@ -180,6 +189,44 @@
       margin-top: 16px;
       color: #9eb0bc;
     }
+
+    .sort-panel {
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid #3a5262;
+      border-radius: 10px;
+      background: #172028;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .sort-label {
+      font-size: 14px;
+      color: #cfe0ea;
+      font-weight: bold;
+    }
+
+    .sort-btn {
+      border: 1px solid #8897a5;
+      background: #263541;
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    .sort-btn.active {
+      background: #3a5f7a;
+      border-color: #5a8faa;
+    }
+
+    .sort-btn:hover {
+      background: #324555;
+    }
   </style>
 </head>
 <body>
@@ -188,7 +235,6 @@
       <h1>Inventaire</h1>
       <div>
         <a class="btn" href="../">Retour au jeu</a>
-        <button id="sellAll" class="btn">Vendre tout</button>
       </div>
     </div>
 
@@ -232,6 +278,15 @@
       </div>
     </div>
 
+    <div class="sort-panel">
+      <span class="sort-label">Trier par:</span>
+      <button class="sort-btn active" data-sort="none">Défaut</button>
+      <button class="sort-btn" data-sort="price">Prix ↓</button>
+      <button class="sort-btn" data-sort="weight">Poids ↓</button>
+      <button class="sort-btn" data-sort="size">Taille ↓</button>
+      <button class="sort-btn" data-sort="rarity">Rareté ↓</button>
+    </div>
+
     <div id="list" class="list"></div>
     <div id="empty" class="empty" style="display:none;">Inventaire vide.</div>
   </div>
@@ -242,7 +297,6 @@
     const valueDisplay = document.getElementById("value");
     const list = document.getElementById("list");
     const empty = document.getElementById("empty");
-    const sellAll = document.getElementById("sellAll");
     const autoSellEnabledInput = document.getElementById("autoSellEnabled");
     const autoSellMaxPriceInput = document.getElementById("autoSellMaxPrice");
     const autoSellMaxRaritySelect = document.getElementById("autoSellMaxRarity");
@@ -253,6 +307,7 @@
     let autoSellEnabled = localStorage.getItem("clicker_autoSellEnabled") === "true";
     let autoSellMaxPrice = Number(localStorage.getItem("clicker_autoSellMaxPrice"));
     let autoSellMaxRarity = localStorage.getItem("clicker_autoSellMaxRarity") || "common";
+    let sortMode = "none";
 
     if (Number.isNaN(autoSellMaxPrice)) {
       autoSellMaxPrice = 25;
@@ -491,13 +546,26 @@
       empty.style.display = "none";
       list.innerHTML = "";
 
-      inventory.forEach((fish, index) => {
+      let displayInventory = [...inventory];
+      
+      if (sortMode === "price") {
+        displayInventory.sort((a, b) => getFishValue(b) - getFishValue(a));
+      } else if (sortMode === "weight") {
+        displayInventory.sort((a, b) => Number(b.weight) - Number(a.weight));
+      } else if (sortMode === "size") {
+        displayInventory.sort((a, b) => Number(b.size) - Number(a.size));
+      } else if (sortMode === "rarity") {
+        displayInventory.sort((a, b) => rarityRank(b.rarity) - rarityRank(a.rarity));
+      }
+
+      displayInventory.forEach((fish, displayIndex) => {
+        const originalIndex = inventory.indexOf(fish);
         refreshFishValue(fish);
         const item = document.createElement("div");
         const descriptorText = fishDescriptors(fish);
         const fishValue = getFishValue(fish);
-        const turnActionLabel = fish.storageState === "out" ? "Rentrer au frigo" : "Sortir du frigo";
-        const turnAction = fish.storageState === "out" ? "return" : "out";
+        const turnActionLabel = fish.storageState === "out" ? "Mettre à jour durée" : "Sortir du frigo";
+        const turnAction = "out";
         item.className = "fish";
         item.innerHTML =
           "<div class='fish-left'>" +
@@ -508,10 +576,12 @@
           "</div>" +
           "<div class='fish-actions'>" +
             "<div class='fish-turn-row'>" +
-              "<input type='number' min='1' step='1' value='3' data-turns-for='" + index + "'>" +
-              "<button class='btn' data-action='" + turnAction + "' data-index='" + index + "'>" + turnActionLabel + "</button>" +
+              "<input type='number' min='1' step='1' value='3' data-turns-for='" + originalIndex + "' data-preview-for='" + originalIndex + "'>" +
+              "<span class='fish-preview' data-preview-value='" + originalIndex + "'>0</span>" +
+              "<button class='btn' data-action='" + turnAction + "' data-index='" + originalIndex + "'>" + turnActionLabel + "</button>" +
             "</div>" +
-            "<button class='btn' data-sell='" + index + "'>Vendre</button>" +
+            (fish.storageState === "out" ? "<button class='btn' data-return='" + originalIndex + "'>Rentrer au frigo</button>" : "") +
+            "<button class='btn' data-sell='" + originalIndex + "'>Vendre</button>" +
           "</div>";
 
         list.appendChild(item);
@@ -524,30 +594,46 @@
         });
       });
 
+      const returnButtons = list.querySelectorAll("button[data-return]");
+      returnButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          returnFishToFridge(Number(button.getAttribute("data-return")));
+        });
+      });
+
+      const turnInputs = list.querySelectorAll("input[data-preview-for]");
+      turnInputs.forEach((input) => {
+        const updatePreview = () => {
+          const index = Number(input.getAttribute("data-preview-for"));
+          const fish = inventory[index];
+          if (!fish || fish.spoiled) return;
+
+          const turns = Math.max(1, Math.floor(Number(input.value) || 1));
+          const growthRate = Number(fish.growthRate) || 0;
+          const resistance = Math.max(1, Number(fish.hiddenResistance) || 1);
+          const previewValue = Math.round((Number(fish.basePrice) || 0) * Math.pow(1 + growthRate * resistance, turns));
+          const finalValue = Math.max(Number(fish.currentValue) || 0, previewValue);
+
+          const preview = list.querySelector("span[data-preview-value='" + index + "']");
+          if (preview) {
+            preview.textContent = String(finalValue);
+          }
+        };
+
+        input.addEventListener("input", updatePreview);
+        updatePreview();
+      });
+
       const turnButtons = list.querySelectorAll("button[data-action]");
       turnButtons.forEach((button) => {
         button.addEventListener("click", () => {
           const index = Number(button.getAttribute("data-index"));
-          const action = button.getAttribute("data-action");
           const input = list.querySelector("input[data-turns-for='" + index + "']");
           const turns = input ? Number(input.value) : 1;
-
-          if (action === "out") {
-            takeFishOut(index, turns);
-          } else {
-            returnFishToFridge(index);
-          }
+          takeFishOut(index, turns);
         });
       });
     }
-
-    sellAll.addEventListener("click", () => {
-      const totalValue = inventory.reduce((sum, fish) => sum + getFishValue(fish), 0);
-      money += totalValue;
-      inventory = [];
-      saveState();
-      render();
-    });
 
     sellByFilter.addEventListener("click", () => {
       applyAutoSellToInventory();
@@ -570,6 +656,16 @@
       autoSellMaxRarity = autoSellMaxRaritySelect.value;
       saveState();
       render();
+    });
+
+    const sortButtons = document.querySelectorAll(".sort-btn");
+    sortButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        sortButtons.forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+        sortMode = button.getAttribute("data-sort");
+        render();
+      });
     });
 
     loadInventory();

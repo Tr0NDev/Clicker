@@ -10,7 +10,7 @@
       color: white;
       margin: 0;
       padding: 24px 16px 36px;
-      overflow: hidden;
+      overflow-y: auto;
     }
 
     button {
@@ -35,7 +35,7 @@
     .shell {
       max-width: 1080px;
       margin: 0 auto;
-      height: calc(100vh - 24px - 36px);
+      min-height: calc(100vh - 24px - 36px);
       display: flex;
       flex-direction: column;
     }
@@ -79,7 +79,6 @@
       align-items: start;
       max-width: 1080px;
       margin: 18px auto 0;
-      flex: 1;
       min-height: 0;
     }
 
@@ -98,8 +97,8 @@
       display: grid;
       gap: 12px;
       position: relative;
-      height: calc(100vh - 132px);
-      max-height: calc(100vh - 132px);
+      max-height: 70vh;
+      min-height: 0;
       overflow-y: auto;
       padding-right: 8px;
     }
@@ -275,12 +274,11 @@
       }
 
       .shell {
-        height: auto;
+        min-height: auto;
       }
 
       .content-grid {
         grid-template-columns: 1fr;
-        flex: none;
       }
 
       .fish-panel,
@@ -451,15 +449,27 @@
         { type: "Carpe commune", rarity: "common", sizeMin: 25, sizeMax: 55, weightMin: 0.8, weightMax: 2.8 },
         { type: "Gardon rapide", rarity: "common", sizeMin: 15, sizeMax: 28, weightMin: 0.2, weightMax: 0.9 },
         { type: "Perche rayée", rarity: "common", sizeMin: 18, sizeMax: 35, weightMin: 0.3, weightMax: 1.4 },
+        { type: "Ablette vive", rarity: "common", sizeMin: 10, sizeMax: 18, weightMin: 0.05, weightMax: 0.25 },
+        { type: "Tanche sombre", rarity: "common", sizeMin: 20, sizeMax: 42, weightMin: 0.5, weightMax: 2.2 },
+        { type: "Brème argentée", rarity: "common", sizeMin: 22, sizeMax: 48, weightMin: 0.6, weightMax: 2.4 },
         { type: "Truite argentée", rarity: "uncommon", sizeMin: 28, sizeMax: 58, weightMin: 0.7, weightMax: 3.5 },
         { type: "Bar de roche", rarity: "uncommon", sizeMin: 22, sizeMax: 44, weightMin: 0.8, weightMax: 2.6 },
         { type: "Saumon noble", rarity: "uncommon", sizeMin: 40, sizeMax: 78, weightMin: 1.8, weightMax: 5.6 },
+        { type: "Omble de rivière", rarity: "uncommon", sizeMin: 24, sizeMax: 52, weightMin: 0.9, weightMax: 3.1 },
+        { type: "Sandre furtif", rarity: "uncommon", sizeMin: 30, sizeMax: 70, weightMin: 1.0, weightMax: 4.8 },
+        { type: "Dorade claire", rarity: "uncommon", sizeMin: 26, sizeMax: 60, weightMin: 1.2, weightMax: 4.2 },
         { type: "Thon bleu", rarity: "rare", sizeMin: 60, sizeMax: 130, weightMin: 8, weightMax: 35 },
         { type: "Brochet sauvage", rarity: "rare", sizeMin: 45, sizeMax: 110, weightMin: 2.5, weightMax: 15 },
         { type: "Poisson-lune", rarity: "rare", sizeMin: 70, sizeMax: 180, weightMin: 3, weightMax: 45 },
+        { type: "Bar géant", rarity: "rare", sizeMin: 50, sizeMax: 125, weightMin: 3.5, weightMax: 18 },
+        { type: "Turbot marin", rarity: "rare", sizeMin: 40, sizeMax: 100, weightMin: 2.0, weightMax: 12 },
+        { type: "Esturgeon bleu", rarity: "rare", sizeMin: 65, sizeMax: 155, weightMin: 7, weightMax: 40 },
         { type: "Mahi-mahi", rarity: "epic", sizeMin: 70, sizeMax: 160, weightMin: 5, weightMax: 25 },
         { type: "Raie arc-en-ciel", rarity: "epic", sizeMin: 80, sizeMax: 220, weightMin: 10, weightMax: 80 },
         { type: "Mérou géant", rarity: "epic", sizeMin: 90, sizeMax: 200, weightMin: 15, weightMax: 90 },
+        { type: "Anguille prismatique", rarity: "epic", sizeMin: 60, sizeMax: 180, weightMin: 4, weightMax: 30 },
+        { type: "Murène royale", rarity: "epic", sizeMin: 75, sizeMax: 190, weightMin: 8, weightMax: 55 },
+        { type: "Baliste chromé", rarity: "epic", sizeMin: 55, sizeMax: 145, weightMin: 6, weightMax: 22 },
         { type: "Requin doré", rarity: "legendary", sizeMin: 150, sizeMax: 420, weightMin: 40, weightMax: 220 },
         { type: "Dragon des mers", rarity: "legendary", sizeMin: 120, sizeMax: 300, weightMin: 30, weightMax: 180 }
       ];
