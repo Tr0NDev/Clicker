@@ -10,6 +10,7 @@
       color: white;
       margin: 0;
       padding: 24px 16px 36px;
+      overflow: hidden;
     }
 
     button {
@@ -34,6 +35,9 @@
     .shell {
       max-width: 1080px;
       margin: 0 auto;
+      height: calc(100vh - 24px - 36px);
+      display: flex;
+      flex-direction: column;
     }
 
     .top-bar {
@@ -44,7 +48,7 @@
       border-bottom: 1px solid #22313b;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
       margin: -24px -16px 18px;
-      padding: 10px 16px;
+      padding: 10px 0;
     }
 
     .top-nav {
@@ -52,8 +56,10 @@
       justify-content: flex-start;
       gap: 10px;
       flex-wrap: wrap;
-      max-width: 1080px;
-      margin: 0 auto;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0 0 0 16px;
     }
 
     .fish-panel {
@@ -73,25 +79,29 @@
       align-items: start;
       max-width: 1080px;
       margin: 18px auto 0;
+      flex: 1;
+      min-height: 0;
     }
 
     .main-column {
       display: grid;
       gap: 16px;
+      min-height: 0;
+      overflow: hidden;
     }
 
     .upgrades {
-      width: 460px;
+      width: 100%;
       max-width: none;
       justify-self: end;
       margin: 0;
       display: grid;
       gap: 12px;
-      position: sticky;
-      top: 72px;
-      max-height: calc(100vh - 88px);
+      position: relative;
+      height: calc(100vh - 132px);
+      max-height: calc(100vh - 132px);
       overflow-y: auto;
-      padding-right: 6px;
+      padding-right: 8px;
     }
 
     .upgrade-name {
@@ -260,8 +270,17 @@
     .rarity-legendary { color: #ffa657; }
 
     @media (max-width: 980px) {
+      body {
+        overflow: auto;
+      }
+
+      .shell {
+        height: auto;
+      }
+
       .content-grid {
         grid-template-columns: 1fr;
+        flex: none;
       }
 
       .fish-panel,
@@ -273,6 +292,7 @@
         max-width: 720px;
         margin: 0 auto;
         position: static;
+        height: auto;
         max-height: none;
         overflow-y: visible;
         padding-right: 0;
@@ -532,6 +552,8 @@
       let autoSellMaxPrice = Number(localStorage.getItem("clicker_autoSellMaxPrice"));
       let autoSellMaxRarity = localStorage.getItem("clicker_autoSellMaxRarity") || "common";
       let lastAutoCatchMs = Date.now();
+      let lastManualCatchMs = 0;
+      let inventoryTurn = Number(localStorage.getItem("clicker_inventoryTurn")) || 0;
 
       if (Number.isNaN(autoSellMaxPrice)) {
         autoSellMaxPrice = 25;
@@ -730,6 +752,7 @@
         localStorage.setItem("clicker_caughtCount", String(caughtCount));
         localStorage.setItem("clicker_currentFish", JSON.stringify(currentFish));
         localStorage.setItem("clicker_inventory", JSON.stringify(inventory));
+        localStorage.setItem("clicker_inventoryTurn", String(inventoryTurn));
         localStorage.setItem("clicker_tripleHookLevel", String(tripleHookLevel));
         localStorage.setItem("clicker_rodTierLevel", String(rodTierLevel));
         localStorage.setItem("clicker_sizeBoostLevel", String(sizeBoostLevel));
@@ -741,7 +764,16 @@
         localStorage.setItem("clicker_autoSellMaxRarity", autoSellMaxRarity);
       }
 
-      function catchCurrentFish() {
+      function catchCurrentFish(source) {
+        if (source === "manual") {
+          const now = Date.now();
+          if (now - lastManualCatchMs < 3000) {
+            return false;
+          }
+
+          lastManualCatchMs = now;
+        }
+
         const fishToStore = {
           type: currentFish.type,
           rarity: currentFish.rarity,
@@ -759,6 +791,7 @@
 
         caughtCount++;
         currentFish = createFish();
+        return true;
       }
 
       function render() {
@@ -807,10 +840,18 @@
 
       clicker.addEventListener("click", () => {
         const fishPerClick = 1 + tripleHookLevel;
+        let caughtAny = false;
         for (let i = 0; i < fishPerClick; i++) {
-          catchCurrentFish();
+          const caught = catchCurrentFish("manual");
+          if (!caught) {
+            break;
+          }
+          caughtAny = true;
         }
-        render();
+
+        if (caughtAny) {
+          render();
+        }
       });
 
       tripleHookUpgrade.addEventListener("click", () => {
@@ -894,7 +935,7 @@
 
         while (now - lastAutoCatchMs >= interval) {
           for (let i = 0; i < autoFisherLevel; i++) {
-            catchCurrentFish();
+            catchCurrentFish("auto");
           }
           lastAutoCatchMs += interval;
         }

@@ -99,6 +99,9 @@
         caughtCount: Number(localStorage.getItem("clicker_caughtCount")) || 0,
         inventory: localStorage.getItem("clicker_inventory") || "[]",
         currentFish: localStorage.getItem("clicker_currentFish") || "",
+        inventoryTurn: Number(localStorage.getItem("clicker_inventoryTurn")) || 0,
+        tripleHookLevel: Number(localStorage.getItem("clicker_tripleHookLevel")) || 0,
+        rodTierLevel: Number(localStorage.getItem("clicker_rodTierLevel")) || 0,
         sizeBoostLevel: Number(localStorage.getItem("clicker_sizeBoostLevel")) || 0,
         autoFisherLevel: Number(localStorage.getItem("clicker_autoFisherLevel")) || 0,
         weightBoostLevel: Number(localStorage.getItem("clicker_weightBoostLevel")) || 0,
@@ -116,6 +119,9 @@
         "caughtCount=" + state.caughtCount,
         "inventory=" + state.inventory,
         "currentFish=" + state.currentFish,
+        "inventoryTurn=" + state.inventoryTurn,
+        "tripleHookLevel=" + state.tripleHookLevel,
+        "rodTierLevel=" + state.rodTierLevel,
         "sizeBoostLevel=" + state.sizeBoostLevel,
         "autoFisherLevel=" + state.autoFisherLevel,
         "weightBoostLevel=" + state.weightBoostLevel,
@@ -133,6 +139,9 @@
         caughtCount: 0,
         inventory: "[]",
         currentFish: "",
+        inventoryTurn: 0,
+        tripleHookLevel: 0,
+        rodTierLevel: 0,
         sizeBoostLevel: 0,
         autoFisherLevel: 0,
         weightBoostLevel: 0,
@@ -165,6 +174,15 @@
         }
         if (key === "currentFish") {
           state.currentFish = rawValue;
+        }
+        if (key === "inventoryTurn" && !Number.isNaN(value)) {
+          state.inventoryTurn = value;
+        }
+        if (key === "tripleHookLevel" && !Number.isNaN(value)) {
+          state.tripleHookLevel = value;
+        }
+        if (key === "rodTierLevel" && !Number.isNaN(value)) {
+          state.rodTierLevel = value;
         }
         if (key === "sizeBoostLevel" && !Number.isNaN(value)) {
           state.sizeBoostLevel = value;
@@ -207,6 +225,9 @@
       localStorage.setItem("clicker_money", String(state.money));
       localStorage.setItem("clicker_caughtCount", String(state.caughtCount));
       localStorage.setItem("clicker_inventory", state.inventory);
+      localStorage.setItem("clicker_inventoryTurn", String(state.inventoryTurn));
+      localStorage.setItem("clicker_tripleHookLevel", String(state.tripleHookLevel));
+      localStorage.setItem("clicker_rodTierLevel", String(state.rodTierLevel));
       localStorage.setItem("clicker_sizeBoostLevel", String(state.sizeBoostLevel));
       localStorage.setItem("clicker_autoFisherLevel", String(state.autoFisherLevel));
       localStorage.setItem("clicker_weightBoostLevel", String(state.weightBoostLevel));
@@ -224,6 +245,9 @@
         caughtCount: state.caughtCount,
         inventory: state.inventory,
         currentFish: state.currentFish || localStorage.getItem("clicker_currentFish") || "",
+        inventoryTurn: state.inventoryTurn,
+        tripleHookLevel: state.tripleHookLevel,
+        rodTierLevel: state.rodTierLevel,
         sizeBoostLevel: state.sizeBoostLevel,
         autoFisherLevel: state.autoFisherLevel,
         weightBoostLevel: state.weightBoostLevel,
