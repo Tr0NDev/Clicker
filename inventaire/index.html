@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Inventaire</title>
+  <title>Inventory</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -10,6 +10,40 @@
       color: #fff;
       margin: 0;
       padding: 24px 16px;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #0c1217;
+      border-bottom: 1px solid #22313b;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+      margin: -24px -16px 18px;
+      padding: 10px 0;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0 0 0 16px;
+    }
+
+    .nav-button {
+      display: inline-block;
+      text-decoration: none;
+      background: #555;
+      color: white;
+      border: 1px solid #aaa;
+      padding: 15px;
+      margin: 0;
+      font-size: 16px;
+      cursor: pointer;
     }
 
     .shell {
@@ -66,6 +100,9 @@
       margin-top: 16px;
       display: grid;
       gap: 10px;
+      max-height: calc(100vh - 360px);
+      overflow-y: auto;
+      padding-right: 4px;
     }
 
     .fish {
@@ -106,7 +143,7 @@
 
     .auto-sell-row {
       display: grid;
-      grid-template-columns: 1.2fr 1fr 1fr auto;
+      grid-template-columns: 1fr 1fr auto;
       gap: 8px;
       align-items: center;
     }
@@ -230,84 +267,86 @@
   </style>
 </head>
 <body>
+  <div class="top-bar">
+    <div class="top-nav">
+      <button class="nav-button" onclick="window.location.href='../'">Game</button>
+      <button class="nav-button" onclick="window.location.href='./'">Inventory</button>
+      <button class="nav-button" onclick="window.location.href='../settings/'">Settings</button>
+    </div>
+  </div>
+
   <div class="shell">
     <div class="top">
-      <h1>Inventaire</h1>
-      <div>
-        <a class="btn" href="../">Retour au jeu</a>
-      </div>
+      <h1>Inventory</h1>
     </div>
 
     <div class="stats">
       <div class="box">
-        <div class="box-title">Argent</div>
+        <div class="box-title">Money</div>
         <div class="box-value" id="money">0</div>
       </div>
       <div class="box">
-        <div class="box-title">Poissons en stock</div>
+        <div class="box-title">Fish in stock</div>
         <div class="box-value" id="count">0</div>
       </div>
       <div class="box">
-        <div class="box-title">Valeur totale</div>
+        <div class="box-title">Total value</div>
         <div class="box-value" id="value">0</div>
       </div>
     </div>
 
     <div class="auto-sell-panel">
-      <div class="auto-sell-title">Conditions auto-sell</div>
+      <div class="auto-sell-title">Auto-sell conditions</div>
       <div class="auto-sell-row">
         <label>
-          <input type="checkbox" id="autoSellEnabled">
-          Activer l'auto-sell
-        </label>
-        <label>
-          Prix max
+          Max price
           <input type="number" id="autoSellMaxPrice" min="0" step="1" value="25">
         </label>
         <label>
-          Rareté max
+          Max rarity
           <select id="autoSellMaxRarity">
-            <option value="common">Commune</option>
-            <option value="uncommon">Peu commune</option>
+            <option value="common">Common</option>
+            <option value="uncommon">Uncommon</option>
             <option value="rare">Rare</option>
-            <option value="epic">Épique</option>
-            <option value="legendary">Légendaire</option>
+            <option value="epic">Epic</option>
+            <option value="legendary">Legendary</option>
           </select>
         </label>
-        <button id="sellByFilter" class="btn">Vendre selon filtres</button>
+        <button id="sellByFilter" class="btn">Sell by filters</button>
       </div>
     </div>
 
     <div class="sort-panel">
-      <span class="sort-label">Trier par:</span>
-      <button class="sort-btn active" data-sort="none">Défaut</button>
-      <button class="sort-btn" data-sort="price">Prix ↓</button>
-      <button class="sort-btn" data-sort="weight">Poids ↓</button>
-      <button class="sort-btn" data-sort="size">Taille ↓</button>
-      <button class="sort-btn" data-sort="rarity">Rareté ↓</button>
+      <span class="sort-label">Sort by:</span>
+      <button class="sort-btn active" data-sort="none">Default</button>
+      <button class="sort-btn" data-sort="price">Price ↓</button>
+      <button class="sort-btn" data-sort="weight">Weight ↓</button>
+      <button class="sort-btn" data-sort="size">Size ↓</button>
+      <button class="sort-btn" data-sort="rarity">Rarity ↓</button>
     </div>
 
     <div id="list" class="list"></div>
-    <div id="empty" class="empty" style="display:none;">Inventaire vide.</div>
+    <div id="empty" class="empty" style="display:none;">Inventory is empty.</div>
   </div>
 
   <script>
+    const TURN_SECONDS = 10;
+
     const moneyDisplay = document.getElementById("money");
     const countDisplay = document.getElementById("count");
     const valueDisplay = document.getElementById("value");
     const list = document.getElementById("list");
     const empty = document.getElementById("empty");
-    const autoSellEnabledInput = document.getElementById("autoSellEnabled");
     const autoSellMaxPriceInput = document.getElementById("autoSellMaxPrice");
     const autoSellMaxRaritySelect = document.getElementById("autoSellMaxRarity");
     const sellByFilter = document.getElementById("sellByFilter");
 
     let money = Number(localStorage.getItem("clicker_money")) || 0;
     let inventory = [];
-    let autoSellEnabled = localStorage.getItem("clicker_autoSellEnabled") === "true";
     let autoSellMaxPrice = Number(localStorage.getItem("clicker_autoSellMaxPrice"));
     let autoSellMaxRarity = localStorage.getItem("clicker_autoSellMaxRarity") || "common";
     let sortMode = "none";
+    let sortDirection = "desc";
 
     if (Number.isNaN(autoSellMaxPrice)) {
       autoSellMaxPrice = 25;
@@ -329,11 +368,11 @@
 
     function rarityLabel(rarity) {
       const labels = {
-        common: "Commune",
-        uncommon: "Peu commune",
+        common: "Common",
+        uncommon: "Uncommon",
         rare: "Rare",
-        epic: "Épique",
-        legendary: "Légendaire"
+        epic: "Epic",
+        legendary: "Legendary"
       };
 
       return labels[rarity] || rarity;
@@ -345,21 +384,21 @@
       const tags = [];
 
       if (size >= 180) {
-        tags.push("immense");
+        tags.push("huge");
       } else if (size >= 95) {
-        tags.push("gros");
+        tags.push("big");
       } else if (size <= 28) {
-        tags.push("petit");
+        tags.push("small");
       }
 
       if (weight >= 40) {
-        tags.push("lourd");
+        tags.push("heavy");
       } else if (weight <= 1.2) {
-        tags.push("leger");
+        tags.push("light");
       }
 
       if (tags.length === 0) {
-        return "(moyen)";
+        return "(average)";
       }
 
       return "(" + tags.join(", ") + ")";
@@ -385,15 +424,38 @@
     function normalizeFishState(fish) {
       const price = Number(fish && fish.price) || 0;
       const basePrice = Number(fish && fish.basePrice) || price;
-      const turnsOut = Number(fish && fish.turnsOut) || 0;
-      const hiddenSpoilTurns = Number(fish && fish.hiddenSpoilTurns) || Math.max(3, Math.floor(randomBetween(4, 10, 0)));
-      const hiddenResistance = Number(fish && fish.hiddenResistance) || randomBetween(1.08, 1.42, 3);
-      const growthRate = Number(fish && fish.growthRate) || randomBetween(0.08, 0.18, 3);
+        const hiddenResistance = Number(fish && fish.hiddenResistance) || randomBetween(0.9, 1.05, 3);
+        const rawGrowthRate = Number(fish && fish.growthRate);
+        const growthRate = Number.isFinite(rawGrowthRate) && rawGrowthRate >= 0.1
+          ? rawGrowthRate
+          : randomBetween(0.1, 0.3, 3);
       const spoiledValue = Number(fish && fish.spoiledValue) || Math.max(1, Math.round(basePrice * 0.08));
       const currentValue = Number(fish && fish.currentValue);
+      const legacyTurnsOut = Number(fish && fish.turnsOut) || 0;
+      const legacySpoilTurns = Number(fish && fish.hiddenSpoilTurns) || Math.max(2, Math.floor(randomBetween(2, 6, 0)));
+      const now = Date.now();
+
+      const outDurationMs = Number(fish && fish.outDurationMs);
+      const outStartedAtMs = Number(fish && fish.outStartedAtMs);
+      const hiddenSpoilMs = Number(fish && fish.hiddenSpoilMs);
+      const outStartValue = Number(fish && fish.outStartValue);
+      const outCount = Number(fish && fish.outCount);
+      const totalOutMs = Number(fish && fish.totalOutMs);
+
+      const normalizedOutDurationMs = Number.isFinite(outDurationMs) && outDurationMs > 0
+        ? outDurationMs
+        : Math.max(0, legacyTurnsOut * TURN_SECONDS * 1000);
+
+      const normalizedOutStartedAtMs = Number.isFinite(outStartedAtMs)
+        ? outStartedAtMs
+        : ((fish && fish.storageState === "out" && normalizedOutDurationMs > 0) ? now : 0);
+
+      const normalizedHiddenSpoilMs = Number.isFinite(hiddenSpoilMs) && hiddenSpoilMs > 0
+        ? hiddenSpoilMs
+        : Math.max(legacySpoilTurns * TURN_SECONDS * 1000, TURN_SECONDS * 1000);
 
       return {
-        type: fish && fish.type ? fish.type : "Poisson",
+        type: fish && fish.type ? fish.type : "Fish",
         rarity: fish && fish.rarity ? fish.rarity : "common",
         size: Number(fish && fish.size) || 0,
         weight: Number(fish && fish.weight) || 0,
@@ -401,8 +463,12 @@
         currentValue: Number.isNaN(currentValue) ? basePrice : currentValue,
         spoiledValue: spoiledValue,
         storageState: fish && fish.storageState ? fish.storageState : "fridge",
-        turnsOut: Math.max(0, turnsOut),
-        hiddenSpoilTurns: hiddenSpoilTurns,
+        outDurationMs: normalizedOutDurationMs,
+        outStartedAtMs: normalizedOutStartedAtMs,
+        outStartValue: Number.isFinite(outStartValue) && outStartValue > 0 ? outStartValue : (Number.isNaN(currentValue) ? basePrice : currentValue),
+        outCount: Number.isFinite(outCount) ? Math.max(0, Math.floor(outCount)) : 0,
+        totalOutMs: Number.isFinite(totalOutMs) ? Math.max(0, totalOutMs) : Math.max(0, legacyTurnsOut * TURN_SECONDS * 1000),
+        hiddenSpoilMs: normalizedHiddenSpoilMs,
         hiddenResistance: hiddenResistance,
         growthRate: growthRate,
         spoiled: Boolean(fish && fish.spoiled)
@@ -415,28 +481,95 @@
 
     function getFishStateLabel(fish) {
       if (fish.spoiled) {
-        return "Périmé";
+        return "Spoiled";
       }
 
       if (fish.storageState === "out") {
-        return "Sorti";
+        return "Out of fridge";
       }
 
-      return "Au frigo";
+      return "In fridge";
     }
 
-    function refreshFishValue(fish) {
+    function getElapsedOutMs(fish, now) {
+      if (fish.storageState !== "out") {
+        return 0;
+      }
+
+      const start = Number(fish.outStartedAtMs) || 0;
+      if (start <= 0) {
+        return 0;
+      }
+
+      return Math.max(0, now - start);
+    }
+
+    function getCurrentOutDurationMs(fish) {
+      return Math.max(0, Number(fish.outDurationMs) || 0);
+    }
+
+    function getTotalOutSeconds(fish, now) {
+      const totalOutMs = Math.max(0, Number(fish.totalOutMs) || 0);
+      const currentElapsed = fish.storageState === "out" ? getElapsedOutMs(fish, now) : 0;
+      return (totalOutMs + currentElapsed) / 1000;
+    }
+
+    function closeOutSession(fish, now) {
+      const elapsedOutMs = getElapsedOutMs(fish, now);
+      fish.totalOutMs = Math.max(0, Number(fish.totalOutMs) || 0) + elapsedOutMs;
+      fish.outStartedAtMs = 0;
+      fish.outDurationMs = 0;
+      fish.outStartValue = Math.max(Number(fish.currentValue) || 0, Number(fish.basePrice) || 0);
+    }
+
+    function refreshFishValue(fish, now) {
       if (fish.spoiled) {
         fish.currentValue = fish.spoiledValue;
         return fish;
       }
 
-      const bonusTurns = Math.max(0, Number(fish.turnsOut) || 0);
+      if (fish.storageState !== "out") {
+        fish.currentValue = Math.max(Number(fish.currentValue) || 0, Number(fish.basePrice) || 0);
+        return fish;
+      }
+
+      const elapsedOutMs = getElapsedOutMs(fish, now);
+      const bonusTurns = elapsedOutMs / (TURN_SECONDS * 1000);
       const growthRate = Number(fish.growthRate) || 0;
-      const resistance = Math.max(1, Number(fish.hiddenResistance) || 1);
-      const boostedValue = Math.round((Number(fish.basePrice) || 0) * Math.pow(1 + growthRate * resistance, bonusTurns));
-      fish.currentValue = Math.max(Number(fish.currentValue) || 0, boostedValue);
+        const resistance = 1;
+      const sessionStartValue = Math.max(Number(fish.outStartValue) || 0, Number(fish.currentValue) || 0, Number(fish.basePrice) || 0);
+      const baseReference = Math.max(Number(fish.basePrice) || 0, 1);
+      const gainedValue = baseReference * growthRate * resistance * bonusTurns;
+      const boostedValue = Math.round(sessionStartValue + gainedValue);
+      fish.currentValue = boostedValue;
       return fish;
+    }
+
+    function updateFishLifecycle(fish, now) {
+      let changed = false;
+
+      if (fish.spoiled || fish.storageState !== "out") {
+        return changed;
+      }
+
+      const elapsedOutMs = getElapsedOutMs(fish, now);
+      const spoilLimitMs = Math.max(TURN_SECONDS * 1000, Number(fish.hiddenSpoilMs) || TURN_SECONDS * 1000);
+      const targetDurationMs = getCurrentOutDurationMs(fish);
+      const cumulativeOutMs = Math.max(0, Number(fish.totalOutMs) || 0) + elapsedOutMs;
+
+      if (cumulativeOutMs >= spoilLimitMs) {
+        fish.spoiled = true;
+        fish.currentValue = fish.spoiledValue;
+        changed = true;
+      }
+
+      if (targetDurationMs > 0 && elapsedOutMs >= targetDurationMs) {
+        closeOutSession(fish, now);
+        fish.storageState = "fridge";
+        changed = true;
+      }
+
+      return changed;
     }
 
     function takeFishOut(index, turns) {
@@ -447,22 +580,17 @@
 
       const duration = Math.max(1, Math.floor(Number(turns) || 0));
       fish.storageState = "out";
-      if (!Number.isFinite(fish.turnsOut)) {
-        fish.turnsOut = 0;
-      }
-      if (!Number.isFinite(fish.hiddenSpoilTurns)) {
-        fish.hiddenSpoilTurns = Math.max(3, Math.floor(randomBetween(4, 10, 0)));
+      fish.outStartedAtMs = Date.now();
+      fish.outDurationMs = duration * TURN_SECONDS * 1000;
+      fish.outStartValue = Math.max(Number(fish.currentValue) || 0, Number(fish.basePrice) || 0);
+      fish.outCount = Math.max(0, Number(fish.outCount) || 0) + 1;
+      if (!Number.isFinite(fish.hiddenSpoilMs)) {
+        fish.hiddenSpoilMs = Math.max(2, Math.floor(randomBetween(2, 6, 0))) * TURN_SECONDS * 1000;
       }
       if (!Number.isFinite(fish.hiddenResistance)) {
-        fish.hiddenResistance = randomBetween(1.08, 1.42, 3);
+        fish.hiddenResistance = randomBetween(0.9, 1.05, 3);
       }
-      fish.turnsOut = duration;
-      refreshFishValue(fish);
-      if (duration >= fish.hiddenSpoilTurns) {
-        fish.spoiled = true;
-        fish.storageState = "fridge";
-        fish.currentValue = fish.spoiledValue;
-      }
+      refreshFishValue(fish, Date.now());
       saveState();
       render();
     }
@@ -473,17 +601,14 @@
         return;
       }
 
+      closeOutSession(fish, Date.now());
       fish.storageState = "fridge";
-      refreshFishValue(fish);
+      refreshFishValue(fish, Date.now());
       saveState();
       render();
     }
 
     function shouldAutoSell(fish) {
-      if (!autoSellEnabled) {
-        return false;
-      }
-
       const price = getFishValue(fish);
       const isUnderPrice = price <= autoSellMaxPrice;
       const isUnderRarity = rarityRank(fish.rarity) <= rarityRank(autoSellMaxRarity);
@@ -493,16 +618,22 @@
     function saveState() {
       localStorage.setItem("clicker_money", String(money));
       localStorage.setItem("clicker_inventory", JSON.stringify(inventory));
-      localStorage.setItem("clicker_autoSellEnabled", String(autoSellEnabled));
       localStorage.setItem("clicker_autoSellMaxPrice", String(autoSellMaxPrice));
       localStorage.setItem("clicker_autoSellMaxRarity", autoSellMaxRarity);
     }
 
     function applyAutoSellToInventory() {
+      const now = Date.now();
+      let lifecycleChanged = false;
       let soldValue = 0;
       const kept = [];
 
       for (const fish of inventory) {
+        if (updateFishLifecycle(fish, now)) {
+          lifecycleChanged = true;
+        }
+        refreshFishValue(fish, now);
+
         if (shouldAutoSell(fish)) {
           soldValue += getFishValue(fish);
         } else {
@@ -512,6 +643,9 @@
 
       money += soldValue;
       inventory = kept;
+      if (lifecycleChanged) {
+        saveState();
+      }
       saveState();
       render();
     }
@@ -529,11 +663,24 @@
     }
 
     function render() {
+      const now = Date.now();
+      let lifecycleChanged = false;
+
+      inventory.forEach((fish) => {
+        if (updateFishLifecycle(fish, now)) {
+          lifecycleChanged = true;
+        }
+        refreshFishValue(fish, now);
+      });
+
+      if (lifecycleChanged) {
+        saveState();
+      }
+
       const totalValue = inventory.reduce((sum, fish) => sum + getFishValue(fish), 0);
       moneyDisplay.textContent = String(money);
       countDisplay.textContent = String(inventory.length);
       valueDisplay.textContent = String(totalValue);
-      autoSellEnabledInput.checked = autoSellEnabled;
       autoSellMaxPriceInput.value = String(autoSellMaxPrice);
       autoSellMaxRaritySelect.value = autoSellMaxRarity;
 
@@ -548,40 +695,49 @@
 
       let displayInventory = [...inventory];
       
+      const directionFactor = sortDirection === "asc" ? 1 : -1;
       if (sortMode === "price") {
-        displayInventory.sort((a, b) => getFishValue(b) - getFishValue(a));
+        displayInventory.sort((a, b) => (getFishValue(a) - getFishValue(b)) * directionFactor);
       } else if (sortMode === "weight") {
-        displayInventory.sort((a, b) => Number(b.weight) - Number(a.weight));
+        displayInventory.sort((a, b) => (Number(a.weight) - Number(b.weight)) * directionFactor);
       } else if (sortMode === "size") {
-        displayInventory.sort((a, b) => Number(b.size) - Number(a.size));
+        displayInventory.sort((a, b) => (Number(a.size) - Number(b.size)) * directionFactor);
       } else if (sortMode === "rarity") {
-        displayInventory.sort((a, b) => rarityRank(b.rarity) - rarityRank(a.rarity));
+        displayInventory.sort((a, b) => (rarityRank(a.rarity) - rarityRank(b.rarity)) * directionFactor);
       }
 
       displayInventory.forEach((fish, displayIndex) => {
         const originalIndex = inventory.indexOf(fish);
-        refreshFishValue(fish);
         const item = document.createElement("div");
         const descriptorText = fishDescriptors(fish);
         const fishValue = getFishValue(fish);
-        const turnActionLabel = fish.storageState === "out" ? "Mettre à jour durée" : "Sortir du frigo";
+        const elapsedMs = getElapsedOutMs(fish, now);
+        const durationMs = getCurrentOutDurationMs(fish);
+        const remainingMs = Math.max(0, durationMs - elapsedMs);
+        const remainingSeconds = (remainingMs / 1000).toFixed(1);
+        const totalOutSeconds = getTotalOutSeconds(fish, now).toFixed(1);
+        const outCount = Math.max(0, Number(fish.outCount) || 0);
         const turnAction = "out";
         item.className = "fish";
         item.innerHTML =
           "<div class='fish-left'>" +
-            "<div class='fish-title rarity-" + (fish.rarity || "common") + "'>" + (fish.type || "Poisson") + " " + descriptorText + "</div>" +
-            "<div class='fish-meta'>Rareté: <span class='rarity-" + (fish.rarity || "common") + "'>" + rarityLabel(fish.rarity || "common") + "</span> | Taille: " + (fish.size || 0) + " cm | Poids: " + (fish.weight || 0) + " kg</div>" +
-            "<div class='fish-state'>État: <span class='" + (fish.spoiled ? 'spoiled' : '') + "'>" + getFishStateLabel(fish) + "</span></div>" +
-            "<div class='fish-value'>Valeur actuelle: " + fishValue + "</div>" +
+            "<div class='fish-title rarity-" + (fish.rarity || "common") + "'>" + (fish.type || "Fish") + " " + descriptorText + "</div>" +
+            "<div class='fish-meta'>Rarity: <span class='rarity-" + (fish.rarity || "common") + "'>" + rarityLabel(fish.rarity || "common") + "</span> | Size: " + (fish.size || 0) + " cm | Weight: " + (fish.weight || 0) + " kg</div>" +
+            "<div class='fish-state'>State: <span class='" + (fish.spoiled ? 'spoiled' : '') + "'>" + getFishStateLabel(fish) + "</span></div>" +
+            "<div class='fish-state'>Outings: " + outCount + " | Out of fridge: " + totalOutSeconds + " s</div>" +
+            (fish.storageState === "out" && !fish.spoiled ? "<div class='fish-state'>Time left: " + remainingSeconds + " s</div>" : "") +
+            "<div class='fish-value'>Current value: " + fishValue + "</div>" +
           "</div>" +
           "<div class='fish-actions'>" +
-            "<div class='fish-turn-row'>" +
-              "<input type='number' min='1' step='1' value='3' data-turns-for='" + originalIndex + "' data-preview-for='" + originalIndex + "'>" +
-              "<span class='fish-preview' data-preview-value='" + originalIndex + "'>0</span>" +
-              "<button class='btn' data-action='" + turnAction + "' data-index='" + originalIndex + "'>" + turnActionLabel + "</button>" +
-            "</div>" +
-            (fish.storageState === "out" ? "<button class='btn' data-return='" + originalIndex + "'>Rentrer au frigo</button>" : "") +
-            "<button class='btn' data-sell='" + originalIndex + "'>Vendre</button>" +
+            (fish.storageState !== "out" ?
+              "<div class='fish-turn-row'>" +
+                "<input type='number' min='1' step='1' value='3' data-turns-for='" + originalIndex + "' data-preview-for='" + originalIndex + "'>" +
+                "<span class='fish-preview' data-preview-value='" + originalIndex + "'>0</span>" +
+                "<button class='btn' data-action='" + turnAction + "' data-index='" + originalIndex + "'>Take out of fridge</button>" +
+              "</div>"
+              : "") +
+            (fish.storageState === "out" ? "<button class='btn' data-return='" + originalIndex + "'>Put back in fridge</button>" : "") +
+            "<button class='btn' data-sell='" + originalIndex + "'>Sell</button>" +
           "</div>";
 
         list.appendChild(item);
@@ -609,10 +765,13 @@
           if (!fish || fish.spoiled) return;
 
           const turns = Math.max(1, Math.floor(Number(input.value) || 1));
+          const previewUnits = turns;
           const growthRate = Number(fish.growthRate) || 0;
-          const resistance = Math.max(1, Number(fish.hiddenResistance) || 1);
-          const previewValue = Math.round((Number(fish.basePrice) || 0) * Math.pow(1 + growthRate * resistance, turns));
-          const finalValue = Math.max(Number(fish.currentValue) || 0, previewValue);
+          const resistance = 1;
+          const previewBase = Math.max(getFishValue(fish), Number(fish.basePrice) || 0);
+          const baseReference = Math.max(Number(fish.basePrice) || 0, 1);
+          const previewValue = Math.round(previewBase + (baseReference * growthRate * resistance * previewUnits));
+          const finalValue = Math.max(getFishValue(fish), previewValue);
 
           const preview = list.querySelector("span[data-preview-value='" + index + "']");
           if (preview) {
@@ -639,12 +798,6 @@
       applyAutoSellToInventory();
     });
 
-    autoSellEnabledInput.addEventListener("change", () => {
-      autoSellEnabled = autoSellEnabledInput.checked;
-      saveState();
-      render();
-    });
-
     autoSellMaxPriceInput.addEventListener("input", () => {
       const value = Number(autoSellMaxPriceInput.value);
       autoSellMaxPrice = Number.isNaN(value) ? 0 : Math.max(0, Math.floor(value));
@@ -659,17 +812,60 @@
     });
 
     const sortButtons = document.querySelectorAll(".sort-btn");
+
+    function refreshSortLabels() {
+      sortButtons.forEach((btn) => {
+        const mode = btn.getAttribute("data-sort");
+        if (mode === "none") {
+          btn.textContent = "Default";
+          return;
+        }
+
+        const baseLabels = {
+          price: "Price",
+          weight: "Weight",
+          size: "Size",
+          rarity: "Rarity"
+        };
+
+        let arrow = "↓";
+        if (sortMode === mode && sortDirection === "asc") {
+          arrow = "↑";
+        }
+
+        btn.textContent = baseLabels[mode] + " " + arrow;
+      });
+    }
+
     sortButtons.forEach((button) => {
       button.addEventListener("click", () => {
+        const nextMode = button.getAttribute("data-sort");
+
+        if (nextMode === "none") {
+          sortMode = "none";
+          sortDirection = "desc";
+        } else if (sortMode === nextMode) {
+          sortDirection = sortDirection === "desc" ? "asc" : "desc";
+        } else {
+          sortMode = nextMode;
+          sortDirection = "desc";
+        }
+
         sortButtons.forEach((btn) => btn.classList.remove("active"));
         button.classList.add("active");
-        sortMode = button.getAttribute("data-sort");
+        refreshSortLabels();
         render();
       });
     });
 
     loadInventory();
+    refreshSortLabels();
     render();
+
+    // Keep values/timers updating in real time while the inventory page is open.
+    setInterval(() => {
+      render();
+    }, 500);
   </script>
 </body>
 </html>

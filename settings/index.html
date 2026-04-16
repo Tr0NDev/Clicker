@@ -10,7 +10,41 @@
       background: #181818;
       color: white;
       margin: 0;
-      padding: 30px;
+      padding: 24px 16px;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #0c1217;
+      border-bottom: 1px solid #22313b;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+      margin: -24px -16px 18px;
+      padding: 10px 0;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0 0 0 16px;
+    }
+
+    .nav-button {
+      display: inline-block;
+      text-decoration: none;
+      background: #555;
+      color: white;
+      border: 1px solid #aaa;
+      padding: 15px;
+      margin: 0;
+      font-size: 16px;
+      cursor: pointer;
     }
 
     .panel {
@@ -67,10 +101,16 @@
   </style>
 </head>
 <body>
+  <div class="top-bar">
+    <div class="top-nav">
+      <button class="nav-button" onclick="window.location.href='../'">Game</button>
+      <button class="nav-button" onclick="window.location.href='../inventaire/'">Inventory</button>
+      <button class="nav-button" onclick="window.location.href='./'">Settings</button>
+    </div>
+  </div>
+
   <div class="panel">
     <h1>Settings</h1>
-
-    <a class="button-link" href="../">Back to Game</a>
 
     <div class="row">
       <section>
