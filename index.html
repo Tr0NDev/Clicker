@@ -18,9 +18,68 @@
     }
 
     .upgrade {
+      width: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
       background: #333;
       color: white;
       border: 1px solid white;
+      margin: 0;
+      padding: 14px;
+      text-align: left;
+      box-sizing: border-box;
+      border-radius: 12px;
+    }
+
+    .upgrades {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin: 10px auto 30px;
+      max-width: 900px;
+    }
+
+    .upgrade-info {
+      text-align: left;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .upgrade-name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .upgrade-desc {
+      color: #ccc;
+      font-size: 14px;
+      min-height: 38px;
+      margin-bottom: 8px;
+    }
+
+    .upgrade-count {
+      color: #9ad;
+      font-size: 14px;
+      margin-top: 6px;
+    }
+
+    .upgrade-cost {
+      color: #fff;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .upgrade-x {
+      font-size: 28px;
+      font-weight: bold;
+      color: #f0f0f0;
+      padding-left: 10px;
+      min-width: 54px;
+      text-align: right;
     }
 
     .nav-button {
@@ -45,31 +104,53 @@
   <h2 id="money">Money: 0</h2>
 
   <h3 id="perSec">Income: 0 / sec</h3>
+  <h3 id="perClick">Click Value: 0 / click</h3>
 
   <button id="clicker">Click</button>
 
   <h3>Upgrades</h3>
+  <div class="upgrades">
+    <button class="upgrade" id="upgradeClick">
+      <div class="upgrade-info">
+        <div class="upgrade-name">Doigts rapides</div>
+        <div class="upgrade-desc">Augmente la valeur de chaque clic de +1.</div>
+        <div class="upgrade-cost">Coût: <span id="upgradeClickCost">0</span></div>
+      </div>
+      <div class="upgrade-x">x<span id="upgradeClickCount">0</span></div>
+    </button>
 
-  <button class="upgrade" id="upgradeClick">
-    Upgrade Click (+1) - Cost: 10
-  </button>
-
-  <button class="upgrade" id="autoClick">
-    Hire Worker (+1/sec) - Cost: 25
-  </button>
+    <button class="upgrade" id="autoClick">
+      <div class="upgrade-info">
+        <div class="upgrade-name">Employé automatique</div>
+        <div class="upgrade-desc">Ajoute +1 argent par seconde.</div>
+        <div class="upgrade-cost">Coût: <span id="autoClickCost">0</span></div>
+      </div>
+      <div class="upgrade-x">x<span id="autoClickCount">0</span></div>
+    </button>
+  </div>
 
 
 <script>
 let money = Number(localStorage.getItem("clicker_money")) || 0;
 let clickValue = Number(localStorage.getItem("clicker_clickValue")) || 1;
 let autoIncome = Number(localStorage.getItem("clicker_autoIncome")) || 0;
+let clickUpgradeLevel = Number(localStorage.getItem("clicker_clickUpgradeLevel")) || 0;
+let autoUpgradeLevel = Number(localStorage.getItem("clicker_autoUpgradeLevel")) || 0;
 
 const moneyDisplay = document.getElementById("money");
 const clicker = document.getElementById("clicker");
 const upgradeClick = document.getElementById("upgradeClick");
 const autoClick = document.getElementById("autoClick");
 const perSecDisplay = document.getElementById("perSec");
+const perClickDisplay = document.getElementById("perClick");
+const upgradeClickCount = document.getElementById("upgradeClickCount");
+const autoClickCount = document.getElementById("autoClickCount");
+const upgradeClickCost = document.getElementById("upgradeClickCost");
+const autoClickCost = document.getElementById("autoClickCost");
 
+function getUpgradeCost(baseCost, level) {
+  return Math.floor(baseCost * Math.pow(1.6, level));
+}
 
 clicker.addEventListener("click", () => {
   money += clickValue;
@@ -77,17 +158,21 @@ clicker.addEventListener("click", () => {
 });
 
 upgradeClick.addEventListener("click", () => {
-  if (money >= 10) {
-    money -= 10;
+  const cost = getUpgradeCost(10, clickUpgradeLevel);
+  if (money >= cost) {
+    money -= cost;
     clickValue++;
+    clickUpgradeLevel++;
     updateDisplay();
   }
 });
 
 autoClick.addEventListener("click", () => {
-  if (money >= 25) {
-    money -= 25;
+  const cost = getUpgradeCost(25, autoUpgradeLevel);
+  if (money >= cost) {
+    money -= cost;
     autoIncome++;
+    autoUpgradeLevel++;
     updateDisplay();
   }
 });
@@ -98,11 +183,21 @@ setInterval(() => {
 }, 1000);
 
 function updateDisplay() {
+  const clickCost = getUpgradeCost(10, clickUpgradeLevel);
+  const autoCost = getUpgradeCost(25, autoUpgradeLevel);
+
   moneyDisplay.textContent = "Money: " + money;
   perSecDisplay.textContent = "Income: " + autoIncome + " / sec";
+  perClickDisplay.textContent = "Click Value: " + clickValue + " / click";
+  upgradeClickCount.textContent = clickUpgradeLevel;
+  autoClickCount.textContent = autoUpgradeLevel;
+  upgradeClickCost.textContent = clickCost;
+  autoClickCost.textContent = autoCost;
   localStorage.setItem("clicker_money", money);
   localStorage.setItem("clicker_clickValue", clickValue);
   localStorage.setItem("clicker_autoIncome", autoIncome);
+  localStorage.setItem("clicker_clickUpgradeLevel", clickUpgradeLevel);
+  localStorage.setItem("clicker_autoUpgradeLevel", autoUpgradeLevel);
 }
 
 updateDisplay();
