@@ -100,6 +100,70 @@
       font-size: 14px;
       margin-bottom: 8px;
     }
+
+    .params-panel {
+      text-align: left;
+      margin-bottom: 22px;
+      padding: 14px;
+      border: 1px solid #3d4e59;
+      border-radius: 12px;
+      background: #1a242c;
+    }
+
+    .params-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .params-field {
+      display: grid;
+      gap: 4px;
+    }
+
+    .params-field label {
+      color: #c8d8e3;
+      font-size: 13px;
+    }
+
+    .params-field input,
+    .params-field select {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #627b8c;
+      background: #10171d;
+      color: #fff;
+      border-radius: 8px;
+      padding: 9px 10px;
+      font-size: 14px;
+    }
+
+    .params-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .params-status {
+      color: #9ec3d8;
+      font-size: 14px;
+      min-height: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .params-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .params-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -113,6 +177,90 @@
 
   <div class="panel">
     <h1>Settings</h1>
+
+    <section class="params-panel">
+      <h2>Game Parameters</h2>
+      <div class="small">Edit values then click Apply Parameters.</div>
+      <div class="params-grid">
+        <div class="params-field">
+          <label for="paramMoney">Money</label>
+          <input id="paramMoney" type="number" min="0" step="1">
+        </div>
+        <div class="params-field">
+          <label for="paramCaughtCount">Fish Caught</label>
+          <input id="paramCaughtCount" type="number" min="0" step="1">
+        </div>
+        <div class="params-field">
+          <label for="paramInventoryTurn">Inventory Turn</label>
+          <input id="paramInventoryTurn" type="number" min="0" step="1">
+        </div>
+
+        <div class="params-field">
+          <label for="paramTripleHookLevel">Triple Hook Level</label>
+          <input id="paramTripleHookLevel" type="number" min="0" step="1">
+        </div>
+        <div class="params-field">
+          <label for="paramRodTierLevel">Rod Tier Level</label>
+          <input id="paramRodTierLevel" type="number" min="0" step="1">
+        </div>
+        <div class="params-field">
+          <label for="paramSizeBoostLevel">Size Boost Level</label>
+          <input id="paramSizeBoostLevel" type="number" min="0" step="1">
+        </div>
+
+        <div class="params-field">
+          <label for="paramAutoFisherLevel">Auto Fisher Level</label>
+          <input id="paramAutoFisherLevel" type="number" min="0" step="1">
+        </div>
+        <div class="params-field">
+          <label for="paramWeightBoostLevel">Weight Boost Level</label>
+          <input id="paramWeightBoostLevel" type="number" min="0" step="1">
+        </div>
+        <div class="params-field">
+          <label for="paramAutoWaitReductionLevel">Auto Wait Reduction</label>
+          <input id="paramAutoWaitReductionLevel" type="number" min="0" step="1">
+        </div>
+
+        <div class="params-field">
+          <label for="paramAutoSellEnabled">Auto Sell Enabled</label>
+          <select id="paramAutoSellEnabled">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+        </div>
+        <div class="params-field">
+          <label for="paramAutoSellMode">Auto Sell Mode</label>
+          <select id="paramAutoSellMode">
+            <option value="price">price</option>
+            <option value="rarity">rarity</option>
+          </select>
+        </div>
+        <div class="params-field">
+          <label for="paramAutoSellMaxPrice">Auto Sell Max Price</label>
+          <input id="paramAutoSellMaxPrice" type="number" min="0" step="1">
+        </div>
+
+        <div class="params-field">
+          <label for="paramAutoSellMaxRarity">Auto Sell Max Rarity</label>
+          <select id="paramAutoSellMaxRarity">
+            <option value="common">common</option>
+            <option value="uncommon">uncommon</option>
+            <option value="rare">rare</option>
+            <option value="epic">epic</option>
+            <option value="legendary">legendary</option>
+          </select>
+        </div>
+        <div class="params-field">
+          <label for="paramUpgradesWidth">Sidebar Width</label>
+          <input id="paramUpgradesWidth" type="number" min="260" step="1">
+        </div>
+      </div>
+      <div class="params-actions">
+        <button id="applyParams">Apply Parameters</button>
+        <button id="reloadParams">Reload From Save</button>
+        <span class="params-status" id="paramsStatus"></span>
+      </div>
+    </section>
 
     <div class="row">
       <section>
@@ -134,6 +282,24 @@
     const loadSave = document.getElementById("loadSave");
     const saveOutput = document.getElementById("saveOutput");
     const saveInput = document.getElementById("saveInput");
+    const applyParams = document.getElementById("applyParams");
+    const reloadParams = document.getElementById("reloadParams");
+    const paramsStatus = document.getElementById("paramsStatus");
+
+    const paramMoney = document.getElementById("paramMoney");
+    const paramCaughtCount = document.getElementById("paramCaughtCount");
+    const paramInventoryTurn = document.getElementById("paramInventoryTurn");
+    const paramTripleHookLevel = document.getElementById("paramTripleHookLevel");
+    const paramRodTierLevel = document.getElementById("paramRodTierLevel");
+    const paramSizeBoostLevel = document.getElementById("paramSizeBoostLevel");
+    const paramAutoFisherLevel = document.getElementById("paramAutoFisherLevel");
+    const paramWeightBoostLevel = document.getElementById("paramWeightBoostLevel");
+    const paramAutoWaitReductionLevel = document.getElementById("paramAutoWaitReductionLevel");
+    const paramAutoSellEnabled = document.getElementById("paramAutoSellEnabled");
+    const paramAutoSellMode = document.getElementById("paramAutoSellMode");
+    const paramAutoSellMaxPrice = document.getElementById("paramAutoSellMaxPrice");
+    const paramAutoSellMaxRarity = document.getElementById("paramAutoSellMaxRarity");
+    const paramUpgradesWidth = document.getElementById("paramUpgradesWidth");
 
     function readGameState() {
       return {
@@ -149,8 +315,10 @@
         weightBoostLevel: Number(localStorage.getItem("clicker_weightBoostLevel")) || 0,
         autoWaitReductionLevel: Number(localStorage.getItem("clicker_autoWaitReductionLevel")) || 0,
         autoSellEnabled: localStorage.getItem("clicker_autoSellEnabled") || "false",
+        autoSellMode: localStorage.getItem("clicker_autoSellMode") || "price",
         autoSellMaxPrice: Number(localStorage.getItem("clicker_autoSellMaxPrice")) || 25,
         autoSellMaxRarity: localStorage.getItem("clicker_autoSellMaxRarity") || "common",
+        upgradesWidth: Number(localStorage.getItem("clicker_upgradesWidth")) || 420,
         saveTime: new Date().toISOString()
       };
     }
@@ -169,8 +337,10 @@
         "weightBoostLevel=" + state.weightBoostLevel,
         "autoWaitReductionLevel=" + state.autoWaitReductionLevel,
         "autoSellEnabled=" + state.autoSellEnabled,
+        "autoSellMode=" + state.autoSellMode,
         "autoSellMaxPrice=" + state.autoSellMaxPrice,
         "autoSellMaxRarity=" + state.autoSellMaxRarity,
+        "upgradesWidth=" + state.upgradesWidth,
         "saveTime=" + state.saveTime
       ].join("\n");
     }
@@ -189,8 +359,10 @@
         weightBoostLevel: 0,
         autoWaitReductionLevel: 0,
         autoSellEnabled: "false",
+        autoSellMode: "price",
         autoSellMaxPrice: 25,
         autoSellMaxRarity: "common",
+        upgradesWidth: 420,
         saveTime: ""
       };
 
@@ -241,11 +413,17 @@
         if (key === "autoSellEnabled") {
           state.autoSellEnabled = rawValue === "true" ? "true" : "false";
         }
+        if (key === "autoSellMode") {
+          state.autoSellMode = rawValue === "rarity" ? "rarity" : "price";
+        }
         if (key === "autoSellMaxPrice" && !Number.isNaN(value)) {
           state.autoSellMaxPrice = value;
         }
         if (key === "autoSellMaxRarity") {
           state.autoSellMaxRarity = rawValue || "common";
+        }
+        if (key === "upgradesWidth" && !Number.isNaN(value)) {
+          state.upgradesWidth = value;
         }
         if (key === "saveTime") {
           state.saveTime = rawValue;
@@ -253,6 +431,54 @@
       }
 
       return state;
+    }
+
+    function clampInt(value, min, fallback) {
+      const n = Number(value);
+      if (Number.isNaN(n)) {
+        return fallback;
+      }
+
+      return Math.max(min, Math.floor(n));
+    }
+
+    function fillParamInputs(state) {
+      paramMoney.value = String(state.money);
+      paramCaughtCount.value = String(state.caughtCount);
+      paramInventoryTurn.value = String(state.inventoryTurn);
+      paramTripleHookLevel.value = String(state.tripleHookLevel);
+      paramRodTierLevel.value = String(state.rodTierLevel);
+      paramSizeBoostLevel.value = String(state.sizeBoostLevel);
+      paramAutoFisherLevel.value = String(state.autoFisherLevel);
+      paramWeightBoostLevel.value = String(state.weightBoostLevel);
+      paramAutoWaitReductionLevel.value = String(state.autoWaitReductionLevel);
+      paramAutoSellEnabled.value = state.autoSellEnabled === "true" ? "true" : "false";
+      paramAutoSellMode.value = state.autoSellMode === "rarity" ? "rarity" : "price";
+      paramAutoSellMaxPrice.value = String(state.autoSellMaxPrice);
+      paramAutoSellMaxRarity.value = state.autoSellMaxRarity || "common";
+      paramUpgradesWidth.value = String(state.upgradesWidth);
+    }
+
+    function applyParameterChanges() {
+      localStorage.setItem("clicker_money", String(clampInt(paramMoney.value, 0, 0)));
+      localStorage.setItem("clicker_caughtCount", String(clampInt(paramCaughtCount.value, 0, 0)));
+      localStorage.setItem("clicker_inventoryTurn", String(clampInt(paramInventoryTurn.value, 0, 0)));
+      localStorage.setItem("clicker_tripleHookLevel", String(clampInt(paramTripleHookLevel.value, 0, 0)));
+      localStorage.setItem("clicker_rodTierLevel", String(clampInt(paramRodTierLevel.value, 0, 0)));
+      localStorage.setItem("clicker_sizeBoostLevel", String(clampInt(paramSizeBoostLevel.value, 0, 0)));
+      localStorage.setItem("clicker_autoFisherLevel", String(clampInt(paramAutoFisherLevel.value, 0, 0)));
+      localStorage.setItem("clicker_weightBoostLevel", String(clampInt(paramWeightBoostLevel.value, 0, 0)));
+      localStorage.setItem("clicker_autoWaitReductionLevel", String(clampInt(paramAutoWaitReductionLevel.value, 0, 0)));
+
+      localStorage.setItem("clicker_autoSellEnabled", paramAutoSellEnabled.value === "true" ? "true" : "false");
+      localStorage.setItem("clicker_autoSellMode", paramAutoSellMode.value === "rarity" ? "rarity" : "price");
+      localStorage.setItem("clicker_autoSellMaxPrice", String(clampInt(paramAutoSellMaxPrice.value, 0, 25)));
+      localStorage.setItem("clicker_autoSellMaxRarity", paramAutoSellMaxRarity.value || "common");
+      localStorage.setItem("clicker_upgradesWidth", String(clampInt(paramUpgradesWidth.value, 260, 420)));
+
+      const state = readGameState();
+      saveOutput.value = buildSaveText(state);
+      paramsStatus.textContent = "Parameters applied.";
     }
 
     generateSave.addEventListener("click", () => {
@@ -275,8 +501,10 @@
       localStorage.setItem("clicker_weightBoostLevel", String(state.weightBoostLevel));
       localStorage.setItem("clicker_autoWaitReductionLevel", String(state.autoWaitReductionLevel));
       localStorage.setItem("clicker_autoSellEnabled", state.autoSellEnabled);
+      localStorage.setItem("clicker_autoSellMode", state.autoSellMode);
       localStorage.setItem("clicker_autoSellMaxPrice", String(state.autoSellMaxPrice));
       localStorage.setItem("clicker_autoSellMaxRarity", state.autoSellMaxRarity);
+      localStorage.setItem("clicker_upgradesWidth", String(state.upgradesWidth));
 
       if (state.currentFish) {
         localStorage.setItem("clicker_currentFish", state.currentFish);
@@ -295,16 +523,31 @@
         weightBoostLevel: state.weightBoostLevel,
         autoWaitReductionLevel: state.autoWaitReductionLevel,
         autoSellEnabled: state.autoSellEnabled,
+        autoSellMode: state.autoSellMode,
         autoSellMaxPrice: state.autoSellMaxPrice,
         autoSellMaxRarity: state.autoSellMaxRarity,
+        upgradesWidth: state.upgradesWidth,
         saveTime: new Date().toISOString()
       };
 
+      fillParamInputs(loadedState);
+      paramsStatus.textContent = "Save loaded and parameters synced.";
       saveOutput.value = buildSaveText(loadedState);
       alert("Save successfully loaded!");
     });
 
-    saveOutput.value = buildSaveText(readGameState());
+    applyParams.addEventListener("click", () => {
+      applyParameterChanges();
+    });
+
+    reloadParams.addEventListener("click", () => {
+      fillParamInputs(readGameState());
+      paramsStatus.textContent = "Parameters reloaded from save.";
+    });
+
+    const initialState = readGameState();
+    fillParamInputs(initialState);
+    saveOutput.value = buildSaveText(initialState);
   </script>
 </body>
 </html>
