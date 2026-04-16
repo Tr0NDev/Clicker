@@ -507,8 +507,8 @@
   <div class="top-bar">
     <div class="top-nav">
       <button class="nav-button" onclick="window.location.href='./'">Game</button>
-      <button class="nav-button" onclick="window.location.href='settings/'">Settings</button>
       <button class="nav-button" onclick="window.location.href='inventaire/'">Inventory</button>
+      <button class="nav-button" onclick="window.location.href='settings/'">Settings</button>
     </div>
   </div>
 
@@ -1161,7 +1161,10 @@
         const fishDescriptors = getFishDescriptors(currentFish);
         const fishPerClick = 1 + tripleHookLevel;
         const rodTier = ROD_TIERS[Math.min(rodTierLevel, ROD_TIERS.length - 1)];
-        const inventoryTotalValue = inventory.reduce((sum, fish) => sum + (Number(fish.price) || 0), 0);
+        const inventoryTotalValue = inventory.reduce((sum, fish) => {
+          const fishValue = Number(fish.currentValue) || Number(fish.basePrice) || Number(fish.price) || 0;
+          return sum + fishValue;
+        }, 0);
         const catchesPerSecond = autoFisherLevel <= 0 ? 0 : Number((autoFisherLevel / (getAutoIntervalMs() / 1000)).toFixed(2));
 
         moneyDisplay.textContent = "Money: " + money;
