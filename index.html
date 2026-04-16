@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Clicker de richesse</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #111;
+      color: white;
+    }
+
+    button {
+      padding: 15px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .upgrade {
+      background: #333;
+      color: white;
+      border: 1px solid white;
+    }
+
+    .nav-button {
+      display: inline-block;
+      text-decoration: none;
+      background: #555;
+      color: white;
+      border: 1px solid #aaa;
+      padding: 15px;
+      margin: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Clicker</h1>
+
+  <button class="nav-button" onclick="window.location.href='parametre/index.html'">Settings</button>
+
+  <h2 id="money">Money: 0</h2>
+
+  <h3 id="perSec">Income: 0 / sec</h3>
+
+  <button id="clicker">Click</button>
+
+  <h3>Upgrades</h3>
+
+  <button class="upgrade" id="upgradeClick">
+    Upgrade Click (+1) - Cost: 10
+  </button>
+
+  <button class="upgrade" id="autoClick">
+    Hire Worker (+1/sec) - Cost: 25
+  </button>
+
+
+<script>
+let money = Number(localStorage.getItem("clicker_money")) || 0;
+let clickValue = Number(localStorage.getItem("clicker_clickValue")) || 1;
+let autoIncome = Number(localStorage.getItem("clicker_autoIncome")) || 0;
+
+const moneyDisplay = document.getElementById("money");
+const clicker = document.getElementById("clicker");
+const upgradeClick = document.getElementById("upgradeClick");
+const autoClick = document.getElementById("autoClick");
+const perSecDisplay = document.getElementById("perSec");
+
+
+clicker.addEventListener("click", () => {
+  money += clickValue;
+  updateDisplay();
+});
+
+upgradeClick.addEventListener("click", () => {
+  if (money >= 10) {
+    money -= 10;
+    clickValue++;
+    updateDisplay();
+  }
+});
+
+autoClick.addEventListener("click", () => {
+  if (money >= 25) {
+    money -= 25;
+    autoIncome++;
+    updateDisplay();
+  }
+});
+
+setInterval(() => {
+  money += autoIncome;
+  updateDisplay();
+}, 1000);
+
+function updateDisplay() {
+  moneyDisplay.textContent = "Money: " + money;
+  perSecDisplay.textContent = "Income: " + autoIncome + " / sec";
+  localStorage.setItem("clicker_money", money);
+  localStorage.setItem("clicker_clickValue", clickValue);
+  localStorage.setItem("clicker_autoIncome", autoIncome);
+}
+
+updateDisplay();
+</script>
+</body>
+</html>

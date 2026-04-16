@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Settings</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #181818;
+      color: white;
+      margin: 0;
+      padding: 30px;
+    }
+
+    .panel {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+      border: 1px solid #444;
+      border-radius: 14px;
+      background: #222;
+    }
+
+    button, a.button-link {
+      display: inline-block;
+      padding: 14px 18px;
+      margin: 10px 6px;
+      font-size: 16px;
+      cursor: pointer;
+      border: 1px solid #aaa;
+      background: #555;
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      margin: 12px 0 20px;
+      border-radius: 10px;
+      border: 1px solid #666;
+      background: #111;
+      color: #fff;
+      padding: 12px;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      text-align: left;
+    }
+
+    h1, h2 {
+      margin-top: 0;
+    }
+
+    .small {
+      color: #bbb;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>Settings</h1>
+
+    <a class="button-link" href="../index.html">Back to Game</a>
+
+    <div class="row">
+      <section>
+        <h2>Export Save</h2>
+        <button id="generateSave">Generate Save TXT</button>
+        <textarea id="saveOutput" readonly placeholder="Save text will appear here..."></textarea>
+      </section>
+
+      <section>
+        <h2>Import Save</h2>
+        <textarea id="saveInput" placeholder="Paste your save text here..."></textarea>
+        <button id="loadSave">Load</button>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const generateSave = document.getElementById("generateSave");
+    const loadSave = document.getElementById("loadSave");
+    const saveOutput = document.getElementById("saveOutput");
+    const saveInput = document.getElementById("saveInput");
+
+    function readGameState() {
+      return {
+        money: Number(localStorage.getItem("clicker_money")) || 0,
+        clickValue: Number(localStorage.getItem("clicker_clickValue")) || 1,
+        autoIncome: Number(localStorage.getItem("clicker_autoIncome")) || 0
+      };
+    }
+
+    function buildSaveText(state) {
+      return [
+        "money=" + state.money,
+        "clickValue=" + state.clickValue,
+        "autoIncome=" + state.autoIncome
+      ].join("\n");
+    }
+
+    function parseSaveText(text) {
+      const state = {
+        money: 0,
+        clickValue: 1,
+        autoIncome: 0
+      };
+
+      const lines = text.split(/\r?\n/);
+      for (const line of lines) {
+        const parts = line.split("=");
+        if (parts.length < 2) {
+          continue;
+        }
+
+        const key = parts[0].trim();
+        const value = Number(parts.slice(1).join("=").trim());
+
+        if (key === "money" && !Number.isNaN(value)) {
+          state.money = value;
+        }
+        if (key === "clickValue" && !Number.isNaN(value)) {
+          state.clickValue = value;
+        }
+        if (key === "autoIncome" && !Number.isNaN(value)) {
+          state.autoIncome = value;
+        }
+      }
+
+      return state;
+    }
+
+    generateSave.addEventListener("click", () => {
+      const saveText = buildSaveText(readGameState());
+      saveOutput.value = saveText;
+      saveOutput.focus();
+      saveOutput.select();
+    });
+
+    loadSave.addEventListener("click", () => {
+      const state = parseSaveText(saveInput.value);
+      localStorage.setItem("clicker_money", String(state.money));
+      localStorage.setItem("clicker_clickValue", String(state.clickValue));
+      localStorage.setItem("clicker_autoIncome", String(state.autoIncome));
+      saveOutput.value = buildSaveText(state);
+      alert("Save successfully loaded!");
+    });
+
+    saveOutput.value = buildSaveText(readGameState());
+  </script>
+</body>
+</html>
