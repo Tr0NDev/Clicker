@@ -8,6 +8,8 @@
       text-align: center;
       background: #111;
       color: white;
+      margin: 0;
+      padding: 24px 16px 36px;
     }
 
     button {
@@ -18,34 +20,44 @@
     }
 
     .upgrade {
-      width: 320px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      background: #333;
+      width: 100%;
+      background: #24343f;
       color: white;
-      border: 1px solid white;
+      border: 1px solid #6b8796;
       margin: 0;
-      padding: 14px;
+      padding: 16px 18px;
       text-align: left;
       box-sizing: border-box;
-      border-radius: 12px;
+      border-radius: 14px;
+    }
+
+    .shell {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .fish-panel {
+      max-width: 720px;
+      margin: 18px auto 0;
+      padding: 18px;
+      border: 1px solid #2f4d5c;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #18222a 0%, #12191f 100%);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
     }
 
     .upgrades {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin: 10px auto 30px;
-      max-width: 900px;
-    }
-
-    .upgrade-info {
-      text-align: left;
-      flex: 1;
-      min-width: 0;
+      max-width: 720px;
+      margin: 18px auto 0;
+      display: grid;
+      gap: 12px;
     }
 
     .upgrade-name {
@@ -67,20 +79,151 @@
       margin-top: 6px;
     }
 
-    .upgrade-cost {
+    .upgrade-meta {
       color: #fff;
       font-size: 14px;
       margin-top: 4px;
     }
 
-    .upgrade-x {
-      font-size: 28px;
+    .upgrade-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .upgrade-left {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .upgrade-right {
+      font-size: 26px;
       font-weight: bold;
-      color: #f0f0f0;
-      padding-left: 10px;
-      min-width: 54px;
+      color: #f7f0c4;
+      min-width: 76px;
       text-align: right;
     }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      max-width: 720px;
+      margin: 16px auto 0;
+      text-align: left;
+    }
+
+    .stat-box {
+      background: #1b1b1b;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .stat-label {
+      color: #a6c3d5;
+      font-size: 13px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .fish-button {
+      width: 100%;
+      border: 1px solid #76a6c0;
+      background: linear-gradient(180deg, #35617a 0%, #27495b 100%);
+      color: white;
+      padding: 18px 20px;
+      margin: 0;
+      border-radius: 14px;
+      cursor: pointer;
+      box-sizing: border-box;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .fish-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .fish-title {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .fish-subtitle {
+      font-size: 14px;
+      color: #d7e8f2;
+      line-height: 1.5;
+    }
+
+    .fish-price {
+      min-width: 96px;
+      text-align: right;
+      font-size: 28px;
+      font-weight: bold;
+      color: #f7f0c4;
+    }
+
+    .legend {
+      max-width: 720px;
+      margin: 14px auto 0;
+      color: #aab8c0;
+      font-size: 14px;
+    }
+
+    .auto-sell-panel {
+      max-width: 720px;
+      margin: 16px auto 0;
+      padding: 14px;
+      border: 1px solid #354854;
+      border-radius: 12px;
+      background: #171f25;
+      text-align: left;
+    }
+
+    .auto-sell-title {
+      font-size: 15px;
+      color: #cfe3ef;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .auto-sell-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .auto-sell-row input,
+    .auto-sell-row select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #4f6978;
+      background: #0f1519;
+      color: #fff;
+    }
+
+    .rarity-common { color: #d9d9d9; }
+    .rarity-uncommon { color: #7ee787; }
+    .rarity-rare { color: #58a6ff; }
+    .rarity-epic { color: #d2a8ff; }
+    .rarity-legendary { color: #ffa657; }
 
     .nav-button {
       display: inline-block;
@@ -97,110 +240,468 @@
 
 <body>
 
-  <h1>Clicker</h1>
+  <div class="shell">
+    <h1>Clicker</h1>
 
-  <button class="nav-button" onclick="window.location.href='settings/'">Settings</button>
+    <div class="top-nav">
+      <button class="nav-button" onclick="window.location.href='settings/'">Settings</button>
+      <button class="nav-button" onclick="window.location.href='inventaire/'">Inventaire</button>
+    </div>
 
-  <h2 id="money">Money: 0</h2>
-
-  <h3 id="perSec">Income: 0 / sec</h3>
-  <h3 id="perClick">Click Value: 0 / click</h3>
-
-  <button id="clicker">Click</button>
-
-  <h3>Upgrades</h3>
-  <div class="upgrades">
-    <button class="upgrade" id="upgradeClick">
-      <div class="upgrade-info">
-        <div class="upgrade-name">Doigts rapides</div>
-        <div class="upgrade-desc">Augmente la valeur de chaque clic de +1.</div>
-        <div class="upgrade-cost">Coût: <span id="upgradeClickCost">0</span></div>
+    <h2 id="money">Money: 0</h2>
+    <div class="stats">
+      <div class="stat-box">
+        <div class="stat-label">Poissons capturés</div>
+        <div class="stat-value" id="caughtCount">0</div>
       </div>
-      <div class="upgrade-x">x<span id="upgradeClickCount">0</span></div>
-    </button>
-
-    <button class="upgrade" id="autoClick">
-      <div class="upgrade-info">
-        <div class="upgrade-name">Employé automatique</div>
-        <div class="upgrade-desc">Ajoute +1 argent par seconde.</div>
-        <div class="upgrade-cost">Coût: <span id="autoClickCost">0</span></div>
+      <div class="stat-box">
+        <div class="stat-label">Poisson pêché</div>
+        <div class="stat-value" id="fishTypeDisplay">-</div>
       </div>
-      <div class="upgrade-x">x<span id="autoClickCount">0</span></div>
-    </button>
-  </div>
+    </div>
 
+    <div class="fish-panel">
+      <button id="clicker" class="fish-button">
+        <div class="fish-info">
+          <div class="fish-title" id="fishButtonLabel">Poisson</div>
+          <div class="fish-subtitle" id="fishDescription">Clique pour pêcher un poisson aléatoire.</div>
+        </div>
+        <div class="fish-price" id="fishPrice">0</div>
+      </button>
 
-<script>
-let money = Number(localStorage.getItem("clicker_money")) || 0;
-let clickValue = Number(localStorage.getItem("clicker_clickValue")) || 1;
-let autoIncome = Number(localStorage.getItem("clicker_autoIncome")) || 0;
-let clickUpgradeLevel = Number(localStorage.getItem("clicker_clickUpgradeLevel")) || 0;
-let autoUpgradeLevel = Number(localStorage.getItem("clicker_autoUpgradeLevel")) || 0;
+      <div class="legend" id="fishDetails">
+        Rareté, taille et poids apparaîtront ici.
+      </div>
+    </div>
 
-const moneyDisplay = document.getElementById("money");
-const clicker = document.getElementById("clicker");
-const upgradeClick = document.getElementById("upgradeClick");
-const autoClick = document.getElementById("autoClick");
-const perSecDisplay = document.getElementById("perSec");
-const perClickDisplay = document.getElementById("perClick");
-const upgradeClickCount = document.getElementById("upgradeClickCount");
-const autoClickCount = document.getElementById("autoClickCount");
-const upgradeClickCost = document.getElementById("upgradeClickCost");
-const autoClickCost = document.getElementById("autoClickCost");
+    <div class="auto-sell-panel">
+      <div class="auto-sell-title">Auto-vente (vendre si prix <= seuil et rareté <= seuil)</div>
+      <div class="auto-sell-row">
+        <label>
+          <input type="checkbox" id="autoSellEnabled">
+          Activer l'auto-vente
+        </label>
+        <label>
+          Prix max
+          <input type="number" min="0" step="1" id="autoSellMaxPrice" value="25">
+        </label>
+        <label>
+          Rareté max
+          <select id="autoSellMaxRarity">
+            <option value="common">Commune</option>
+            <option value="uncommon">Peu commune</option>
+            <option value="rare">Rare</option>
+            <option value="epic">Épique</option>
+            <option value="legendary">Légendaire</option>
+          </select>
+        </label>
+      </div>
+    </div>
 
-function getUpgradeCost(baseCost, level) {
-  return Math.floor(baseCost * Math.pow(1.6, level));
-}
+    <div class="upgrades">
+      <button id="sizeUpgrade" class="upgrade">
+        <div class="upgrade-content">
+          <div class="upgrade-left">
+            <div class="upgrade-name">Canne de précision</div>
+            <div class="upgrade-desc">Augmente très légèrement la taille des poissons (+1% par niveau).</div>
+            <div class="upgrade-meta">Coût: <span id="sizeUpgradeCost">0</span></div>
+          </div>
+          <div class="upgrade-right">x<span id="sizeUpgradeCount">0</span></div>
+        </div>
+      </button>
 
-clicker.addEventListener("click", () => {
-  money += clickValue;
-  updateDisplay();
-});
+      <button id="autoUpgrade" class="upgrade">
+        <div class="upgrade-content">
+          <div class="upgrade-left">
+            <div class="upgrade-name">Filet automatique</div>
+            <div class="upgrade-desc">Pêche automatiquement toutes les 10 secondes (+1 poisson par niveau).</div>
+            <div class="upgrade-meta">Coût: <span id="autoUpgradeCost">0</span></div>
+          </div>
+          <div class="upgrade-right">x<span id="autoUpgradeCount">0</span></div>
+        </div>
+      </button>
 
-upgradeClick.addEventListener("click", () => {
-  const cost = getUpgradeCost(10, clickUpgradeLevel);
-  if (money >= cost) {
-    money -= cost;
-    clickValue++;
-    clickUpgradeLevel++;
-    updateDisplay();
-  }
-});
+      <button id="weightUpgrade" class="upgrade">
+        <div class="upgrade-content">
+          <div class="upgrade-left">
+            <div class="upgrade-name">Ligne renforcée</div>
+            <div class="upgrade-desc">Augmente légèrement le poids des poissons (+1% par niveau).</div>
+            <div class="upgrade-meta">Coût: <span id="weightUpgradeCost">0</span></div>
+          </div>
+          <div class="upgrade-right">x<span id="weightUpgradeCount">0</span></div>
+        </div>
+      </button>
 
-autoClick.addEventListener("click", () => {
-  const cost = getUpgradeCost(25, autoUpgradeLevel);
-  if (money >= cost) {
-    money -= cost;
-    autoIncome++;
-    autoUpgradeLevel++;
-    updateDisplay();
-  }
-});
+      <button id="waitUpgrade" class="upgrade">
+        <div class="upgrade-content">
+          <div class="upgrade-left">
+            <div class="upgrade-name">Moteur de chalut</div>
+            <div class="upgrade-desc">Réduit le délai de pêche auto de 0.5s par niveau.</div>
+            <div class="upgrade-meta">Coût: <span id="waitUpgradeCost">0</span> | Délai actuel: <span id="autoDelayLabel">10.0</span>s</div>
+          </div>
+          <div class="upgrade-right">x<span id="waitUpgradeCount">0</span></div>
+        </div>
+      </button>
+    </div>
 
-setInterval(() => {
-  money += autoIncome;
-  updateDisplay();
-}, 1000);
+    <script>
+      const FISH_SPECIES = [
+        { type: "Carpe commune", rarity: "common", sizeMin: 25, sizeMax: 55, weightMin: 0.8, weightMax: 2.8 },
+        { type: "Gardon rapide", rarity: "common", sizeMin: 15, sizeMax: 28, weightMin: 0.2, weightMax: 0.9 },
+        { type: "Perche rayée", rarity: "common", sizeMin: 18, sizeMax: 35, weightMin: 0.3, weightMax: 1.4 },
+        { type: "Truite argentée", rarity: "uncommon", sizeMin: 28, sizeMax: 58, weightMin: 0.7, weightMax: 3.5 },
+        { type: "Bar de roche", rarity: "uncommon", sizeMin: 22, sizeMax: 44, weightMin: 0.8, weightMax: 2.6 },
+        { type: "Saumon noble", rarity: "uncommon", sizeMin: 40, sizeMax: 78, weightMin: 1.8, weightMax: 5.6 },
+        { type: "Thon bleu", rarity: "rare", sizeMin: 60, sizeMax: 130, weightMin: 8, weightMax: 35 },
+        { type: "Brochet sauvage", rarity: "rare", sizeMin: 45, sizeMax: 110, weightMin: 2.5, weightMax: 15 },
+        { type: "Poisson-lune", rarity: "rare", sizeMin: 70, sizeMax: 180, weightMin: 3, weightMax: 45 },
+        { type: "Mahi-mahi", rarity: "epic", sizeMin: 70, sizeMax: 160, weightMin: 5, weightMax: 25 },
+        { type: "Raie arc-en-ciel", rarity: "epic", sizeMin: 80, sizeMax: 220, weightMin: 10, weightMax: 80 },
+        { type: "Mérou géant", rarity: "epic", sizeMin: 90, sizeMax: 200, weightMin: 15, weightMax: 90 },
+        { type: "Requin doré", rarity: "legendary", sizeMin: 150, sizeMax: 420, weightMin: 40, weightMax: 220 },
+        { type: "Dragon des mers", rarity: "legendary", sizeMin: 120, sizeMax: 300, weightMin: 30, weightMax: 180 }
+      ];
 
-function updateDisplay() {
-  const clickCost = getUpgradeCost(10, clickUpgradeLevel);
-  const autoCost = getUpgradeCost(25, autoUpgradeLevel);
+      const RARITY_WEIGHTS = [
+        { rarity: "common", weight: 72 },
+        { rarity: "uncommon", weight: 20 },
+        { rarity: "rare", weight: 6 },
+        { rarity: "epic", weight: 1.8 },
+        { rarity: "legendary", weight: 0.2 }
+      ];
 
-  moneyDisplay.textContent = "Money: " + money;
-  perSecDisplay.textContent = "Income: " + autoIncome + " / sec";
-  perClickDisplay.textContent = "Click Value: " + clickValue + " / click";
-  upgradeClickCount.textContent = clickUpgradeLevel;
-  autoClickCount.textContent = autoUpgradeLevel;
-  upgradeClickCost.textContent = clickCost;
-  autoClickCost.textContent = autoCost;
-  localStorage.setItem("clicker_money", money);
-  localStorage.setItem("clicker_clickValue", clickValue);
-  localStorage.setItem("clicker_autoIncome", autoIncome);
-  localStorage.setItem("clicker_clickUpgradeLevel", clickUpgradeLevel);
-  localStorage.setItem("clicker_autoUpgradeLevel", autoUpgradeLevel);
-}
+      const RARITY_MULTIPLIERS = {
+        common: 1,
+        uncommon: 1.35,
+        rare: 1.9,
+        epic: 2.8,
+        legendary: 4.2
+      };
 
-updateDisplay();
-</script>
+      const moneyDisplay = document.getElementById("money");
+      const caughtCountDisplay = document.getElementById("caughtCount");
+      const fishTypeDisplay = document.getElementById("fishTypeDisplay");
+      const clicker = document.getElementById("clicker");
+      const fishButtonLabel = document.getElementById("fishButtonLabel");
+      const fishDescription = document.getElementById("fishDescription");
+      const fishDetails = document.getElementById("fishDetails");
+      const fishPrice = document.getElementById("fishPrice");
+      const autoSellEnabledInput = document.getElementById("autoSellEnabled");
+      const autoSellMaxPriceInput = document.getElementById("autoSellMaxPrice");
+      const autoSellMaxRaritySelect = document.getElementById("autoSellMaxRarity");
+      const sizeUpgrade = document.getElementById("sizeUpgrade");
+      const autoUpgrade = document.getElementById("autoUpgrade");
+      const weightUpgrade = document.getElementById("weightUpgrade");
+      const waitUpgrade = document.getElementById("waitUpgrade");
+      const sizeUpgradeCount = document.getElementById("sizeUpgradeCount");
+      const autoUpgradeCount = document.getElementById("autoUpgradeCount");
+      const weightUpgradeCount = document.getElementById("weightUpgradeCount");
+      const waitUpgradeCount = document.getElementById("waitUpgradeCount");
+      const sizeUpgradeCost = document.getElementById("sizeUpgradeCost");
+      const autoUpgradeCost = document.getElementById("autoUpgradeCost");
+      const weightUpgradeCost = document.getElementById("weightUpgradeCost");
+      const waitUpgradeCost = document.getElementById("waitUpgradeCost");
+      const autoDelayLabel = document.getElementById("autoDelayLabel");
+
+      let money = Number(localStorage.getItem("clicker_money")) || 0;
+      let caughtCount = Number(localStorage.getItem("clicker_caughtCount")) || 0;
+      let sizeBoostLevel = Number(localStorage.getItem("clicker_sizeBoostLevel")) || 0;
+      let autoFisherLevel = Number(localStorage.getItem("clicker_autoFisherLevel")) || 0;
+      let weightBoostLevel = Number(localStorage.getItem("clicker_weightBoostLevel")) || 0;
+      let autoWaitReductionLevel = Number(localStorage.getItem("clicker_autoWaitReductionLevel")) || 0;
+      let inventory = [];
+      let autoSellEnabled = localStorage.getItem("clicker_autoSellEnabled") === "true";
+      let autoSellMaxPrice = Number(localStorage.getItem("clicker_autoSellMaxPrice"));
+      let autoSellMaxRarity = localStorage.getItem("clicker_autoSellMaxRarity") || "common";
+      let lastAutoCatchMs = Date.now();
+
+      if (Number.isNaN(autoSellMaxPrice)) {
+        autoSellMaxPrice = 25;
+      }
+
+      try {
+        const storedInventory = localStorage.getItem("clicker_inventory");
+        inventory = storedInventory ? JSON.parse(storedInventory) : [];
+        if (!Array.isArray(inventory)) {
+          inventory = [];
+        }
+      } catch (error) {
+        inventory = [];
+      }
+
+      function getSizeUpgradeCost(level) {
+        return Math.floor(40 * Math.pow(1.55, level));
+      }
+
+      function getAutoUpgradeCost(level) {
+        return Math.floor(120 * Math.pow(1.8, level));
+      }
+
+      function getWeightUpgradeCost(level) {
+        return Math.floor(60 * Math.pow(1.6, level));
+      }
+
+      function getWaitUpgradeCost(level) {
+        return Math.floor(180 * Math.pow(1.9, level));
+      }
+
+      function getAutoIntervalMs() {
+        return Math.max(2000, 10000 - (autoWaitReductionLevel * 500));
+      }
+
+      function randomBetween(min, max, decimals) {
+        const value = min + Math.random() * (max - min);
+        return Number(value.toFixed(decimals));
+      }
+
+      function pickWeighted(items) {
+        const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+        let roll = Math.random() * totalWeight;
+
+        for (const item of items) {
+          roll -= item.weight;
+          if (roll <= 0) {
+            return item.rarity;
+          }
+        }
+
+        return items[0].rarity;
+      }
+
+      function pickRandom(list) {
+        return list[Math.floor(Math.random() * list.length)];
+      }
+
+      function formatRarityLabel(rarity) {
+        const labels = {
+          common: "Commune",
+          uncommon: "Peu commune",
+          rare: "Rare",
+          epic: "Épique",
+          legendary: "Légendaire"
+        };
+
+        return labels[rarity] || rarity;
+      }
+
+      function rarityRank(rarity) {
+        const ranks = {
+          common: 1,
+          uncommon: 2,
+          rare: 3,
+          epic: 4,
+          legendary: 5
+        };
+
+        return ranks[rarity] || 1;
+      }
+
+      function getRarityClass(rarity) {
+        const classes = {
+          common: "rarity-common",
+          uncommon: "rarity-uncommon",
+          rare: "rarity-rare",
+          epic: "rarity-epic",
+          legendary: "rarity-legendary"
+        };
+
+        return classes[rarity] || "rarity-common";
+      }
+
+      function shouldAutoSell(fish) {
+        if (!autoSellEnabled) {
+          return false;
+        }
+
+        const isUnderPrice = fish.price <= autoSellMaxPrice;
+        const isUnderRarity = rarityRank(fish.rarity) <= rarityRank(autoSellMaxRarity);
+        return isUnderPrice && isUnderRarity;
+      }
+
+      function createFish() {
+        const rarity = pickWeighted(RARITY_WEIGHTS);
+        const pool = FISH_SPECIES.filter((fish) => fish.rarity === rarity);
+        const species = pickRandom(pool);
+        const baseSize = randomBetween(species.sizeMin, species.sizeMax, 1);
+        const baseWeight = randomBetween(species.weightMin, species.weightMax, 2);
+        const sizeMultiplier = 1 + (sizeBoostLevel * 0.01);
+        const weightMultiplier = 1 + (weightBoostLevel * 0.01);
+        const size = Number((baseSize * sizeMultiplier).toFixed(1));
+        const weight = Number((baseWeight * weightMultiplier).toFixed(2));
+        const price = Math.max(1, Math.round((size * 0.35 + weight * 10) * RARITY_MULTIPLIERS[rarity]));
+
+        return {
+          type: species.type,
+          rarity: rarity,
+          size: size,
+          weight: weight,
+          price: price
+        };
+      }
+
+      function loadCurrentFish() {
+        const stored = localStorage.getItem("clicker_currentFish");
+        if (!stored) {
+          return createFish();
+        }
+
+        try {
+          const parsed = JSON.parse(stored);
+          if (!parsed || typeof parsed.type !== "string") {
+            return createFish();
+          }
+
+          return parsed;
+        } catch (error) {
+          return createFish();
+        }
+      }
+
+      let currentFish = loadCurrentFish();
+
+      function saveGameState() {
+        localStorage.setItem("clicker_money", String(money));
+        localStorage.setItem("clicker_caughtCount", String(caughtCount));
+        localStorage.setItem("clicker_currentFish", JSON.stringify(currentFish));
+        localStorage.setItem("clicker_inventory", JSON.stringify(inventory));
+        localStorage.setItem("clicker_sizeBoostLevel", String(sizeBoostLevel));
+        localStorage.setItem("clicker_autoFisherLevel", String(autoFisherLevel));
+        localStorage.setItem("clicker_weightBoostLevel", String(weightBoostLevel));
+        localStorage.setItem("clicker_autoWaitReductionLevel", String(autoWaitReductionLevel));
+        localStorage.setItem("clicker_autoSellEnabled", String(autoSellEnabled));
+        localStorage.setItem("clicker_autoSellMaxPrice", String(autoSellMaxPrice));
+        localStorage.setItem("clicker_autoSellMaxRarity", autoSellMaxRarity);
+      }
+
+      function catchCurrentFish() {
+        const fishToStore = {
+          type: currentFish.type,
+          rarity: currentFish.rarity,
+          size: currentFish.size,
+          weight: currentFish.weight,
+          price: currentFish.price,
+          caughtAt: new Date().toISOString()
+        };
+
+        if (shouldAutoSell(fishToStore)) {
+          money += fishToStore.price;
+        } else {
+          inventory.push(fishToStore);
+        }
+
+        caughtCount++;
+        currentFish = createFish();
+      }
+
+      function render() {
+        const nextSizeCost = getSizeUpgradeCost(sizeBoostLevel);
+        const nextAutoCost = getAutoUpgradeCost(autoFisherLevel);
+        const nextWeightCost = getWeightUpgradeCost(weightBoostLevel);
+        const nextWaitCost = getWaitUpgradeCost(autoWaitReductionLevel);
+        const autoDelaySeconds = (getAutoIntervalMs() / 1000).toFixed(1);
+        const rarityClass = getRarityClass(currentFish.rarity);
+
+        moneyDisplay.textContent = "Money: " + money;
+        caughtCountDisplay.textContent = String(caughtCount);
+        fishTypeDisplay.textContent = currentFish.type;
+        fishTypeDisplay.className = "stat-value " + rarityClass;
+        fishButtonLabel.textContent = currentFish.type;
+        fishButtonLabel.className = "fish-title " + rarityClass;
+        fishDescription.textContent = "Clique pour pêcher ce poisson. Sa valeur dépend de sa taille, de son poids et de sa rareté.";
+        fishPrice.textContent = String(currentFish.price);
+        fishDetails.innerHTML = "Type: " + currentFish.type + " | Rareté: <span class='" + getRarityClass(currentFish.rarity) + "'>" + formatRarityLabel(currentFish.rarity) + "</span> | Taille: " + currentFish.size + " cm | Poids: " + currentFish.weight + " kg | Prix: " + currentFish.price + " | Inventaire: " + inventory.length;
+        sizeUpgradeCount.textContent = String(sizeBoostLevel);
+        autoUpgradeCount.textContent = String(autoFisherLevel);
+        weightUpgradeCount.textContent = String(weightBoostLevel);
+        waitUpgradeCount.textContent = String(autoWaitReductionLevel);
+        sizeUpgradeCost.textContent = String(nextSizeCost);
+        autoUpgradeCost.textContent = String(nextAutoCost);
+        weightUpgradeCost.textContent = String(nextWeightCost);
+        waitUpgradeCost.textContent = String(nextWaitCost);
+        autoDelayLabel.textContent = autoDelaySeconds;
+        autoSellEnabledInput.checked = autoSellEnabled;
+        autoSellMaxPriceInput.value = String(autoSellMaxPrice);
+        autoSellMaxRaritySelect.value = autoSellMaxRarity;
+        saveGameState();
+      }
+
+      clicker.addEventListener("click", () => {
+        catchCurrentFish();
+        render();
+      });
+
+      sizeUpgrade.addEventListener("click", () => {
+        const cost = getSizeUpgradeCost(sizeBoostLevel);
+        if (money >= cost) {
+          money -= cost;
+          sizeBoostLevel++;
+          render();
+        }
+      });
+
+      autoUpgrade.addEventListener("click", () => {
+        const cost = getAutoUpgradeCost(autoFisherLevel);
+        if (money >= cost) {
+          money -= cost;
+          autoFisherLevel++;
+          render();
+        }
+      });
+
+      weightUpgrade.addEventListener("click", () => {
+        const cost = getWeightUpgradeCost(weightBoostLevel);
+        if (money >= cost) {
+          money -= cost;
+          weightBoostLevel++;
+          render();
+        }
+      });
+
+      waitUpgrade.addEventListener("click", () => {
+        const cost = getWaitUpgradeCost(autoWaitReductionLevel);
+        if (money >= cost) {
+          money -= cost;
+          autoWaitReductionLevel++;
+          render();
+        }
+      });
+
+      autoSellEnabledInput.addEventListener("change", () => {
+        autoSellEnabled = autoSellEnabledInput.checked;
+        render();
+      });
+
+      autoSellMaxPriceInput.addEventListener("input", () => {
+        const value = Number(autoSellMaxPriceInput.value);
+        autoSellMaxPrice = Number.isNaN(value) ? 0 : Math.max(0, Math.floor(value));
+        render();
+      });
+
+      autoSellMaxRaritySelect.addEventListener("change", () => {
+        autoSellMaxRarity = autoSellMaxRaritySelect.value;
+        render();
+      });
+
+      setInterval(() => {
+        if (autoFisherLevel <= 0) {
+          lastAutoCatchMs = Date.now();
+          return;
+        }
+
+        const interval = getAutoIntervalMs();
+        const now = Date.now();
+
+        while (now - lastAutoCatchMs >= interval) {
+          for (let i = 0; i < autoFisherLevel; i++) {
+            catchCurrentFish();
+          }
+          lastAutoCatchMs += interval;
+        }
+
+        render();
+      }, 500);
+
+      render();
+    </script>
 </body>
 </html>

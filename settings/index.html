@@ -96,10 +96,16 @@
     function readGameState() {
       return {
         money: Number(localStorage.getItem("clicker_money")) || 0,
-        clickValue: Number(localStorage.getItem("clicker_clickValue")) || 1,
-        autoIncome: Number(localStorage.getItem("clicker_autoIncome")) || 0,
-        clickUpgradeLevel: Number(localStorage.getItem("clicker_clickUpgradeLevel")) || 0,
-        autoUpgradeLevel: Number(localStorage.getItem("clicker_autoUpgradeLevel")) || 0,
+        caughtCount: Number(localStorage.getItem("clicker_caughtCount")) || 0,
+        inventory: localStorage.getItem("clicker_inventory") || "[]",
+        currentFish: localStorage.getItem("clicker_currentFish") || "",
+        sizeBoostLevel: Number(localStorage.getItem("clicker_sizeBoostLevel")) || 0,
+        autoFisherLevel: Number(localStorage.getItem("clicker_autoFisherLevel")) || 0,
+        weightBoostLevel: Number(localStorage.getItem("clicker_weightBoostLevel")) || 0,
+        autoWaitReductionLevel: Number(localStorage.getItem("clicker_autoWaitReductionLevel")) || 0,
+        autoSellEnabled: localStorage.getItem("clicker_autoSellEnabled") || "false",
+        autoSellMaxPrice: Number(localStorage.getItem("clicker_autoSellMaxPrice")) || 25,
+        autoSellMaxRarity: localStorage.getItem("clicker_autoSellMaxRarity") || "common",
         saveTime: new Date().toISOString()
       };
     }
@@ -107,10 +113,16 @@
     function buildSaveText(state) {
       return [
         "money=" + state.money,
-        "clickValue=" + state.clickValue,
-        "autoIncome=" + state.autoIncome,
-        "clickUpgradeLevel=" + state.clickUpgradeLevel,
-        "autoUpgradeLevel=" + state.autoUpgradeLevel,
+        "caughtCount=" + state.caughtCount,
+        "inventory=" + state.inventory,
+        "currentFish=" + state.currentFish,
+        "sizeBoostLevel=" + state.sizeBoostLevel,
+        "autoFisherLevel=" + state.autoFisherLevel,
+        "weightBoostLevel=" + state.weightBoostLevel,
+        "autoWaitReductionLevel=" + state.autoWaitReductionLevel,
+        "autoSellEnabled=" + state.autoSellEnabled,
+        "autoSellMaxPrice=" + state.autoSellMaxPrice,
+        "autoSellMaxRarity=" + state.autoSellMaxRarity,
         "saveTime=" + state.saveTime
       ].join("\n");
     }
@@ -118,10 +130,16 @@
     function parseSaveText(text) {
       const state = {
         money: 0,
-        clickValue: 1,
-        autoIncome: 0,
-        clickUpgradeLevel: 0,
-        autoUpgradeLevel: 0,
+        caughtCount: 0,
+        inventory: "[]",
+        currentFish: "",
+        sizeBoostLevel: 0,
+        autoFisherLevel: 0,
+        weightBoostLevel: 0,
+        autoWaitReductionLevel: 0,
+        autoSellEnabled: "false",
+        autoSellMaxPrice: 25,
+        autoSellMaxRarity: "common",
         saveTime: ""
       };
 
@@ -133,50 +151,48 @@
         }
 
         const key = parts[0].trim();
-        const value = Number(parts.slice(1).join("=").trim());
+        const rawValue = parts.slice(1).join("=").trim();
+        const value = Number(rawValue);
 
         if (key === "money" && !Number.isNaN(value)) {
           state.money = value;
         }
-        if (key === "clickValue" && !Number.isNaN(value)) {
-          state.clickValue = value;
+        if (key === "caughtCount" && !Number.isNaN(value)) {
+          state.caughtCount = value;
         }
-        if (key === "autoIncome" && !Number.isNaN(value)) {
-          state.autoIncome = value;
+        if (key === "inventory") {
+          state.inventory = rawValue;
         }
-        if (key === "clickUpgradeLevel" && !Number.isNaN(value)) {
-          state.clickUpgradeLevel = value;
+        if (key === "currentFish") {
+          state.currentFish = rawValue;
         }
-        if (key === "autoUpgradeLevel" && !Number.isNaN(value)) {
-          state.autoUpgradeLevel = value;
+        if (key === "sizeBoostLevel" && !Number.isNaN(value)) {
+          state.sizeBoostLevel = value;
+        }
+        if (key === "autoFisherLevel" && !Number.isNaN(value)) {
+          state.autoFisherLevel = value;
+        }
+        if (key === "weightBoostLevel" && !Number.isNaN(value)) {
+          state.weightBoostLevel = value;
+        }
+        if (key === "autoWaitReductionLevel" && !Number.isNaN(value)) {
+          state.autoWaitReductionLevel = value;
+        }
+        if (key === "autoSellEnabled") {
+          state.autoSellEnabled = rawValue === "true" ? "true" : "false";
+        }
+        if (key === "autoSellMaxPrice" && !Number.isNaN(value)) {
+          state.autoSellMaxPrice = value;
+        }
+        if (key === "autoSellMaxRarity") {
+          state.autoSellMaxRarity = rawValue || "common";
         }
         if (key === "saveTime") {
-          state.saveTime = parts.slice(1).join("=").trim();
+          state.saveTime = rawValue;
         }
       }
 
       return state;
-    }
-
-    function applyOfflineProgress(state) {
-      const savedTime = Date.parse(state.saveTime);
-      if (Number.isNaN(savedTime)) {
-        return {
-          money: state.money,
-          gained: 0,
-          elapsedSeconds: 0
-        };
-      }
-
-      const now = Date.now();
-      const elapsedSeconds = Math.max(0, Math.floor((now - savedTime) / 1000));
-      const gained = elapsedSeconds * state.autoIncome;
-
-      return {
-        money: state.money + gained,
-        gained: gained,
-        elapsedSeconds: elapsedSeconds
-      };
     }
 
     generateSave.addEventListener("click", () => {
@@ -188,26 +204,38 @@
 
     loadSave.addEventListener("click", () => {
       const state = parseSaveText(saveInput.value);
-      const offlineProgress = applyOfflineProgress(state);
-      const loadedTime = new Date().toISOString();
+      localStorage.setItem("clicker_money", String(state.money));
+      localStorage.setItem("clicker_caughtCount", String(state.caughtCount));
+      localStorage.setItem("clicker_inventory", state.inventory);
+      localStorage.setItem("clicker_sizeBoostLevel", String(state.sizeBoostLevel));
+      localStorage.setItem("clicker_autoFisherLevel", String(state.autoFisherLevel));
+      localStorage.setItem("clicker_weightBoostLevel", String(state.weightBoostLevel));
+      localStorage.setItem("clicker_autoWaitReductionLevel", String(state.autoWaitReductionLevel));
+      localStorage.setItem("clicker_autoSellEnabled", state.autoSellEnabled);
+      localStorage.setItem("clicker_autoSellMaxPrice", String(state.autoSellMaxPrice));
+      localStorage.setItem("clicker_autoSellMaxRarity", state.autoSellMaxRarity);
 
-      localStorage.setItem("clicker_clickValue", String(state.clickValue));
-      localStorage.setItem("clicker_autoIncome", String(state.autoIncome));
-      localStorage.setItem("clicker_clickUpgradeLevel", String(state.clickUpgradeLevel));
-      localStorage.setItem("clicker_autoUpgradeLevel", String(state.autoUpgradeLevel));
+      if (state.currentFish) {
+        localStorage.setItem("clicker_currentFish", state.currentFish);
+      }
 
       const loadedState = {
-        money: offlineProgress.money,
-        clickValue: state.clickValue,
-        autoIncome: state.autoIncome,
-        clickUpgradeLevel: state.clickUpgradeLevel,
-        autoUpgradeLevel: state.autoUpgradeLevel,
-        saveTime: loadedTime
+        money: state.money,
+        caughtCount: state.caughtCount,
+        inventory: state.inventory,
+        currentFish: state.currentFish || localStorage.getItem("clicker_currentFish") || "",
+        sizeBoostLevel: state.sizeBoostLevel,
+        autoFisherLevel: state.autoFisherLevel,
+        weightBoostLevel: state.weightBoostLevel,
+        autoWaitReductionLevel: state.autoWaitReductionLevel,
+        autoSellEnabled: state.autoSellEnabled,
+        autoSellMaxPrice: state.autoSellMaxPrice,
+        autoSellMaxRarity: state.autoSellMaxRarity,
+        saveTime: new Date().toISOString()
       };
 
-      localStorage.setItem("clicker_money", String(loadedState.money));
       saveOutput.value = buildSaveText(loadedState);
-      alert("Save successfully loaded! Gained " + offlineProgress.gained + " money over " + offlineProgress.elapsedSeconds + " seconds.");
+      alert("Save successfully loaded!");
     });
 
     saveOutput.value = buildSaveText(readGameState());

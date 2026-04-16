@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Inventaire</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      margin: 0;
+      padding: 24px 16px;
+    }
+
+    .shell {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn {
+      border: 1px solid #8897a5;
+      background: #263541;
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .stats {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .box {
+      background: #1b1b1b;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .box-title {
+      color: #aac2d0;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .box-value {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .list {
+      margin-top: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .fish {
+      border: 1px solid #364a57;
+      background: #192128;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .fish-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .fish-meta {
+      color: #bed1dd;
+      font-size: 14px;
+    }
+
+    .rarity-common { color: #d9d9d9; }
+    .rarity-uncommon { color: #7ee787; }
+    .rarity-rare { color: #58a6ff; }
+    .rarity-epic { color: #d2a8ff; }
+    .rarity-legendary { color: #ffa657; }
+
+    .empty {
+      margin-top: 16px;
+      color: #9eb0bc;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="top">
+      <h1>Inventaire</h1>
+      <div>
+        <a class="btn" href="../">Retour au jeu</a>
+        <button id="sellAll" class="btn">Vendre tout</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="box">
+        <div class="box-title">Argent</div>
+        <div class="box-value" id="money">0</div>
+      </div>
+      <div class="box">
+        <div class="box-title">Poissons en stock</div>
+        <div class="box-value" id="count">0</div>
+      </div>
+      <div class="box">
+        <div class="box-title">Valeur totale</div>
+        <div class="box-value" id="value">0</div>
+      </div>
+    </div>
+
+    <div id="list" class="list"></div>
+    <div id="empty" class="empty" style="display:none;">Inventaire vide.</div>
+  </div>
+
+  <script>
+    const moneyDisplay = document.getElementById("money");
+    const countDisplay = document.getElementById("count");
+    const valueDisplay = document.getElementById("value");
+    const list = document.getElementById("list");
+    const empty = document.getElementById("empty");
+    const sellAll = document.getElementById("sellAll");
+
+    let money = Number(localStorage.getItem("clicker_money")) || 0;
+    let inventory = [];
+
+    function loadInventory() {
+      try {
+        const stored = localStorage.getItem("clicker_inventory");
+        inventory = stored ? JSON.parse(stored) : [];
+        if (!Array.isArray(inventory)) {
+          inventory = [];
+        }
+      } catch (error) {
+        inventory = [];
+      }
+    }
+
+    function rarityLabel(rarity) {
+      const labels = {
+        common: "Commune",
+        uncommon: "Peu commune",
+        rare: "Rare",
+        epic: "Épique",
+        legendary: "Légendaire"
+      };
+
+      return labels[rarity] || rarity;
+    }
+
+    function saveState() {
+      localStorage.setItem("clicker_money", String(money));
+      localStorage.setItem("clicker_inventory", JSON.stringify(inventory));
+    }
+
+    function sellOne(index) {
+      const fish = inventory[index];
+      if (!fish) {
+        return;
+      }
+
+      money += Number(fish.price) || 0;
+      inventory.splice(index, 1);
+      saveState();
+      render();
+    }
+
+    function render() {
+      const totalValue = inventory.reduce((sum, fish) => sum + (Number(fish.price) || 0), 0);
+      moneyDisplay.textContent = String(money);
+      countDisplay.textContent = String(inventory.length);
+      valueDisplay.textContent = String(totalValue);
+
+      if (inventory.length === 0) {
+        list.innerHTML = "";
+        empty.style.display = "block";
+        return;
+      }
+
+      empty.style.display = "none";
+      list.innerHTML = "";
+
+      inventory.forEach((fish, index) => {
+        const item = document.createElement("div");
+        item.className = "fish";
+        item.innerHTML =
+          "<div>" +
+            "<div class='fish-title rarity-" + (fish.rarity || "common") + "'>" + (fish.type || "Poisson") + "</div>" +
+            "<div class='fish-meta'>Rareté: <span class='rarity-" + (fish.rarity || "common") + "'>" + rarityLabel(fish.rarity || "common") + "</span> | Taille: " + (fish.size || 0) + " cm | Poids: " + (fish.weight || 0) + " kg | Prix: " + (fish.price || 0) + "</div>" +
+          "</div>" +
+          "<button class='btn' data-index='" + index + "'>Vendre</button>";
+
+        list.appendChild(item);
+      });
+
+      const buttons = list.querySelectorAll("button[data-index]");
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          sellOne(Number(button.getAttribute("data-index")));
+        });
+      });
+    }
+
+    sellAll.addEventListener("click", () => {
+      const totalValue = inventory.reduce((sum, fish) => sum + (Number(fish.price) || 0), 0);
+      money += totalValue;
+      inventory = [];
+      saveState();
+      render();
+    });
+
+    loadInventory();
+    render();
+  </script>
+</body>
+</html>
