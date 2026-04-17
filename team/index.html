@@ -99,7 +99,29 @@
       font-size: 20px;
       font-weight: bold;
       color: #8dc4e0;
-      margin-bottom: 16px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .reserve-sort {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #b8d4e3;
+    }
+
+    .reserve-sort select {
+      border: 1px solid #4b6878;
+      background: #142029;
+      color: #e6f3fb;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 13px;
     }
 
     .reserve-grid {
@@ -261,6 +283,21 @@
       font-weight: bold;
       color: #8dc4e0;
       margin-bottom: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .stack-count {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: bold;
+      color: #0f1c24;
+      background: #8dc4e0;
+      border-radius: 999px;
+      padding: 2px 7px;
+      line-height: 1.2;
     }
 
     .reserve-character-card .character-name {
@@ -597,7 +634,16 @@
     </div>
 
     <div class="reserve-section">
-      <div class="reserve-title">Réserve de personnages</div>
+      <div class="reserve-title">
+        <span>Réserve de personnages</span>
+        <label class="reserve-sort" for="reserveSortSelect">
+          Sort:
+          <select id="reserveSortSelect">
+            <option value="desc">Rarity high to low</option>
+            <option value="asc">Rarity low to high</option>
+          </select>
+        </label>
+      </div>
       <div class="reserve-grid" id="reserveContainer">
         <!-- Reserve characters will be generated here -->
       </div>
@@ -667,55 +713,56 @@
   <script>
     const allCharacters = [
       // ===== 1 STAR (15 characters) - Mostly additive bonuses =====
-      {id: 1, name: "Bob", stars: 1, level: 1, incomeMultiplier: 1.1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: true, cost: 0, talents: [], teamSlot: 0},
-      {id: 2, name: "Ben", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1.1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 0, talents: [], teamSlot: null},
-      {id: 3, name: "Liam", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.1, unlocked: false, cost: 0, talents: [], teamSlot: null},
-      {id: 4, name: "Noah", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 5, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 0, talents: [], teamSlot: null},
-      {id: 5, name: "Owen", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 5, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 0, talents: [], teamSlot: null},
-      {id: 6, name: "Ryan", stars: 1, level: 1, incomeMultiplier: 1.08, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
-      {id: 7, name: "Leo", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1.08, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
-      {id: 8, name: "Evan", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 3, sizeMult: 1, weightAdd: 3, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
-      {id: 9, name: "Cole", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 5, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
-      {id: 10, name: "Mason", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 5, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
-      {id: 11, name: "Logan", stars: 1, level: 1, incomeMultiplier: 1.05, clickMultiplier: 1.05, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
-      {id: 12, name: "Carter", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 2, sizeMult: 1, weightAdd: 2, weightMult: 1, chanceAdd: 2, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
-      {id: 13, name: "Hunter", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.15, unlocked: false, cost: 100, talents: [], teamSlot: null},
-      {id: 14, name: "Jace", stars: 1, level: 1, incomeMultiplier: 1.12, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
-      {id: 15, name: "Xander", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1.12, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 1, templateId: 1, name: "Bob", stars: 1, level: 1, incomeMultiplier: 1.1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: true, cost: 0, talents: [], teamSlot: 0},
+      {id: 2, templateId: 2, name: "Ben", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1.1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 0, talents: [], teamSlot: null},
+      {id: 3, templateId: 3, name: "Liam", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.1, unlocked: false, cost: 0, talents: [], teamSlot: null},
+      {id: 4, templateId: 4, name: "Noah", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 5, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 0, talents: [], teamSlot: null},
+      {id: 5, templateId: 5, name: "Owen", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 5, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 0, talents: [], teamSlot: null},
+      {id: 6, templateId: 6, name: "Ryan", stars: 1, level: 1, incomeMultiplier: 1.08, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 7, templateId: 7, name: "Leo", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1.08, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 8, templateId: 8, name: "Evan", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 3, sizeMult: 1, weightAdd: 3, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 9, templateId: 9, name: "Cole", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 5, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 10, templateId: 10, name: "Mason", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 5, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 11, templateId: 11, name: "Logan", stars: 1, level: 1, incomeMultiplier: 1.05, clickMultiplier: 1.05, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 12, templateId: 12, name: "Carter", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 2, sizeMult: 1, weightAdd: 2, weightMult: 1, chanceAdd: 2, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 13, templateId: 13, name: "Hunter", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.15, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 14, templateId: 14, name: "Jace", stars: 1, level: 1, incomeMultiplier: 1.12, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 15, templateId: 15, name: "Xander", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1.12, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
 
       // ===== 2 STARS (10 characters) - Some balanced, some specialized, no mixed add/mult on one stat =====
-      {id: 16, name: "Ryder", stars: 2, level: 1, incomeMultiplier: 1.2, clickMultiplier: 1.2, sizeAdd: 6, sizeMult: 1, weightAdd: 6, weightMult: 1, chanceAdd: 6, chanceMult: 1, resaleAdd: 4, resaleMult: 1, fishingSpeed: 1.05, unlocked: false, cost: 500, talents: [], teamSlot: null},
-      {id: 17, name: "Knox", stars: 2, level: 1, incomeMultiplier: 1.15, clickMultiplier: 1.3, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 6, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 500, talents: [], teamSlot: null},
-      {id: 18, name: "Dante", stars: 2, level: 1, incomeMultiplier: 1.1, clickMultiplier: 1.15, sizeAdd: 0, sizeMult: 1, weightAdd: 12, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.08, unlocked: false, cost: 500, talents: [], teamSlot: null},
-      {id: 19, name: "Victor", stars: 2, level: 1, incomeMultiplier: 1.1, clickMultiplier: 1.1, sizeAdd: 12, sizeMult: 1, weightAdd: 12, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 6, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 500, talents: [], teamSlot: null},
-      {id: 20, name: "Adrian", stars: 2, level: 1, incomeMultiplier: 1.25, clickMultiplier: 1.1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1.1, fishingSpeed: 1.1, unlocked: false, cost: 500, talents: [], teamSlot: null},
-      {id: 21, name: "Orion", stars: 2, level: 1, incomeMultiplier: 1.12, clickMultiplier: 1.12, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 16, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.05, unlocked: false, cost: 500, talents: [], teamSlot: null},
-      {id: 22, name: "Phoenix", stars: 2, level: 1, incomeMultiplier: 1.2, clickMultiplier: 1.18, sizeAdd: 0, sizeMult: 1.06, weightAdd: 10, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 4, resaleMult: 1, fishingSpeed: 1.15, unlocked: false, cost: 500, talents: [], teamSlot: null},
-      {id: 23, name: "Sterling", stars: 2, level: 1, incomeMultiplier: 1.18, clickMultiplier: 1.2, sizeAdd: 10, sizeMult: 1, weightAdd: 0, weightMult: 1.06, chanceAdd: 4, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.1, unlocked: false, cost: 500, talents: [], teamSlot: null},
-      {id: 24, name: "Maverick", stars: 2, level: 1, incomeMultiplier: 1.18, clickMultiplier: 1.18, sizeAdd: 0, sizeMult: 1.08, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 10, resaleMult: 1, fishingSpeed: 1.08, unlocked: false, cost: 500, talents: [], teamSlot: null},
-      {id: 25, name: "Tristan", stars: 2, level: 1, incomeMultiplier: 1.22, clickMultiplier: 1.22, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1.06, chanceAdd: 8, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.12, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 16, templateId: 16, name: "Ryder", stars: 2, level: 1, incomeMultiplier: 1.2, clickMultiplier: 1.2, sizeAdd: 6, sizeMult: 1, weightAdd: 6, weightMult: 1, chanceAdd: 6, chanceMult: 1, resaleAdd: 4, resaleMult: 1, fishingSpeed: 1.05, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 17, templateId: 17, name: "Knox", stars: 2, level: 1, incomeMultiplier: 1.15, clickMultiplier: 1.3, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 6, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 18, templateId: 18, name: "Dante", stars: 2, level: 1, incomeMultiplier: 1.1, clickMultiplier: 1.15, sizeAdd: 0, sizeMult: 1, weightAdd: 12, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.08, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 19, templateId: 19, name: "Victor", stars: 2, level: 1, incomeMultiplier: 1.1, clickMultiplier: 1.1, sizeAdd: 12, sizeMult: 1, weightAdd: 12, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 6, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 20, templateId: 20, name: "Adrian", stars: 2, level: 1, incomeMultiplier: 1.25, clickMultiplier: 1.1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1.1, fishingSpeed: 1.1, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 21, templateId: 21, name: "Orion", stars: 2, level: 1, incomeMultiplier: 1.12, clickMultiplier: 1.12, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 16, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.05, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 22, templateId: 22, name: "Phoenix", stars: 2, level: 1, incomeMultiplier: 1.2, clickMultiplier: 1.18, sizeAdd: 0, sizeMult: 1.06, weightAdd: 10, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 4, resaleMult: 1, fishingSpeed: 1.15, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 23, templateId: 23, name: "Sterling", stars: 2, level: 1, incomeMultiplier: 1.18, clickMultiplier: 1.2, sizeAdd: 10, sizeMult: 1, weightAdd: 0, weightMult: 1.06, chanceAdd: 4, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.1, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 24, templateId: 24, name: "Maverick", stars: 2, level: 1, incomeMultiplier: 1.18, clickMultiplier: 1.18, sizeAdd: 0, sizeMult: 1.08, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 10, resaleMult: 1, fishingSpeed: 1.08, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 25, templateId: 25, name: "Tristan", stars: 2, level: 1, incomeMultiplier: 1.22, clickMultiplier: 1.22, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1.06, chanceAdd: 8, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.12, unlocked: false, cost: 500, talents: [], teamSlot: null},
 
       // ===== 3 STARS (6 characters) - More specialized profiles, no mixed add/mult on one stat =====
-      {id: 26, name: "Roman", stars: 3, level: 1, incomeMultiplier: 1.35, clickMultiplier: 1.3, sizeAdd: 0, sizeMult: 1.12, weightAdd: 0, weightMult: 1.1, chanceAdd: 12, chanceMult: 1, resaleAdd: 0, resaleMult: 1.05, fishingSpeed: 1.2, unlocked: false, cost: 2000, talents: [], teamSlot: null},
-      {id: 27, name: "Apollo", stars: 3, level: 1, incomeMultiplier: 1.3, clickMultiplier: 1.45, sizeAdd: 0, sizeMult: 1.14, weightAdd: 0, weightMult: 1, chanceAdd: 18, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.18, unlocked: false, cost: 2000, talents: [], teamSlot: null},
-      {id: 28, name: "Atlas", stars: 3, level: 1, incomeMultiplier: 1.35, clickMultiplier: 1.35, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1.14, chanceAdd: 0, chanceMult: 1, resaleAdd: 10, resaleMult: 1, fishingSpeed: 1.2, unlocked: false, cost: 2000, talents: [], teamSlot: null},
-      {id: 29, name: "Soren", stars: 3, level: 1, incomeMultiplier: 1.42, clickMultiplier: 1.38, sizeAdd: 0, sizeMult: 1.16, weightAdd: 0, weightMult: 1.08, chanceAdd: 0, chanceMult: 1, resaleAdd: 16, resaleMult: 1, fishingSpeed: 1.28, unlocked: false, cost: 2000, talents: [], teamSlot: null},
-      {id: 30, name: "Cyrus", stars: 3, level: 1, incomeMultiplier: 1.45, clickMultiplier: 1.45, sizeAdd: 0, sizeMult: 1.1, weightAdd: 10, weightMult: 1, chanceAdd: 20, chanceMult: 1, resaleAdd: 0, resaleMult: 1.05, fishingSpeed: 1.25, unlocked: false, cost: 2000, talents: [], teamSlot: null},
-      {id: 31, name: "Lucian", stars: 3, level: 1, incomeMultiplier: 1.38, clickMultiplier: 1.38, sizeAdd: 25, sizeMult: 1, weightAdd: 0, weightMult: 1.12, chanceAdd: 0, chanceMult: 1.05, resaleAdd: 0, resaleMult: 1.15, fishingSpeed: 1.3, unlocked: false, cost: 2000, talents: [], teamSlot: null},
+      {id: 26, templateId: 26, name: "Roman", stars: 3, level: 1, incomeMultiplier: 1.35, clickMultiplier: 1.3, sizeAdd: 0, sizeMult: 1.12, weightAdd: 0, weightMult: 1.1, chanceAdd: 12, chanceMult: 1, resaleAdd: 0, resaleMult: 1.05, fishingSpeed: 1.2, unlocked: false, cost: 2000, talents: [], teamSlot: null},
+      {id: 27, templateId: 27, name: "Apollo", stars: 3, level: 1, incomeMultiplier: 1.3, clickMultiplier: 1.45, sizeAdd: 0, sizeMult: 1.14, weightAdd: 0, weightMult: 1, chanceAdd: 18, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.18, unlocked: false, cost: 2000, talents: [], teamSlot: null},
+      {id: 28, templateId: 28, name: "Atlas", stars: 3, level: 1, incomeMultiplier: 1.35, clickMultiplier: 1.35, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1.14, chanceAdd: 0, chanceMult: 1, resaleAdd: 10, resaleMult: 1, fishingSpeed: 1.2, unlocked: false, cost: 2000, talents: [], teamSlot: null},
+      {id: 29, templateId: 29, name: "Soren", stars: 3, level: 1, incomeMultiplier: 1.42, clickMultiplier: 1.38, sizeAdd: 0, sizeMult: 1.16, weightAdd: 0, weightMult: 1.08, chanceAdd: 0, chanceMult: 1, resaleAdd: 16, resaleMult: 1, fishingSpeed: 1.28, unlocked: false, cost: 2000, talents: [], teamSlot: null},
+      {id: 30, templateId: 30, name: "Cyrus", stars: 3, level: 1, incomeMultiplier: 1.45, clickMultiplier: 1.45, sizeAdd: 0, sizeMult: 1.1, weightAdd: 10, weightMult: 1, chanceAdd: 20, chanceMult: 1, resaleAdd: 0, resaleMult: 1.05, fishingSpeed: 1.25, unlocked: false, cost: 2000, talents: [], teamSlot: null},
+      {id: 31, templateId: 31, name: "Lucian", stars: 3, level: 1, incomeMultiplier: 1.38, clickMultiplier: 1.38, sizeAdd: 25, sizeMult: 1, weightAdd: 0, weightMult: 1.12, chanceAdd: 0, chanceMult: 1.05, resaleAdd: 0, resaleMult: 1.15, fishingSpeed: 1.3, unlocked: false, cost: 2000, talents: [], teamSlot: null},
 
       // ===== 4 STARS (3 characters) - Strong specialized bonuses, no mixed add/mult on one stat =====
-      {id: 32, name: "Damon", stars: 4, level: 1, incomeMultiplier: 1.55, clickMultiplier: 1.5, sizeAdd: 0, sizeMult: 1.2, weightAdd: 25, weightMult: 1, chanceAdd: 0, chanceMult: 1.12, resaleAdd: 20, resaleMult: 1, fishingSpeed: 1.42, unlocked: false, cost: 8000, talents: [], teamSlot: null},
-      {id: 33, name: "Magnus", stars: 4, level: 1, incomeMultiplier: 1.65, clickMultiplier: 1.6, sizeAdd: 0, sizeMult: 1.25, weightAdd: 0, weightMult: 1.2, chanceAdd: 0, chanceMult: 1.15, resaleAdd: 0, resaleMult: 1.18, fishingSpeed: 1.5, unlocked: false, cost: 8000, talents: [], teamSlot: null},
-      {id: 34, name: "Zayne", stars: 4, level: 1, incomeMultiplier: 1.5, clickMultiplier: 1.55, sizeAdd: 30, sizeMult: 1, weightAdd: 0, weightMult: 1.25, chanceAdd: 18, chanceMult: 1, resaleAdd: 0, resaleMult: 1.16, fishingSpeed: 1.45, unlocked: false, cost: 8000, talents: [], teamSlot: null},
+      {id: 32, templateId: 32, name: "Damon", stars: 4, level: 1, incomeMultiplier: 1.55, clickMultiplier: 1.5, sizeAdd: 0, sizeMult: 1.2, weightAdd: 25, weightMult: 1, chanceAdd: 0, chanceMult: 1.12, resaleAdd: 20, resaleMult: 1, fishingSpeed: 1.42, unlocked: false, cost: 8000, talents: [], teamSlot: null},
+      {id: 33, templateId: 33, name: "Magnus", stars: 4, level: 1, incomeMultiplier: 1.65, clickMultiplier: 1.6, sizeAdd: 0, sizeMult: 1.25, weightAdd: 0, weightMult: 1.2, chanceAdd: 0, chanceMult: 1.15, resaleAdd: 0, resaleMult: 1.18, fishingSpeed: 1.5, unlocked: false, cost: 8000, talents: [], teamSlot: null},
+      {id: 34, templateId: 34, name: "Zayne", stars: 4, level: 1, incomeMultiplier: 1.5, clickMultiplier: 1.55, sizeAdd: 30, sizeMult: 1, weightAdd: 0, weightMult: 1.25, chanceAdd: 18, chanceMult: 1, resaleAdd: 0, resaleMult: 1.16, fishingSpeed: 1.45, unlocked: false, cost: 8000, talents: [], teamSlot: null},
 
       // ===== 5 STARS (2 characters) - Legendary multiplicatives =====
-      {id: 35, name: "Ares", stars: 5, level: 1, incomeMultiplier: 1.8, clickMultiplier: 1.75, sizeAdd: 35, sizeMult: 1.3, weightAdd: 35, weightMult: 1.28, chanceAdd: 35, chanceMult: 1.2, resaleAdd: 50, resaleMult: 1.25, fishingSpeed: 1.7, unlocked: false, cost: 30000, talents: [], teamSlot: null},
-      {id: 36, name: "Draco", stars: 5, level: 1, incomeMultiplier: 1.9, clickMultiplier: 1.85, sizeAdd: 40, sizeMult: 1.35, weightAdd: 38, weightMult: 1.3, chanceAdd: 40, chanceMult: 1.25, resaleAdd: 55, resaleMult: 1.3, fishingSpeed: 1.75, unlocked: false, cost: 30000, talents: [], teamSlot: null}
+      {id: 35, templateId: 35, name: "Ares", stars: 5, level: 1, incomeMultiplier: 1.8, clickMultiplier: 1.75, sizeAdd: 35, sizeMult: 1.3, weightAdd: 35, weightMult: 1.28, chanceAdd: 35, chanceMult: 1.2, resaleAdd: 50, resaleMult: 1.25, fishingSpeed: 1.7, unlocked: false, cost: 30000, talents: [], teamSlot: null},
+      {id: 36, templateId: 36, name: "Draco", stars: 5, level: 1, incomeMultiplier: 1.9, clickMultiplier: 1.85, sizeAdd: 40, sizeMult: 1.35, weightAdd: 38, weightMult: 1.3, chanceAdd: 40, chanceMult: 1.25, resaleAdd: 55, resaleMult: 1.3, fishingSpeed: 1.75, unlocked: false, cost: 30000, talents: [], teamSlot: null}
     ];
 
     const TEAM_RESERVE_STORAGE_KEY = 'clicker_characterReserve';
     const BASE_CHARACTER_COUNT = 36;
     const MAX_RESERVE_SIZE = 50;
+    let reserveSortDirection = 'desc';
 
     let draggedChar = null;
     let dragSource = null;
@@ -749,7 +796,7 @@
       }
 
       const limitedReserve = reserveIds.slice(0, MAX_RESERVE_SIZE);
-      const templateById = new Map(allCharacters.slice(0, BASE_CHARACTER_COUNT).map((char) => [char.id, char]));
+      const templateById = new Map(allCharacters.slice(0, BASE_CHARACTER_COUNT).map((char) => [char.templateId || char.id, char]));
 
       limitedReserve.forEach((templateId, index) => {
         const template = templateById.get(templateId);
@@ -760,9 +807,66 @@
         allCharacters.push({
           ...template,
           id: BASE_CHARACTER_COUNT + index + 1,
+          templateId: template.templateId || template.id,
           unlocked: true,
           teamSlot: null
         });
+      });
+    }
+
+    function loadTeamState() {
+      try {
+        const raw = localStorage.getItem('clicker_teamState');
+        if (!raw) {
+          return [];
+        }
+
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.teamChars)) {
+          return [];
+        }
+
+        return parsed.teamChars
+          .map((char) => ({
+            templateId: Number(char.templateId || char.id),
+            teamSlot: Number(char.teamSlot)
+          }))
+          .filter((char) => Number.isInteger(char.templateId) && Number.isInteger(char.teamSlot));
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function applyTeamStateFromSave() {
+      const savedTeam = loadTeamState();
+      const usedCharacterIds = new Set();
+
+      // Always clear runtime slots first, then rebuild from saved state.
+      allCharacters.forEach((char) => {
+        char.teamSlot = null;
+      });
+
+      if (savedTeam.length === 0) {
+        const bob = allCharacters.find((char) => Number(char.templateId || char.id) === 1);
+        if (bob) {
+          bob.teamSlot = 0;
+        }
+        return;
+      }
+
+      savedTeam.sort((left, right) => left.teamSlot - right.teamSlot).forEach((savedChar) => {
+        const match = allCharacters.find((char) => {
+          const templateId = Number(char.templateId || char.id);
+          return templateId === savedChar.templateId
+            && char.unlocked
+            && char.teamSlot === null
+            && !usedCharacterIds.has(char.id);
+        });
+
+        if (match) {
+          match.teamSlot = savedChar.teamSlot;
+          usedCharacterIds.add(match.id);
+        }
       });
     }
 
@@ -844,10 +948,15 @@
       let pointerMoved = false;
       let startX = 0;
       let startY = 0;
+
+      const stackCount = Number(char.stackCount) || 1;
+      const stackLabel = isReserve && stackCount > 1
+        ? `<span class="stack-count">x${stackCount}</span>`
+        : '';
       
       card.innerHTML = `
         <div class="character-header">
-          <div class="character-name">${char.name}</div>
+          <div class="character-name">${char.name} ${stackLabel}</div>
           <div class="character-stars">${getStarString(char.stars)}</div>
           <div class="character-level">Level ${char.level}</div>
         </div>
@@ -933,6 +1042,28 @@
 
       const teamCharacters = allCharacters.filter(c => c.teamSlot !== null);
       const reserveCharacters = allCharacters.filter(c => c.unlocked && c.teamSlot === null);
+      const reserveGroups = new Map();
+
+      reserveCharacters.forEach((char) => {
+        const key = Number(char.templateId || char.id);
+        if (!reserveGroups.has(key)) {
+          reserveGroups.set(key, []);
+        }
+        reserveGroups.get(key).push(char);
+      });
+
+      const stackedReserveCharacters = Array.from(reserveGroups.values()).map((group) => {
+        const representative = group[0];
+        representative.stackCount = group.length;
+        return representative;
+      }).sort((left, right) => {
+        if (left.stars !== right.stars) {
+          return reserveSortDirection === 'desc'
+            ? right.stars - left.stars
+            : left.stars - right.stars;
+        }
+        return left.name.localeCompare(right.name);
+      });
 
       // Render team with fixed 3 slots
       for (let i = 0; i < 3; i++) {
@@ -1039,13 +1170,13 @@
       });
 
       // Render reserve
-      if (reserveCharacters.length === 0) {
+      if (stackedReserveCharacters.length === 0) {
         const emptyMsg = document.createElement('div');
         emptyMsg.className = 'reserve-empty';
         emptyMsg.textContent = 'Aucun personnage en réserve';
         reserveContainer.appendChild(emptyMsg);
       } else {
-        reserveCharacters.forEach((char) => {
+        stackedReserveCharacters.forEach((char) => {
           const card = createCharacterCard(char, true);
           reserveContainer.appendChild(card);
         });
@@ -1199,7 +1330,8 @@
 
     function saveTeamState(teamChars, totals) {
       const persistedChars = teamChars.map((char) => ({
-        id: char.id,
+        id: char.templateId || char.id,
+        templateId: char.templateId || char.id,
         name: char.name,
         stars: char.stars,
         level: char.level,
@@ -1226,8 +1358,9 @@
       localStorage.setItem('clicker_teamRoster', JSON.stringify({
         updatedAt: Date.now(),
         slots: teamChars.map((char) => ({
+          templateId: char.templateId || char.id,
           slot: char.teamSlot,
-          id: char.id,
+          id: char.templateId || char.id,
           name: char.name,
           stars: char.stars
         })),
@@ -1254,7 +1387,14 @@
     }
 
     // Initial render
+    const reserveSortSelect = document.getElementById('reserveSortSelect');
+    reserveSortSelect.addEventListener('change', () => {
+      reserveSortDirection = reserveSortSelect.value === 'asc' ? 'asc' : 'desc';
+      renderCharacters();
+    });
+
     applyReserveCharactersFromSave();
+    applyTeamStateFromSave();
     renderCharacters();
   </script>
 

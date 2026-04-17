@@ -333,6 +333,8 @@
 
   <script>
     const TURN_SECONDS = 10;
+    const OUT_GAIN_PER_10S_MIN = 5;
+    const OUT_GAIN_PER_10S_MAX = 10;
 
     const moneyDisplay = document.getElementById("money");
     const countDisplay = document.getElementById("count");
@@ -427,10 +429,10 @@
       const price = Number(fish && fish.price) || 0;
       const basePrice = Number(fish && fish.basePrice) || price;
         const hiddenResistance = Number(fish && fish.hiddenResistance) || randomBetween(0.9, 1.05, 3);
-        const rawGrowthRate = Number(fish && fish.growthRate);
-        const growthRate = Number.isFinite(rawGrowthRate) && rawGrowthRate >= 0.1
-          ? rawGrowthRate
-          : randomBetween(0.1, 0.3, 3);
+      const rawGrowthRate = Number(fish && fish.growthRate);
+      const growthRate = Number.isFinite(rawGrowthRate)
+        ? Math.min(0.1, Math.max(0.05, rawGrowthRate))
+        : randomBetween(0.05, 0.1, 3);
       const spoiledValue = Number(fish && fish.spoiledValue) || Math.max(1, Math.round(basePrice * 0.08));
       const currentValue = Number(fish && fish.currentValue);
       const legacyTurnsOut = Number(fish && fish.turnsOut) || 0;
@@ -443,6 +445,8 @@
       const outStartValue = Number(fish && fish.outStartValue);
       const outCount = Number(fish && fish.outCount);
       const totalOutMs = Number(fish && fish.totalOutMs);
+      const outBonusPercent = Number(fish && fish.outBonusPercent);
+      const outTargetValue = Number(fish && fish.outTargetValue);
 
       const normalizedOutDurationMs = Number.isFinite(outDurationMs) && outDurationMs > 0
         ? outDurationMs
@@ -468,6 +472,8 @@
         outDurationMs: normalizedOutDurationMs,
         outStartedAtMs: normalizedOutStartedAtMs,
         outStartValue: Number.isFinite(outStartValue) && outStartValue > 0 ? outStartValue : (Number.isNaN(currentValue) ? basePrice : currentValue),
+        outBonusPercent: Number.isFinite(outBonusPercent) ? outBonusPercent : null,
+        outTargetValue: Number.isFinite(outTargetValue) && outTargetValue > 0 ? outTargetValue : null,
         outCount: Number.isFinite(outCount) ? Math.max(0, Math.floor(outCount)) : 0,
         totalOutMs: Number.isFinite(totalOutMs) ? Math.max(0, totalOutMs) : Math.max(0, legacyTurnsOut * TURN_SECONDS * 1000),
         hiddenSpoilMs: normalizedHiddenSpoilMs,
@@ -531,19 +537,29 @@
       }
 
       if (fish.storageState !== "out") {
-        fish.currentValue = Math.max(Number(fish.currentValue) || 0, Number(fish.basePrice) || 0);
+        fish.currentValue = Math.max(
+          Number(fish.currentValue) || 0,
+          Number(fish.outTargetValue) || 0,
+          Number(fish.basePrice) || 0
+        );
         return fish;
       }
 
+      const baseReference = Math.max(Number(fish.outStartValue) || Number(fish.currentValue) || Number(fish.basePrice) || 0, 1);
+      let targetValue = Number(fish.outTargetValue);
+      if (!Number.isFinite(targetValue) || targetValue <= 0) {
+        const storedBonus = Number(fish.outBonusPercent);
+        const bonusPercent = Number.isFinite(storedBonus)
+          ? Math.max(0, storedBonus)
+          : randomBetween(OUT_GAIN_PER_10S_MIN * 3, OUT_GAIN_PER_10S_MAX * 3, 1);
+        targetValue = Math.round(baseReference * (1 + (bonusPercent * 0.01)));
+        fish.outTargetValue = targetValue;
+      }
+
+      const durationMs = Math.max(1, Number(fish.outDurationMs) || (3 * TURN_SECONDS * 1000));
       const elapsedOutMs = getElapsedOutMs(fish, now);
-      const bonusTurns = elapsedOutMs / (TURN_SECONDS * 1000);
-      const growthRate = Number(fish.growthRate) || 0;
-        const resistance = 1;
-      const sessionStartValue = Math.max(Number(fish.outStartValue) || 0, Number(fish.currentValue) || 0, Number(fish.basePrice) || 0);
-      const baseReference = Math.max(Number(fish.basePrice) || 0, 1);
-      const gainedValue = baseReference * growthRate * resistance * bonusTurns;
-      const boostedValue = Math.round(sessionStartValue + gainedValue);
-      fish.currentValue = boostedValue;
+      const progress = Math.min(1, elapsedOutMs / durationMs);
+      fish.currentValue = Math.round(baseReference + ((targetValue - baseReference) * progress));
       return fish;
     }
 
@@ -580,11 +596,17 @@
         return;
       }
 
-      const duration = Math.max(1, Math.floor(Number(turns) || 0));
+      const duration = 3;
+      const startValue = Math.max(Number(fish.currentValue) || 0, Number(fish.basePrice) || 0);
+      const minBonus = OUT_GAIN_PER_10S_MIN * duration;
+      const maxBonus = OUT_GAIN_PER_10S_MAX * duration;
+      const bonusPercent = randomBetween(minBonus, maxBonus, 1);
       fish.storageState = "out";
       fish.outStartedAtMs = Date.now();
       fish.outDurationMs = duration * TURN_SECONDS * 1000;
-      fish.outStartValue = Math.max(Number(fish.currentValue) || 0, Number(fish.basePrice) || 0);
+      fish.outStartValue = startValue;
+      fish.outBonusPercent = bonusPercent;
+      fish.outTargetValue = Math.round(startValue * (1 + (bonusPercent * 0.01)));
       fish.outCount = Math.max(0, Number(fish.outCount) || 0) + 1;
       if (!Number.isFinite(fish.hiddenSpoilMs)) {
         fish.hiddenSpoilMs = Math.max(2, Math.floor(randomBetween(2, 6, 0))) * TURN_SECONDS * 1000;
@@ -732,10 +754,7 @@
           "</div>" +
           "<div class='fish-actions'>" +
             (fish.storageState !== "out" ?
-              "<div class='fish-turn-row'>" +
-                "<input type='number' min='1' step='1' value='3' data-turns-for='" + originalIndex + "'>" +
-                "<button class='btn' data-action='" + turnAction + "' data-index='" + originalIndex + "'>Take out of fridge</button>" +
-              "</div>"
+              "<button class='btn' data-action='" + turnAction + "' data-index='" + originalIndex + "'>Take out of fridge</button>"
               : "") +
             (fish.storageState === "out" ? "<button class='btn' data-return='" + originalIndex + "'>Put back in fridge</button>" : "") +
             "<button class='btn' data-sell='" + originalIndex + "'>Sell</button>" +
@@ -762,9 +781,7 @@
       turnButtons.forEach((button) => {
         button.addEventListener("click", () => {
           const index = Number(button.getAttribute("data-index"));
-          const input = list.querySelector("input[data-turns-for='" + index + "']");
-          const turns = input ? Number(input.value) : 1;
-          takeFishOut(index, turns);
+          takeFishOut(index, 3);
         });
       });
     }
