@@ -3,10 +3,6 @@
 <head>
   <title>Shop - Clicker</title>
   <style>
-    :root {
-      --sidebar-width: 420px;
-    }
-
     body {
       font-family: Arial;
       text-align: center;
@@ -14,8 +10,9 @@
       color: white;
       margin: 0;
       padding: 24px 20px 36px 16px;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     .top-bar {
@@ -65,6 +62,7 @@
       min-height: calc(100vh - 24px - 36px);
       display: flex;
       flex-direction: column;
+      gap: 16px;
     }
 
     h1 {
@@ -77,14 +75,363 @@
       border: 1px solid #2f4d5c;
       border-radius: 16px;
       padding: 24px;
-      max-width: 720px;
+      max-width: 860px;
       margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .shop-title {
+      margin: 0 0 8px;
+      font-size: 28px;
     }
 
     .shop-text {
-      font-size: 18px;
+      margin: 0;
+      font-size: 16px;
       color: #d7e8f2;
       line-height: 1.6;
+    }
+
+    .gacha-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .summary-card {
+      background: #111a20;
+      border: 1px solid #335060;
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .summary-label {
+      color: #9dc2d8;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .summary-value {
+      margin-top: 6px;
+      color: #f5fbff;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .actions {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      border: 1px solid #6ea0bd;
+      background: #21455a;
+      color: #fff;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .action-btn:hover {
+      background: #2a5870;
+    }
+
+    .action-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .status-text {
+      margin-top: 12px;
+      color: #cbe0ec;
+      min-height: 22px;
+      font-size: 14px;
+    }
+
+    .result-box {
+      margin-top: 14px;
+      border: 1px solid #406378;
+      border-radius: 12px;
+      background: #111a20;
+      padding: 14px;
+      display: none;
+    }
+
+    .result-box.visible {
+      display: block;
+    }
+
+    .result-title {
+      margin: 0;
+      color: #9dc2d8;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .result-name {
+      margin-top: 6px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .rarity-common { color: #d9d9d9; }
+    .rarity-uncommon { color: #7ee787; }
+    .rarity-rare { color: #58a6ff; }
+    .rarity-epic { color: #d2a8ff; }
+    .rarity-legendary { color: #ffa657; }
+
+    .roll-item.rarity-common {
+      background: linear-gradient(180deg, #25303a 0%, #1b242c 100%);
+      border-color: #7d8a95;
+    }
+
+    .roll-item.rarity-uncommon {
+      background: linear-gradient(180deg, #1f3a2a 0%, #162a1f 100%);
+      border-color: #4ea867;
+    }
+
+    .roll-item.rarity-rare {
+      background: linear-gradient(180deg, #1d324a 0%, #162737 100%);
+      border-color: #4f86c7;
+    }
+
+    .roll-item.rarity-epic {
+      background: linear-gradient(180deg, #33244a 0%, #241a37 100%);
+      border-color: #8d65bf;
+    }
+
+    .roll-item.rarity-legendary {
+      background: linear-gradient(180deg, #4b341d 0%, #362513 100%);
+      border-color: #c88a3f;
+    }
+
+    .result-box.rarity-common,
+    .draw-recap.rarity-common {
+      background: linear-gradient(180deg, #25303a 0%, #1b242c 100%);
+      border-color: #7d8a95;
+    }
+
+    .result-box.rarity-uncommon,
+    .draw-recap.rarity-uncommon {
+      background: linear-gradient(180deg, #1f3a2a 0%, #162a1f 100%);
+      border-color: #4ea867;
+    }
+
+    .result-box.rarity-rare,
+    .draw-recap.rarity-rare {
+      background: linear-gradient(180deg, #1d324a 0%, #162737 100%);
+      border-color: #4f86c7;
+    }
+
+    .result-box.rarity-epic,
+    .draw-recap.rarity-epic {
+      background: linear-gradient(180deg, #33244a 0%, #241a37 100%);
+      border-color: #8d65bf;
+    }
+
+    .result-box.rarity-legendary,
+    .draw-recap.rarity-legendary {
+      background: linear-gradient(180deg, #4b341d 0%, #362513 100%);
+      border-color: #c88a3f;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      z-index: 100;
+      padding: 20px;
+      box-sizing: border-box;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.visible {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(940px, 100%);
+      background: #18222a;
+      border: 1px solid #3f6075;
+      border-radius: 14px;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .close-btn {
+      border: 1px solid #769cb3;
+      background: #2a4453;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+
+    .drop-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    .drop-table th,
+    .drop-table td {
+      border: 1px solid #325263;
+      padding: 8px;
+    }
+
+    .drop-table th {
+      background: #12202a;
+      color: #cde3ef;
+      text-align: left;
+    }
+
+    .roll-area {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .roll-area.visible {
+      display: block;
+    }
+
+    .roll-window {
+      width: 100%;
+      height: 120px;
+      overflow: hidden;
+      border: 1px solid #466a7f;
+      border-radius: 12px;
+      position: relative;
+      background: #0f171d;
+    }
+
+    .roll-window::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 100%;
+      background: #f5f2c4;
+      box-shadow: 0 0 10px rgba(245, 242, 196, 0.8);
+      pointer-events: none;
+    }
+
+    .roll-track {
+      display: flex;
+      gap: 8px;
+      padding: 14px 10px;
+      transition: transform 4.2s cubic-bezier(0.15, 0.88, 0.2, 1);
+      will-change: transform;
+    }
+
+    .roll-item {
+      width: 140px;
+      min-width: 140px;
+      height: 86px;
+      border: 1px solid #3b596c;
+      border-radius: 10px;
+      background: #17232c;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      text-align: center;
+      padding: 4px;
+    }
+
+    .roll-name {
+      font-size: 14px;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+
+    .roll-stars {
+      margin-top: 4px;
+      font-size: 13px;
+      color: #f5eaa8;
+    }
+
+    .modal-actions {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .draw-recap {
+      display: none;
+      margin-top: 12px;
+      border: 1px solid #406378;
+      border-radius: 12px;
+      background: #111a20;
+      padding: 12px;
+      text-align: left;
+    }
+
+    .draw-recap.visible {
+      display: block;
+    }
+
+    .draw-recap-title {
+      margin: 0;
+      color: #9dc2d8;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .draw-recap-name {
+      margin-top: 6px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .draw-recap-text {
+      margin-top: 6px;
+      color: #cbe0ec;
+      font-size: 14px;
+    }
+
+    @media (max-width: 760px) {
+      .gacha-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .roll-item {
+        width: 120px;
+        min-width: 120px;
+      }
     }
   </style>
 </head>
@@ -96,7 +443,7 @@
       <button class="nav-button" onclick="window.location.href='../'">Game</button>
       <button class="nav-button" onclick="window.location.href='../inventaire/'">Inventory</button>
       <button class="nav-button" onclick="window.location.href='../team/'">Team</button>
-      <button class="nav-button" onclick="window.location.href='../'">Shop</button>
+      <button class="nav-button" onclick="window.location.href='./'">Shop</button>
       <button class="nav-button" onclick="window.location.href='../settings/'">Settings</button>
     </div>
   </div>
@@ -104,12 +451,403 @@
   <div class="shell">
     <h1>Shop</h1>
     <div class="shop-container">
-      <div class="shop-text">
-        <p>Welcome to the Shop!</p>
-        <p>Here you can purchase items and upgrades to enhance your fishing experience.</p>
+      <h2 class="shop-title">Character Gacha</h2>
+      <p class="shop-text">Spend 100 money to roll a character. You can get duplicates, and each draw adds one character copy to your Team reserve.</p>
+
+      <div class="gacha-summary">
+        <div class="summary-card">
+          <div class="summary-label">Money</div>
+          <div class="summary-value" id="moneyValue">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Cost / Draw</div>
+          <div class="summary-value">100</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Reserve Slots</div>
+          <div class="summary-value" id="lockedCount">0</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="action-btn" id="openGachaBtn">Tirage personnage</button>
+      </div>
+
+      <div class="status-text" id="statusText"></div>
+
+      <div class="result-box" id="resultBox">
+        <p class="result-title">Last Character Won</p>
+        <div class="result-name" id="resultName"></div>
       </div>
     </div>
   </div>
+
+  <div class="modal" id="gachaModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Character Draw Details</h3>
+        <button class="close-btn" id="closeGachaBtn">Close</button>
+      </div>
+
+      <table class="drop-table" id="dropTable">
+        <thead>
+          <tr>
+            <th>Rarity</th>
+            <th>Base Probability</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="roll-area" id="rollArea">
+        <div class="roll-window" id="rollWindow">
+          <div class="roll-track" id="rollTrack"></div>
+        </div>
+      </div>
+
+      <div class="draw-recap" id="drawRecap">
+        <p class="draw-recap-title">Tirage termine</p>
+        <div class="draw-recap-name" id="drawRecapName"></div>
+        <div class="draw-recap-text" id="drawRecapText"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="action-btn" id="startDrawBtn">Buy and Roll (100)</button>
+        <button class="action-btn" id="drawOkBtn" style="display: none;">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DRAW_COST = 100;
+    const RESERVE_MAX = 50;
+    const MONEY_KEY = "clicker_money";
+    const RESERVE_KEY = "clicker_characterReserve";
+
+    const rarityConfig = {
+      1: { label: "Common (★)", className: "rarity-common", chance: 79.92 },
+      2: { label: "Uncommon (★★)", className: "rarity-uncommon", chance: 15.98 },
+      3: { label: "Rare (★★★)", className: "rarity-rare", chance: 3.2 },
+      4: { label: "Epic (★★★★)", className: "rarity-epic", chance: 0.64 },
+      5: { label: "Legendary (★★★★★)", className: "rarity-legendary", chance: 0.26 }
+    };
+
+    const characterPool = [
+      { id: 2, name: "Ben", stars: 1 },
+      { id: 3, name: "Liam", stars: 1 },
+      { id: 4, name: "Noah", stars: 1 },
+      { id: 5, name: "Owen", stars: 1 },
+      { id: 6, name: "Ryan", stars: 1 },
+      { id: 7, name: "Leo", stars: 1 },
+      { id: 8, name: "Evan", stars: 1 },
+      { id: 9, name: "Cole", stars: 1 },
+      { id: 10, name: "Mason", stars: 1 },
+      { id: 11, name: "Logan", stars: 1 },
+      { id: 12, name: "Carter", stars: 1 },
+      { id: 13, name: "Hunter", stars: 1 },
+      { id: 14, name: "Jace", stars: 1 },
+      { id: 15, name: "Xander", stars: 1 },
+      { id: 16, name: "Ryder", stars: 2 },
+      { id: 17, name: "Knox", stars: 2 },
+      { id: 18, name: "Dante", stars: 2 },
+      { id: 19, name: "Victor", stars: 2 },
+      { id: 20, name: "Adrian", stars: 2 },
+      { id: 21, name: "Orion", stars: 2 },
+      { id: 22, name: "Phoenix", stars: 2 },
+      { id: 23, name: "Sterling", stars: 2 },
+      { id: 24, name: "Maverick", stars: 2 },
+      { id: 25, name: "Tristan", stars: 2 },
+      { id: 26, name: "Roman", stars: 3 },
+      { id: 27, name: "Apollo", stars: 3 },
+      { id: 28, name: "Atlas", stars: 3 },
+      { id: 29, name: "Soren", stars: 3 },
+      { id: 30, name: "Cyrus", stars: 3 },
+      { id: 31, name: "Lucian", stars: 3 },
+      { id: 32, name: "Damon", stars: 4 },
+      { id: 33, name: "Magnus", stars: 4 },
+      { id: 34, name: "Zayne", stars: 4 },
+      { id: 35, name: "Ares", stars: 5 },
+      { id: 36, name: "Draco", stars: 5 }
+    ];
+
+    const moneyValue = document.getElementById("moneyValue");
+    const lockedCount = document.getElementById("lockedCount");
+    const openGachaBtn = document.getElementById("openGachaBtn");
+    const statusText = document.getElementById("statusText");
+    const resultBox = document.getElementById("resultBox");
+    const resultName = document.getElementById("resultName");
+    const gachaModal = document.getElementById("gachaModal");
+    const closeGachaBtn = document.getElementById("closeGachaBtn");
+    const startDrawBtn = document.getElementById("startDrawBtn");
+    const drawOkBtn = document.getElementById("drawOkBtn");
+    const dropTableBody = document.querySelector("#dropTable tbody");
+    const rollArea = document.getElementById("rollArea");
+    const rollTrack = document.getElementById("rollTrack");
+    const rollWindow = document.getElementById("rollWindow");
+    const drawRecap = document.getElementById("drawRecap");
+    const drawRecapName = document.getElementById("drawRecapName");
+    const drawRecapText = document.getElementById("drawRecapText");
+
+    let spinning = false;
+
+    function getMoney() {
+      return Math.max(0, Number(localStorage.getItem(MONEY_KEY)) || 0);
+    }
+
+    function setMoney(value) {
+      localStorage.setItem(MONEY_KEY, String(Math.max(0, Math.floor(value))));
+    }
+
+    function loadReserveList() {
+      const raw = localStorage.getItem(RESERVE_KEY);
+      if (!raw) {
+        return [];
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed)
+          ? parsed.map((id) => Number(id)).filter((id) => Number.isInteger(id))
+          : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveReserveList(reserveList) {
+      localStorage.setItem(RESERVE_KEY, JSON.stringify(reserveList.slice(0, RESERVE_MAX)));
+    }
+
+    function getReserveCount() {
+      return loadReserveList().length;
+    }
+
+    function getRarityClassByStars(stars) {
+      return rarityConfig[stars] ? rarityConfig[stars].className : "rarity-common";
+    }
+
+    function getStarsString(stars) {
+      return "★".repeat(stars);
+    }
+
+    function formatChanceValue(value) {
+      if (Number.isInteger(value)) {
+        return String(value);
+      }
+      return value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+    }
+
+    function refreshSummary() {
+      const money = getMoney();
+      const reserveCount = getReserveCount();
+      const hasSpace = reserveCount < RESERVE_MAX;
+      const canAfford = money >= DRAW_COST;
+      const canDraw = hasSpace && canAfford;
+      moneyValue.textContent = String(money);
+      lockedCount.textContent = `${reserveCount} / ${RESERVE_MAX}`;
+      openGachaBtn.disabled = !canDraw;
+      startDrawBtn.disabled = !canDraw || spinning;
+      if (!hasSpace && !spinning) {
+        statusText.textContent = `Reserve full (${RESERVE_MAX}/${RESERVE_MAX}).`;
+      } else if (!canAfford && !spinning) {
+        statusText.textContent = `Not enough money. Need ${DRAW_COST}.`;
+      } else if (!spinning) {
+        statusText.textContent = "";
+      }
+    }
+
+    function buildDropTable() {
+      dropTableBody.innerHTML = "";
+
+      [1, 2, 3, 4, 5].forEach((stars) => {
+        const row = document.createElement("tr");
+        const rarity = rarityConfig[stars];
+        row.innerHTML = `
+          <td class="${rarity.className}">${rarity.label}</td>
+          <td>${formatChanceValue(rarity.chance)}%</td>
+        `;
+        dropTableBody.appendChild(row);
+      });
+    }
+
+    function pickWeightedRarity() {
+      const rarityCandidates = [1, 2, 3, 4, 5]
+        .filter((stars) => characterPool.some((char) => char.stars === stars))
+        .map((stars) => ({ stars: stars, weight: rarityConfig[stars].chance }));
+
+      const totalWeight = rarityCandidates.reduce((sum, entry) => sum + entry.weight, 0);
+      let roll = Math.random() * totalWeight;
+
+      for (const entry of rarityCandidates) {
+        roll -= entry.weight;
+        if (roll <= 0) {
+          return entry.stars;
+        }
+      }
+
+      return rarityCandidates[rarityCandidates.length - 1].stars;
+    }
+
+    function pickRewardCharacter() {
+      if (!characterPool.length) {
+        return null;
+      }
+
+      const pickedStars = pickWeightedRarity();
+      const candidates = characterPool.filter((char) => char.stars === pickedStars);
+      return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
+    function createRollItem(char) {
+      const rarityClass = getRarityClassByStars(char.stars);
+      return `
+        <div class="roll-item ${rarityClass}">
+          <div class="roll-name">${char.name}</div>
+          <div class="roll-stars">${getStarsString(char.stars)}</div>
+        </div>
+      `;
+    }
+
+    function runCaseOpeningAnimation(rewardChar) {
+      return new Promise((resolve) => {
+        const sequence = [];
+        const baseLength = 42;
+        const rewardIndex = 35;
+
+        for (let i = 0; i < baseLength; i += 1) {
+          const randomChar = characterPool[Math.floor(Math.random() * characterPool.length)];
+          sequence.push(randomChar);
+        }
+
+        sequence[rewardIndex] = rewardChar;
+        rollTrack.innerHTML = sequence.map((char) => createRollItem(char)).join("");
+        rollTrack.style.transition = "none";
+        rollTrack.style.transform = "translateX(0px)";
+
+        const firstItem = rollTrack.querySelector(".roll-item");
+        const itemWidth = firstItem ? firstItem.offsetWidth : 140;
+        const gap = 8;
+        const step = itemWidth + gap;
+        const centerOffset = (rollWindow.clientWidth / 2) - (itemWidth / 2);
+        const finalOffset = -((rewardIndex * step) - centerOffset);
+
+        requestAnimationFrame(() => {
+          rollTrack.style.transition = "transform 4.2s cubic-bezier(0.15, 0.88, 0.2, 1)";
+          rollTrack.style.transform = `translateX(${finalOffset}px)`;
+        });
+
+        const done = () => {
+          rollTrack.removeEventListener("transitionend", done);
+          resolve();
+        };
+
+        rollTrack.addEventListener("transitionend", done);
+      });
+    }
+
+    function applyReward(rewardChar) {
+      const reserveList = loadReserveList();
+      reserveList.push(rewardChar.id);
+      saveReserveList(reserveList);
+
+      const rarityClass = getRarityClassByStars(rewardChar.stars);
+      resultBox.className = `result-box visible ${rarityClass}`;
+      resultName.className = `result-name ${rarityClass}`;
+      resultName.textContent = `${rewardChar.name} ${getStarsString(rewardChar.stars)}`;
+      statusText.textContent = `${rewardChar.name} unlocked and sent to Team reserve.`;
+
+      drawRecap.className = `draw-recap visible ${rarityClass}`;
+      drawRecapName.className = `draw-recap-name ${rarityClass}`;
+      drawRecapName.textContent = `${rewardChar.name} ${getStarsString(rewardChar.stars)}`;
+      drawRecapText.textContent = "Added to your Team reserve.";
+      drawOkBtn.style.display = "inline-block";
+
+      refreshSummary();
+      buildDropTable();
+    }
+
+    async function startDraw() {
+      if (spinning) {
+        return;
+      }
+
+      if (getReserveCount() >= RESERVE_MAX) {
+        statusText.textContent = `Reserve full (${RESERVE_MAX}/${RESERVE_MAX}).`;
+        return;
+      }
+
+      const money = getMoney();
+      if (money < DRAW_COST) {
+        statusText.textContent = `Not enough money. Need ${DRAW_COST}.`;
+        return;
+      }
+
+      const rewardChar = pickRewardCharacter();
+      if (!rewardChar) {
+        statusText.textContent = "No available character to draw.";
+        return;
+      }
+
+      spinning = true;
+      startDrawBtn.disabled = true;
+      openGachaBtn.disabled = true;
+      drawOkBtn.style.display = "none";
+      drawRecap.classList.remove("visible");
+      rollArea.classList.add("visible");
+      statusText.textContent = "Rolling...";
+
+      setMoney(money - DRAW_COST);
+      refreshSummary();
+
+      await runCaseOpeningAnimation(rewardChar);
+      applyReward(rewardChar);
+
+      startDrawBtn.disabled = true;
+      openGachaBtn.disabled = true;
+      spinning = false;
+      refreshSummary();
+    }
+
+    function openGachaModal() {
+      buildDropTable();
+      drawOkBtn.style.display = "none";
+      drawRecap.classList.remove("visible");
+      rollArea.classList.remove("visible");
+      gachaModal.classList.add("visible");
+      refreshSummary();
+    }
+
+    function closeGachaModal() {
+      if (spinning) {
+        return;
+      }
+      gachaModal.classList.remove("visible");
+      rollArea.classList.remove("visible");
+      drawRecap.className = "draw-recap";
+      drawOkBtn.style.display = "none";
+      rollTrack.innerHTML = "";
+    }
+
+    function acknowledgeDraw() {
+      drawRecap.className = "draw-recap";
+      drawOkBtn.style.display = "none";
+      closeGachaModal();
+    }
+
+    openGachaBtn.addEventListener("click", openGachaModal);
+    closeGachaBtn.addEventListener("click", closeGachaModal);
+    startDrawBtn.addEventListener("click", startDraw);
+    drawOkBtn.addEventListener("click", acknowledgeDraw);
+
+    gachaModal.addEventListener("click", (event) => {
+      if (event.target === gachaModal) {
+        closeGachaModal();
+      }
+    });
+
+    refreshSummary();
+    buildDropTable();
+  </script>
 
 </body>
 </html>
