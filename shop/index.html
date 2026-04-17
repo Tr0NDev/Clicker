@@ -649,7 +649,7 @@
       <button class="nav-button" onclick="window.location.href='../'">Game</button>
       <button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
       <button class="nav-button" onclick="window.location.href='../team/'">Team</button>
-      <button class="nav-button active-nav-button" onclick="window.location.href='./'">Draw</button>
+      <button class="nav-button active-nav-button" onclick="window.location.href='./'">Shop</button>
       <button class="nav-button" onclick="window.location.href='../battle/'">Battle</button>
       <button class="nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
       <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
@@ -664,6 +664,11 @@
           <span class="draw-btn-name">Character Draw</span>
           <span class="draw-btn-price">Price: 100</span>
           <span class="draw-btn-effect">Effect: Random character copy added to the Team</span>
+        </button>
+        <button class="action-btn draw-main-btn" id="openBaitBtn">
+          <span class="draw-btn-name">Bait Draw</span>
+          <span class="draw-btn-price">Price: 100</span>
+          <span class="draw-btn-effect">Effect: Random bait added to your bait reserve</span>
         </button>
       </div>
     </div>
@@ -710,6 +715,51 @@
       <div class="modal-actions">
         <button class="close-btn modal-close-bottom" id="closeGachaBtn">Close</button>
         <button class="action-btn" id="startDrawBtn">Start Draw</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="baitModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Bait Draw</h3>
+      </div>
+
+      <div class="draw-quick-info">
+        <p class="draw-quick-title">How this bait draw works</p>
+        <p class="draw-quick-text">One click spends money once and gives you exactly one random bait. Baits boost battle stats like attack and defense, and some are built for combos.</p>
+        <div class="draw-price-badge">
+          <span class="draw-price-label">Price</span>
+          <span class="draw-price-value">100</span>
+          <span>money</span>
+        </div>
+      </div>
+
+      <table class="drop-table" id="baitDropTable">
+        <thead>
+          <tr>
+            <th>Rarity</th>
+            <th>Base Probability</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="roll-area" id="baitRollArea">
+        <div class="roll-window" id="baitRollWindow">
+          <div class="roll-track" id="baitRollTrack"></div>
+        </div>
+      </div>
+
+      <div class="draw-recap" id="baitRecap">
+        <p class="draw-recap-title">Bait obtained</p>
+        <div class="draw-recap-name" id="baitRecapName"></div>
+        <div class="draw-recap-text" id="baitRecapText"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="close-btn modal-close-bottom" id="closeBaitBtn">Close</button>
+        <button class="action-btn" id="startBaitDrawBtn">Start Draw</button>
       </div>
     </div>
   </div>
@@ -810,7 +860,35 @@
       { id: 36, name: "Draco", stars: 5 }
     ];
 
+    const baitPool = [
+      { id: 1, name: "Worm Niblet", stars: 1, kind: "attack", attack: 2, defense: 0, combo: "none" },
+      { id: 2, name: "Tiny Shrimp", stars: 1, kind: "defense", attack: 0, defense: 2, combo: "none" },
+      { id: 3, name: "Soft Algae", stars: 1, kind: "mixed", attack: 1, defense: 0, combo: "none" },
+      { id: 4, name: "Bread Crumb", stars: 1, kind: "mixed", attack: 1, defense: 1, combo: "none" },
+      { id: 5, name: "Silver Minnow", stars: 1, kind: "attack", attack: 3, defense: 0, combo: "same-species" },
+      { id: 6, name: "Coral Dust", stars: 1, kind: "defense", attack: 0, defense: 3, combo: "same-rarity" },
+      { id: 7, name: "Light Foam", stars: 1, kind: "mixed", attack: 0, defense: 1, combo: "different-species" },
+      { id: 8, name: "Salt Grain", stars: 1, kind: "mixed", attack: 1, defense: 0, combo: "same-species" },
+      { id: 9, name: "Moss Thread", stars: 1, kind: "defense", attack: 0, defense: 4, combo: "heavy-fish" },
+      { id: 10, name: "Bubble Seed", stars: 1, kind: "attack", attack: 4, defense: 0, combo: "full-line" },
+      { id: 11, name: "River Worm", stars: 2, kind: "attack", attack: 5, defense: 0, combo: "none" },
+      { id: 12, name: "Blue Shrimp", stars: 2, kind: "defense", attack: 0, defense: 5, combo: "none" },
+      { id: 13, name: "Spark Reed", stars: 2, kind: "mixed", attack: 1, defense: 2, combo: "none" },
+      { id: 14, name: "Foam Pellet", stars: 2, kind: "mixed", attack: 2, defense: 2, combo: "same-rarity" },
+      { id: 15, name: "Moon Minnow", stars: 2, kind: "attack", attack: 6, defense: 0, combo: "same-species" },
+      { id: 16, name: "Shell Powder", stars: 2, kind: "defense", attack: 0, defense: 6, combo: "heavy-fish" },
+      { id: 17, name: "Tide Needle", stars: 2, kind: "mixed", attack: 0, defense: 3, combo: "different-species" },
+      { id: 18, name: "Storm Grain", stars: 2, kind: "mixed", attack: 3, defense: 1, combo: "full-line" },
+      { id: 19, name: "Rock Algae", stars: 2, kind: "defense", attack: 0, defense: 7, combo: "same-rarity" },
+      { id: 20, name: "Flash Bait", stars: 2, kind: "attack", attack: 7, defense: 0, combo: "different-species" },
+      { id: 21, name: "Predator Call", stars: 3, kind: "attack", attack: 10, defense: 0, combo: "heavy-fish" },
+      { id: 22, name: "Armor Paste", stars: 3, kind: "defense", attack: 0, defense: 10, combo: "same-rarity" },
+      { id: 23, name: "Current Spark", stars: 3, kind: "mixed", attack: 2, defense: 4, combo: "different-species" },
+      { id: 24, name: "Twin Shell", stars: 3, kind: "mixed", attack: 4, defense: 4, combo: "same-species" }
+    ];
+
     const openGachaBtn = document.getElementById("openGachaBtn");
+    const openBaitBtn = document.getElementById("openBaitBtn");
     const moneyTop = document.getElementById("moneyTop");
     const gachaModal = document.getElementById("gachaModal");
     const closeGachaBtn = document.getElementById("closeGachaBtn");
@@ -822,8 +900,19 @@
     const drawRecap = document.getElementById("drawRecap");
     const drawRecapName = document.getElementById("drawRecapName");
     const drawRecapText = document.getElementById("drawRecapText");
+    const baitModal = document.getElementById("baitModal");
+    const closeBaitBtn = document.getElementById("closeBaitBtn");
+    const startBaitDrawBtn = document.getElementById("startBaitDrawBtn");
+    const baitDropTableBody = document.querySelector("#baitDropTable tbody");
+    const baitRollArea = document.getElementById("baitRollArea");
+    const baitRollTrack = document.getElementById("baitRollTrack");
+    const baitRollWindow = document.getElementById("baitRollWindow");
+    const baitRecap = document.getElementById("baitRecap");
+    const baitRecapName = document.getElementById("baitRecapName");
+    const baitRecapText = document.getElementById("baitRecapText");
 
     let spinning = false;
+    let baitSpinning = false;
 
     function getMoney() {
       return Math.max(0, Number(localStorage.getItem(MONEY_KEY)) || 0);
@@ -831,6 +920,10 @@
 
     function setMoney(value) {
       localStorage.setItem(MONEY_KEY, String(Math.max(0, Math.floor(value))));
+    }
+
+    function getBaitReserveKey() {
+      return "clicker_baitReserve";
     }
 
     function loadReserveList() {
@@ -891,12 +984,59 @@
       }
     }
 
+    function loadBaitReserveList() {
+      const raw = localStorage.getItem(getBaitReserveKey());
+      if (!raw) {
+        return [];
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+          return [];
+        }
+
+        return parsed.map((entry) => {
+          if (Number.isInteger(Number(entry))) {
+            const templateId = Number(entry);
+            const bait = baitPool.find((item) => item.id === templateId) || baitPool[0];
+            return {
+              ...bait,
+              instanceId: createReserveInstanceId()
+            };
+          }
+
+          if (entry && typeof entry === "object") {
+            const templateId = Number(entry.templateId ?? entry.id);
+            const bait = baitPool.find((item) => item.id === templateId) || baitPool[0];
+            return {
+              ...bait,
+              templateId: bait.id,
+              instanceId: typeof entry.instanceId === "string" && entry.instanceId ? entry.instanceId : createReserveInstanceId()
+            };
+          }
+
+          return null;
+        }).filter(Boolean);
+      } catch (error) {
+        return [];
+      }
+    }
+
     function saveReserveList(reserveList) {
       localStorage.setItem(RESERVE_KEY, JSON.stringify(reserveList.slice(0, RESERVE_MAX)));
     }
 
+    function saveBaitReserveList(reserveList) {
+      localStorage.setItem(getBaitReserveKey(), JSON.stringify(reserveList.slice(0, RESERVE_MAX)));
+    }
+
     function getReserveCount() {
       return loadReserveList().length;
+    }
+
+    function getBaitReserveCount() {
+      return loadBaitReserveList().length;
     }
 
     function createReserveInstanceId() {
@@ -905,6 +1045,24 @@
 
     function pickRandomTalent() {
       return TALENT_POOL[Math.floor(Math.random() * TALENT_POOL.length)];
+    }
+
+    function pickWeightedRarityFromPool(pool) {
+      const rarityCandidates = [1, 2, 3, 4, 5]
+        .filter((stars) => pool.some((item) => item.stars === stars))
+        .map((stars) => ({ stars, weight: rarityConfig[stars].chance }));
+
+      const totalWeight = rarityCandidates.reduce((sum, entry) => sum + entry.weight, 0);
+      let roll = Math.random() * totalWeight;
+
+      for (const entry of rarityCandidates) {
+        roll -= entry.weight;
+        if (roll <= 0) {
+          return entry.stars;
+        }
+      }
+
+      return rarityCandidates[rarityCandidates.length - 1].stars;
     }
 
     function getTalentDescriptionById(talentId) {
@@ -934,6 +1092,32 @@
       return "★".repeat(stars);
     }
 
+    function getBaitStatsText(bait) {
+      const parts = [];
+      if (Number(bait.attack)) parts.push(`+${bait.attack} Attack`);
+      if (Number(bait.defense)) parts.push(`+${bait.defense} Defense`);
+      return parts.length ? parts.join(" | ") : "No stat bonus";
+    }
+
+    function getBaitComboText(bait) {
+      const comboLabels = {
+        none: "No combo condition",
+        "same-species": "Bonus if 2 fish are the same species",
+        "same-rarity": "Bonus if the 3 fish share the same rarity",
+        "different-species": "Bonus if all 3 fish are different species",
+        "heavy-fish": "Bonus if at least 2 fish are heavy",
+        "full-line": "Bonus if the full line is balanced or aligned"
+      };
+
+      return comboLabels[bait.combo] || "No combo condition";
+    }
+
+    function renderBaitWithHelp(bait) {
+      const safeName = escapeHtml(bait.name || "Unknown Bait");
+      const safeDescription = escapeHtml(`${getBaitStatsText(bait)}. ${getBaitComboText(bait)}`);
+      return `<span class="talent-inline"><span class="talent-name-text">${safeName}</span><span class="talent-help" tabindex="0" data-tooltip="${safeDescription}" aria-label="Bait description">?</span></span>`;
+    }
+
     function formatChanceValue(value) {
       if (Number.isInteger(value)) {
         return String(value);
@@ -944,12 +1128,16 @@
     function refreshSummary() {
       const money = getMoney();
       const reserveCount = getReserveCount();
+      const baitReserveCount = getBaitReserveCount();
       const hasSpace = reserveCount < RESERVE_MAX;
+      const hasBaitSpace = baitReserveCount < RESERVE_MAX;
       const canAfford = money >= DRAW_COST;
       const canDraw = hasSpace && canAfford;
       moneyTop.textContent = `Money: ${money}`;
       openGachaBtn.disabled = !canDraw;
       startDrawBtn.disabled = !canDraw || spinning;
+      openBaitBtn.disabled = !hasBaitSpace || !canAfford;
+      startBaitDrawBtn.disabled = !hasBaitSpace || !canAfford || baitSpinning;
     }
 
     function buildDropTable() {
@@ -963,6 +1151,20 @@
           <td>${formatChanceValue(rarity.chance)}%</td>
         `;
         dropTableBody.appendChild(row);
+      });
+    }
+
+    function buildBaitDropTable() {
+      baitDropTableBody.innerHTML = "";
+
+      [1, 2, 3, 4, 5].forEach((stars) => {
+        const row = document.createElement("tr");
+        const rarity = rarityConfig[stars];
+        row.innerHTML = `
+          <td class="${rarity.className}">${rarity.label}</td>
+          <td>${formatChanceValue(rarity.chance)}%</td>
+        `;
+        baitDropTableBody.appendChild(row);
       });
     }
 
@@ -994,12 +1196,32 @@
       return candidates[Math.floor(Math.random() * candidates.length)];
     }
 
+    function pickRewardBait() {
+      if (!baitPool.length) {
+        return null;
+      }
+
+      const pickedStars = pickWeightedRarityFromPool(baitPool);
+      const candidates = baitPool.filter((bait) => bait.stars === pickedStars);
+      return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
     function createRollItem(char) {
       const rarityClass = getRarityClassByStars(char.stars);
       return `
         <div class="roll-item ${rarityClass}">
           <div class="roll-name">${char.name}</div>
           <div class="roll-stars">${getStarsString(char.stars)}</div>
+        </div>
+      `;
+    }
+
+    function createBaitRollItem(bait) {
+      const rarityClass = getRarityClassByStars(bait.stars);
+      return `
+        <div class="roll-item ${rarityClass}">
+          <div class="roll-name">${bait.name}</div>
+          <div class="roll-stars">${getStarsString(bait.stars)}</div>
         </div>
       `;
     }
@@ -1041,6 +1263,43 @@
       });
     }
 
+    function runBaitOpeningAnimation(rewardBait) {
+      return new Promise((resolve) => {
+        const sequence = [];
+        const baseLength = 42;
+        const rewardIndex = 35;
+
+        for (let i = 0; i < baseLength; i += 1) {
+          const randomBait = baitPool[Math.floor(Math.random() * baitPool.length)];
+          sequence.push(randomBait);
+        }
+
+        sequence[rewardIndex] = rewardBait;
+        baitRollTrack.innerHTML = sequence.map((bait) => createBaitRollItem(bait)).join("");
+        baitRollTrack.style.transition = "none";
+        baitRollTrack.style.transform = "translateX(0px)";
+
+        const firstItem = baitRollTrack.querySelector(".roll-item");
+        const itemWidth = firstItem ? firstItem.offsetWidth : 140;
+        const gap = 8;
+        const step = itemWidth + gap;
+        const centerOffset = (baitRollWindow.clientWidth / 2) - (itemWidth / 2);
+        const finalOffset = -((rewardIndex * step) - centerOffset);
+
+        requestAnimationFrame(() => {
+          baitRollTrack.style.transition = "transform 4.2s cubic-bezier(0.15, 0.88, 0.2, 1)";
+          baitRollTrack.style.transform = `translateX(${finalOffset}px)`;
+        });
+
+        const done = () => {
+          baitRollTrack.removeEventListener("transitionend", done);
+          resolve();
+        };
+
+        baitRollTrack.addEventListener("transitionend", done);
+      });
+    }
+
     function applyReward(rewardChar, rewardTalent) {
       const reserveList = loadReserveList();
       reserveList.push({
@@ -1058,6 +1317,30 @@
 
       refreshSummary();
       buildDropTable();
+    }
+
+    function applyBaitReward(rewardBait) {
+      const reserveList = loadBaitReserveList();
+      reserveList.push({
+        templateId: rewardBait.id,
+        instanceId: createReserveInstanceId(),
+        name: rewardBait.name,
+        stars: rewardBait.stars,
+        kind: rewardBait.kind,
+        attack: rewardBait.attack,
+        defense: rewardBait.defense,
+        combo: rewardBait.combo
+      });
+      saveBaitReserveList(reserveList);
+
+      const rarityClass = getRarityClassByStars(rewardBait.stars);
+      baitRecap.className = `draw-recap visible ${rarityClass}`;
+      baitRecapName.className = `draw-recap-name ${rarityClass}`;
+      baitRecapName.textContent = `${rewardBait.name} ${getStarsString(rewardBait.stars)}`;
+      baitRecapText.innerHTML = `${renderBaitWithHelp(rewardBait)}. ${getBaitStatsText(rewardBait)}. ${getBaitComboText(rewardBait)}. Added to your bait reserve.`;
+
+      refreshSummary();
+      buildBaitDropTable();
     }
 
     async function startDraw() {
@@ -1098,11 +1381,56 @@
       refreshSummary();
     }
 
+    async function startBaitDraw() {
+      if (baitSpinning) {
+        return;
+      }
+
+      if (getBaitReserveCount() >= RESERVE_MAX) {
+        return;
+      }
+
+      const money = getMoney();
+      if (money < DRAW_COST) {
+        return;
+      }
+
+      const rewardBait = pickRewardBait();
+      if (!rewardBait) {
+        return;
+      }
+
+      baitSpinning = true;
+      startBaitDrawBtn.disabled = true;
+      openBaitBtn.disabled = true;
+      baitRecap.classList.remove("visible");
+      baitRollArea.classList.add("visible");
+
+      setMoney(money - DRAW_COST);
+      refreshSummary();
+
+      await runBaitOpeningAnimation(rewardBait);
+      applyBaitReward(rewardBait);
+
+      startBaitDrawBtn.disabled = true;
+      openBaitBtn.disabled = true;
+      baitSpinning = false;
+      refreshSummary();
+    }
+
     function openGachaModal() {
       buildDropTable();
       drawRecap.classList.remove("visible");
       rollArea.classList.remove("visible");
       gachaModal.classList.add("visible");
+      refreshSummary();
+    }
+
+    function openBaitModal() {
+      buildBaitDropTable();
+      baitRecap.classList.remove("visible");
+      baitRollArea.classList.remove("visible");
+      baitModal.classList.add("visible");
       refreshSummary();
     }
 
@@ -1116,9 +1444,22 @@
       rollTrack.innerHTML = "";
     }
 
+    function closeBaitModal() {
+      if (baitSpinning) {
+        return;
+      }
+      baitModal.classList.remove("visible");
+      baitRollArea.classList.remove("visible");
+      baitRecap.className = "draw-recap";
+      baitRollTrack.innerHTML = "";
+    }
+
     openGachaBtn.addEventListener("click", openGachaModal);
+    openBaitBtn.addEventListener("click", openBaitModal);
     closeGachaBtn.addEventListener("click", closeGachaModal);
     startDrawBtn.addEventListener("click", startDraw);
+    closeBaitBtn.addEventListener("click", closeBaitModal);
+    startBaitDrawBtn.addEventListener("click", startBaitDraw);
 
     gachaModal.addEventListener("click", (event) => {
       if (event.target === gachaModal) {
@@ -1126,8 +1467,15 @@
       }
     });
 
+    baitModal.addEventListener("click", (event) => {
+      if (event.target === baitModal) {
+        closeBaitModal();
+      }
+    });
+
     refreshSummary();
     buildDropTable();
+    buildBaitDropTable();
   </script>
 
 </body>

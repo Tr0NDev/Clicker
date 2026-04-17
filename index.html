@@ -444,9 +444,13 @@
     }
 
     .auto-sell-panel {
-      width: 100%;
-      max-width: none;
+      width: min(360px, 100%);
+      max-width: 360px;
       margin: 0;
+      position: fixed;
+      left: 8px;
+      top: 84px;
+      z-index: 25;
       padding: 14px;
       border: 1px solid #354854;
       border-radius: 12px;
@@ -461,6 +465,8 @@
       color: #e6f4ff;
       margin-bottom: 4px;
       font-weight: bold;
+      cursor: move;
+      user-select: none;
     }
 
     .auto-sell-help {
@@ -489,13 +495,13 @@
 
     .auto-sell-row {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
+      grid-template-columns: 1fr;
+      gap: 8px;
       align-items: start;
     }
 
     .auto-sell-dynamic {
-      grid-column: 1 / -1;
+      grid-column: auto;
     }
 
     .auto-sell-row > label {
@@ -583,6 +589,15 @@
         margin: 0 auto;
       }
 
+      .auto-sell-panel {
+        position: static;
+        left: auto;
+        top: auto;
+        z-index: auto;
+        width: 100%;
+        max-width: none;
+      }
+
       .upgrades {
         width: 100%;
         max-width: 720px;
@@ -644,7 +659,7 @@
       <button class="nav-button active-nav-button" onclick="window.location.href='./'">Game</button>
       <button class="nav-button" onclick="window.location.href='inventory/'">Inventory</button>
       <button class="nav-button" onclick="window.location.href='team/'">Team</button>
-      <button class="nav-button" onclick="window.location.href='shop/'">Draw</button>
+      <button class="nav-button" onclick="window.location.href='shop/'">Shop</button>
       <button class="nav-button" onclick="window.location.href='battle/'">Battle</button>
       <button class="nav-button" onclick="window.location.href='reproduction/'">Reproduction</button>
       <button class="nav-button settings-nav-button" onclick="window.location.href='settings/'">Settings</button>
@@ -689,7 +704,6 @@
 
         <div class="auto-sell-panel">
           <div class="auto-sell-title">Smart auto-sell</div>
-          <div class="auto-sell-help">Choose one mode: sell by price (<= threshold), sell by rarity (selected rarity and below), or sell all catches.</div>
           <div class="auto-sell-row">
             <label>
               <span class="auto-sell-label">Status</span>
@@ -883,6 +897,8 @@
       const autoSellRarityGroup = document.getElementById("autoSellRarityGroup");
       const autoSellMaxPriceInput = document.getElementById("autoSellMaxPrice");
       const autoSellMaxRaritySelect = document.getElementById("autoSellMaxRarity");
+      const autoSellPanel = document.querySelector(".auto-sell-panel");
+      const autoSellTitle = document.querySelector(".auto-sell-title");
       const upgradesPanel = document.querySelector(".upgrades");
       const upgradesResizer = document.querySelector(".upgrades-resizer");
       const tripleHookUpgrade = document.getElementById("tripleHookUpgrade");
@@ -953,6 +969,49 @@
         return Math.min(maxWidth, Math.max(320, Math.floor(value)));
       }
 
+      function isCompactLayout() {
+        return window.matchMedia("(max-width: 980px)").matches;
+      }
+
+      function clampAutoSellPosition(left, top) {
+        if (!autoSellPanel) {
+          return { left: 8, top: 84 };
+        }
+
+        const panelWidth = autoSellPanel.offsetWidth || 360;
+        const panelHeight = autoSellPanel.offsetHeight || 220;
+        const minLeft = 0;
+        const minTop = 56;
+        const maxLeft = Math.max(minLeft, window.innerWidth - panelWidth - 8);
+        const maxTop = Math.max(minTop, window.innerHeight - panelHeight - 8);
+
+        return {
+          left: Math.min(maxLeft, Math.max(minLeft, Math.floor(left))),
+          top: Math.min(maxTop, Math.max(minTop, Math.floor(top)))
+        };
+      }
+
+      function setAutoSellPosition(left, top, persist) {
+        if (!autoSellPanel) {
+          return;
+        }
+
+        if (isCompactLayout()) {
+          autoSellPanel.style.left = "";
+          autoSellPanel.style.top = "";
+          return;
+        }
+
+        const next = clampAutoSellPosition(left, top);
+        autoSellPanel.style.left = `${next.left}px`;
+        autoSellPanel.style.top = `${next.top}px`;
+
+        if (persist) {
+          localStorage.setItem("clicker_autoSellPanelLeft", String(next.left));
+          localStorage.setItem("clicker_autoSellPanelTop", String(next.top));
+        }
+      }
+
       function setUpgradesWidth(value, persist) {
         upgradesWidth = clampUpgradesWidth(value);
         document.documentElement.style.setProperty("--sidebar-width", upgradesWidth + "px");
@@ -963,6 +1022,57 @@
       }
 
       setUpgradesWidth(upgradesWidth, false);
+
+      const storedAutoSellLeft = Number(localStorage.getItem("clicker_autoSellPanelLeft"));
+      const storedAutoSellTop = Number(localStorage.getItem("clicker_autoSellPanelTop"));
+      setAutoSellPosition(Number.isFinite(storedAutoSellLeft) ? storedAutoSellLeft : 8, Number.isFinite(storedAutoSellTop) ? storedAutoSellTop : 84, false);
+
+      if (autoSellPanel && autoSellTitle) {
+        let isDraggingAutoSell = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        autoSellTitle.addEventListener("mousedown", (event) => {
+          if (isCompactLayout()) {
+            return;
+          }
+
+          event.preventDefault();
+          const rect = autoSellPanel.getBoundingClientRect();
+          dragOffsetX = event.clientX - rect.left;
+          dragOffsetY = event.clientY - rect.top;
+          isDraggingAutoSell = true;
+          document.body.style.userSelect = "none";
+          document.body.style.cursor = "move";
+        });
+
+        window.addEventListener("mousemove", (event) => {
+          if (!isDraggingAutoSell) {
+            return;
+          }
+
+          setAutoSellPosition(event.clientX - dragOffsetX, event.clientY - dragOffsetY, false);
+        });
+
+        window.addEventListener("mouseup", () => {
+          if (!isDraggingAutoSell) {
+            return;
+          }
+
+          isDraggingAutoSell = false;
+          document.body.style.userSelect = "";
+          document.body.style.cursor = "";
+          const finalLeft = Number.parseInt(autoSellPanel.style.left || "8", 10);
+          const finalTop = Number.parseInt(autoSellPanel.style.top || "84", 10);
+          setAutoSellPosition(finalLeft, finalTop, true);
+        });
+      }
+
+      window.addEventListener("resize", () => {
+        const currentLeft = Number.parseInt((autoSellPanel && autoSellPanel.style.left) || "8", 10);
+        const currentTop = Number.parseInt((autoSellPanel && autoSellPanel.style.top) || "84", 10);
+        setAutoSellPosition(currentLeft, currentTop, false);
+      });
 
       if (upgradesResizer && upgradesPanel) {
         let isResizing = false;

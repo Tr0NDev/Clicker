@@ -277,11 +277,11 @@
       color: #ff8b8b;
     }
 
-    .rarity-common { color: inherit; }
-    .rarity-uncommon { color: inherit; }
-    .rarity-rare { color: inherit; }
-    .rarity-epic { color: inherit; }
-    .rarity-legendary { color: inherit; }
+    .rarity-common { color: #d9d9d9; }
+    .rarity-uncommon { color: #7ee787; }
+    .rarity-rare { color: #58a6ff; }
+    .rarity-epic { color: #d2a8ff; }
+    .rarity-legendary { color: #ffa657; }
 
     .empty {
       margin-top: 16px;
@@ -448,6 +448,21 @@
       color: #f1f8fd;
     }
 
+    .inventory-detail-name.rarity-common,
+    .fish-detail-item-value.rarity-common { color: #d9d9d9; }
+
+    .inventory-detail-name.rarity-uncommon,
+    .fish-detail-item-value.rarity-uncommon { color: #7ee787; }
+
+    .inventory-detail-name.rarity-rare,
+    .fish-detail-item-value.rarity-rare { color: #58a6ff; }
+
+    .inventory-detail-name.rarity-epic,
+    .fish-detail-item-value.rarity-epic { color: #d2a8ff; }
+
+    .inventory-detail-name.rarity-legendary,
+    .fish-detail-item-value.rarity-legendary { color: #ffa657; }
+
     .inventory-detail-note {
       color: #9eb0bc;
       font-size: 13px;
@@ -553,7 +568,7 @@
       <button class="nav-button" onclick="window.location.href='../'">Game</button>
       <button class="nav-button active-nav-button" onclick="window.location.href='./'">Inventory</button>
       <button class="nav-button" onclick="window.location.href='../team/'">Team</button>
-      <button class="nav-button" onclick="window.location.href='../shop/'">Draw</button>
+      <button class="nav-button" onclick="window.location.href='../shop/'">Shop</button>
       <button class="nav-button" onclick="window.location.href='../battle/'">Battle</button>
       <button class="nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
       <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
@@ -1067,6 +1082,7 @@
       if (!selectedFish) {
         selectedFishImage.textContent = "Image placeholder";
         detailName.textContent = "No fish selected";
+        detailName.className = "inventory-detail-name";
         detailMeta.textContent = "Click a fish in the list to view it here.";
         detailInfo.textContent = "";
         fridgeButton.disabled = true;
@@ -1077,14 +1093,16 @@
       }
 
       selectedFishImage.textContent = "Image placeholder";
+      const rarityClass = "rarity-" + (selectedFish.rarity || "common");
       detailName.textContent = selectedFish.type || "Fish";
+      detailName.className = "inventory-detail-name " + rarityClass;
       const isOut = selectedFish.storageState === "out" && !selectedFish.spoiled;
       detailMeta.innerHTML =
         "<div class='fish-detail-grid'>" +
           "<div class='fish-detail-item'><div class='fish-detail-item-label'>State</div><div class='fish-detail-item-value'>" + getFishStateLabel(selectedFish) + "</div></div>" +
           "<div class='fish-detail-item'><div class='fish-detail-item-label'>Outings</div><div class='fish-detail-item-value'>" + (Math.max(0, Number(selectedFish.outCount) || 0)) + "</div></div>" +
           "<div class='fish-detail-item'><div class='fish-detail-item-label'>Out of fridge</div><div class='fish-detail-item-value'>" + getTotalOutSeconds(selectedFish, now).toFixed(1) + " s</div></div>" +
-          "<div class='fish-detail-item'><div class='fish-detail-item-label'>Rarity</div><div class='fish-detail-item-value'>" + rarityLabel(selectedFish.rarity || "common") + "</div></div>" +
+          "<div class='fish-detail-item'><div class='fish-detail-item-label'>Rarity</div><div class='fish-detail-item-value " + rarityClass + "'>" + rarityLabel(selectedFish.rarity || "common") + "</div></div>" +
           "<div class='fish-detail-item'><div class='fish-detail-item-label'>Size</div><div class='fish-detail-item-value'>" + (selectedFish.size || 0) + " cm</div></div>" +
           "<div class='fish-detail-item'><div class='fish-detail-item-label'>Weight</div><div class='fish-detail-item-value'>" + (selectedFish.weight || 0) + " kg</div></div>" +
           "<div class='fish-detail-item'><div class='fish-detail-item-label'>Value</div><div class='fish-detail-item-value'>" + getFishValue(selectedFish) + "</div></div>" +

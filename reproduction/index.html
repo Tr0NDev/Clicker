@@ -142,6 +142,12 @@
       width: 100%;
     }
 
+    .rarity-common { color: #d9d9d9; }
+    .rarity-uncommon { color: #7ee787; }
+    .rarity-rare { color: #58a6ff; }
+    .rarity-epic { color: #d2a8ff; }
+    .rarity-legendary { color: #ffa657; }
+
     .breed-action-btn {
       cursor: pointer;
       background: linear-gradient(180deg, #3f7fa2 0%, #285a74 100%);
@@ -258,7 +264,7 @@
       <button class="nav-button" onclick="window.location.href='../'">Game</button>
       <button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
       <button class="nav-button" onclick="window.location.href='../team/'">Team</button>
-      <button class="nav-button" onclick="window.location.href='../shop/'">Draw</button>
+      <button class="nav-button" onclick="window.location.href='../shop/'">Shop</button>
       <button class="nav-button" onclick="window.location.href='../battle/'">Battle</button>
       <button class="nav-button active-nav-button" onclick="window.location.href='./'">Reproduction</button>
       <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
@@ -466,7 +472,18 @@
       const weight = Number(fish?.weight) || 0;
       const rarity = fish?.rarity || "common";
       const label = `${fish?.type || "Fish"} | ${rarity} | ${size} cm | ${weight} kg`;
-      return { value: String(entry.uid), label };
+      return { value: String(entry.uid), label, rarity };
+    }
+
+    function bestSpeciesRarity(entries) {
+      let best = "common";
+      (entries || []).forEach((entry) => {
+        const rarity = entry?.fish?.rarity || "common";
+        if (rarityRank(rarity) > rarityRank(best)) {
+          best = rarity;
+        }
+      });
+      return best;
     }
 
     function setSelectOptions(select, options) {
@@ -475,8 +492,17 @@
         const option = document.createElement("option");
         option.value = opt.value;
         option.textContent = opt.label;
+        const rarity = opt.rarity || "common";
+        option.className = `rarity-${rarity}`;
         select.appendChild(option);
       });
+
+      const selectedOption = select.selectedOptions && select.selectedOptions[0];
+      select.classList.remove("rarity-common", "rarity-uncommon", "rarity-rare", "rarity-epic", "rarity-legendary");
+      if (selectedOption) {
+        const rarityClass = selectedOption.className || "rarity-common";
+        select.classList.add(rarityClass);
+      }
     }
 
     function refreshSelectors() {
@@ -484,8 +510,12 @@
       const speciesList = Array.from(speciesMap.keys()).sort((a, b) => a.localeCompare(b));
 
       const speciesOptions = speciesList.length
-        ? speciesList.map((species) => ({ value: species, label: `${species} (${speciesMap.get(species).length})` }))
-        : [{ value: "", label: "No breedable species" }];
+        ? speciesList.map((species) => ({
+          value: species,
+          label: `${species} (${speciesMap.get(species).length})`,
+          rarity: bestSpeciesRarity(speciesMap.get(species))
+        }))
+        : [{ value: "", label: "No breedable species", rarity: "common" }];
 
       setSelectOptions(speciesSelect, speciesOptions);
 
@@ -809,7 +839,20 @@
     });
 
     parentASelect.addEventListener("change", () => {
+      const selectedOption = parentASelect.selectedOptions && parentASelect.selectedOptions[0];
+      parentASelect.classList.remove("rarity-common", "rarity-uncommon", "rarity-rare", "rarity-epic", "rarity-legendary");
+      if (selectedOption) {
+        parentASelect.classList.add(selectedOption.className || "rarity-common");
+      }
       refreshParentSelectors();
+    });
+
+    parentBSelect.addEventListener("change", () => {
+      const selectedOption = parentBSelect.selectedOptions && parentBSelect.selectedOptions[0];
+      parentBSelect.classList.remove("rarity-common", "rarity-uncommon", "rarity-rare", "rarity-epic", "rarity-legendary");
+      if (selectedOption) {
+        parentBSelect.classList.add(selectedOption.className || "rarity-common");
+      }
     });
 
     startBreedingBtn.addEventListener("click", startBreeding);
