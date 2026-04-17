@@ -627,6 +627,14 @@
       cursor: pointer;
       accent-color: #8dc4e0;
     }
+
+    /* Limited navigation mode (after 30 fish, before 10k money) */
+    body.limited-nav-mode .nav-button:nth-child(3),
+    body.limited-nav-mode .nav-button:nth-child(4),
+    body.limited-nav-mode .nav-button:nth-child(5),
+    body.limited-nav-mode .nav-button:nth-child(6) {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -1684,6 +1692,11 @@
         render();
       });
     });
+    // Apply limited navigation mode if upgrades not unlocked
+    const upgradesUnlocked = localStorage.getItem("clicker_upgradesUnlocked") === "true";
+    if (!upgradesUnlocked) {
+      document.body.classList.add("limited-nav-mode");
+    }
   </script>
 </body>
 </html>

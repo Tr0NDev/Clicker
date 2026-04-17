@@ -212,6 +212,14 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* Limited navigation mode (after 30 fish, before 10k money) */
+    body.limited-nav-mode .nav-button:nth-child(3),
+    body.limited-nav-mode .nav-button:nth-child(4),
+    body.limited-nav-mode .nav-button:nth-child(5),
+    body.limited-nav-mode .nav-button:nth-child(6) {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -307,6 +315,20 @@
           </select>
         </div>
         <div class="params-field">
+          <label for="paramTutorialCompleted">Tutorial Completed</label>
+          <select id="paramTutorialCompleted">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+        </div>
+        <div class="params-field">
+          <label for="paramUpgradesUnlocked">Upgrades Unlocked</label>
+          <select id="paramUpgradesUnlocked">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+        </div>
+        <div class="params-field">
           <label for="paramUpgradesWidth">Sidebar Width</label>
           <input id="paramUpgradesWidth" type="number" min="260" step="1">
         </div>
@@ -380,6 +402,8 @@
     const paramAutoSellMode = document.getElementById("paramAutoSellMode");
     const paramAutoSellMaxPrice = document.getElementById("paramAutoSellMaxPrice");
     const paramAutoSellMaxRarity = document.getElementById("paramAutoSellMaxRarity");
+    const paramTutorialCompleted = document.getElementById("paramTutorialCompleted");
+    const paramUpgradesUnlocked = document.getElementById("paramUpgradesUnlocked");
     const paramUpgradesWidth = document.getElementById("paramUpgradesWidth");
 
     function readGameState() {
@@ -400,6 +424,8 @@
         autoSellMode: localStorage.getItem("clicker_autoSellMode") || "price",
         autoSellMaxPrice: Number(localStorage.getItem("clicker_autoSellMaxPrice")) || 25,
         autoSellMaxRarity: localStorage.getItem("clicker_autoSellMaxRarity") || "common",
+        tutorialCompleted: localStorage.getItem("clicker_tutorialCompleted") || "false",
+        upgradesUnlocked: localStorage.getItem("clicker_upgradesUnlocked") || "false",
         upgradesWidth: Number(localStorage.getItem("clicker_upgradesWidth")) || 420,
         saveTime: new Date().toISOString()
       };
@@ -423,6 +449,8 @@
         "autoSellMode=" + state.autoSellMode,
         "autoSellMaxPrice=" + state.autoSellMaxPrice,
         "autoSellMaxRarity=" + state.autoSellMaxRarity,
+        "tutorialCompleted=" + state.tutorialCompleted,
+        "upgradesUnlocked=" + state.upgradesUnlocked,
         "upgradesWidth=" + state.upgradesWidth,
         "saveTime=" + state.saveTime
       ].join("\n");
@@ -446,6 +474,8 @@
         autoSellMode: "price",
         autoSellMaxPrice: 25,
         autoSellMaxRarity: "common",
+        tutorialCompleted: "false",
+        upgradesUnlocked: "false",
         upgradesWidth: 420,
         saveTime: ""
       };
@@ -509,6 +539,12 @@
         if (key === "autoSellMaxRarity") {
           state.autoSellMaxRarity = rawValue || "common";
         }
+        if (key === "tutorialCompleted") {
+          state.tutorialCompleted = rawValue === "true" ? "true" : "false";
+        }
+        if (key === "upgradesUnlocked") {
+          state.upgradesUnlocked = rawValue === "true" ? "true" : "false";
+        }
         if (key === "upgradesWidth" && !Number.isNaN(value)) {
           state.upgradesWidth = value;
         }
@@ -544,6 +580,8 @@
       paramAutoSellMode.value = state.autoSellMode === "rarity" ? "rarity" : "price";
       paramAutoSellMaxPrice.value = String(state.autoSellMaxPrice);
       paramAutoSellMaxRarity.value = state.autoSellMaxRarity || "common";
+      paramTutorialCompleted.value = state.tutorialCompleted === "true" ? "true" : "false";
+      paramUpgradesUnlocked.value = state.upgradesUnlocked === "true" ? "true" : "false";
       paramUpgradesWidth.value = String(state.upgradesWidth);
     }
 
@@ -563,6 +601,8 @@
       localStorage.setItem("clicker_autoSellMode", paramAutoSellMode.value === "rarity" ? "rarity" : "price");
       localStorage.setItem("clicker_autoSellMaxPrice", String(clampInt(paramAutoSellMaxPrice.value, 0, 25)));
       localStorage.setItem("clicker_autoSellMaxRarity", paramAutoSellMaxRarity.value || "common");
+      localStorage.setItem("clicker_tutorialCompleted", paramTutorialCompleted.value === "true" ? "true" : "false");
+      localStorage.setItem("clicker_upgradesUnlocked", paramUpgradesUnlocked.value === "true" ? "true" : "false");
       localStorage.setItem("clicker_upgradesWidth", String(clampInt(paramUpgradesWidth.value, 260, 420)));
 
       const state = readGameState();
@@ -691,6 +731,12 @@
     const initialState = readGameState();
     fillParamInputs(initialState);
     saveOutput.value = buildSaveText(initialState);
+
+    // Apply limited navigation mode if upgrades not unlocked
+    const upgradesUnlocked = localStorage.getItem("clicker_upgradesUnlocked") === "true";
+    if (!upgradesUnlocked) {
+      document.body.classList.add("limited-nav-mode");
+    }
   </script>
 </body>
 </html>

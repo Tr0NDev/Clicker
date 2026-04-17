@@ -398,6 +398,266 @@
       opacity: 0.45;
     }
 
+    /* Tutorial Styles */
+    body.tutorial-mode {
+      padding: 24px 20px 36px 16px;
+    }
+
+    body.tutorial-mode .top-bar {
+      display: none;
+    }
+
+    body.tutorial-mode .team-reminder {
+      display: none;
+    }
+
+    body.tutorial-mode .upgrades {
+      display: none;
+    }
+
+    body.tutorial-mode .stats {
+      display: none;
+    }
+
+    body.tutorial-mode .money-header {
+      display: none;
+    }
+
+    body.tutorial-mode .center-drag-block {
+      position: static;
+      width: 100%;
+      margin: 0 auto;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    body.tutorial-mode .center-drag-grip {
+      display: none;
+    }
+
+    body.tutorial-mode .fish-panel {
+      max-width: 400px;
+      margin: 40px auto 0;
+    }
+
+    body.tutorial-mode .content-grid {
+      display: none;
+    }
+
+    .tutorial-fish-caught {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px;
+      font-weight: bold;
+      color: #8dc4e0;
+      z-index: 100;
+      text-align: center;
+      display: none;
+    }
+
+    body.tutorial-mode .tutorial-fish-caught {
+      display: block;
+    }
+
+
+    .tutorial-initial-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 200;
+      background: linear-gradient(135deg, #1a2a35 0%, #0f1519 100%);
+      border: 2px solid #8dc4e0;
+      border-radius: 16px;
+      padding: 32px 28px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+    }
+
+    body.tutorial-mode .tutorial-initial-dialog {
+      display: flex;
+    }
+
+    body.tutorial-mode .tutorial-initial-dialog.dismissed {
+      display: none;
+    }
+
+    .tutorial-initial-dialog-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #8dc4e0;
+      margin: 0;
+    }
+
+    .tutorial-initial-dialog-text {
+      font-size: 16px;
+      color: #d9ecf8;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .tutorial-initial-dialog-button {
+      padding: 14px 28px;
+      border: 2px solid #8dc4e0;
+      background: rgba(141, 196, 224, 0.15);
+      color: #8dc4e0;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .tutorial-initial-dialog-button:hover {
+      background: rgba(141, 196, 224, 0.3);
+      box-shadow: 0 0 15px rgba(141, 196, 224, 0.4);
+    }
+
+    .tutorial-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 200;
+      background: linear-gradient(135deg, #1a2a35 0%, #0f1519 100%);
+      border: 2px solid #8dc4e0;
+      border-radius: 16px;
+      padding: 32px 28px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+    }
+
+    .tutorial-dialog.show {
+      display: flex;
+    }
+
+    .tutorial-dialog-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 199;
+      display: none;
+    }
+
+    .tutorial-dialog-backdrop.show {
+      display: block;
+    }
+
+    .tutorial-dialog-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #8dc4e0;
+      margin: 0;
+    }
+
+    .tutorial-dialog-text {
+      font-size: 16px;
+      color: #d9ecf8;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .tutorial-dialog-button {
+      padding: 14px 28px;
+      border: 2px solid #8dc4e0;
+      background: rgba(141, 196, 224, 0.15);
+      color: #8dc4e0;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .tutorial-dialog-button:hover {
+      background: rgba(141, 196, 224, 0.3);
+      box-shadow: 0 0 15px rgba(141, 196, 224, 0.4);
+    }
+
+    /* Upgrades Unlock Dialog Styles */
+    .upgrades-unlock-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 200;
+      background: linear-gradient(135deg, #1a2a35 0%, #0f1519 100%);
+      border: 2px solid #8dc4e0;
+      border-radius: 16px;
+      padding: 32px 28px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+    }
+
+    .upgrades-unlock-dialog.show {
+      display: flex;
+    }
+
+    .upgrades-unlock-dialog-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #8dc4e0;
+      margin: 0;
+    }
+
+    .upgrades-unlock-dialog-text {
+      font-size: 16px;
+      color: #d9ecf8;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .upgrades-unlock-dialog-button {
+      padding: 14px 28px;
+      border: 2px solid #8dc4e0;
+      background: rgba(141, 196, 224, 0.15);
+      color: #8dc4e0;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .upgrades-unlock-dialog-button:hover {
+      background: rgba(141, 196, 224, 0.3);
+      box-shadow: 0 0 15px rgba(141, 196, 224, 0.4);
+    }
+
+    .tutorial-progress {
+      text-align: center;
+      font-size: 18px;
+      color: #8dc4e0;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
     .center-drag-block:hover .center-drag-grip {
       opacity: 0.72;
     }
@@ -727,6 +987,14 @@
       margin-left: auto;
       margin-right: 16px;
     }
+
+    /* Limited navigation mode (after 30 fish, before 10k money) */
+    body.limited-nav-mode .nav-button:nth-child(3),
+    body.limited-nav-mode .nav-button:nth-child(4),
+    body.limited-nav-mode .nav-button:nth-child(5),
+    body.limited-nav-mode .nav-button:nth-child(6) {
+      display: none;
+    }
   </style>
 </head>
 
@@ -890,6 +1158,28 @@
       </div>
     </div>
 
+    <div class="tutorial-dialog-backdrop" id="tutorialBackdrop"></div>
+    <div class="tutorial-initial-dialog" id="tutorialInitialDialog">
+      <h2 class="tutorial-initial-dialog-title">Welcome to Clicker</h2>
+      <p class="tutorial-initial-dialog-text">Here we only fish for fish and watch a number increment, nothing more.</p>
+      <button class="tutorial-initial-dialog-button" id="tutorialInitialConfirmBtn">start</button>
+    </div>
+    <div class="tutorial-fish-caught" id="tutorialFishCaught">
+      <div style="font-size: 36px; margin-bottom: 20px;">🎣</div>
+      <div>Fish caught: <span id="tutorialFishCaughtCount">0</span></div>
+    </div>
+    <div class="tutorial-dialog" id="tutorialDialog">
+      <h2 class="tutorial-dialog-title">🎣 Welcome to the Fishing Game!</h2>
+      <p class="tutorial-dialog-text">You've caught <span id="tutorialCaughtCount">0</span> fish!</p>
+      <p class="tutorial-dialog-text">You really thought we would only do that? Well, I'm adding a few things but not much.</p>
+      <button class="tutorial-dialog-button" id="tutorialConfirmBtn">Continue</button>
+    </div>
+    <div class="upgrades-unlock-dialog" id="upgradesUnlockDialog">
+      <h2 class="upgrades-unlock-dialog-title">🎣 You Did It!</h2>
+      <p class="upgrades-unlock-dialog-text">Well, I see you're determined. I'm giving you everything now, that's fine.</p>
+      <button class="upgrades-unlock-dialog-button" id="upgradesUnlockConfirmBtn">Awesome</button>
+    </div>
+
     <script>
       const FISH_SPECIES = [
         { type: "Common carp", rarity: "common", sizeMin: 25, sizeMax: 55, weightMin: 0.8, weightMax: 2.8 },
@@ -1007,10 +1297,22 @@
       const weightUpgradeCost = document.getElementById("weightUpgradeCost");
       const waitUpgradeCost = document.getElementById("waitUpgradeCost");
       const autoDelayLabel = document.getElementById("autoDelayLabel");
+      const tutorialDialog = document.getElementById("tutorialDialog");
+      const tutorialBackdrop = document.getElementById("tutorialBackdrop");
+      const tutorialInitialDialog = document.getElementById("tutorialInitialDialog");
+      const tutorialConfirmBtn = document.getElementById("tutorialConfirmBtn");
+      const tutorialInitialConfirmBtn = document.getElementById("tutorialInitialConfirmBtn");
+      const tutorialCaughtCount = document.getElementById("tutorialCaughtCount");
+      const tutorialFishCaught = document.getElementById("tutorialFishCaught");
+      const tutorialFishCaughtCount = document.getElementById("tutorialFishCaughtCount");
+      const upgradesUnlockDialog = document.getElementById("upgradesUnlockDialog");
+      const upgradesUnlockConfirmBtn = document.getElementById("upgradesUnlockConfirmBtn");
 
       let money = Number(localStorage.getItem("clicker_money")) || 0;
       let hooks = Number(localStorage.getItem("clicker_hooks")) || 0;
       let caughtCount = Number(localStorage.getItem("clicker_caughtCount")) || 0;
+      let tutorialCompleted = localStorage.getItem("clicker_tutorialCompleted") === "true";
+      let upgradesUnlocked = localStorage.getItem("clicker_upgradesUnlocked") === "true";
       let sizeBoostLevel = Number(localStorage.getItem("clicker_sizeBoostLevel")) || 0;
       let autoFisherLevel = Number(localStorage.getItem("clicker_autoFisherLevel")) || 0;
       let weightBoostLevel = Number(localStorage.getItem("clicker_weightBoostLevel")) || 0;
@@ -1934,6 +2236,7 @@
 
       function saveGameState() {
         localStorage.setItem("clicker_money", String(money));
+        localStorage.setItem("clicker_hooks", String(hooks));
         localStorage.setItem("clicker_caughtCount", String(caughtCount));
         localStorage.setItem("clicker_currentFish", JSON.stringify(currentFish));
         localStorage.setItem("clicker_inventory", JSON.stringify(inventory));
@@ -1948,6 +2251,7 @@
         localStorage.setItem("clicker_autoSellMode", autoSellMode);
         localStorage.setItem("clicker_autoSellMaxPrice", String(autoSellMaxPrice));
         localStorage.setItem("clicker_autoSellMaxRarity", autoSellMaxRarity);
+        localStorage.setItem("clicker_tutorialCompleted", String(tutorialCompleted));
       }
 
       function catchCurrentFish(source) {
@@ -1996,6 +2300,7 @@
         const catchesPerSecond = autoFisherLevel <= 0 ? 0 : Number((autoFisherLevel / (getAutoIntervalMs() / 1000)).toFixed(2));
 
         moneyDisplay.textContent = "Money: " + money;
+        tutorialFishCaughtCount.textContent = String(caughtCount);
         catchPerSecondDisplay.textContent = "Catches per second: " + catchesPerSecond;
         caughtCountDisplay.textContent = String(caughtCount);
         inventoryCountDisplay.textContent = String(inventory.length);
@@ -2152,6 +2457,69 @@
       }, 500);
 
       render();
+
+      // Tutorial System
+      function initializeTutorial() {
+        if (!tutorialCompleted) {
+          document.body.classList.add("tutorial-mode");
+        } else {
+          document.body.classList.remove("tutorial-mode");
+        }
+      }
+
+      function checkTutorialProgress() {
+        if (!tutorialCompleted && caughtCount >= 30) {
+          showTutorialDialog();
+        }
+      }
+
+      function showTutorialDialog() {
+        tutorialCaughtCount.textContent = String(caughtCount);
+        tutorialDialog.classList.add("show");
+        tutorialBackdrop.classList.add("show");
+      }
+
+      function completeTutorial() {
+        tutorialCompleted = true;
+        localStorage.setItem("clicker_tutorialCompleted", "true");
+        tutorialDialog.classList.remove("show");
+        tutorialBackdrop.classList.remove("show");
+        document.body.classList.remove("tutorial-mode");
+        document.body.classList.add("limited-nav-mode");
+        render();
+      }
+
+      function unlockUpgrades() {
+        upgradesUnlocked = true;
+        localStorage.setItem("clicker_upgradesUnlocked", "true");
+        upgradesUnlockDialog.classList.remove("show");
+        tutorialBackdrop.classList.remove("show");
+        document.body.classList.remove("limited-nav-mode");
+        render();
+      }
+
+      tutorialConfirmBtn.addEventListener("click", completeTutorial);
+      tutorialInitialConfirmBtn.addEventListener("click", () => {
+        tutorialInitialDialog.classList.add("dismissed");
+      });
+      upgradesUnlockConfirmBtn.addEventListener("click", unlockUpgrades);
+
+      // Initialize tutorial state
+      initializeTutorial();
+      if (tutorialCompleted && !upgradesUnlocked) {
+        document.body.classList.add("limited-nav-mode");
+      }
+
+      // Check tutorial progress in the render loop
+      setInterval(() => {
+        if (!tutorialCompleted && caughtCount >= 30) {
+          checkTutorialProgress();
+        }
+        if (tutorialCompleted && !upgradesUnlocked && money >= 10000) {
+          upgradesUnlockDialog.classList.add("show");
+          tutorialBackdrop.classList.add("show");
+        }
+      }, 500);
     </script>
 </body>
 </html>
