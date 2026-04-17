@@ -62,7 +62,7 @@
     .top-bar {
       position: sticky;
       top: 0;
-      z-index: 20;
+      z-index: 60;
       background: #0c1217;
       border-bottom: 1px solid #22313b;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
@@ -75,6 +75,7 @@
       justify-content: flex-start;
       gap: 10px;
       flex-wrap: wrap;
+      position: relative;
       width: 100%;
       max-width: none;
       margin: 0;
@@ -371,6 +372,47 @@
       text-overflow: ellipsis;
     }
 
+    .center-drag-block {
+      width: min(760px, calc(100vw - var(--sidebar-width) - 44px));
+      position: fixed;
+      left: 16px;
+      top: 150px;
+      z-index: 24;
+      border: 1px solid #2f4d5c;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #141c22 0%, #10161b 100%);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+      box-sizing: border-box;
+      padding: 12px;
+      text-align: left;
+    }
+
+    .center-drag-grip {
+      height: 16px;
+      width: 28px;
+      border-radius: 6px;
+      margin: 0 auto 8px;
+      cursor: move;
+      background-image: radial-gradient(circle, #8fb1c3 1.2px, transparent 1.2px);
+      background-size: 6px 6px;
+      opacity: 0.45;
+    }
+
+    .center-drag-block:hover .center-drag-grip {
+      opacity: 0.72;
+    }
+
+    .center-drag-block .team-reminder,
+    .center-drag-block .stats,
+    .center-drag-block .fish-panel {
+      max-width: none;
+      margin: 0 0 12px;
+    }
+
+    .center-drag-block .fish-panel {
+      margin-bottom: 0;
+    }
+
     #money {
       font-size: 44px;
       margin: 0;
@@ -444,14 +486,14 @@
     }
 
     .auto-sell-panel {
-      width: min(360px, 100%);
-      max-width: 360px;
+      width: min(460px, calc(100vw - var(--sidebar-width) - 40px));
+      max-width: 520px;
       margin: 0;
       position: fixed;
-      left: 8px;
+      right: calc(var(--sidebar-width) + 16px);
       top: 84px;
       z-index: 25;
-      padding: 14px;
+      padding: 18px;
       border: 1px solid #354854;
       border-radius: 12px;
       background: #171f25;
@@ -461,12 +503,30 @@
     }
 
     .auto-sell-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-size: 17px;
       color: #e6f4ff;
-      margin-bottom: 4px;
+      margin-bottom: 10px;
       font-weight: bold;
       cursor: move;
       user-select: none;
+    }
+
+    .auto-sell-title::before {
+      content: "";
+      width: 12px;
+      height: 16px;
+      border-radius: 4px;
+      background-image: radial-gradient(circle, #8fb1c3 1.2px, transparent 1.2px);
+      background-size: 4px 4px;
+      opacity: 0.45;
+      flex: 0 0 auto;
+    }
+
+    .auto-sell-panel:hover .auto-sell-title::before {
+      opacity: 0.72;
     }
 
     .auto-sell-help {
@@ -592,6 +652,7 @@
       .auto-sell-panel {
         position: static;
         left: auto;
+        right: auto;
         top: auto;
         z-index: auto;
         width: 100%;
@@ -614,9 +675,25 @@
       .upgrades-resizer {
         display: none;
       }
+
+      .center-drag-block {
+        position: static;
+        left: auto;
+        top: auto;
+        z-index: auto;
+        width: 100%;
+        max-width: 720px;
+        margin: 12px auto 0;
+      }
+
+      .center-drag-grip {
+        display: none;
+      }
     }
 
     .nav-button {
+      position: relative;
+      z-index: 1;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -643,6 +720,7 @@
       color: #1d2a33;
       border-color: #dbe3e8;
       font-weight: bold;
+      z-index: 3;
     }
 
     .settings-nav-button {
@@ -671,37 +749,41 @@
       <h2 id="money">Money: 0</h2>
       <div class="money-rate" id="catchPerSecond">Catches per second: 0</div>
     </div>
-    <div class="team-reminder" id="teamReminder">
-      <div class="team-reminder-title">Active Team</div>
-      <div class="team-reminder-body" id="teamReminderBody">No team selected.</div>
-      <div class="team-reminder-sub" id="teamReminderSub">Open the Team menu to change your lineup.</div>
-      <div class="team-reminder-slots" id="teamReminderSlots"></div>
-    </div>
-    <div class="stats">
-      <div class="stat-box">
-        <div class="stat-label">Fish caught</div>
-        <div class="stat-value" id="caughtCount">0</div>
+
+    <div class="center-drag-block" id="centerDragBlock">
+      <div class="center-drag-grip" id="centerDragGrip" aria-hidden="true"></div>
+      <div class="team-reminder" id="teamReminder">
+        <div class="team-reminder-title">Active Team</div>
+        <div class="team-reminder-body" id="teamReminderBody">No team selected.</div>
+        <div class="team-reminder-sub" id="teamReminderSub">Open the Team menu to change your lineup.</div>
+        <div class="team-reminder-slots" id="teamReminderSlots"></div>
       </div>
-      <div class="stat-box">
-        <div class="stat-label">Fish in inventory</div>
-        <div class="stat-value" id="inventoryCount">0</div>
-        <div class="stat-subvalue">Total value: <span id="inventoryTotalValue">0</span></div>
+
+      <div class="stats">
+        <div class="stat-box">
+          <div class="stat-label">Fish caught</div>
+          <div class="stat-value" id="caughtCount">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Fish in inventory</div>
+          <div class="stat-value" id="inventoryCount">0</div>
+          <div class="stat-subvalue">Total value: <span id="inventoryTotalValue">0</span></div>
+        </div>
+      </div>
+
+      <div class="fish-panel">
+        <button id="clicker" class="fish-button">
+          <div class="fish-info">
+            <div class="fish-title" id="fishButtonLabel">Fish</div>
+            <div class="fish-subtitle" id="fishDescription">Click to fish a random catch.</div>
+          </div>
+          <div class="fish-price" id="fishPrice">0</div>
+        </button>
       </div>
     </div>
 
     <div class="content-grid">
       <div class="main-column">
-        <div class="fish-panel">
-          <button id="clicker" class="fish-button">
-            <div class="fish-info">
-              <div class="fish-title" id="fishButtonLabel">Fish</div>
-              <div class="fish-subtitle" id="fishDescription">Click to fish a random catch.</div>
-            </div>
-            <div class="fish-price" id="fishPrice">0</div>
-          </button>
-
-        </div>
-
         <div class="auto-sell-panel">
           <div class="auto-sell-title">Smart auto-sell</div>
           <div class="auto-sell-row">
@@ -839,11 +921,11 @@
       ];
 
       const RARITY_WEIGHTS = [
-        { rarity: "common", weight: 88 },
-        { rarity: "uncommon", weight: 9 },
-        { rarity: "rare", weight: 2.2 },
-        { rarity: "epic", weight: 0.7 },
-        { rarity: "legendary", weight: 0.1 }
+        { rarity: "common", weight: 92.6 },
+        { rarity: "uncommon", weight: 6 },
+        { rarity: "rare", weight: 1.2 },
+        { rarity: "epic", weight: 0.18 },
+        { rarity: "legendary", weight: 0.02 }
       ];
 
       const ROD_TIERS = [
@@ -899,6 +981,8 @@
       const autoSellMaxRaritySelect = document.getElementById("autoSellMaxRarity");
       const autoSellPanel = document.querySelector(".auto-sell-panel");
       const autoSellTitle = document.querySelector(".auto-sell-title");
+      const centerDragBlock = document.getElementById("centerDragBlock");
+      const centerDragGrip = document.getElementById("centerDragGrip");
       const upgradesPanel = document.querySelector(".upgrades");
       const upgradesResizer = document.querySelector(".upgrades-resizer");
       const tripleHookUpgrade = document.getElementById("tripleHookUpgrade");
@@ -943,6 +1027,12 @@
       let inventoryTurn = Number(localStorage.getItem("clicker_inventoryTurn")) || 0;
       const TEAM_STATE_STORAGE_KEY = "clicker_teamState";
       const TEAM_ROSTER_STORAGE_KEY = "clicker_teamRoster";
+      const AUTO_SELL_PANEL_POS_VERSION_KEY = "clicker_autoSellPanelPosVersion";
+      const CENTER_BLOCK_POS_VERSION_KEY = "clicker_centerBlockPosVersion";
+      const FLOATING_LAYER_MIN = 24;
+      const FLOATING_LAYER_MAX = 55;
+      const floatingPanels = [centerDragBlock, autoSellPanel, upgradesPanel].filter(Boolean);
+      let nextFloatingLayer = 31;
 
       const defaultTeamBonuses = {
         incomeMultiplier: 1,
@@ -975,12 +1065,12 @@
 
       function clampAutoSellPosition(left, top) {
         if (!autoSellPanel) {
-          return { left: 8, top: 84 };
+          return { left: 12, top: 84 };
         }
 
-        const panelWidth = autoSellPanel.offsetWidth || 360;
+        const panelWidth = autoSellPanel.offsetWidth || 460;
         const panelHeight = autoSellPanel.offsetHeight || 220;
-        const minLeft = 0;
+        const minLeft = 8;
         const minTop = 56;
         const maxLeft = Math.max(minLeft, window.innerWidth - panelWidth - 8);
         const maxTop = Math.max(minTop, window.innerHeight - panelHeight - 8);
@@ -998,17 +1088,58 @@
 
         if (isCompactLayout()) {
           autoSellPanel.style.left = "";
+          autoSellPanel.style.right = "";
           autoSellPanel.style.top = "";
           return;
         }
 
         const next = clampAutoSellPosition(left, top);
+        autoSellPanel.style.right = "auto";
         autoSellPanel.style.left = `${next.left}px`;
         autoSellPanel.style.top = `${next.top}px`;
 
         if (persist) {
           localStorage.setItem("clicker_autoSellPanelLeft", String(next.left));
           localStorage.setItem("clicker_autoSellPanelTop", String(next.top));
+        }
+      }
+
+      function clampCenterBlockPosition(left, top) {
+        if (!centerDragBlock) {
+          return { left: 16, top: 150 };
+        }
+
+        const blockWidth = centerDragBlock.offsetWidth || 760;
+        const blockHeight = centerDragBlock.offsetHeight || 360;
+        const minLeft = 8;
+        const minTop = 56;
+        const maxLeft = Math.max(minLeft, window.innerWidth - blockWidth - 8);
+        const maxTop = Math.max(minTop, window.innerHeight - blockHeight - 8);
+
+        return {
+          left: Math.min(maxLeft, Math.max(minLeft, Math.floor(left))),
+          top: Math.min(maxTop, Math.max(minTop, Math.floor(top)))
+        };
+      }
+
+      function setCenterBlockPosition(left, top, persist) {
+        if (!centerDragBlock) {
+          return;
+        }
+
+        if (isCompactLayout()) {
+          centerDragBlock.style.left = "";
+          centerDragBlock.style.top = "";
+          return;
+        }
+
+        const next = clampCenterBlockPosition(left, top);
+        centerDragBlock.style.left = `${next.left}px`;
+        centerDragBlock.style.top = `${next.top}px`;
+
+        if (persist) {
+          localStorage.setItem("clicker_centerBlockLeft", String(next.left));
+          localStorage.setItem("clicker_centerBlockTop", String(next.top));
         }
       }
 
@@ -1021,19 +1152,103 @@
         }
       }
 
+      function bringFloatingPanelToFront(panel) {
+        if (!panel || isCompactLayout()) {
+          return;
+        }
+
+        nextFloatingLayer += 1;
+        if (nextFloatingLayer > FLOATING_LAYER_MAX) {
+          floatingPanels
+            .slice()
+            .sort((left, right) => (Number(left.style.zIndex) || FLOATING_LAYER_MIN) - (Number(right.style.zIndex) || FLOATING_LAYER_MIN))
+            .forEach((entry, index) => {
+              entry.style.zIndex = String(FLOATING_LAYER_MIN + index);
+            });
+
+          nextFloatingLayer = FLOATING_LAYER_MIN + floatingPanels.length;
+        }
+
+        panel.style.zIndex = String(nextFloatingLayer);
+      }
+
       setUpgradesWidth(upgradesWidth, false);
+
+      function getDefaultAutoSellPosition() {
+        if (!autoSellPanel) {
+          return { left: 12, top: 84 };
+        }
+
+        const panelWidth = autoSellPanel.offsetWidth || 460;
+        const rightReserved = upgradesWidth + 20;
+        const left = Math.max(8, Math.floor(window.innerWidth - rightReserved - panelWidth - 12));
+        return { left, top: 84 };
+      }
+
+      function getDefaultCenterBlockPosition() {
+        if (!centerDragBlock) {
+          return { left: 16, top: 150 };
+        }
+
+        const blockWidth = centerDragBlock.offsetWidth || 760;
+        const left = Math.max(8, Math.floor((window.innerWidth - upgradesWidth - blockWidth) / 2));
+        return { left, top: 150 };
+      }
 
       const storedAutoSellLeft = Number(localStorage.getItem("clicker_autoSellPanelLeft"));
       const storedAutoSellTop = Number(localStorage.getItem("clicker_autoSellPanelTop"));
-      setAutoSellPosition(Number.isFinite(storedAutoSellLeft) ? storedAutoSellLeft : 8, Number.isFinite(storedAutoSellTop) ? storedAutoSellTop : 84, false);
+      const panelPosVersion = Number(localStorage.getItem(AUTO_SELL_PANEL_POS_VERSION_KEY)) || 0;
+      let initialAutoSellPosition = {
+        left: Number.isFinite(storedAutoSellLeft) ? storedAutoSellLeft : getDefaultAutoSellPosition().left,
+        top: Number.isFinite(storedAutoSellTop) ? storedAutoSellTop : 84
+      };
+
+      if (panelPosVersion < 2) {
+        initialAutoSellPosition = getDefaultAutoSellPosition();
+        localStorage.setItem(AUTO_SELL_PANEL_POS_VERSION_KEY, "2");
+        localStorage.setItem("clicker_autoSellPanelLeft", String(initialAutoSellPosition.left));
+        localStorage.setItem("clicker_autoSellPanelTop", String(initialAutoSellPosition.top));
+      }
+
+      setAutoSellPosition(initialAutoSellPosition.left, initialAutoSellPosition.top, false);
+
+      const storedCenterBlockLeft = Number(localStorage.getItem("clicker_centerBlockLeft"));
+      const storedCenterBlockTop = Number(localStorage.getItem("clicker_centerBlockTop"));
+      const centerBlockPosVersion = Number(localStorage.getItem(CENTER_BLOCK_POS_VERSION_KEY)) || 0;
+      let initialCenterBlockPosition = {
+        left: Number.isFinite(storedCenterBlockLeft) ? storedCenterBlockLeft : getDefaultCenterBlockPosition().left,
+        top: Number.isFinite(storedCenterBlockTop) ? storedCenterBlockTop : 150
+      };
+
+      if (centerBlockPosVersion < 1) {
+        initialCenterBlockPosition = getDefaultCenterBlockPosition();
+        localStorage.setItem(CENTER_BLOCK_POS_VERSION_KEY, "1");
+        localStorage.setItem("clicker_centerBlockLeft", String(initialCenterBlockPosition.left));
+        localStorage.setItem("clicker_centerBlockTop", String(initialCenterBlockPosition.top));
+      }
+
+      setCenterBlockPosition(initialCenterBlockPosition.left, initialCenterBlockPosition.top, false);
+
+      if (!isCompactLayout()) {
+        if (centerDragBlock) centerDragBlock.style.zIndex = "24";
+        if (autoSellPanel) autoSellPanel.style.zIndex = "25";
+        if (upgradesPanel) upgradesPanel.style.zIndex = "30";
+      }
 
       if (autoSellPanel && autoSellTitle) {
         let isDraggingAutoSell = false;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
 
-        autoSellTitle.addEventListener("mousedown", (event) => {
+        autoSellPanel.addEventListener("mousedown", (event) => {
           if (isCompactLayout()) {
+            return;
+          }
+
+          bringFloatingPanelToFront(autoSellPanel);
+
+          const interactiveTarget = event.target.closest("input, select, option, button, a, label");
+          if (interactiveTarget) {
             return;
           }
 
@@ -1068,17 +1283,73 @@
         });
       }
 
+      if (centerDragBlock && centerDragGrip) {
+        let isDraggingCenterBlock = false;
+        let centerOffsetX = 0;
+        let centerOffsetY = 0;
+
+        centerDragBlock.addEventListener("mousedown", (event) => {
+          if (isCompactLayout()) {
+            return;
+          }
+
+          bringFloatingPanelToFront(centerDragBlock);
+
+          const interactiveTarget = event.target.closest("input, select, option, button, a, label");
+          if (interactiveTarget && !event.target.closest("#centerDragGrip")) {
+            return;
+          }
+
+          event.preventDefault();
+          const rect = centerDragBlock.getBoundingClientRect();
+          centerOffsetX = event.clientX - rect.left;
+          centerOffsetY = event.clientY - rect.top;
+          isDraggingCenterBlock = true;
+          document.body.style.userSelect = "none";
+          document.body.style.cursor = "move";
+        });
+
+        window.addEventListener("mousemove", (event) => {
+          if (!isDraggingCenterBlock) {
+            return;
+          }
+
+          setCenterBlockPosition(event.clientX - centerOffsetX, event.clientY - centerOffsetY, false);
+        });
+
+        window.addEventListener("mouseup", () => {
+          if (!isDraggingCenterBlock) {
+            return;
+          }
+
+          isDraggingCenterBlock = false;
+          document.body.style.userSelect = "";
+          document.body.style.cursor = "";
+          const finalLeft = Number.parseInt(centerDragBlock.style.left || "16", 10);
+          const finalTop = Number.parseInt(centerDragBlock.style.top || "150", 10);
+          setCenterBlockPosition(finalLeft, finalTop, true);
+        });
+      }
+
       window.addEventListener("resize", () => {
         const currentLeft = Number.parseInt((autoSellPanel && autoSellPanel.style.left) || "8", 10);
         const currentTop = Number.parseInt((autoSellPanel && autoSellPanel.style.top) || "84", 10);
         setAutoSellPosition(currentLeft, currentTop, false);
+        const currentCenterLeft = Number.parseInt((centerDragBlock && centerDragBlock.style.left) || "16", 10);
+        const currentCenterTop = Number.parseInt((centerDragBlock && centerDragBlock.style.top) || "150", 10);
+        setCenterBlockPosition(currentCenterLeft, currentCenterTop, false);
       });
 
       if (upgradesResizer && upgradesPanel) {
         let isResizing = false;
 
+        upgradesPanel.addEventListener("mousedown", () => {
+          bringFloatingPanelToFront(upgradesPanel);
+        });
+
         upgradesResizer.addEventListener("mousedown", (event) => {
           event.preventDefault();
+          bringFloatingPanelToFront(upgradesPanel);
           isResizing = true;
           document.body.style.cursor = "col-resize";
           document.body.style.userSelect = "none";
@@ -1730,7 +2001,7 @@
         inventoryTotalValueDisplay.textContent = String(inventoryTotalValue);
         fishButtonLabel.textContent = currentFish.type + " " + fishDescriptors;
         fishButtonLabel.className = "fish-title " + rarityClass;
-        fishDescription.textContent = currentFish.type + " " + fishDescriptors + " | Rarity: " + formatRarityLabel(currentFish.rarity) + " | Size: " + currentFish.size + " cm | Weight: " + currentFish.weight + " kg | Price: " + currentFish.price;
+        fishDescription.textContent = "Rarity: " + formatRarityLabel(currentFish.rarity) + " | Size: " + currentFish.size + " cm | Weight: " + currentFish.weight + " kg | Price: " + currentFish.price;
         fishPrice.textContent = String(currentFish.price);
         tripleHookUpgradeCount.textContent = String(tripleHookLevel);
         rodUpgradeCount.textContent = String(rodTierLevel);
