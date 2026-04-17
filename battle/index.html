@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Battle - Clicker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #111;
+      color: #fff;
+      margin: 0;
+      padding: 24px 16px;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #0c1217;
+      border-bottom: 1px solid #22313b;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+      margin: -24px -16px 18px;
+      padding: 10px 0;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0 0 0 16px;
+    }
+
+    .nav-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      background: #31414d;
+      color: #eef5f9;
+      border: 1px solid #667a86;
+      padding: 12px 16px;
+      margin: 0;
+      margin-right: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-button:hover {
+      background: #3a4c59;
+      border-color: #7f95a3;
+    }
+
+    .nav-button.active-nav-button {
+      background: #dbe3e8;
+      color: #1d2a33;
+      border-color: #dbe3e8;
+      font-weight: bold;
+    }
+
+    .settings-nav-button {
+      margin-left: auto;
+      margin-right: 16px;
+    }
+
+    .shell {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .battle-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.9fr);
+      gap: 16px;
+      margin-top: 16px;
+      text-align: left;
+      align-items: start;
+    }
+
+    .section {
+      border: 1px solid #2f4d5c;
+      border-radius: 14px;
+      background: #142028;
+      padding: 14px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #8dc4e0;
+      margin-bottom: 10px;
+    }
+
+    .section-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .section-header-row .section-title {
+      margin-bottom: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .battle-panel {
+      margin-top: 10px;
+      border: 1px solid #365563;
+      border-radius: 12px;
+      background: #0f1519;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .battle-help {
+      font-size: 12px;
+      color: #b8d4e3;
+      line-height: 1.4;
+    }
+
+    .battle-textarea {
+      width: 100%;
+      min-height: 86px;
+      box-sizing: border-box;
+      border: 1px solid #4f7185;
+      border-radius: 10px;
+      background: #101920;
+      color: #e9f6ff;
+      padding: 10px;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      resize: vertical;
+    }
+
+    .battle-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .left-column,
+    .right-column {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .selection-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .slot-card,
+    .bait-card {
+      border: 1px solid #365563;
+      border-radius: 12px;
+      background: #0f1519;
+      padding: 12px;
+    }
+
+    .slot-card.rarity-common,
+    .fish-card.rarity-common {
+      background: #17191c;
+      border-color: #5a5a5a;
+    }
+
+    .slot-card.rarity-uncommon,
+    .fish-card.rarity-uncommon {
+      background: #132019;
+      border-color: #3f7b4b;
+    }
+
+    .slot-card.rarity-rare,
+    .fish-card.rarity-rare {
+      background: #13202e;
+      border-color: #335f94;
+    }
+
+    .slot-card.rarity-epic,
+    .fish-card.rarity-epic {
+      background: #1b1428;
+      border-color: #7a5bb3;
+    }
+
+    .slot-card.rarity-legendary,
+    .fish-card.rarity-legendary {
+      background: #2a1d0f;
+      border-color: #c57a2a;
+    }
+
+    .slot-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #88a8b9;
+      margin-bottom: 4px;
+    }
+
+    .slot-name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+
+    .slot-meta {
+      font-size: 13px;
+      color: #cfe0ea;
+      line-height: 1.4;
+    }
+
+    .slot-empty {
+      color: #8da3b0;
+      font-size: 14px;
+    }
+
+    .slot-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #8ea3b1;
+      background: #263541;
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: #324555;
+    }
+
+    .btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #1d2a33;
+      border-color: #49687b;
+    }
+
+    .btn-secondary:hover {
+      background: #243541;
+    }
+
+    .btn-danger {
+      background: #4a2730;
+      border-color: #9a5a68;
+    }
+
+    .btn-danger:hover {
+      background: #5b3140;
+    }
+
+    .sort-panel {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .collection-scroll {
+      max-height: 430px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .sort-label {
+      color: #cfe0ea;
+      font-size: 14px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      margin-right: 4px;
+    }
+
+    .sort-btn.active {
+      background: #3a5f7a;
+      border-color: #5a8faa;
+    }
+
+    .fish-collection {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .bait-strip {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .bait-scroll {
+      max-height: 160px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .fish-card {
+      border: 1px solid #365563;
+      border-radius: 12px;
+      background: #0f1519;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .fish-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .fish-name {
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .fish-meta {
+      font-size: 13px;
+      color: #bed1dd;
+      line-height: 1.5;
+    }
+
+    .fish-status {
+      font-size: 12px;
+      color: #f5db9b;
+    }
+
+    .count-pill {
+      background: #1b2a33;
+      color: #cfe0ea;
+      border: 1px solid #355063;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      white-space: nowrap;
+      height: fit-content;
+    }
+
+    .empty-state {
+      border: 1px dashed #4b6878;
+      border-radius: 12px;
+      padding: 16px;
+      color: #93aab8;
+      background: rgba(15, 21, 25, 0.8);
+    }
+
+    .action-button {
+      width: 100%;
+      padding: 16px 16px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .action-button:hover {
+      background: #324555;
+    }
+
+    .action-button:disabled {
+      background: #263541;
+      border-color: #8ea3b1;
+      opacity: 0.65;
+    }
+
+    .action-note {
+      margin-top: 10px;
+      color: #b8d4e3;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .summary-row {
+      display: grid;
+      gap: 10px;
+    }
+
+    .summary-block {
+      border: 1px solid #365563;
+      border-radius: 12px;
+      background: #0f1519;
+      padding: 12px;
+    }
+
+    .summary-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(104, 132, 149, 0.2);
+    }
+
+    .summary-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .summary-key {
+      color: #aac2d0;
+      font-size: 13px;
+    }
+
+    .summary-value {
+      font-size: 13px;
+      color: #fff;
+      text-align: right;
+    }
+
+    .bait-note {
+      color: #9eb0bc;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .selected-highlight {
+      outline: 2px solid #5a8faa;
+      box-shadow: 0 0 0 2px rgba(90, 143, 170, 0.15);
+    }
+
+    .status-line {
+      margin-top: 14px;
+      color: #f5db9b;
+      font-size: 14px;
+      min-height: 20px;
+    }
+
+    .right-panel-stack {
+      display: grid;
+      gap: 16px;
+      position: sticky;
+      top: 88px;
+    }
+
+    .battle-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .battle-side {
+      border: 1px solid #365563;
+      border-radius: 12px;
+      background: #0f1519;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .battle-side-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #8dc4e0;
+      font-weight: bold;
+    }
+
+    .battle-fish-card {
+      border: 1px solid #3b5a6d;
+      border-radius: 10px;
+      background: #15222b;
+      padding: 8px;
+      display: grid;
+      gap: 5px;
+    }
+
+    .battle-fish-card.enemy {
+      background: #2a1818;
+      border-color: #734646;
+    }
+
+    .battle-fish-name {
+      font-size: 13px;
+      font-weight: bold;
+      color: #f2fbff;
+    }
+
+    .battle-fish-stats {
+      font-size: 12px;
+      color: #cde3ef;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hp-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hp-bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #2f3f4b;
+      overflow: hidden;
+      border: 1px solid #476171;
+    }
+
+    .hp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff6f6f 0%, #ffbe5e 45%, #7ee787 100%);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .hp-value {
+      font-size: 11px;
+      color: #e8f5ff;
+      min-width: 52px;
+      text-align: right;
+    }
+
+    .battle-result {
+      margin-top: 4px;
+      font-size: 20px;
+      color: #f7e3a7;
+      font-weight: bold;
+      min-height: 28px;
+      line-height: 1.35;
+      text-align: left;
+    }
+
+    .battle-log {
+      max-height: 260px;
+      overflow: auto;
+      border: 1px solid #365563;
+      border-radius: 10px;
+      background: #0f1519;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .battle-log-entry {
+      font-size: 14px;
+      color: #d6e8f2;
+      line-height: 1.4;
+      text-align: left;
+    }
+
+    .speed-ticks {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: #b8d4e3;
+      font-size: 13px;
+    }
+
+    .speed-tick {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .speed-tick input {
+      cursor: pointer;
+      accent-color: #8dc4e0;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="top-nav">
+      <button class="nav-button" onclick="window.location.href='../'">Game</button>
+      <button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
+      <button class="nav-button" onclick="window.location.href='../team/'">Team</button>
+      <button class="nav-button" onclick="window.location.href='../shop/'">Draw</button>
+      <button class="nav-button active-nav-button" onclick="window.location.href='./'">Battle</button>
+      <button class="nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
+      <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <div class="battle-grid">
+      <div class="left-column">
+        <div class="section">
+          <div class="section-header-row">
+            <div class="section-title">Your Battle Lineup</div>
+            <div class="header-actions">
+              <button class="btn btn-secondary" id="customBattleBtn" type="button">Custom Battle</button>
+            </div>
+          </div>
+          <div class="selection-grid" id="selectedSlots"></div>
+
+          <div class="battle-panel" id="battlePanel" style="display:none;">
+            <div class="battle-help">Share the generated text with another player. They can import it to fight your lineup asynchronously.</div>
+            <textarea id="battleTextArea" class="battle-textarea" placeholder="Battle text appears here when generated, or paste a text to import..."></textarea>
+            <div class="battle-row">
+              <button class="btn" id="importBattleBtn" type="button">Import Battle Text</button>
+              <button class="btn btn-secondary" id="exportBattleBtn" type="button">Export Battle Text</button>
+              <button class="btn btn-secondary" id="clearBattleBtn" type="button">Clear Imported Battle</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Collection</div>
+          <div class="sort-panel">
+            <span class="sort-label">Sort:</span>
+            <button class="btn btn-secondary sort-btn active" data-sort="default" type="button">Default</button>
+            <button class="btn btn-secondary sort-btn" data-sort="rarity" type="button">Rarity</button>
+            <button class="btn btn-secondary sort-btn" data-sort="price" type="button">Price</button>
+            <button class="btn btn-secondary sort-btn" data-sort="size" type="button">Size</button>
+            <button class="btn btn-secondary sort-btn" data-sort="weight" type="button">Weight</button>
+            <button class="btn btn-secondary sort-btn" data-sort="name" type="button">Name</button>
+          </div>
+          <div class="collection-scroll">
+            <div id="collectionList" class="fish-collection"></div>
+            <div id="emptyState" class="empty-state" style="display:none;">You do not have any fish in your collection.</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Bait Slots</div>
+          <div class="bait-strip">
+            <div class="bait-card">
+              <div class="slot-label">Bait 1</div>
+              <div class="slot-empty">No bait available yet.</div>
+            </div>
+            <div class="bait-card">
+              <div class="slot-label">Bait 2</div>
+              <div class="slot-empty">No bait available yet.</div>
+            </div>
+          </div>
+          <div class="bait-note" style="margin-top: 10px;">Bait will be added later. For now, only fish selection is active.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Bait Filter</div>
+          <div class="bait-scroll">
+            <div class="empty-state">No bait available yet.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-column">
+        <div class="right-panel-stack">
+          <div class="section action-panel">
+            <div class="section-title">Action</div>
+            <button class="btn action-button" id="startBattleButton" type="button" disabled>Start Battle</button>
+            <div class="action-note" id="actionNote">Select 3 fish first. Bait slots are empty for now.</div>
+            <div class="speed-ticks">
+              <span>Battle speed:</span>
+              <label class="speed-tick"><input type="radio" name="battleSpeed" value="1"> x1</label>
+              <label class="speed-tick"><input type="radio" name="battleSpeed" value="2" checked> x2</label>
+              <label class="speed-tick"><input type="radio" name="battleSpeed" value="3"> x3</label>
+            </div>
+          </div>
+
+          <div class="section summary-panel">
+            <div class="section-title">Battle Summary</div>
+            <div class="summary-row">
+              <div class="summary-block">
+                <div class="summary-grid">
+                  <div class="summary-item"><span class="summary-key">Selected fish</span><span class="summary-value" id="selectedCount">0 / 3</span></div>
+                  <div class="summary-item"><span class="summary-key">Average rarity</span><span class="summary-value" id="averageRarity">-</span></div>
+                  <div class="summary-item"><span class="summary-key">Average value</span><span class="summary-value" id="averageValue">0</span></div>
+                </div>
+              </div>
+              <div class="summary-block">
+                <div class="summary-grid">
+                  <div class="summary-item"><span class="summary-key">Ready</span><span class="summary-value" id="battleReady">No</span></div>
+                  <div class="summary-item"><span class="summary-key">Bait slots</span><span class="summary-value">0 / 2</span></div>
+                  <div class="summary-item"><span class="summary-key">Status</span><span class="summary-value" id="statusText">Pick 3 fish to prepare battle.</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="status-line" id="detailLine"></div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Battle Arena</div>
+            <div class="battle-grid" id="battleGrid"></div>
+            <div class="battle-result" id="battleResult">Start battle to see turn-by-turn results.</div>
+            <div class="battle-log" id="battleLog"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const INVENTORY_KEY = "clicker_inventory";
+    const BATTLE_SELECTION_KEY = "clicker_battleSelection";
+
+    const collectionList = document.getElementById("collectionList");
+    const selectedSlots = document.getElementById("selectedSlots");
+    const emptyState = document.getElementById("emptyState");
+    const selectedCount = document.getElementById("selectedCount");
+    const averageRarity = document.getElementById("averageRarity");
+    const averageValue = document.getElementById("averageValue");
+    const battleReady = document.getElementById("battleReady");
+    const statusText = document.getElementById("statusText");
+    const detailLine = document.getElementById("detailLine");
+    const startBattleButton = document.getElementById("startBattleButton");
+    const actionNote = document.getElementById("actionNote");
+    const battleGrid = document.getElementById("battleGrid");
+    const battleResult = document.getElementById("battleResult");
+    const battleLog = document.getElementById("battleLog");
+    const customBattleBtn = document.getElementById("customBattleBtn");
+    const battlePanel = document.getElementById("battlePanel");
+    const battleTextArea = document.getElementById("battleTextArea");
+    const importBattleBtn = document.getElementById("importBattleBtn");
+    const exportBattleBtn = document.getElementById("exportBattleBtn");
+    const clearBattleBtn = document.getElementById("clearBattleBtn");
+
+    let inventory = [];
+    let selectedFishUids = [];
+    let sortMode = "default";
+    let lastBattleState = null;
+    let isBattleAnimating = false;
+    let battleTimerId = null;
+    let importedBattle = null;
+    let battleSpeedMultiplier = 2;
+
+    const MONEY_KEY = "clicker_money";
+    const BATTLE_REWARD = 1000;
+    const BATTLE_STEP_MS = 500;
+    const BATTLE_PREFIX = "CLICKER_BATTLE_V1:";
+
+    function getBattleStepDelay() {
+      return Math.max(80, Math.floor(BATTLE_STEP_MS / battleSpeedMultiplier));
+    }
+
+    function createFishUid() {
+      return `fish-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+
+    function randomBetween(min, max, decimals) {
+      const value = min + Math.random() * (max - min);
+      return Number(value.toFixed(decimals));
+    }
+
+    function rarityRank(rarity) {
+      const ranks = {
+        common: 1,
+        uncommon: 2,
+        rare: 3,
+        epic: 4,
+        legendary: 5
+      };
+
+      return ranks[rarity] || 1;
+    }
+
+    function rarityLabel(rarity) {
+      const labels = {
+        common: "Common",
+        uncommon: "Uncommon",
+        rare: "Rare",
+        epic: "Epic",
+        legendary: "Legendary"
+      };
+
+      return labels[rarity] || rarity;
+    }
+
+    function fishDescriptors(fish) {
+      const size = Number(fish.size) || 0;
+      const weight = Number(fish.weight) || 0;
+      const tags = [];
+
+      if (size >= 180) {
+        tags.push("huge");
+      } else if (size >= 95) {
+        tags.push("big");
+      } else if (size <= 28) {
+        tags.push("small");
+      }
+
+      if (weight >= 40) {
+        tags.push("heavy");
+      } else if (weight <= 1.2) {
+        tags.push("light");
+      }
+
+      return tags.length ? `(${tags.join(", ")})` : "(average)";
+    }
+
+    function normalizeFishState(fish) {
+      const price = Number(fish && fish.price) || 0;
+      const basePrice = Number(fish && fish.basePrice) || price;
+      const currentValue = Number(fish && fish.currentValue);
+      const size = Number(fish && fish.size) || 0;
+      const weight = Number(fish && fish.weight) || 0;
+
+      return {
+        uid: typeof fish?.uid === "string" && fish.uid ? fish.uid : createFishUid(),
+        type: fish && fish.type ? fish.type : "Fish",
+        rarity: fish && fish.rarity ? fish.rarity : "common",
+        size,
+        weight,
+        price: Number.isFinite(price) ? price : 0,
+        basePrice: Number.isFinite(basePrice) ? basePrice : 0,
+        currentValue: Number.isNaN(currentValue) ? basePrice : currentValue,
+        priceReductionVersion: Number(fish && fish.priceReductionVersion) || 1,
+        storageState: fish && fish.storageState ? fish.storageState : "fridge",
+        spoiled: Boolean(fish && fish.spoiled)
+      };
+    }
+
+    function getFishValue(fish) {
+      return Math.max(0, Math.round(Number(fish.currentValue) || Number(fish.basePrice) || Number(fish.price) || 0));
+    }
+
+    function loadInventory() {
+      try {
+        const raw = localStorage.getItem(INVENTORY_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        inventory = Array.isArray(parsed) ? parsed.map((fish) => normalizeFishState(fish)) : [];
+      } catch (error) {
+        inventory = [];
+      }
+
+      const hasMissingUid = inventory.some((fish) => !fish.uid);
+      if (hasMissingUid) {
+        inventory = inventory.map((fish) => ({ ...fish, uid: fish.uid || createFishUid() }));
+        saveInventory();
+      }
+    }
+
+    function saveInventory() {
+      localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
+    }
+
+    function loadSelection() {
+      try {
+        const raw = localStorage.getItem(BATTLE_SELECTION_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        selectedFishUids = Array.isArray(parsed) ? parsed.filter((uid) => typeof uid === "string") : [];
+      } catch (error) {
+        selectedFishUids = [];
+      }
+
+      selectedFishUids = selectedFishUids.slice(0, 3);
+    }
+
+    function saveSelection() {
+      localStorage.setItem(BATTLE_SELECTION_KEY, JSON.stringify(selectedFishUids));
+    }
+
+    function getSelectedFish() {
+      return selectedFishUids
+        .map((uid) => inventory.find((fish) => fish.uid === uid))
+        .filter(Boolean);
+    }
+
+    function normalizeSelectedFishUids() {
+      const validUids = new Set(inventory.map((fish) => fish.uid));
+      const deduped = [];
+
+      for (const uid of selectedFishUids) {
+        if (!validUids.has(uid)) {
+          continue;
+        }
+
+        if (!deduped.includes(uid)) {
+          deduped.push(uid);
+        }
+      }
+
+      const changed = deduped.length !== selectedFishUids.length || deduped.some((uid, index) => uid !== selectedFishUids[index]);
+      selectedFishUids = deduped.slice(0, 3);
+      return changed;
+    }
+
+    function encodeBattlePayload(payload) {
+      const json = JSON.stringify(payload);
+      const bytes = new TextEncoder().encode(json);
+      let binary = "";
+      bytes.forEach((byte) => {
+        binary += String.fromCharCode(byte);
+      });
+      return BATTLE_PREFIX + btoa(binary);
+    }
+
+    function decodeBattlePayload(text) {
+      const raw = String(text || "").trim();
+      if (!raw.startsWith(BATTLE_PREFIX)) {
+        return null;
+      }
+
+      const base64 = raw.slice(BATTLE_PREFIX.length);
+      const binary = atob(base64);
+      const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+      const json = new TextDecoder().decode(bytes);
+      return JSON.parse(json);
+    }
+
+    function buildBattlePayload() {
+      const selectedFish = getSelectedFish();
+      if (selectedFish.length !== 3) {
+        return null;
+      }
+
+      return {
+        version: 1,
+        createdAt: new Date().toISOString(),
+        lineup: selectedFish.map((fish) => ({
+          name: fish.type || "Fish",
+          rarity: fish.rarity || "common",
+          size: Math.max(1, Math.round(Number(fish.size) || 1)),
+          weight: Math.max(1, Math.round(Number(fish.weight) || 1))
+        })),
+        bait: [null, null]
+      };
+    }
+
+    function parseImportedBattleText(text) {
+      let payload = null;
+      try {
+        payload = decodeBattlePayload(text);
+      } catch (error) {
+        return null;
+      }
+
+      if (!payload || !Array.isArray(payload.lineup) || payload.lineup.length !== 3) {
+        return null;
+      }
+
+      const lineup = payload.lineup.map((entry, index) => {
+        const size = Math.max(1, Math.round(Number(entry?.size) || 1));
+        const weight = Math.max(1, Math.round(Number(entry?.weight) || 1));
+        const rarity = typeof entry?.rarity === "string" ? entry.rarity : "common";
+        const name = typeof entry?.name === "string" && entry.name.trim() ? entry.name.trim() : `Enemy ${index + 1}`;
+        return {
+          uid: `import-${index}-${Date.now()}`,
+          type: name,
+          rarity,
+          size,
+          weight,
+          currentValue: 0,
+          basePrice: 0,
+          price: 0
+        };
+      });
+
+      return {
+        ...payload,
+        lineup
+      };
+    }
+
+    function sortInventory(items) {
+      const list = [...items];
+
+      if (sortMode === "rarity") {
+        list.sort((a, b) => rarityRank(b.rarity) - rarityRank(a.rarity) || getFishValue(b) - getFishValue(a));
+      } else if (sortMode === "price") {
+        list.sort((a, b) => getFishValue(b) - getFishValue(a));
+      } else if (sortMode === "size") {
+        list.sort((a, b) => (Number(b.size) || 0) - (Number(a.size) || 0));
+      } else if (sortMode === "weight") {
+        list.sort((a, b) => (Number(b.weight) || 0) - (Number(a.weight) || 0));
+      } else if (sortMode === "name") {
+        list.sort((a, b) => String(a.type || "").localeCompare(String(b.type || "")));
+      }
+
+      return list;
+    }
+
+    function isSelected(uid) {
+      return selectedFishUids.includes(uid);
+    }
+
+    function toggleSelection(uid) {
+      if (isSelected(uid)) {
+        selectedFishUids = selectedFishUids.filter((entryUid) => entryUid !== uid);
+      } else if (getSelectedFish().length < 3) {
+        selectedFishUids.push(uid);
+      } else {
+        detailLine.textContent = "You already have 3 fish selected.";
+        return;
+      }
+
+      saveSelection();
+      render();
+    }
+
+    function renderSelectedSlots() {
+      const selectedFish = getSelectedFish();
+      selectedSlots.innerHTML = "";
+
+      for (let index = 0; index < 3; index += 1) {
+        const fish = selectedFish[index];
+        const slot = document.createElement("div");
+        slot.className = "slot-card";
+        if (fish) {
+          slot.classList.add(`rarity-${fish.rarity}`);
+          slot.classList.add("selected-highlight");
+          slot.innerHTML = `
+            <div class="slot-label">Fish ${index + 1}</div>
+            <div class="slot-name rarity-${fish.rarity}">${fish.type}</div>
+            <div class="slot-meta">
+              ${fishDescriptors(fish)}<br>
+              Rarity: ${rarityLabel(fish.rarity)}<br>
+              Size: ${fish.size} cm<br>
+              Weight: ${fish.weight} kg<br>
+              Value: ${getFishValue(fish)}
+            </div>
+            <div class="slot-actions">
+              <button class="btn btn-danger" type="button" data-remove="${fish.uid}">Remove</button>
+            </div>
+          `;
+        } else {
+          slot.innerHTML = `
+            <div class="slot-label">Fish ${index + 1}</div>
+            <div class="slot-empty">Empty slot</div>
+            <div class="slot-meta">Choose a fish from your collection.</div>
+          `;
+        }
+
+        selectedSlots.appendChild(slot);
+      }
+
+      selectedSlots.querySelectorAll("button[data-remove]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const uid = button.getAttribute("data-remove");
+          selectedFishUids = selectedFishUids.filter((entryUid) => entryUid !== uid);
+          saveSelection();
+          render();
+        });
+      });
+    }
+
+    function renderSummary() {
+      const selectedFish = getSelectedFish();
+      selectedCount.textContent = `${selectedFish.length} / 3`;
+
+      if (selectedFish.length === 0) {
+        averageRarity.textContent = "-";
+        averageValue.textContent = "0";
+        battleReady.textContent = "No";
+        statusText.textContent = "Pick 3 fish to prepare battle.";
+        startBattleButton.disabled = true;
+        actionNote.textContent = "Select 3 fish first. Bait slots are empty for now.";
+        if (!lastBattleState) {
+          battleResult.textContent = "Start battle to see turn-by-turn results.";
+        }
+        return;
+      }
+
+      const averageRank = selectedFish.reduce((sum, fish) => sum + rarityRank(fish.rarity), 0) / selectedFish.length;
+      const averageValueNumber = Math.round(selectedFish.reduce((sum, fish) => sum + getFishValue(fish), 0) / selectedFish.length);
+
+      averageRarity.textContent = `${averageRank.toFixed(1)} / 5`;
+      averageValue.textContent = String(averageValueNumber);
+      battleReady.textContent = selectedFish.length === 3 ? "Yes" : "No";
+      statusText.textContent = selectedFish.length === 3
+        ? "Battle lineup ready. Bait will be added later."
+        : "Pick 3 fish to prepare battle.";
+      startBattleButton.disabled = selectedFish.length !== 3 || isBattleAnimating;
+      actionNote.textContent = selectedFish.length === 3
+        ? (isBattleAnimating
+          ? "Battle in progress..."
+          : (importedBattle
+            ? "Imported battle ready. Press Start Battle."
+            : "Lineup ready. Press Start Battle. Winner gets 1000 money."))
+        : "Select 3 fish first. Bait slots are empty for now.";
+    }
+
+    function createBattleantFromFish(fish, teamLabel, index) {
+      const maxHp = Math.max(1, Math.round(Number(fish.size) || 1));
+      const attack = Math.max(1, Math.round(Number(fish.weight) || 1));
+      return {
+        id: `${teamLabel}-${index}-${fish.uid}`,
+        name: fish.type || "Fish",
+        rarity: fish.rarity || "common",
+        maxHp,
+        hp: maxHp,
+        attack,
+        alive: true,
+        descriptor: fishDescriptors(fish)
+      };
+    }
+
+    function createEnemyFromFish(fish, index) {
+      const baseSize = Number(fish.size) || 1;
+      const baseWeight = Number(fish.weight) || 1;
+      const enemySize = Math.max(1, Math.round(baseSize * randomBetween(0.88, 1.16, 2)));
+      const enemyWeight = Math.max(1, Math.round(baseWeight * randomBetween(0.9, 1.18, 2)));
+      return {
+        id: `enemy-${index}-${Date.now()}`,
+        name: `Enemy ${index + 1}`,
+        rarity: fish.rarity || "common",
+        maxHp: enemySize,
+        hp: enemySize,
+        attack: enemyWeight,
+        alive: true,
+        descriptor: `(size ${enemySize} / weight ${enemyWeight})`
+      };
+    }
+
+    function snapshotBattleants(team) {
+      return team.map((fighter) => ({ ...fighter }));
+    }
+
+    function runBattle(allies, enemies) {
+      const log = [];
+      const steps = [];
+      let enemyDefeated = 0;
+      let allyDefeated = 0;
+      let allyIndex = 0;
+      let enemyIndex = 0;
+      let turn = 1;
+
+      const pushStep = (text) => {
+        log.push(text);
+        steps.push({
+          text,
+          allies: snapshotBattleants(allies),
+          enemies: snapshotBattleants(enemies)
+        });
+      };
+
+      if (allies[allyIndex] && enemies[enemyIndex]) {
+        pushStep(`Battle starts: ${allies[allyIndex].name} vs ${enemies[enemyIndex].name}`);
+      }
+
+      while (allyIndex < allies.length && enemyIndex < enemies.length) {
+        const ally = allies[allyIndex];
+        const enemy = enemies[enemyIndex];
+
+        enemy.hp = Math.max(0, enemy.hp - ally.attack);
+        pushStep(`Turn ${turn}: ${ally.name} hits ${enemy.name} for ${ally.attack}. (${enemy.hp}/${enemy.maxHp} HP)`);
+
+        if (enemy.hp <= 0) {
+          enemy.alive = false;
+          enemyDefeated += 1;
+          pushStep(`${enemy.name} is KO.`);
+          enemyIndex += 1;
+          if (enemyIndex < enemies.length) {
+            pushStep(`${ally.name} continues and faces ${enemies[enemyIndex].name}.`);
+          }
+          turn += 1;
+          continue;
+        }
+
+        ally.hp = Math.max(0, ally.hp - enemy.attack);
+        pushStep(`Turn ${turn}: ${enemy.name} hits ${ally.name} for ${enemy.attack}. (${ally.hp}/${ally.maxHp} HP)`);
+
+        if (ally.hp <= 0) {
+          ally.alive = false;
+          allyDefeated += 1;
+          pushStep(`${ally.name} is KO.`);
+          allyIndex += 1;
+          if (allyIndex < allies.length) {
+            pushStep(`${enemies[enemyIndex].name} stays and fights ${allies[allyIndex].name}.`);
+          }
+        }
+
+        turn += 1;
+      }
+
+      const playerWon = enemyIndex >= enemies.length;
+
+      return {
+        allies,
+        enemies,
+        log,
+        steps,
+        allyWins: enemyDefeated,
+        enemyWins: allyDefeated,
+        playerWon
+      };
+    }
+
+    function renderBattleState(state) {
+      battleGrid.innerHTML = "";
+
+      const allySide = document.createElement("div");
+      allySide.className = "battle-side";
+      allySide.innerHTML = `<div class="battle-side-title">Your Team</div>`;
+
+      const enemySide = document.createElement("div");
+      enemySide.className = "battle-side";
+      enemySide.innerHTML = `<div class="battle-side-title">Enemy Team</div>`;
+
+      state.allies.forEach((fighter) => {
+        const hpPercent = fighter.maxHp > 0 ? Math.round((fighter.hp / fighter.maxHp) * 100) : 0;
+        const card = document.createElement("div");
+        card.className = `battle-fish-card rarity-${fighter.rarity}`;
+        card.innerHTML = `
+          <div class="battle-fish-name">${fighter.name}</div>
+          <div class="battle-fish-stats">ATK ${fighter.attack} | HP ${fighter.maxHp}</div>
+          <div class="hp-row">
+            <div class="hp-bar"><div class="hp-fill" style="width:${Math.max(0, hpPercent)}%"></div></div>
+            <div class="hp-value">${fighter.hp}/${fighter.maxHp}</div>
+          </div>
+        `;
+        allySide.appendChild(card);
+      });
+
+      state.enemies.forEach((fighter) => {
+        const hpPercent = fighter.maxHp > 0 ? Math.round((fighter.hp / fighter.maxHp) * 100) : 0;
+        const card = document.createElement("div");
+        card.className = `battle-fish-card enemy rarity-${fighter.rarity}`;
+        card.innerHTML = `
+          <div class="battle-fish-name">${fighter.name}</div>
+          <div class="battle-fish-stats">ATK ${fighter.attack} | HP ${fighter.maxHp}</div>
+          <div class="hp-row">
+            <div class="hp-bar"><div class="hp-fill" style="width:${Math.max(0, hpPercent)}%"></div></div>
+            <div class="hp-value">${fighter.hp}/${fighter.maxHp}</div>
+          </div>
+        `;
+        enemySide.appendChild(card);
+      });
+
+      battleGrid.appendChild(allySide);
+      battleGrid.appendChild(enemySide);
+
+      battleLog.innerHTML = "";
+      (state.log || []).forEach((line) => {
+        const entry = document.createElement("div");
+        entry.className = "battle-log-entry";
+        entry.textContent = line;
+        battleLog.appendChild(entry);
+      });
+
+      battleLog.scrollTop = battleLog.scrollHeight;
+
+      if (state.resultText) {
+        battleResult.textContent = state.resultText;
+      } else {
+        battleResult.textContent = state.playerWon
+          ? `Victory! Enemies defeated: ${state.allyWins}/3. Reward: +${BATTLE_REWARD} money.`
+          : `Defeat. Enemies defeated: ${state.allyWins}/3.`;
+      }
+    }
+
+    function renderCollection() {
+      const sortedInventory = sortInventory(inventory);
+      collectionList.innerHTML = "";
+
+      if (sortedInventory.length === 0) {
+        emptyState.style.display = "block";
+        return;
+      }
+
+      emptyState.style.display = "none";
+
+      sortedInventory.forEach((fish) => {
+        const card = document.createElement("div");
+        card.className = `fish-card rarity-${fish.rarity}`;
+        if (isSelected(fish.uid)) {
+          card.classList.add("selected-highlight");
+        }
+
+        card.innerHTML = `
+          <div class="fish-header">
+            <div>
+              <div class="fish-name rarity-${fish.rarity}">${fish.type}</div>
+              <div class="fish-status">${isSelected(fish.uid) ? "Selected for battle" : "Available in collection"}</div>
+            </div>
+            <div class="count-pill">${getFishValue(fish)} value</div>
+          </div>
+          <div class="fish-meta">
+            ${fishDescriptors(fish)}<br>
+            Rarity: ${rarityLabel(fish.rarity)}<br>
+            Size: ${fish.size} cm<br>
+            Weight: ${fish.weight} kg
+          </div>
+          <button class="btn ${isSelected(fish.uid) ? "btn-danger" : ""}" type="button" data-toggle="${fish.uid}">${isSelected(fish.uid) ? "Remove" : "Select"}</button>
+        `;
+
+        collectionList.appendChild(card);
+      });
+
+      collectionList.querySelectorAll("button[data-toggle]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const uid = button.getAttribute("data-toggle");
+          toggleSelection(uid);
+        });
+      });
+    }
+
+    function renderSortButtons() {
+      document.querySelectorAll(".sort-btn").forEach((button) => {
+        button.classList.toggle("active", button.getAttribute("data-sort") === sortMode);
+      });
+    }
+
+    function render() {
+      renderSelectedSlots();
+      renderSummary();
+      renderCollection();
+      renderSortButtons();
+
+      if (lastBattleState) {
+        renderBattleState(lastBattleState);
+      } else {
+        battleGrid.innerHTML = "";
+        battleLog.innerHTML = "";
+      }
+    }
+
+    loadInventory();
+    loadSelection();
+    if (normalizeSelectedFishUids()) {
+      saveSelection();
+    }
+    render();
+
+    customBattleBtn.addEventListener("click", () => {
+      const isHidden = battlePanel.style.display === "none";
+      battlePanel.style.display = isHidden ? "grid" : "none";
+      if (isHidden) {
+        const payload = buildBattlePayload();
+        if (payload) {
+          battleTextArea.value = encodeBattlePayload(payload);
+          battleTextArea.select();
+          detailLine.textContent = "Battle text generated. Share it with another player.";
+        } else {
+          detailLine.textContent = "Custom battle opened. Select 3 fish to auto-generate battle text, or paste one to import.";
+        }
+        battleTextArea.focus();
+      } else {
+        detailLine.textContent = importedBattle
+          ? "Imported battle ready. Press Start Battle to fight this lineup."
+          : "Battle panel closed.";
+      }
+    });
+
+    importBattleBtn.addEventListener("click", () => {
+      const parsed = parseImportedBattleText(battleTextArea.value);
+      if (!parsed) {
+        detailLine.textContent = "Invalid battle text. Paste a valid exported text.";
+        return;
+      }
+
+      importedBattle = parsed;
+      detailLine.textContent = "Battle imported. Press Start Battle to fight this lineup.";
+      renderSummary();
+    });
+
+    exportBattleBtn.addEventListener("click", () => {
+      const payload = buildBattlePayload();
+      if (!payload) {
+        detailLine.textContent = "Select exactly 3 fish before exporting battle text.";
+        return;
+      }
+
+      battlePanel.style.display = "grid";
+      battleTextArea.value = encodeBattlePayload(payload);
+      battleTextArea.focus();
+      battleTextArea.select();
+      detailLine.textContent = "Battle text exported. Share it with another player.";
+    });
+
+    clearBattleBtn.addEventListener("click", () => {
+      importedBattle = null;
+      battleTextArea.value = "";
+      detailLine.textContent = "Imported battle cleared. Back to local enemy generation.";
+      renderSummary();
+    });
+
+    document.querySelectorAll('input[name="battleSpeed"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        const nextValue = Number(input.value) || 1;
+        battleSpeedMultiplier = Math.max(1, Math.min(3, nextValue));
+      });
+    });
+
+    startBattleButton.addEventListener("click", () => {
+      const selectedFish = getSelectedFish();
+      if (selectedFish.length !== 3) {
+        detailLine.textContent = "You need 3 fish selected before starting battle.";
+        return;
+      }
+
+      if (isBattleAnimating) {
+        return;
+      }
+
+      if (battleTimerId) {
+        clearInterval(battleTimerId);
+        battleTimerId = null;
+      }
+
+      const allies = selectedFish.map((fish, index) => createBattleantFromFish(fish, "ally", index));
+      const enemySource = importedBattle ? importedBattle.lineup : selectedFish;
+      const enemies = importedBattle
+        ? enemySource.map((fish, index) => createBattleantFromFish(fish, "enemy", index))
+        : enemySource.map((fish, index) => createEnemyFromFish(fish, index));
+      const result = runBattle(allies, enemies);
+
+      let stepIndex = 0;
+      const displayedLog = [];
+      isBattleAnimating = true;
+      detailLine.textContent = "Battle in progress...";
+      renderSummary();
+
+      const applyStep = () => {
+        const step = result.steps[stepIndex];
+        if (!step) {
+          return;
+        }
+
+        displayedLog.push(step.text);
+        lastBattleState = {
+          allies: step.allies,
+          enemies: step.enemies,
+          log: [...displayedLog],
+          playerWon: result.playerWon,
+          allyWins: result.allyWins,
+          enemyWins: result.enemyWins,
+          resultText: step.text
+        };
+        renderBattleState(lastBattleState);
+        stepIndex += 1;
+      };
+
+      const finishBattle = () => {
+        if (battleTimerId) {
+          clearInterval(battleTimerId);
+          battleTimerId = null;
+        }
+
+        if (result.playerWon) {
+          const currentMoney = Math.max(0, Number(localStorage.getItem(MONEY_KEY)) || 0);
+          localStorage.setItem(MONEY_KEY, String(currentMoney + BATTLE_REWARD));
+        }
+
+        lastBattleState = {
+          allies: result.allies,
+          enemies: result.enemies,
+          log: [...displayedLog],
+          playerWon: result.playerWon,
+          allyWins: result.allyWins,
+          enemyWins: result.enemyWins,
+          resultText: result.playerWon
+            ? `Victory! Enemies defeated: ${result.allyWins}/3. Reward: +${BATTLE_REWARD} money.`
+            : `Defeat. Enemies defeated: ${result.allyWins}/3.`
+        };
+        renderBattleState(lastBattleState);
+
+        isBattleAnimating = false;
+        detailLine.textContent = result.playerWon
+          ? `You won and earned ${BATTLE_REWARD} money.`
+          : "You lost this battle. Try another lineup.";
+        renderSummary();
+      };
+
+      applyStep();
+      battleTimerId = setInterval(() => {
+        if (stepIndex >= result.steps.length) {
+          finishBattle();
+          return;
+        }
+        applyStep();
+      }, getBattleStepDelay());
+    });
+
+    document.querySelectorAll(".sort-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        sortMode = button.getAttribute("data-sort") || "default";
+        render();
+      });
+    });
+  </script>
+</body>
+</html>

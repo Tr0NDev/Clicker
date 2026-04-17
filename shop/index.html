@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Shop - Clicker</title>
+  <title>Draw - Clicker</title>
   <style>
     body {
       font-family: Arial;
@@ -39,21 +39,32 @@
     }
 
     .nav-button {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       text-decoration: none;
-      background: #555;
-      color: white;
-      border: 1px solid #aaa;
-      padding: 15px;
+      background: #31414d;
+      color: #eef5f9;
+      border: 1px solid #667a86;
+      padding: 12px 16px;
       margin: 0;
       margin-right: 8px;
-      font-size: 16px;
+      font-size: 15px;
       border-radius: 10px;
       cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
 
     .nav-button:hover {
-      background: #777;
+      background: #3a4c59;
+      border-color: #7f95a3;
+    }
+
+    .nav-button.active-nav-button {
+      background: #dbe3e8;
+      color: #1d2a33;
+      border-color: #dbe3e8;
+      font-weight: bold;
     }
 
     .settings-nav-button {
@@ -134,6 +145,17 @@
       flex-wrap: wrap;
     }
 
+    .draw-top-info {
+      margin-top: 14px;
+      border: 1px solid #365062;
+      border-radius: 10px;
+      background: #101920;
+      color: #d9ebf7;
+      padding: 10px 12px;
+      font-size: 14px;
+      text-align: left;
+    }
+
     .action-btn {
       border: 1px solid #6ea0bd;
       background: #21455a;
@@ -151,6 +173,62 @@
     .action-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+    }
+
+    .draw-main-btn {
+      width: min(560px, 100%);
+      padding: 18px 20px;
+      text-align: left;
+      display: grid;
+      gap: 4px;
+      border: 1px solid #8ec4df;
+      background: linear-gradient(180deg, #2a607a 0%, #224d63 100%);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(142, 196, 223, 0.25);
+      transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .draw-main-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(142, 196, 223, 0.35);
+    }
+
+    .draw-main-btn:active {
+      transform: translateY(0);
+    }
+
+    .money-top {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #f2fbff;
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+
+    .draw-btn-name {
+      font-size: 20px;
+      font-weight: bold;
+      letter-spacing: 0.02em;
+      color: #f4fbff;
+    }
+
+    .draw-btn-price {
+      font-size: 16px;
+      color: #f7f0c4;
+      font-weight: bold;
+    }
+
+    .draw-btn-effect {
+      font-size: 13px;
+      color: #cde3ef;
+    }
+
+    .draw-cost-note {
+      margin-top: 8px;
+      color: #b8d4e3;
+      font-size: 14px;
+      text-align: right;
     }
 
     .status-text {
@@ -286,14 +364,68 @@
       font-size: 22px;
     }
 
-    .close-btn {
-      border: 1px solid #769cb3;
-      background: #2a4453;
-      color: #fff;
-      border-radius: 8px;
-      cursor: pointer;
-      padding: 8px 10px;
+    .draw-quick-info {
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid #3f6075;
+      border-radius: 12px;
+      background: #101a21;
+      text-align: left;
+      display: grid;
+      gap: 8px;
+    }
+
+    .draw-quick-title {
+      margin: 0;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9dc2d8;
+      font-weight: bold;
+    }
+
+    .draw-quick-text {
+      margin: 0;
+      color: #d9ebf7;
       font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .draw-price-badge {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      border: 1px solid #476072;
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: #142029;
+      color: #d6e8f2;
+      width: fit-content;
+    }
+
+    .draw-price-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9dc2d8;
+    }
+
+    .draw-price-value {
+      font-size: 22px;
+      font-weight: bold;
+      color: #e6f4fb;
+      line-height: 1;
+    }
+
+    .close-btn {
+      border: 1px solid #8eb9d0;
+      background: #2f5368;
+      color: #fff;
+      border-radius: 10px;
+      cursor: pointer;
+      padding: 10px 14px;
+      font-size: 16px;
+      font-weight: bold;
     }
 
     .drop-table {
@@ -389,9 +521,14 @@
     .modal-actions {
       margin-top: 12px;
       display: flex;
-      justify-content: flex-end;
+      justify-content: flex-start;
+      align-items: center;
       gap: 8px;
       flex-wrap: wrap;
+    }
+
+    .modal-close-bottom {
+      margin-right: auto;
     }
 
     .draw-recap {
@@ -510,44 +647,24 @@
   <div class="top-bar">
     <div class="top-nav">
       <button class="nav-button" onclick="window.location.href='../'">Game</button>
-      <button class="nav-button" onclick="window.location.href='../inventaire/'">Inventory</button>
+      <button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
       <button class="nav-button" onclick="window.location.href='../team/'">Team</button>
-      <button class="nav-button" onclick="window.location.href='./'">Shop</button>
+      <button class="nav-button active-nav-button" onclick="window.location.href='./'">Draw</button>
+      <button class="nav-button" onclick="window.location.href='../battle/'">Battle</button>
       <button class="nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
       <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
     </div>
   </div>
 
   <div class="shell">
-    <h1>Shop</h1>
     <div class="shop-container">
-      <h2 class="shop-title">Character Gacha</h2>
-      <p class="shop-text">Spend 100 money to roll a character. You can get duplicates, and each draw adds one character copy to your Team reserve.</p>
-
-      <div class="gacha-summary">
-        <div class="summary-card">
-          <div class="summary-label">Money</div>
-          <div class="summary-value" id="moneyValue">0</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Cost / Draw</div>
-          <div class="summary-value">100</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Reserve Slots</div>
-          <div class="summary-value" id="lockedCount">0</div>
-        </div>
-      </div>
-
+      <div class="money-top" id="moneyTop">Money: 0</div>
       <div class="actions">
-        <button class="action-btn" id="openGachaBtn">Character draw</button>
-      </div>
-
-      <div class="status-text" id="statusText"></div>
-
-      <div class="result-box" id="resultBox">
-        <p class="result-title">Last Character Won</p>
-        <div class="result-name" id="resultName"></div>
+        <button class="action-btn draw-main-btn" id="openGachaBtn">
+          <span class="draw-btn-name">Character Draw</span>
+          <span class="draw-btn-price">Price: 100</span>
+          <span class="draw-btn-effect">Effect: Random character copy added to the Team</span>
+        </button>
       </div>
     </div>
   </div>
@@ -555,8 +672,17 @@
   <div class="modal" id="gachaModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 class="modal-title">Character Draw Details</h3>
-        <button class="close-btn" id="closeGachaBtn">Close</button>
+        <h3 class="modal-title">Character Draw</h3>
+      </div>
+
+      <div class="draw-quick-info">
+        <p class="draw-quick-title">How this draw works</p>
+        <p class="draw-quick-text">One click spends money once and gives you exactly one random character copy with one random talent. The copy is added to your Team reserve.</p>
+        <div class="draw-price-badge">
+          <span class="draw-price-label">Price</span>
+          <span class="draw-price-value">100</span>
+          <span>money</span>
+        </div>
       </div>
 
       <table class="drop-table" id="dropTable">
@@ -582,8 +708,8 @@
       </div>
 
       <div class="modal-actions">
-        <button class="action-btn" id="startDrawBtn">Buy and Roll (100)</button>
-        <button class="action-btn" id="drawOkBtn" style="display: none;">OK</button>
+        <button class="close-btn modal-close-bottom" id="closeGachaBtn">Close</button>
+        <button class="action-btn" id="startDrawBtn">Start Draw</button>
       </div>
     </div>
   </div>
@@ -684,16 +810,11 @@
       { id: 36, name: "Draco", stars: 5 }
     ];
 
-    const moneyValue = document.getElementById("moneyValue");
-    const lockedCount = document.getElementById("lockedCount");
     const openGachaBtn = document.getElementById("openGachaBtn");
-    const statusText = document.getElementById("statusText");
-    const resultBox = document.getElementById("resultBox");
-    const resultName = document.getElementById("resultName");
+    const moneyTop = document.getElementById("moneyTop");
     const gachaModal = document.getElementById("gachaModal");
     const closeGachaBtn = document.getElementById("closeGachaBtn");
     const startDrawBtn = document.getElementById("startDrawBtn");
-    const drawOkBtn = document.getElementById("drawOkBtn");
     const dropTableBody = document.querySelector("#dropTable tbody");
     const rollArea = document.getElementById("rollArea");
     const rollTrack = document.getElementById("rollTrack");
@@ -786,11 +907,6 @@
       return TALENT_POOL[Math.floor(Math.random() * TALENT_POOL.length)];
     }
 
-    function getTalentNameById(talentId) {
-      const match = TALENT_POOL.find((talent) => talent.id === talentId);
-      return match ? match.name : "Unknown Talent";
-    }
-
     function getTalentDescriptionById(talentId) {
       return TALENT_DESCRIPTION_BY_ID[talentId] || "No description available.";
     }
@@ -831,17 +947,9 @@
       const hasSpace = reserveCount < RESERVE_MAX;
       const canAfford = money >= DRAW_COST;
       const canDraw = hasSpace && canAfford;
-      moneyValue.textContent = String(money);
-      lockedCount.textContent = `${reserveCount} / ${RESERVE_MAX}`;
+      moneyTop.textContent = `Money: ${money}`;
       openGachaBtn.disabled = !canDraw;
       startDrawBtn.disabled = !canDraw || spinning;
-      if (!hasSpace && !spinning) {
-        statusText.textContent = `Reserve full (${RESERVE_MAX}/${RESERVE_MAX}).`;
-      } else if (!canAfford && !spinning) {
-        statusText.textContent = `Not enough money. Need ${DRAW_COST}.`;
-      } else if (!spinning) {
-        statusText.textContent = "";
-      }
     }
 
     function buildDropTable() {
@@ -943,16 +1051,10 @@
       saveReserveList(reserveList);
 
       const rarityClass = getRarityClassByStars(rewardChar.stars);
-      resultBox.className = `result-box visible ${rarityClass}`;
-      resultName.className = `result-name ${rarityClass}`;
-      resultName.innerHTML = `${escapeHtml(rewardChar.name)} ${escapeHtml(getStarsString(rewardChar.stars))} - ${renderTalentWithHelp(rewardTalent.name, rewardTalent.id)}`;
-      statusText.innerHTML = `${escapeHtml(rewardChar.name)} unlocked with talent ${renderTalentWithHelp(rewardTalent.name, rewardTalent.id)} and sent to Team reserve.`;
-
       drawRecap.className = `draw-recap visible ${rarityClass}`;
       drawRecapName.className = `draw-recap-name ${rarityClass}`;
       drawRecapName.textContent = `${rewardChar.name} ${getStarsString(rewardChar.stars)}`;
       drawRecapText.innerHTML = `Talent won: ${renderTalentWithHelp(rewardTalent.name, rewardTalent.id)}. Added to your Team reserve.`;
-      drawOkBtn.style.display = "inline-block";
 
       refreshSummary();
       buildDropTable();
@@ -964,19 +1066,16 @@
       }
 
       if (getReserveCount() >= RESERVE_MAX) {
-        statusText.textContent = `Reserve full (${RESERVE_MAX}/${RESERVE_MAX}).`;
         return;
       }
 
       const money = getMoney();
       if (money < DRAW_COST) {
-        statusText.textContent = `Not enough money. Need ${DRAW_COST}.`;
         return;
       }
 
       const rewardChar = pickRewardCharacter();
       if (!rewardChar) {
-        statusText.textContent = "No available character to draw.";
         return;
       }
       const rewardTalent = pickRandomTalent();
@@ -984,10 +1083,8 @@
       spinning = true;
       startDrawBtn.disabled = true;
       openGachaBtn.disabled = true;
-      drawOkBtn.style.display = "none";
       drawRecap.classList.remove("visible");
       rollArea.classList.add("visible");
-      statusText.textContent = "Rolling...";
 
       setMoney(money - DRAW_COST);
       refreshSummary();
@@ -1003,7 +1100,6 @@
 
     function openGachaModal() {
       buildDropTable();
-      drawOkBtn.style.display = "none";
       drawRecap.classList.remove("visible");
       rollArea.classList.remove("visible");
       gachaModal.classList.add("visible");
@@ -1017,20 +1113,12 @@
       gachaModal.classList.remove("visible");
       rollArea.classList.remove("visible");
       drawRecap.className = "draw-recap";
-      drawOkBtn.style.display = "none";
       rollTrack.innerHTML = "";
-    }
-
-    function acknowledgeDraw() {
-      drawRecap.className = "draw-recap";
-      drawOkBtn.style.display = "none";
-      closeGachaModal();
     }
 
     openGachaBtn.addEventListener("click", openGachaModal);
     closeGachaBtn.addEventListener("click", closeGachaModal);
     startDrawBtn.addEventListener("click", startDraw);
-    drawOkBtn.addEventListener("click", acknowledgeDraw);
 
     gachaModal.addEventListener("click", (event) => {
       if (event.target === gachaModal) {

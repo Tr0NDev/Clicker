@@ -602,17 +602,32 @@
     }
 
     .nav-button {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       text-decoration: none;
-      background: #555;
-      color: white;
-      border: 1px solid #aaa;
-      padding: 15px;
+      background: #31414d;
+      color: #eef5f9;
+      border: 1px solid #667a86;
+      padding: 12px 16px;
       margin: 0;
       margin-right: 8px;
-      font-size: 16px;
-      border-radius: 10px;
+      font-size: 15px;
+      border-radius: 12px;
       cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-button:hover {
+      background: #3a4c59;
+      border-color: #7f95a3;
+    }
+
+    .nav-button.active-nav-button {
+      background: #dbe3e8;
+      color: #1d2a33;
+      border-color: #dbe3e8;
+      font-weight: bold;
     }
 
     .settings-nav-button {
@@ -626,10 +641,11 @@
 
   <div class="top-bar">
     <div class="top-nav">
-      <button class="nav-button" onclick="window.location.href='./'">Game</button>
-      <button class="nav-button" onclick="window.location.href='inventaire/'">Inventory</button>
+      <button class="nav-button active-nav-button" onclick="window.location.href='./'">Game</button>
+      <button class="nav-button" onclick="window.location.href='inventory/'">Inventory</button>
       <button class="nav-button" onclick="window.location.href='team/'">Team</button>
-      <button class="nav-button" onclick="window.location.href='shop/'">Shop</button>
+      <button class="nav-button" onclick="window.location.href='shop/'">Draw</button>
+      <button class="nav-button" onclick="window.location.href='battle/'">Battle</button>
       <button class="nav-button" onclick="window.location.href='reproduction/'">Reproduction</button>
       <button class="nav-button settings-nav-button" onclick="window.location.href='settings/'">Settings</button>
     </div>
@@ -673,7 +689,7 @@
 
         <div class="auto-sell-panel">
           <div class="auto-sell-title">Smart auto-sell</div>
-          <div class="auto-sell-help">Choose one mode: sell by price (<= threshold) or sell by rarity (selected rarity and below).</div>
+          <div class="auto-sell-help">Choose one mode: sell by price (<= threshold), sell by rarity (selected rarity and below), or sell all catches.</div>
           <div class="auto-sell-row">
             <label>
               <span class="auto-sell-label">Status</span>
@@ -687,6 +703,7 @@
               <select id="autoSellMode">
                 <option value="price">Sell by price</option>
                 <option value="rarity">Sell by rarity</option>
+                <option value="all">Sell all</option>
               </select>
             </label>
             <label id="autoSellPriceGroup" class="auto-sell-dynamic">
@@ -927,7 +944,7 @@
         autoSellMaxPrice = 25;
       }
 
-      if (autoSellMode !== "price" && autoSellMode !== "rarity") {
+      if (autoSellMode !== "price" && autoSellMode !== "rarity" && autoSellMode !== "all") {
         autoSellMode = "price";
       }
 
@@ -1066,6 +1083,33 @@
       function randomBetween(min, max, decimals) {
         const value = min + Math.random() * (max - min);
         return Number(value.toFixed(decimals));
+      }
+
+      function applyFishPriceReduction(fish) {
+        if (!fish || typeof fish !== "object") {
+          return fish;
+        }
+
+        const migrationVersion = Number(fish.priceReductionVersion) || 0;
+        if (migrationVersion >= 1) {
+          return fish;
+        }
+
+        const scale = 2 / 3;
+        const scaleValue = (value) => {
+          const numeric = Number(value);
+          return Number.isFinite(numeric) ? Math.max(1, Math.round(numeric * scale)) : value;
+        };
+
+        if (Number.isFinite(Number(fish.price))) fish.price = scaleValue(fish.price);
+        if (Number.isFinite(Number(fish.basePrice))) fish.basePrice = scaleValue(fish.basePrice);
+        if (Number.isFinite(Number(fish.currentValue))) fish.currentValue = scaleValue(fish.currentValue);
+        if (Number.isFinite(Number(fish.spoiledValue))) fish.spoiledValue = scaleValue(fish.spoiledValue);
+        if (Number.isFinite(Number(fish.outStartValue))) fish.outStartValue = scaleValue(fish.outStartValue);
+        if (Number.isFinite(Number(fish.outTargetValue))) fish.outTargetValue = scaleValue(fish.outTargetValue);
+
+        fish.priceReductionVersion = 1;
+        return fish;
       }
 
       function pickWeighted(items) {
@@ -1443,6 +1487,10 @@
           return false;
         }
 
+        if (autoSellMode === "all") {
+          return true;
+        }
+
         if (autoSellMode === "rarity") {
           return rarityRank(fish.rarity) <= rarityRank(autoSellMaxRarity);
         }
@@ -1463,7 +1511,8 @@
         const size = Number((baseSize * sizeMultiplier).toFixed(1));
         const weight = Number((baseWeight * weightMultiplier).toFixed(2));
         const basePrice = Math.max(1, Math.round((size * 0.315 + weight * 9) * RARITY_MULTIPLIERS[rarity]));
-        const price = Math.max(1, Math.round(basePrice * teamBonuses.incomeMultiplier * (1 + (teamBonuses.resaleBonus * 0.01))));
+        const reducedBasePrice = Math.max(1, Math.round(basePrice * (2 / 3)));
+        const price = Math.max(1, Math.round(reducedBasePrice * teamBonuses.incomeMultiplier * (1 + (teamBonuses.resaleBonus * 0.01))));
 
         return {
           type: species.type,
@@ -1473,8 +1522,9 @@
           price: price,
           baseSize: baseSize,
           baseWeight: baseWeight,
-          basePrice: basePrice,
+          basePrice: reducedBasePrice,
           currentValue: price,
+          priceReductionVersion: 1,
           sizeProfile: sizeProfile,
           weightProfile: weightProfile
         };
@@ -1492,7 +1542,7 @@
             return createFish();
           }
 
-          return normalizeFishProfiles(parsed);
+          return applyFishPriceReduction(normalizeFishProfiles(parsed));
         } catch (error) {
           return createFish();
         }
@@ -1529,6 +1579,7 @@
           currentValue: Math.max(1, Math.round(currentFish.currentValue || currentFish.price)),
           sizeProfile: currentFish.sizeProfile,
           weightProfile: currentFish.weightProfile,
+          priceReductionVersion: 1,
           caughtAt: new Date().toISOString()
         };
 
@@ -1601,10 +1652,11 @@
         autoSellMaxRaritySelect.value = autoSellMaxRarity;
         autoSellModeSelect.disabled = !autoSellEnabled;
         const isPriceMode = autoSellMode === "price";
+        const isRarityMode = autoSellMode === "rarity";
         autoSellPriceGroup.classList.toggle("auto-sell-hidden", !isPriceMode);
-        autoSellRarityGroup.classList.toggle("auto-sell-hidden", isPriceMode);
+        autoSellRarityGroup.classList.toggle("auto-sell-hidden", !isRarityMode);
         autoSellMaxPriceInput.disabled = !autoSellEnabled || !isPriceMode;
-        autoSellMaxRaritySelect.disabled = !autoSellEnabled || isPriceMode;
+        autoSellMaxRaritySelect.disabled = !autoSellEnabled || !isRarityMode;
         saveGameState();
       }
 
@@ -1682,7 +1734,8 @@
       });
 
       autoSellModeSelect.addEventListener("change", () => {
-        autoSellMode = autoSellModeSelect.value === "rarity" ? "rarity" : "price";
+        const nextMode = autoSellModeSelect.value;
+        autoSellMode = (nextMode === "rarity" || nextMode === "all") ? nextMode : "price";
         render();
       });
 
