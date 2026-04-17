@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Shop - Clicker</title>
+  <style>
+    :root {
+      --sidebar-width: 420px;
+    }
+
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #111;
+      color: white;
+      margin: 0;
+      padding: 24px 20px 36px 16px;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #0c1217;
+      border-bottom: 1px solid #22313b;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+      margin: -24px -20px -18px -24px;
+      padding: 10px 0;
+      margin-bottom: 18px;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0 0 0 16px;
+    }
+
+    .nav-button {
+      display: inline-block;
+      text-decoration: none;
+      background: #555;
+      color: white;
+      border: 1px solid #aaa;
+      padding: 15px;
+      margin: 0;
+      margin-right: 8px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .nav-button:hover {
+      background: #777;
+    }
+
+    .shell {
+      max-width: 1080px;
+      margin: 0 auto;
+      min-height: calc(100vh - 24px - 36px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      font-size: 36px;
+      margin: 20px 0 30px;
+    }
+
+    .shop-container {
+      background: linear-gradient(180deg, #18222a 0%, #12191f 100%);
+      border: 1px solid #2f4d5c;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .shop-text {
+      font-size: 18px;
+      color: #d7e8f2;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="top-bar">
+    <div class="top-nav">
+      <button class="nav-button" onclick="window.location.href='../'">Game</button>
+      <button class="nav-button" onclick="window.location.href='../inventaire/'">Inventory</button>
+      <button class="nav-button" onclick="window.location.href='../team/'">Team</button>
+      <button class="nav-button" onclick="window.location.href='../'">Shop</button>
+      <button class="nav-button" onclick="window.location.href='../settings/'">Settings</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <h1>Shop</h1>
+    <div class="shop-container">
+      <div class="shop-text">
+        <p>Welcome to the Shop!</p>
+        <p>Here you can purchase items and upgrades to enhance your fishing experience.</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

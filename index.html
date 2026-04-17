@@ -14,8 +14,9 @@
       color: white;
       margin: 0;
       padding: 24px calc(var(--sidebar-width) + 20px) 36px 16px;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     button {
@@ -257,6 +258,117 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+    }
+
+    .team-reminder {
+      width: 100%;
+      max-width: 720px;
+      margin: 12px auto 0;
+      padding: 10px 14px;
+      border: 1px solid #2f4d5c;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(24, 34, 42, 0.95) 0%, rgba(18, 25, 31, 0.95) 100%);
+      text-align: left;
+      box-sizing: border-box;
+    }
+
+    .team-reminder-slots {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .team-reminder-slot {
+      border: 1px solid #35505f;
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: rgba(15, 21, 25, 0.75);
+      min-width: 0;
+    }
+
+    .team-reminder-slot.active {
+      border-color: #8dc4e0;
+      background: rgba(141, 196, 224, 0.12);
+    }
+
+    .team-reminder-slot.active.rarity-common {
+      border-color: #d9d9d9;
+      background: rgba(217, 217, 217, 0.12);
+    }
+
+    .team-reminder-slot.active.rarity-uncommon {
+      border-color: #7ee787;
+      background: rgba(126, 231, 135, 0.12);
+    }
+
+    .team-reminder-slot.active.rarity-rare {
+      border-color: #58a6ff;
+      background: rgba(88, 166, 255, 0.14);
+    }
+
+    .team-reminder-slot.active.rarity-epic {
+      border-color: #d2a8ff;
+      background: rgba(210, 168, 255, 0.14);
+    }
+
+    .team-reminder-slot.active.rarity-legendary {
+      border-color: #ffa657;
+      background: rgba(255, 166, 87, 0.16);
+    }
+
+    .team-reminder-slot-title {
+      font-size: 11px;
+      color: #8dc4e0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+
+    .team-reminder-slot-name {
+      font-size: 13px;
+      color: #f7f0c4;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .team-reminder-slot-stats {
+      font-size: 11px;
+      color: #9fb3c1;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .team-reminder-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8dc4e0;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    .team-reminder-body {
+      font-size: 13px;
+      color: #d9ecf8;
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .team-reminder-sub {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #9fb3c1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     #money {
@@ -511,6 +623,8 @@
     <div class="top-nav">
       <button class="nav-button" onclick="window.location.href='./'">Game</button>
       <button class="nav-button" onclick="window.location.href='inventaire/'">Inventory</button>
+      <button class="nav-button" onclick="window.location.href='team/'">Team</button>
+      <button class="nav-button" onclick="window.location.href='shop/'">Shop</button>
       <button class="nav-button" onclick="window.location.href='settings/'">Settings</button>
     </div>
   </div>
@@ -519,6 +633,12 @@
     <div class="money-header">
       <h2 id="money">Money: 0</h2>
       <div class="money-rate" id="catchPerSecond">Catches per second: 0</div>
+    </div>
+    <div class="team-reminder" id="teamReminder">
+      <div class="team-reminder-title">Team actif</div>
+      <div class="team-reminder-body" id="teamReminderBody">No team selected.</div>
+      <div class="team-reminder-sub" id="teamReminderSub">Open the Team menu to change your lineup.</div>
+      <div class="team-reminder-slots" id="teamReminderSlots"></div>
     </div>
     <div class="stats">
       <div class="stat-box">
@@ -731,6 +851,9 @@
       const fishButtonLabel = document.getElementById("fishButtonLabel");
       const fishDescription = document.getElementById("fishDescription");
       const fishPrice = document.getElementById("fishPrice");
+      const teamReminderBody = document.getElementById("teamReminderBody");
+      const teamReminderSub = document.getElementById("teamReminderSub");
+      const teamReminderSlots = document.getElementById("teamReminderSlots");
       const autoSellEnabledInput = document.getElementById("autoSellEnabled");
       const autoSellModeSelect = document.getElementById("autoSellMode");
       const autoSellPriceGroup = document.getElementById("autoSellPriceGroup");
@@ -779,6 +902,19 @@
       let lastAutoCatchMs = Date.now();
       let lastManualCatchMs = 0;
       let inventoryTurn = Number(localStorage.getItem("clicker_inventoryTurn")) || 0;
+      const TEAM_STATE_STORAGE_KEY = "clicker_teamState";
+
+      const defaultTeamBonuses = {
+        incomeMultiplier: 1,
+        clickMultiplier: 1,
+        sizeBonus: 0,
+        weightBonus: 0,
+        chanceBonus: 0,
+        resaleBonus: 0,
+        fishingSpeed: 1
+      };
+
+      let teamBonuses = loadTeamBonuses();
 
       if (Number.isNaN(autoSellMaxPrice)) {
         autoSellMaxPrice = 25;
@@ -861,6 +997,10 @@
             inventory = [];
           }
         }
+
+        if (event.key === TEAM_STATE_STORAGE_KEY) {
+          refreshTeamBonuses();
+        }
       });
 
       // Reload inventory when page becomes visible (after returning from inventory page)
@@ -874,9 +1014,12 @@
             }
             // Also reload money since it changes when selling fish
             money = Number(localStorage.getItem("clicker_money")) || 0;
+            refreshTeamBonuses();
           } catch (error) {
             inventory = [];
           }
+
+          refreshTeamBonuses();
         }
       });
 
@@ -909,7 +1052,8 @@
       }
 
       function getAutoIntervalMs() {
-        return Math.max(2000, 10000 - (autoWaitReductionLevel * 500));
+        const baseInterval = Math.max(2000, 10000 - (autoWaitReductionLevel * 500));
+        return Math.max(400, Math.floor(baseInterval / Math.max(1, teamBonuses.fishingSpeed)));
       }
 
       function randomBetween(min, max, decimals) {
@@ -1014,6 +1158,195 @@
         };
       }
 
+      function normalizeTeamBonuses(rawTotals) {
+        return {
+          incomeMultiplier: Number(rawTotals?.incomeMultiplier) || 1,
+          clickMultiplier: Number(rawTotals?.clickMultiplier) || 1,
+          sizeBonus: Number(rawTotals?.sizeBonus) || 0,
+          weightBonus: Number(rawTotals?.weightBonus) || 0,
+          chanceBonus: Number(rawTotals?.chanceBonus) || 0,
+          resaleBonus: Number(rawTotals?.resaleBonus) || 0,
+          fishingSpeed: Number(rawTotals?.fishingSpeed) || 1
+        };
+      }
+
+      function computeTeamBonusesFromChars(teamChars) {
+        let incomeMultiplier = 1;
+        let clickMultiplier = 1;
+        let sizeBonus = 0;
+        let weightBonus = 0;
+        let chanceBonus = 0;
+        let resaleBonus = 0;
+        let fishingSpeed = 1;
+
+        teamChars.forEach((char) => {
+          incomeMultiplier *= Number(char.incomeMultiplier) || 1;
+          clickMultiplier *= Number(char.clickMultiplier) || 1;
+          sizeBonus = (sizeBonus + (Number(char.sizeAdd) || 0)) * (Number(char.sizeMult) || 1);
+          weightBonus = (weightBonus + (Number(char.weightAdd) || 0)) * (Number(char.weightMult) || 1);
+          chanceBonus = (chanceBonus + (Number(char.chanceAdd) || 0)) * (Number(char.chanceMult) || 1);
+          resaleBonus = (resaleBonus + (Number(char.resaleAdd) || 0)) * (Number(char.resaleMult) || 1);
+          fishingSpeed *= Number(char.fishingSpeed) || 1;
+        });
+
+        return normalizeTeamBonuses({
+          incomeMultiplier,
+          clickMultiplier,
+          sizeBonus,
+          weightBonus,
+          chanceBonus,
+          resaleBonus,
+          fishingSpeed
+        });
+      }
+
+      function loadTeamBonuses() {
+        try {
+          const stored = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
+          if (!stored) {
+            return { ...defaultTeamBonuses };
+          }
+
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.totals) {
+            return normalizeTeamBonuses(parsed.totals);
+          }
+
+          if (parsed && Array.isArray(parsed.teamChars)) {
+            return computeTeamBonusesFromChars(parsed.teamChars);
+          }
+        } catch (error) {
+          return { ...defaultTeamBonuses };
+        }
+
+        return { ...defaultTeamBonuses };
+      }
+
+      function loadTeamReminder() {
+        try {
+          const storedState = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
+          const storedRoster = localStorage.getItem("clicker_teamRoster");
+
+          if (!storedState && !storedRoster) {
+            return { teamChars: [], totals: { ...defaultTeamBonuses } };
+          }
+
+          const parsedState = storedState ? JSON.parse(storedState) : null;
+          const parsedRoster = storedRoster ? JSON.parse(storedRoster) : null;
+          const teamChars = Array.isArray(parsedState?.teamChars)
+            ? parsedState.teamChars
+            : (Array.isArray(parsedRoster?.slots)
+              ? parsedRoster.slots
+                .slice()
+                .sort((left, right) => Number(left.slot) - Number(right.slot))
+                .map((entry) => ({
+                  id: entry.id,
+                  name: entry.name,
+                  stars: entry.stars,
+                  incomeMultiplier: 1,
+                  clickMultiplier: 1,
+                  sizeAdd: 0,
+                  sizeMult: 1,
+                  weightAdd: 0,
+                  weightMult: 1,
+                  chanceAdd: 0,
+                  chanceMult: 1,
+                  resaleAdd: 0,
+                  resaleMult: 1,
+                  fishingSpeed: 1,
+                  teamSlot: Number(entry.slot)
+                }))
+              : []);
+          const totals = parsedState?.totals
+            ? normalizeTeamBonuses(parsedState.totals)
+            : (parsedRoster?.totals ? normalizeTeamBonuses(parsedRoster.totals) : computeTeamBonusesFromChars(teamChars));
+          return { teamChars, totals };
+        } catch (error) {
+          return { teamChars: [], totals: { ...defaultTeamBonuses } };
+        }
+      }
+
+          function getCharacterRarityFromStars(stars) {
+            const starCount = Number(stars) || 1;
+            if (starCount >= 5) {
+              return "legendary";
+            }
+            if (starCount === 4) {
+              return "epic";
+            }
+            if (starCount === 3) {
+              return "rare";
+            }
+            if (starCount === 2) {
+              return "uncommon";
+            }
+            return "common";
+          }
+
+      function formatTeamReminder(teamChars, totals) {
+        if (!teamChars.length) {
+          teamReminderBody.textContent = "No team selected.";
+          teamReminderSub.textContent = "Open the Team menu to change your lineup.";
+          teamReminderSlots.innerHTML = "";
+          return;
+        }
+
+        const names = teamChars.map((char) => `${char.name} (${char.stars}★)`).join(" • ");
+        teamReminderBody.textContent = names;
+        teamReminderSub.textContent = `Income x${totals.incomeMultiplier.toFixed(1)} | Click x${totals.clickMultiplier.toFixed(1)} | Size +${totals.sizeBonus.toFixed(1)}% | Weight +${totals.weightBonus.toFixed(1)}% | Chance +${totals.chanceBonus.toFixed(1)}% | Resale +${totals.resaleBonus.toFixed(1)}% | Speed x${totals.fishingSpeed.toFixed(1)}`;
+        teamReminderSlots.innerHTML = [0, 1, 2].map((slotIndex) => {
+          const char = teamChars.find((entry) => Number(entry.teamSlot) === slotIndex);
+          if (!char) {
+            return `
+              <div class="team-reminder-slot">
+                <div class="team-reminder-slot-name">Empty</div>
+                <div class="team-reminder-slot-stats">No character</div>
+              </div>
+            `;
+          }
+
+          const rarityClass = `rarity-${getCharacterRarityFromStars(char.stars)}`;
+
+          return `
+            <div class="team-reminder-slot active ${rarityClass}">
+              <div class="team-reminder-slot-name">${char.name} ${"★".repeat(char.stars)}</div>
+              <div class="team-reminder-slot-stats">${char.incomeMultiplier.toFixed(1)}x income | ${char.fishingSpeed.toFixed(1)}x speed</div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function refreshTeamBonuses() {
+        const reminderState = loadTeamReminder();
+        teamBonuses = reminderState.totals;
+        formatTeamReminder(reminderState.teamChars, reminderState.totals);
+        applyTeamBonusesToCurrentFish();
+      }
+
+      function applyTeamBonusesToCurrentFish() {
+        if (!currentFish) {
+          return;
+        }
+
+        const baseSize = Number(currentFish.baseSize) || Number(currentFish.size) || 0;
+        const baseWeight = Number(currentFish.baseWeight) || Number(currentFish.weight) || 0;
+        const basePrice = Number(currentFish.basePrice) || Number(currentFish.price) || 0;
+        const sizeMultiplier = (1 + (sizeBoostLevel * 0.01)) * (1 + (teamBonuses.sizeBonus * 0.01));
+        const weightMultiplier = (1 + (weightBoostLevel * 0.01)) * (1 + (teamBonuses.weightBonus * 0.01));
+        const valueMultiplier = Math.max(0.1, teamBonuses.incomeMultiplier * (1 + (teamBonuses.resaleBonus * 0.01)));
+
+        currentFish = {
+          ...currentFish,
+          baseSize: baseSize,
+          baseWeight: baseWeight,
+          basePrice: basePrice,
+          size: Number((baseSize * sizeMultiplier).toFixed(1)),
+          weight: Number((baseWeight * weightMultiplier).toFixed(2)),
+          price: Math.max(1, Math.round(basePrice * valueMultiplier)),
+          currentValue: Math.max(1, Math.round(basePrice * valueMultiplier))
+        };
+      }
+
       function formatRarityLabel(rarity) {
         const labels = {
           common: "Common",
@@ -1055,9 +1388,11 @@
 
         return RARITY_WEIGHTS.map((entry) => {
           const multiplier = tier.multipliers[entry.rarity] || 1;
+          const rank = rarityRank(entry.rarity);
+          const chanceBoost = 1 + ((rank - 1) * (teamBonuses.chanceBonus * 0.0125));
           return {
             rarity: entry.rarity,
-            weight: entry.weight * multiplier
+            weight: entry.weight * multiplier * chanceBoost
           };
         });
       }
@@ -1105,11 +1440,12 @@
         const weightProfile = pickTernaryProfile();
         const baseSize = pickSegmentValue(species.sizeMin, species.sizeMax, 1, sizeProfile);
         const baseWeight = pickSegmentValue(species.weightMin, species.weightMax, 2, weightProfile);
-        const sizeMultiplier = 1 + (sizeBoostLevel * 0.01);
-        const weightMultiplier = 1 + (weightBoostLevel * 0.01);
+        const sizeMultiplier = (1 + (sizeBoostLevel * 0.01)) * (1 + (teamBonuses.sizeBonus * 0.01));
+        const weightMultiplier = (1 + (weightBoostLevel * 0.01)) * (1 + (teamBonuses.weightBonus * 0.01));
         const size = Number((baseSize * sizeMultiplier).toFixed(1));
         const weight = Number((baseWeight * weightMultiplier).toFixed(2));
-        const price = Math.max(1, Math.round((size * 0.315 + weight * 9) * RARITY_MULTIPLIERS[rarity]));
+        const basePrice = Math.max(1, Math.round((size * 0.315 + weight * 9) * RARITY_MULTIPLIERS[rarity]));
+        const price = Math.max(1, Math.round(basePrice * teamBonuses.incomeMultiplier * (1 + (teamBonuses.resaleBonus * 0.01))));
 
         return {
           type: species.type,
@@ -1117,6 +1453,10 @@
           size: size,
           weight: weight,
           price: price,
+          baseSize: baseSize,
+          baseWeight: baseWeight,
+          basePrice: basePrice,
+          currentValue: price,
           sizeProfile: sizeProfile,
           weightProfile: weightProfile
         };
@@ -1166,7 +1506,9 @@
           rarity: currentFish.rarity,
           size: currentFish.size,
           weight: currentFish.weight,
-          price: currentFish.price,
+          price: Math.max(1, Math.round(currentFish.price)),
+          basePrice: Math.max(1, Math.round(currentFish.basePrice || currentFish.price)),
+          currentValue: Math.max(1, Math.round(currentFish.currentValue || currentFish.price)),
           sizeProfile: currentFish.sizeProfile,
           weightProfile: currentFish.weightProfile,
           caughtAt: new Date().toISOString()
@@ -1184,6 +1526,7 @@
       }
 
       function render() {
+        refreshTeamBonuses();
         const nextTripleHookCost = getTripleHookCost(tripleHookLevel);
         const nextRodUpgradeCost = getRodUpgradeCost(rodTierLevel);
         const nextSizeCost = getSizeUpgradeCost(sizeBoostLevel);
@@ -1254,7 +1597,7 @@
         }
 
         lastManualCatchMs = now;
-        const fishPerClick = 1 + tripleHookLevel;
+        const fishPerClick = Math.max(1, Math.round((1 + tripleHookLevel) * Math.max(1, teamBonuses.clickMultiplier)));
         for (let i = 0; i < fishPerClick; i++) {
           catchCurrentFish("manual");
         }

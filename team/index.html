@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Team - Clicker</title>
+  <style>
+    :root {
+      --sidebar-width: 420px;
+    }
+
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #111;
+      color: white;
+      margin: 0;
+      padding: 24px calc(var(--sidebar-width) + 20px) 36px 16px;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #0c1217;
+      border-bottom: 1px solid #22313b;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+      margin: -24px calc(-1 * (var(--sidebar-width) + 20px)) 18px -24px;
+      padding: 10px 0;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0 0 0 16px;
+    }
+
+    .nav-button {
+      display: inline-block;
+      text-decoration: none;
+      background: #555;
+      color: white;
+      border: 1px solid #aaa;
+      padding: 15px;
+      margin: 0;
+      margin-right: 8px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .nav-button:hover {
+      background: #777;
+    }
+
+    .shell {
+      max-width: 1080px;
+      margin: 0 auto;
+      height: calc(100vh - 72px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      font-size: 36px;
+      margin: 20px 0 30px;
+      text-align: left;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+      max-width: 1080px;
+      margin: 18px auto 0;
+      flex-shrink: 0;
+    }
+
+    .reserve-section {
+      margin-top: 40px;
+      padding: 20px;
+      background: #0f1519;
+      border: 1px solid #2f4d5c;
+      border-radius: 16px;
+      max-width: 1080px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .reserve-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #8dc4e0;
+      margin-bottom: 16px;
+    }
+
+    .reserve-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex: 1;
+      padding-right: 8px;
+      scrollbar-gutter: stable;
+    }
+
+    .reserve-empty {
+      color: #6b8796;
+      font-style: italic;
+      font-size: 16px;
+      text-align: center;
+      margin: auto;
+    }
+
+    .reserve-character-card {
+      background: linear-gradient(180deg, #18222a 0%, #12191f 100%);
+      border: 1px solid #2f4d5c;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      cursor: move;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      user-select: none;
+      flex-shrink: 0;
+      width: 200px;
+      height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .reserve-character-card.stars-2 {
+      background: linear-gradient(180deg, rgba(0, 212, 170, 0.2) 0%, rgba(0, 180, 140, 0.1) 100%);
+      border-color: #00d4aa;
+    }
+
+    .reserve-character-card.stars-3 {
+      background: linear-gradient(180deg, rgba(74, 158, 255, 0.2) 0%, rgba(50, 130, 220, 0.1) 100%);
+      border-color: #4a9eff;
+    }
+
+    .reserve-character-card.stars-4 {
+      background: linear-gradient(180deg, rgba(179, 102, 255, 0.2) 0%, rgba(150, 80, 220, 0.1) 100%);
+      border-color: #b366ff;
+    }
+
+    .reserve-character-card.stars-5 {
+      background: linear-gradient(180deg, rgba(255, 215, 0, 0.25) 0%, rgba(255, 180, 0, 0.15) 100%);
+      border-color: #ffd700;
+    }
+
+    .reserve-character-card:hover {
+      border-color: #8dc4e0;
+      box-shadow: 0 0 12px rgba(141, 196, 224, 0.2);
+    }
+
+    .reserve-character-card.dragging {
+      opacity: 0.5;
+      border-color: #8dc4e0;
+    }
+
+    .reserve-character-card.drag-over {
+      border-color: #8dc4e0;
+      box-shadow: 0 0 12px rgba(141, 196, 224, 0.4);
+    }
+
+    .characters-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .character-card {
+      background: linear-gradient(180deg, #18222a 0%, #12191f 100%);
+      border: 2px solid #2f4d5c;
+      border-radius: 16px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      user-select: none;
+      width: 200px;
+      height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+    }
+
+    .character-card.stars-2 {
+      background: linear-gradient(180deg, rgba(0, 212, 170, 0.2) 0%, rgba(0, 180, 140, 0.1) 100%);
+      border-color: #00d4aa;
+    }
+
+    .character-card.stars-3 {
+      background: linear-gradient(180deg, rgba(74, 158, 255, 0.2) 0%, rgba(50, 130, 220, 0.1) 100%);
+      border-color: #4a9eff;
+    }
+
+    .character-card.stars-4 {
+      background: linear-gradient(180deg, rgba(179, 102, 255, 0.2) 0%, rgba(150, 80, 220, 0.1) 100%);
+      border-color: #b366ff;
+    }
+
+    .character-card.stars-5 {
+      background: linear-gradient(180deg, rgba(255, 215, 0, 0.25) 0%, rgba(255, 180, 0, 0.15) 100%);
+      border-color: #ffd700;
+    }
+
+    .character-card.slot-empty {
+      border: 2px dashed #4a6978;
+      background: rgba(15, 21, 25, 0.5);
+      cursor: default;
+    }
+
+    .character-card.slot-empty:hover {
+      border-color: #4a6978;
+    }
+
+    .slot-empty-text {
+      color: #6b8796;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .character-card.dragging {
+      opacity: 0.5;
+      border-color: #8dc4e0;
+    }
+
+    .character-card.drag-over {
+      border-color: #8dc4e0;
+      box-shadow: 0 0 12px rgba(141, 196, 224, 0.4);
+    }
+
+    .character-card:hover {
+      border-color: #8dc4e0;
+      box-shadow: 0 0 12px rgba(141, 196, 224, 0.2);
+    }
+
+    .character-header {
+      margin-bottom: 16px;
+    }
+
+    .character-name {
+      font-size: 24px;
+      font-weight: bold;
+      color: #8dc4e0;
+      margin-bottom: 8px;
+    }
+
+    .reserve-character-card .character-name {
+      font-size: 20px;
+      font-weight: bold;
+      color: #8dc4e0;
+      margin-bottom: 6px;
+    }
+
+    .character-stars {
+      font-size: 18px;
+      color: #ffa657;
+      margin-bottom: 8px;
+      letter-spacing: 4px;
+    }
+
+    .reserve-character-card .character-stars {
+      font-size: 16px;
+      color: #ffa657;
+      margin-bottom: 6px;
+      letter-spacing: 3px;
+    }
+
+    .character-level {
+      font-size: 14px;
+      color: #a9c2d3;
+    }
+
+    .reserve-character-card .character-level {
+      font-size: 13px;
+      color: #a9c2d3;
+    }
+
+    .character-stats {
+      display: grid;
+      gap: 10px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      background: #0f1519;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .stat-label {
+      color: #a6c3d5;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 12px;
+    }
+
+    .stat-value {
+      color: #f7f0c4;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .bonus-stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #2f4d5c;
+    }
+
+    .bonus-stat-box {
+      background: #0f1519;
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .bonus-stat-label {
+      font-size: 11px;
+      color: #a6c3d5;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .bonus-stat-value {
+      font-size: 14px;
+      color: #7ee787;
+      font-weight: bold;
+    }
+
+    .talents-section {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #2f4d5c;
+    }
+
+    .talents-title {
+      font-size: 12px;
+      color: #a6c3d5;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .no-talents {
+      font-size: 13px;
+      color: #6b8796;
+      font-style: italic;
+    }
+
+    .stat-origin {
+      font-size: 11px;
+      color: #88a0af;
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    .team-stats-panel {
+      position: fixed;
+      top: 72px;
+      right: 0;
+      bottom: 8px;
+      width: var(--sidebar-width);
+      max-width: var(--sidebar-width);
+      background: #111;
+      border-left: 1px solid #2a3f4d;
+      box-sizing: border-box;
+      padding: 14px 10px;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .team-stat-box {
+      background: #1b1b1b;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .stat-progression {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      justify-content: center;
+    }
+
+    .stat-slot {
+      background: rgba(45, 77, 92, 0.5);
+      border: 1px solid #4a6978;
+      border-radius: 4px;
+      padding: 3px 6px;
+      text-align: center;
+      min-width: 45px;
+      font-size: 10px;
+      color: #8dc4e0;
+    }
+
+    .stat-slot.active {
+      background: rgba(141, 196, 224, 0.3);
+      border-color: #8dc4e0;
+      font-weight: bold;
+    }
+
+    .team-stat-label {
+      color: #a6c3d5;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .team-stat-value {
+      font-size: 16px;
+      font-weight: bold;
+      color: #d9ecf8;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 50;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: linear-gradient(180deg, #18222a 0%, #12191f 100%);
+      margin: 10% auto;
+      padding: 24px;
+      border: 1px solid #2f4d5c;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #2f4d5c;
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #8dc4e0;
+    }
+
+    .modal-stars {
+      font-size: 20px;
+      color: #ffa657;
+      letter-spacing: 3px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #8dc4e0;
+      font-size: 28px;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+    }
+
+    .close-btn:hover {
+      color: #d9ecf8;
+    }
+
+    .modal-stats {
+      display: grid;
+      gap: 12px;
+    }
+
+    .modal-stat-item {
+      background: #0f1519;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-stat-label {
+      color: #a6c3d5;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .modal-stat-value {
+      color: #f7f0c4;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .stat-origin {
+      font-size: 11px;
+      color: #88a0af;
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    @media (max-width: 980px) {
+      body {
+        overflow: hidden;
+        padding: 24px 16px 36px;
+      }
+
+      .shell {
+        min-height: auto;
+      }
+
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .team-stats-panel {
+        width: 100%;
+        max-width: 720px;
+        margin: 0 auto;
+        position: static;
+        height: auto;
+        max-height: none;
+        overflow-y: auto;
+        padding: 0;
+        background: transparent;
+        border-left: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="top-bar">
+    <div class="top-nav">
+      <button class="nav-button" onclick="window.location.href='../'">Game</button>
+      <button class="nav-button" onclick="window.location.href='../inventaire/'">Inventory</button>
+      <button class="nav-button" onclick="window.location.href='./'">Team</button>
+      <button class="nav-button" onclick="window.location.href='../shop/'">Shop</button>
+      <button class="nav-button" onclick="window.location.href='../settings/'">Settings</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <h1>My Team</h1>
+    
+    <div class="content-grid">
+      <div class="characters-grid" id="charactersContainer">
+        <!-- Characters will be generated here -->
+      </div>
+    </div>
+
+    <div class="reserve-section">
+      <div class="reserve-title">Réserve de personnages</div>
+      <div class="reserve-grid" id="reserveContainer">
+        <!-- Reserve characters will be generated here -->
+      </div>
+    </div>
+
+    <div class="team-stats-panel">
+      <div class="team-stat-box">
+        <div class="team-stat-label">Income Multiplier</div>
+        <div class="team-stat-value" id="totalIncomeBonus">3x</div>
+        <div id="incomeProgression" class="stat-progression"></div>
+        <div id="incomeOrigins" class="stat-origin"></div>
+      </div>
+      <div class="team-stat-box">
+        <div class="team-stat-label">Click Multiplier</div>
+        <div class="team-stat-value" id="totalClickBonus">3x</div>
+        <div id="clickProgression" class="stat-progression"></div>
+        <div id="clickOrigins" class="stat-origin"></div>
+      </div>
+      <div class="team-stat-box">
+        <div class="team-stat-label">Size Bonus</div>
+        <div class="team-stat-value" id="totalSizeBonus">0%</div>
+        <div id="sizeProgression" class="stat-progression"></div>
+        <div id="sizeOrigins" class="stat-origin"></div>
+      </div>
+      <div class="team-stat-box">
+        <div class="team-stat-label">Weight Bonus</div>
+        <div class="team-stat-value" id="totalWeightBonus">0%</div>
+        <div id="weightProgression" class="stat-progression"></div>
+        <div id="weightOrigins" class="stat-origin"></div>
+      </div>
+      <div class="team-stat-box">
+        <div class="team-stat-label">Chance Bonus</div>
+        <div class="team-stat-value" id="totalChanceBonus">0%</div>
+        <div id="chanceProgression" class="stat-progression"></div>
+        <div id="chanceOrigins" class="stat-origin"></div>
+      </div>
+      <div class="team-stat-box">
+        <div class="team-stat-label">Resale Bonus</div>
+        <div class="team-stat-value" id="totalResaleBonus">0%</div>
+        <div id="resaleProgression" class="stat-progression"></div>
+        <div id="resaleOrigins" class="stat-origin"></div>
+      </div>
+      <div class="team-stat-box">
+        <div class="team-stat-label">Fishing Speed</div>
+        <div class="team-stat-value" id="totalFishingSpeed">3x</div>
+        <div id="fishingProgression" class="stat-progression"></div>
+        <div id="fishingOrigins" class="stat-origin"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="statsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="modalCharName">Character</div>
+          <div class="modal-stars" id="modalCharStars">★</div>
+        </div>
+        <button class="close-btn" onclick="closeStatsModal()">&times;</button>
+      </div>
+      <div class="modal-stats" id="modalStatsList">
+        <!-- Stats will be generated here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const allCharacters = [
+      // ===== 1 STAR (15 characters) - Mostly additive bonuses =====
+      {id: 1, name: "Bob", stars: 1, level: 1, incomeMultiplier: 1.1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: true, cost: 0, talents: [], teamSlot: 0},
+      {id: 2, name: "Ben", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1.1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 0, talents: [], teamSlot: null},
+      {id: 3, name: "Liam", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.1, unlocked: false, cost: 0, talents: [], teamSlot: null},
+      {id: 4, name: "Noah", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 5, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 0, talents: [], teamSlot: null},
+      {id: 5, name: "Owen", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 5, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 0, talents: [], teamSlot: null},
+      {id: 6, name: "Ryan", stars: 1, level: 1, incomeMultiplier: 1.08, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 7, name: "Leo", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1.08, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 8, name: "Evan", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 3, sizeMult: 1, weightAdd: 3, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 9, name: "Cole", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 5, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 10, name: "Mason", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 5, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 11, name: "Logan", stars: 1, level: 1, incomeMultiplier: 1.05, clickMultiplier: 1.05, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 12, name: "Carter", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 2, sizeMult: 1, weightAdd: 2, weightMult: 1, chanceAdd: 2, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 13, name: "Hunter", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.15, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 14, name: "Jace", stars: 1, level: 1, incomeMultiplier: 1.12, clickMultiplier: 1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+      {id: 15, name: "Xander", stars: 1, level: 1, incomeMultiplier: 1, clickMultiplier: 1.12, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 100, talents: [], teamSlot: null},
+
+      // ===== 2 STARS (10 characters) - Some balanced, some specialized, no mixed add/mult on one stat =====
+      {id: 16, name: "Ryder", stars: 2, level: 1, incomeMultiplier: 1.2, clickMultiplier: 1.2, sizeAdd: 6, sizeMult: 1, weightAdd: 6, weightMult: 1, chanceAdd: 6, chanceMult: 1, resaleAdd: 4, resaleMult: 1, fishingSpeed: 1.05, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 17, name: "Knox", stars: 2, level: 1, incomeMultiplier: 1.15, clickMultiplier: 1.3, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 6, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 18, name: "Dante", stars: 2, level: 1, incomeMultiplier: 1.1, clickMultiplier: 1.15, sizeAdd: 0, sizeMult: 1, weightAdd: 12, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.08, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 19, name: "Victor", stars: 2, level: 1, incomeMultiplier: 1.1, clickMultiplier: 1.1, sizeAdd: 12, sizeMult: 1, weightAdd: 12, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 6, resaleMult: 1, fishingSpeed: 1, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 20, name: "Adrian", stars: 2, level: 1, incomeMultiplier: 1.25, clickMultiplier: 1.1, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 0, resaleMult: 1.1, fishingSpeed: 1.1, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 21, name: "Orion", stars: 2, level: 1, incomeMultiplier: 1.12, clickMultiplier: 1.12, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1, chanceAdd: 16, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.05, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 22, name: "Phoenix", stars: 2, level: 1, incomeMultiplier: 1.2, clickMultiplier: 1.18, sizeAdd: 0, sizeMult: 1.06, weightAdd: 10, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 4, resaleMult: 1, fishingSpeed: 1.15, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 23, name: "Sterling", stars: 2, level: 1, incomeMultiplier: 1.18, clickMultiplier: 1.2, sizeAdd: 10, sizeMult: 1, weightAdd: 0, weightMult: 1.06, chanceAdd: 4, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.1, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 24, name: "Maverick", stars: 2, level: 1, incomeMultiplier: 1.18, clickMultiplier: 1.18, sizeAdd: 0, sizeMult: 1.08, weightAdd: 0, weightMult: 1, chanceAdd: 0, chanceMult: 1, resaleAdd: 10, resaleMult: 1, fishingSpeed: 1.08, unlocked: false, cost: 500, talents: [], teamSlot: null},
+      {id: 25, name: "Tristan", stars: 2, level: 1, incomeMultiplier: 1.22, clickMultiplier: 1.22, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1.06, chanceAdd: 8, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.12, unlocked: false, cost: 500, talents: [], teamSlot: null},
+
+      // ===== 3 STARS (6 characters) - More specialized profiles, no mixed add/mult on one stat =====
+      {id: 26, name: "Roman", stars: 3, level: 1, incomeMultiplier: 1.35, clickMultiplier: 1.3, sizeAdd: 0, sizeMult: 1.12, weightAdd: 0, weightMult: 1.1, chanceAdd: 12, chanceMult: 1, resaleAdd: 0, resaleMult: 1.05, fishingSpeed: 1.2, unlocked: false, cost: 2000, talents: [], teamSlot: null},
+      {id: 27, name: "Apollo", stars: 3, level: 1, incomeMultiplier: 1.3, clickMultiplier: 1.45, sizeAdd: 0, sizeMult: 1.14, weightAdd: 0, weightMult: 1, chanceAdd: 18, chanceMult: 1, resaleAdd: 0, resaleMult: 1, fishingSpeed: 1.18, unlocked: false, cost: 2000, talents: [], teamSlot: null},
+      {id: 28, name: "Atlas", stars: 3, level: 1, incomeMultiplier: 1.35, clickMultiplier: 1.35, sizeAdd: 0, sizeMult: 1, weightAdd: 0, weightMult: 1.14, chanceAdd: 0, chanceMult: 1, resaleAdd: 10, resaleMult: 1, fishingSpeed: 1.2, unlocked: false, cost: 2000, talents: [], teamSlot: null},
+      {id: 29, name: "Soren", stars: 3, level: 1, incomeMultiplier: 1.42, clickMultiplier: 1.38, sizeAdd: 0, sizeMult: 1.16, weightAdd: 0, weightMult: 1.08, chanceAdd: 0, chanceMult: 1, resaleAdd: 16, resaleMult: 1, fishingSpeed: 1.28, unlocked: false, cost: 2000, talents: [], teamSlot: null},
+      {id: 30, name: "Cyrus", stars: 3, level: 1, incomeMultiplier: 1.45, clickMultiplier: 1.45, sizeAdd: 0, sizeMult: 1.1, weightAdd: 10, weightMult: 1, chanceAdd: 20, chanceMult: 1, resaleAdd: 0, resaleMult: 1.05, fishingSpeed: 1.25, unlocked: false, cost: 2000, talents: [], teamSlot: null},
+      {id: 31, name: "Lucian", stars: 3, level: 1, incomeMultiplier: 1.38, clickMultiplier: 1.38, sizeAdd: 25, sizeMult: 1, weightAdd: 0, weightMult: 1.12, chanceAdd: 0, chanceMult: 1.05, resaleAdd: 0, resaleMult: 1.15, fishingSpeed: 1.3, unlocked: false, cost: 2000, talents: [], teamSlot: null},
+
+      // ===== 4 STARS (3 characters) - Strong specialized bonuses, no mixed add/mult on one stat =====
+      {id: 32, name: "Damon", stars: 4, level: 1, incomeMultiplier: 1.55, clickMultiplier: 1.5, sizeAdd: 0, sizeMult: 1.2, weightAdd: 25, weightMult: 1, chanceAdd: 0, chanceMult: 1.12, resaleAdd: 20, resaleMult: 1, fishingSpeed: 1.42, unlocked: false, cost: 8000, talents: [], teamSlot: null},
+      {id: 33, name: "Magnus", stars: 4, level: 1, incomeMultiplier: 1.65, clickMultiplier: 1.6, sizeAdd: 0, sizeMult: 1.25, weightAdd: 0, weightMult: 1.2, chanceAdd: 0, chanceMult: 1.15, resaleAdd: 0, resaleMult: 1.18, fishingSpeed: 1.5, unlocked: false, cost: 8000, talents: [], teamSlot: null},
+      {id: 34, name: "Zayne", stars: 4, level: 1, incomeMultiplier: 1.5, clickMultiplier: 1.55, sizeAdd: 30, sizeMult: 1, weightAdd: 0, weightMult: 1.25, chanceAdd: 18, chanceMult: 1, resaleAdd: 0, resaleMult: 1.16, fishingSpeed: 1.45, unlocked: false, cost: 8000, talents: [], teamSlot: null},
+
+      // ===== 5 STARS (2 characters) - Legendary multiplicatives =====
+      {id: 35, name: "Ares", stars: 5, level: 1, incomeMultiplier: 1.8, clickMultiplier: 1.75, sizeAdd: 35, sizeMult: 1.3, weightAdd: 35, weightMult: 1.28, chanceAdd: 35, chanceMult: 1.2, resaleAdd: 50, resaleMult: 1.25, fishingSpeed: 1.7, unlocked: false, cost: 30000, talents: [], teamSlot: null},
+      {id: 36, name: "Draco", stars: 5, level: 1, incomeMultiplier: 1.9, clickMultiplier: 1.85, sizeAdd: 40, sizeMult: 1.35, weightAdd: 38, weightMult: 1.3, chanceAdd: 40, chanceMult: 1.25, resaleAdd: 55, resaleMult: 1.3, fishingSpeed: 1.75, unlocked: false, cost: 30000, talents: [], teamSlot: null}
+    ];
+
+    let draggedChar = null;
+    let dragSource = null;
+
+    function getStarString(stars) {
+      const starSymbols = '★'.repeat(stars);
+      let color = '#a9c2d3'; // 1 star - default gray
+      if (stars === 2) color = '#00d4aa'; // green
+      if (stars === 3) color = '#4a9eff'; // blue
+      if (stars === 4) color = '#b366ff'; // purple
+      if (stars === 5) color = '#ffd700'; // yellow/gold
+      return `<span style="color: ${color}; font-weight: bold;">${starSymbols}</span>`;
+    }
+
+    function openStatsModal(charId) {
+      const char = allCharacters.find(c => c.id === charId);
+      if (!char) {
+        return;
+      }
+      document.getElementById('modalCharName').textContent = char.name;
+      document.getElementById('modalCharStars').innerHTML = getStarString(char.stars);
+
+      const statsList = document.getElementById('modalStatsList');
+      statsList.innerHTML = `
+        <div class="modal-stat-item">
+          <span class="modal-stat-label">Level</span>
+          <span class="modal-stat-value">${char.level}</span>
+        </div>
+        <div class="modal-stat-item">
+          <span class="modal-stat-label">Income Multiplier</span>
+          <span class="modal-stat-value">${char.incomeMultiplier.toFixed(1)}x</span>
+        </div>
+        <div class="modal-stat-item">
+          <span class="modal-stat-label">Click Multiplier</span>
+          <span class="modal-stat-value">${char.clickMultiplier.toFixed(1)}x</span>
+        </div>
+        <div class="modal-stat-item">
+          <span class="modal-stat-label">Size Bonus</span>
+           <span class="modal-stat-value">${formatBonusValue(char.sizeAdd, char.sizeMult)}</span>
+        </div>
+        <div class="modal-stat-item">
+          <span class="modal-stat-label">Weight Bonus</span>
+           <span class="modal-stat-value">${formatBonusValue(char.weightAdd, char.weightMult)}</span>
+        </div>
+        <div class="modal-stat-item">
+          <span class="modal-stat-label">Chance Bonus</span>
+           <span class="modal-stat-value">${formatBonusValue(char.chanceAdd, char.chanceMult)}</span>
+        </div>
+        <div class="modal-stat-item">
+          <span class="modal-stat-label">Resale Bonus</span>
+           <span class="modal-stat-value">${formatBonusValue(char.resaleAdd, char.resaleMult)}</span>
+        </div>
+        <div class="modal-stat-item">
+          <span class="modal-stat-label">Fishing Speed</span>
+          <span class="modal-stat-value">${char.fishingSpeed.toFixed(1)}x</span>
+        </div>
+      `;
+
+      document.getElementById('statsModal').style.display = 'block';
+    }
+
+    function closeStatsModal() {
+      document.getElementById('statsModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('statsModal');
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    function createCharacterCard(char, isReserve = false) {
+      const card = document.createElement('div');
+      card.className = isReserve ? 'reserve-character-card' : 'character-card';
+      card.classList.add(`stars-${char.stars}`);
+      card.draggable = true;
+      card.dataset.charId = char.id;
+      let pointerDown = false;
+      let pointerMoved = false;
+      let startX = 0;
+      let startY = 0;
+      
+      card.innerHTML = `
+        <div class="character-header">
+          <div class="character-name">${char.name}</div>
+          <div class="character-stars">${getStarString(char.stars)}</div>
+          <div class="character-level">Level ${char.level}</div>
+        </div>
+      `;
+
+      // Drag events
+      card.addEventListener('dragstart', (e) => {
+        draggedChar = char;
+        dragSource = isReserve ? 'reserve' : 'team';
+        card.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+
+      card.addEventListener('dragend', (e) => {
+        card.classList.remove('dragging');
+        draggedChar = null;
+        dragSource = null;
+      });
+
+      card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        card.classList.add('drag-over');
+      });
+
+      card.addEventListener('dragleave', (e) => {
+        card.classList.remove('drag-over');
+      });
+
+      // Reliable tap/click detection on draggable cards
+      card.addEventListener('pointerdown', (e) => {
+        pointerDown = true;
+        pointerMoved = false;
+        startX = e.clientX;
+        startY = e.clientY;
+      });
+
+      card.addEventListener('pointermove', (e) => {
+        if (!pointerDown) {
+          return;
+        }
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if ((dx * dx + dy * dy) > 36) {
+          pointerMoved = true;
+        }
+      });
+
+      card.addEventListener('pointerup', (e) => {
+        if (!pointerDown) {
+          return;
+        }
+        pointerDown = false;
+        if (!pointerMoved && !card.classList.contains('dragging')) {
+          e.preventDefault();
+          e.stopPropagation();
+          openStatsModal(char.id);
+        }
+      });
+
+      card.addEventListener('pointercancel', () => {
+        pointerDown = false;
+      });
+
+      return card;
+    }
+
+    function renderCharacters() {
+      const teamContainer = document.getElementById('charactersContainer');
+      const reserveContainer = document.getElementById('reserveContainer');
+      
+      teamContainer.innerHTML = '';
+      reserveContainer.innerHTML = '';
+
+      let totalPower = 0;
+      let totalIncomeBonus = 1;
+      let totalClickBonus = 1;
+      let totalSizeBonus = 0;
+      let totalWeightBonus = 0;
+      let totalChanceBonus = 0;
+      let totalResaleBonus = 0;
+      let totalFishingSpeed = 1;
+
+      const teamCharacters = allCharacters.filter(c => c.teamSlot !== null);
+      const reserveCharacters = allCharacters.filter(c => c.unlocked && c.teamSlot === null);
+
+      // Render team with fixed 3 slots
+      for (let i = 0; i < 3; i++) {
+        const char = allCharacters.find(c => c.teamSlot === i);
+        
+        if (char) {
+          totalPower += 1;
+          const card = createCharacterCard(char, false);
+          card.dataset.slotIndex = i;
+          teamContainer.appendChild(card);
+        } else {
+          // Create empty slot
+          const emptySlot = document.createElement('div');
+          emptySlot.className = 'character-card slot-empty';
+          emptySlot.dataset.slotIndex = i;
+          emptySlot.innerHTML = '<div class="slot-empty-text">Emplacement vide</div>';
+          
+          // Drag over effects for empty slot
+          emptySlot.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            emptySlot.classList.add('drag-over');
+          });
+
+          emptySlot.addEventListener('dragleave', (e) => {
+            emptySlot.classList.remove('drag-over');
+          });
+
+          emptySlot.addEventListener('drop', (e) => {
+            e.preventDefault();
+            emptySlot.classList.remove('drag-over');
+            if (draggedChar) {
+              if (dragSource === 'reserve') {
+                // From reserve to empty team slot
+                draggedChar.teamSlot = i;
+                renderCharacters();
+              } else if (dragSource === 'team') {
+                // Move team member to empty slot (swap)
+                draggedChar.teamSlot = i;
+                renderCharacters();
+              }
+            }
+          });
+
+          teamContainer.appendChild(emptySlot);
+        }
+      }
+
+      // Setup drop zone for team cards (to remove from team or swap)
+      const teamCards = teamContainer.querySelectorAll('.character-card:not(.slot-empty)');
+      teamCards.forEach(card => {
+        const slotIndex = parseInt(card.dataset.slotIndex);
+        
+        card.addEventListener('dragstart', (e) => {
+          draggedChar = allCharacters.find(c => c.id == card.dataset.charId);
+          dragSource = 'team';
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+
+        card.addEventListener('dragend', (e) => {
+          card.classList.remove('dragging');
+        });
+
+        card.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          card.classList.add('drag-over');
+        });
+
+        card.addEventListener('dragleave', (e) => {
+          card.classList.remove('drag-over');
+        });
+
+        card.addEventListener('drop', (e) => {
+          e.preventDefault();
+          card.classList.remove('drag-over');
+          if (draggedChar) {
+            if (dragSource === 'reserve') {
+              // From reserve to team slot - swap with occupant
+              const targetChar = allCharacters.find(c => c.teamSlot === slotIndex);
+              if (targetChar) {
+                // Swap: reserve char goes to slot, team char goes to reserve
+                draggedChar.teamSlot = slotIndex;
+                targetChar.teamSlot = null;
+              } else {
+                // Slot is empty, just put the reserve char there
+                draggedChar.teamSlot = slotIndex;
+              }
+              renderCharacters();
+            } else if (dragSource === 'team') {
+              // Swap between team slots
+              const targetChar = allCharacters.find(c => c.teamSlot === slotIndex);
+              if (targetChar) {
+                // Swap their team slots
+                const tempSlot = draggedChar.teamSlot;
+                draggedChar.teamSlot = targetChar.teamSlot;
+                targetChar.teamSlot = tempSlot;
+                renderCharacters();
+              }
+            }
+          }
+        });
+      });
+
+      // Render reserve
+      if (reserveCharacters.length === 0) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.className = 'reserve-empty';
+        emptyMsg.textContent = 'Aucun personnage en réserve';
+        reserveContainer.appendChild(emptyMsg);
+      } else {
+        reserveCharacters.forEach((char) => {
+          const card = createCharacterCard(char, true);
+          reserveContainer.appendChild(card);
+        });
+      }
+
+      // Setup drop zone for reserve
+      reserveContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      });
+
+      reserveContainer.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (draggedChar && dragSource === 'team') {
+          draggedChar.teamSlot = null;
+          renderCharacters();
+        }
+      });
+
+      const orderedTeam = [0, 1, 2]
+        .map(slot => allCharacters.find(c => c.teamSlot === slot))
+        .filter(Boolean);
+
+      orderedTeam.forEach(char => {
+        totalIncomeBonus *= char.incomeMultiplier;
+        totalClickBonus *= char.clickMultiplier;
+        totalSizeBonus = applyOrderedBonus(totalSizeBonus, char.sizeAdd, char.sizeMult);
+        totalWeightBonus = applyOrderedBonus(totalWeightBonus, char.weightAdd, char.weightMult);
+        totalChanceBonus = applyOrderedBonus(totalChanceBonus, char.chanceAdd, char.chanceMult);
+        totalResaleBonus = applyOrderedBonus(totalResaleBonus, char.resaleAdd, char.resaleMult);
+        totalFishingSpeed *= char.fishingSpeed;
+      });
+
+      // Update stats
+      document.getElementById('totalIncomeBonus').textContent = totalIncomeBonus.toFixed(1) + 'x';
+      document.getElementById('totalClickBonus').textContent = totalClickBonus.toFixed(1) + 'x';
+      document.getElementById('totalSizeBonus').textContent = totalSizeBonus.toFixed(1) + '%';
+      document.getElementById('totalWeightBonus').textContent = totalWeightBonus.toFixed(1) + '%';
+      document.getElementById('totalChanceBonus').textContent = totalChanceBonus.toFixed(1) + '%';
+      document.getElementById('totalResaleBonus').textContent = totalResaleBonus.toFixed(1) + '%';
+      document.getElementById('totalFishingSpeed').textContent = totalFishingSpeed.toFixed(1) + 'x';
+
+      updateContributionDetails(orderedTeam);
+      saveTeamState(orderedTeam, {
+        incomeMultiplier: totalIncomeBonus,
+        clickMultiplier: totalClickBonus,
+        sizeBonus: totalSizeBonus,
+        weightBonus: totalWeightBonus,
+        chanceBonus: totalChanceBonus,
+        resaleBonus: totalResaleBonus,
+        fishingSpeed: totalFishingSpeed
+      });
+
+      // Update stat progressions (left to right accumulation)
+      updateStatProgression();
+    }
+
+    function updateStatProgression() {
+      // Calculate cumulative stats from left to right (slot 0, 0+1, 0+1+2)
+      const progressions = {
+        income: [],
+        click: [],
+        size: [],
+        weight: [],
+        chance: [],
+        resale: [],
+        fishing: []
+      };
+
+      // Accumulate from left to right
+      let cumIncome = 1;
+      let cumClick = 1;
+      let cumSize = 0;
+      let cumWeight = 0;
+      let cumChance = 0;
+      let cumResale = 0;
+      let cumFishing = 1;
+
+      for (let i = 0; i < 3; i++) {
+        const char = allCharacters.find(c => c.teamSlot === i);
+        if (char) {
+          cumIncome *= char.incomeMultiplier;
+          cumClick *= char.clickMultiplier;
+          cumSize = applyOrderedBonus(cumSize, char.sizeAdd, char.sizeMult);
+          cumWeight = applyOrderedBonus(cumWeight, char.weightAdd, char.weightMult);
+          cumChance = applyOrderedBonus(cumChance, char.chanceAdd, char.chanceMult);
+          cumResale = applyOrderedBonus(cumResale, char.resaleAdd, char.resaleMult);
+          cumFishing *= char.fishingSpeed;
+        }
+        
+        progressions.income.push(cumIncome.toFixed(1) + 'x');
+        progressions.click.push(cumClick.toFixed(1) + 'x');
+        progressions.size.push(cumSize.toFixed(1) + '%');
+        progressions.weight.push(cumWeight.toFixed(1) + '%');
+        progressions.chance.push(cumChance.toFixed(1) + '%');
+        progressions.resale.push(cumResale.toFixed(1) + '%');
+        progressions.fishing.push(cumFishing.toFixed(1) + 'x');
+      }
+
+      // Display progressions
+      displayProgression('incomeProgression', progressions.income);
+      displayProgression('clickProgression', progressions.click);
+      displayProgression('sizeProgression', progressions.size);
+      displayProgression('weightProgression', progressions.weight);
+      displayProgression('chanceProgression', progressions.chance);
+      displayProgression('resaleProgression', progressions.resale);
+      displayProgression('fishingProgression', progressions.fishing);
+    }
+
+    function formatBonusValue(add, mult) {
+      // Format bonus as "+X%" if only additive, "×X" if only multiplicative, or both
+      let result = '';
+      if (add > 0) result += '+' + add.toFixed(1) + '%';
+      if (mult > 1) {
+        if (result) result += ' ';
+        result += '×' + mult.toFixed(2);
+      }
+      return result || '0%';
+    }
+
+    function applyOrderedBonus(currentValue, addValue, multValue) {
+      return (currentValue + addValue) * multValue;
+    }
+
+    function updateContributionDetails(teamChars) {
+      const noMembers = teamChars.length === 0;
+      const setDetail = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      };
+
+      if (noMembers) {
+        setDetail('incomeOrigins', 'Aucun bonus actif');
+        setDetail('clickOrigins', 'Aucun bonus actif');
+        setDetail('sizeOrigins', 'Aucun bonus actif');
+        setDetail('weightOrigins', 'Aucun bonus actif');
+        setDetail('chanceOrigins', 'Aucun bonus actif');
+        setDetail('resaleOrigins', 'Aucun bonus actif');
+        setDetail('fishingOrigins', 'Aucun bonus actif');
+        return;
+      }
+
+      setDetail('incomeOrigins', teamChars.map(c => `${c.name}: ${c.incomeMultiplier.toFixed(1)}x`).join(' | '));
+      setDetail('clickOrigins', teamChars.map(c => `${c.name}: ${c.clickMultiplier.toFixed(1)}x`).join(' | '));
+      setDetail('sizeOrigins', teamChars.map(c => `${c.name}: ${formatBonusValue(c.sizeAdd, c.sizeMult)}`).join(' | '));
+      setDetail('weightOrigins', teamChars.map(c => `${c.name}: ${formatBonusValue(c.weightAdd, c.weightMult)}`).join(' | '));
+      setDetail('chanceOrigins', teamChars.map(c => `${c.name}: ${formatBonusValue(c.chanceAdd, c.chanceMult)}`).join(' | '));
+      setDetail('resaleOrigins', teamChars.map(c => `${c.name}: ${formatBonusValue(c.resaleAdd, c.resaleMult)}`).join(' | '));
+      setDetail('fishingOrigins', teamChars.map(c => `${c.name}: ${c.fishingSpeed.toFixed(1)}x`).join(' | '));
+    }
+
+    function saveTeamState(teamChars, totals) {
+      const persistedChars = teamChars.map((char) => ({
+        id: char.id,
+        name: char.name,
+        stars: char.stars,
+        level: char.level,
+        incomeMultiplier: char.incomeMultiplier,
+        clickMultiplier: char.clickMultiplier,
+        sizeAdd: char.sizeAdd,
+        sizeMult: char.sizeMult,
+        weightAdd: char.weightAdd,
+        weightMult: char.weightMult,
+        chanceAdd: char.chanceAdd,
+        chanceMult: char.chanceMult,
+        resaleAdd: char.resaleAdd,
+        resaleMult: char.resaleMult,
+        fishingSpeed: char.fishingSpeed,
+        teamSlot: char.teamSlot
+      }));
+
+      localStorage.setItem('clicker_teamState', JSON.stringify({
+        updatedAt: Date.now(),
+        teamChars: persistedChars,
+        totals
+      }));
+
+      localStorage.setItem('clicker_teamRoster', JSON.stringify({
+        updatedAt: Date.now(),
+        slots: teamChars.map((char) => ({
+          slot: char.teamSlot,
+          id: char.id,
+          name: char.name,
+          stars: char.stars
+        })),
+        totals
+      }));
+    }
+
+    function displayProgression(elementId, values) {
+      const container = document.getElementById(elementId);
+      container.innerHTML = '';
+      values.forEach((value, index) => {
+        const slot = document.createElement('div');
+        slot.className = 'stat-slot';
+        slot.textContent = `Slot ${index + 1}: ${value}`;
+        
+        // Check if slot has a character
+        const hasChar = allCharacters.find(c => c.teamSlot === index) !== undefined;
+        if (hasChar) {
+          slot.classList.add('active');
+        }
+        
+        container.appendChild(slot);
+      });
+    }
+
+    // Initial render
+    renderCharacters();
+  </script>
+
+</body>
+</html>

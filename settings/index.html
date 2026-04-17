@@ -153,6 +153,34 @@
       min-height: 20px;
     }
 
+    .danger-zone {
+      text-align: left;
+      margin-top: 22px;
+      padding: 14px;
+      border: 1px solid #7a3131;
+      border-radius: 12px;
+      background: #2a1616;
+    }
+
+    .danger-zone h2 {
+      margin-bottom: 8px;
+      color: #ffb3b3;
+    }
+
+    .danger-zone .small {
+      color: #f0c2c2;
+      margin-bottom: 10px;
+    }
+
+    .danger-button {
+      background: #a22a2a;
+      border-color: #da6a6a;
+    }
+
+    .danger-button:hover {
+      background: #bb3636;
+    }
+
     @media (max-width: 900px) {
       .params-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -170,8 +198,8 @@
   <div class="top-bar">
     <div class="top-nav">
       <button class="nav-button" onclick="window.location.href='../'">Game</button>
-      <button class="nav-button" onclick="window.location.href='../inventaire/'">Inventory</button>
-      <button class="nav-button" onclick="window.location.href='./'">Settings</button>
+      <button class="nav-button" onclick="window.location.href='../inventaire/'">Inventory</button>      <button class="nav-button" onclick="window.location.href='../team/'" >Team</button>
+      <button class="nav-button" onclick="window.location.href='../shop/'" >Shop</button>      <button class="nav-button" onclick="window.location.href='./'">Settings</button>
     </div>
   </div>
 
@@ -275,6 +303,12 @@
         <button id="loadSave">Load</button>
       </section>
     </div>
+
+    <section class="danger-zone">
+      <h2>Danger Zone</h2>
+      <div class="small">This will delete all game save data (money, inventory, upgrades, team, shop, and settings).</div>
+      <button id="resetSave" class="danger-button">Reset Save</button>
+    </section>
   </div>
 
   <script>
@@ -284,6 +318,7 @@
     const saveInput = document.getElementById("saveInput");
     const applyParams = document.getElementById("applyParams");
     const reloadParams = document.getElementById("reloadParams");
+    const resetSave = document.getElementById("resetSave");
     const paramsStatus = document.getElementById("paramsStatus");
 
     const paramMoney = document.getElementById("paramMoney");
@@ -481,6 +516,30 @@
       paramsStatus.textContent = "Parameters applied.";
     }
 
+    function resetAllGameSave() {
+      const shouldReset = confirm("Are you sure you want to reset your entire save? This cannot be undone.");
+      if (!shouldReset) {
+        return;
+      }
+
+      const keysToDelete = [];
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("clicker_")) {
+          keysToDelete.push(key);
+        }
+      }
+
+      keysToDelete.forEach((key) => localStorage.removeItem(key));
+
+      const freshState = readGameState();
+      fillParamInputs(freshState);
+      saveInput.value = "";
+      saveOutput.value = buildSaveText(freshState);
+      paramsStatus.textContent = "Save reset complete.";
+      alert("Save reset complete.");
+    }
+
     generateSave.addEventListener("click", () => {
       const saveText = buildSaveText(readGameState());
       saveOutput.value = saveText;
@@ -543,6 +602,10 @@
     reloadParams.addEventListener("click", () => {
       fillParamInputs(readGameState());
       paramsStatus.textContent = "Parameters reloaded from save.";
+    });
+
+    resetSave.addEventListener("click", () => {
+      resetAllGameSave();
     });
 
     const initialState = readGameState();
