@@ -658,16 +658,16 @@
 
   <div class="shell">
     <div class="shop-container">
-      <div class="money-top" id="moneyTop">Money: 0</div>
+      <div class="money-top" id="hooksTop">🪝 0 Hooks</div>
       <div class="actions">
         <button class="action-btn draw-main-btn" id="openGachaBtn">
           <span class="draw-btn-name">Character Draw</span>
-          <span class="draw-btn-price">Price: 100</span>
+          <span class="draw-btn-price">Price: 100 🪝 Hooks</span>
           <span class="draw-btn-effect">Effect: Random character copy added to the Team</span>
         </button>
         <button class="action-btn draw-main-btn" id="openBaitBtn">
           <span class="draw-btn-name">Bait Draw</span>
-          <span class="draw-btn-price">Price: 100</span>
+          <span class="draw-btn-price">Price: 100 🪝 Hooks</span>
           <span class="draw-btn-effect">Effect: Random bait added to your bait reserve</span>
         </button>
       </div>
@@ -889,7 +889,7 @@
 
     const openGachaBtn = document.getElementById("openGachaBtn");
     const openBaitBtn = document.getElementById("openBaitBtn");
-    const moneyTop = document.getElementById("moneyTop");
+    const hooksTop = document.getElementById("hooksTop");
     const gachaModal = document.getElementById("gachaModal");
     const closeGachaBtn = document.getElementById("closeGachaBtn");
     const startDrawBtn = document.getElementById("startDrawBtn");
@@ -913,6 +913,16 @@
 
     let spinning = false;
     let baitSpinning = false;
+
+    const HOOKS_KEY = "clicker_hooks";
+
+    function getHooks() {
+      return Math.max(0, Number(localStorage.getItem(HOOKS_KEY)) || 0);
+    }
+
+    function setHooks(value) {
+      localStorage.setItem(HOOKS_KEY, String(Math.max(0, Math.floor(value))));
+    }
 
     function getMoney() {
       return Math.max(0, Number(localStorage.getItem(MONEY_KEY)) || 0);
@@ -1126,14 +1136,14 @@
     }
 
     function refreshSummary() {
-      const money = getMoney();
+      const hooks = getHooks();
       const reserveCount = getReserveCount();
       const baitReserveCount = getBaitReserveCount();
       const hasSpace = reserveCount < RESERVE_MAX;
       const hasBaitSpace = baitReserveCount < RESERVE_MAX;
-      const canAfford = money >= DRAW_COST;
+      const canAfford = hooks >= DRAW_COST;
       const canDraw = hasSpace && canAfford;
-      moneyTop.textContent = `Money: ${money}`;
+      hooksTop.textContent = `🪝 ${hooks} Hooks`;
       openGachaBtn.disabled = !canDraw;
       startDrawBtn.disabled = !canDraw || spinning;
       openBaitBtn.disabled = !hasBaitSpace || !canAfford;
@@ -1352,8 +1362,8 @@
         return;
       }
 
-      const money = getMoney();
-      if (money < DRAW_COST) {
+      const hooks = getHooks();
+      if (hooks < DRAW_COST) {
         return;
       }
 
@@ -1369,7 +1379,7 @@
       drawRecap.classList.remove("visible");
       rollArea.classList.add("visible");
 
-      setMoney(money - DRAW_COST);
+      setHooks(hooks - DRAW_COST);
       refreshSummary();
 
       await runCaseOpeningAnimation(rewardChar);
@@ -1390,8 +1400,8 @@
         return;
       }
 
-      const money = getMoney();
-      if (money < DRAW_COST) {
+      const hooks = getHooks();
+      if (hooks < DRAW_COST) {
         return;
       }
 
@@ -1406,7 +1416,7 @@
       baitRecap.classList.remove("visible");
       baitRollArea.classList.add("visible");
 
-      setMoney(money - DRAW_COST);
+      setHooks(hooks - DRAW_COST);
       refreshSummary();
 
       await runBaitOpeningAnimation(rewardBait);

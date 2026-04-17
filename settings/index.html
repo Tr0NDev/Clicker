@@ -239,6 +239,10 @@
           <input id="paramMoney" type="number" min="0" step="1">
         </div>
         <div class="params-field">
+          <label for="paramHooks">Hooks</label>
+          <input id="paramHooks" type="number" min="0" step="1">
+        </div>
+        <div class="params-field">
           <label for="paramCaughtCount">Fish Caught</label>
           <input id="paramCaughtCount" type="number" min="0" step="1">
         </div>
@@ -329,6 +333,19 @@
     </div>
 
     <section class="danger-zone">
+      <h2>Cheat Menu - Add Missing Variables</h2>
+      <div class="small">This allows you to add or modify any localStorage variables that might be missing.</div>
+      <div class="cheat-menu">
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+          <input type="text" id="cheatVarName" placeholder="Variable name (e.g., clicker_customVar)" style="flex: 1; padding: 8px; border: 1px solid #627b8c; background: #10171d; color: #fff; border-radius: 8px;">
+          <input type="text" id="cheatVarValue" placeholder="Value" style="flex: 1; padding: 8px; border: 1px solid #627b8c; background: #10171d; color: #fff; border-radius: 8px;">
+          <button id="cheatAddVar" style="padding: 8px 16px; cursor: pointer;">Add/Update</button>
+        </div>
+        <div id="cheatStatus" style="color: #9ec3d8; font-size: 14px; min-height: 20px;"></div>
+      </div>
+    </section>
+
+    <section class="danger-zone">
       <h2>Danger Zone</h2>
       <div class="small">This will delete all game save data (money, inventory, upgrades, team, shop, and settings).</div>
       <button id="resetSave" class="danger-button">Reset Save</button>
@@ -344,8 +361,13 @@
     const reloadParams = document.getElementById("reloadParams");
     const resetSave = document.getElementById("resetSave");
     const paramsStatus = document.getElementById("paramsStatus");
+    const cheatAddVar = document.getElementById("cheatAddVar");
+    const cheatVarName = document.getElementById("cheatVarName");
+    const cheatVarValue = document.getElementById("cheatVarValue");
+    const cheatStatus = document.getElementById("cheatStatus");
 
     const paramMoney = document.getElementById("paramMoney");
+    const paramHooks = document.getElementById("paramHooks");
     const paramCaughtCount = document.getElementById("paramCaughtCount");
     const paramInventoryTurn = document.getElementById("paramInventoryTurn");
     const paramTripleHookLevel = document.getElementById("paramTripleHookLevel");
@@ -363,6 +385,7 @@
     function readGameState() {
       return {
         money: Number(localStorage.getItem("clicker_money")) || 0,
+        hooks: Number(localStorage.getItem("clicker_hooks")) || 0,
         caughtCount: Number(localStorage.getItem("clicker_caughtCount")) || 0,
         inventory: localStorage.getItem("clicker_inventory") || "[]",
         currentFish: localStorage.getItem("clicker_currentFish") || "",
@@ -385,6 +408,7 @@
     function buildSaveText(state) {
       return [
         "money=" + state.money,
+        "hooks=" + state.hooks,
         "caughtCount=" + state.caughtCount,
         "inventory=" + state.inventory,
         "currentFish=" + state.currentFish,
@@ -407,6 +431,7 @@
     function parseSaveText(text) {
       const state = {
         money: 0,
+        hooks: 0,
         caughtCount: 0,
         inventory: "[]",
         currentFish: "",
@@ -438,6 +463,9 @@
 
         if (key === "money" && !Number.isNaN(value)) {
           state.money = value;
+        }
+        if (key === "hooks" && !Number.isNaN(value)) {
+          state.hooks = value;
         }
         if (key === "caughtCount" && !Number.isNaN(value)) {
           state.caughtCount = value;
@@ -503,6 +531,7 @@
 
     function fillParamInputs(state) {
       paramMoney.value = String(state.money);
+      paramHooks.value = String(state.hooks);
       paramCaughtCount.value = String(state.caughtCount);
       paramInventoryTurn.value = String(state.inventoryTurn);
       paramTripleHookLevel.value = String(state.tripleHookLevel);
@@ -520,6 +549,7 @@
 
     function applyParameterChanges() {
       localStorage.setItem("clicker_money", String(clampInt(paramMoney.value, 0, 0)));
+      localStorage.setItem("clicker_hooks", String(clampInt(paramHooks.value, 0, 0)));
       localStorage.setItem("clicker_caughtCount", String(clampInt(paramCaughtCount.value, 0, 0)));
       localStorage.setItem("clicker_inventoryTurn", String(clampInt(paramInventoryTurn.value, 0, 0)));
       localStorage.setItem("clicker_tripleHookLevel", String(clampInt(paramTripleHookLevel.value, 0, 0)));
@@ -574,6 +604,7 @@
     loadSave.addEventListener("click", () => {
       const state = parseSaveText(saveInput.value);
       localStorage.setItem("clicker_money", String(state.money));
+      localStorage.setItem("clicker_hooks", String(state.hooks));
       localStorage.setItem("clicker_caughtCount", String(state.caughtCount));
       localStorage.setItem("clicker_inventory", state.inventory);
       localStorage.setItem("clicker_inventoryTurn", String(state.inventoryTurn));
@@ -595,6 +626,7 @@
 
       const loadedState = {
         money: state.money,
+        hooks: state.hooks,
         caughtCount: state.caughtCount,
         inventory: state.inventory,
         currentFish: state.currentFish || localStorage.getItem("clicker_currentFish") || "",
@@ -626,6 +658,30 @@
     reloadParams.addEventListener("click", () => {
       fillParamInputs(readGameState());
       paramsStatus.textContent = "Parameters reloaded from save.";
+    });
+
+    cheatAddVar.addEventListener("click", () => {
+      const varName = cheatVarName.value.trim();
+      const varValue = cheatVarValue.value.trim();
+
+      if (!varName) {
+        cheatStatus.textContent = "❌ Please enter a variable name.";
+        return;
+      }
+
+      if (!varValue) {
+        cheatStatus.textContent = "❌ Please enter a value.";
+        return;
+      }
+
+      localStorage.setItem(varName, varValue);
+      cheatStatus.textContent = "✅ Variable added/updated: " + varName + " = " + varValue;
+      cheatVarName.value = "";
+      cheatVarValue.value = "";
+
+      const state = readGameState();
+      fillParamInputs(state);
+      saveOutput.value = buildSaveText(state);
     });
 
     resetSave.addEventListener("click", () => {
