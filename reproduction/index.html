@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Reproduction - Clicker</title>
+  <style>
+    :root {
+      --panel-bg: #18222a;
+      --panel-border: #35505f;
+      --text-soft: #bcd3e1;
+      --text-strong: #f2fbff;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      margin: 0;
+      padding: 24px 20px 36px 16px;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #0c1217;
+      border-bottom: 1px solid #22313b;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+      margin: -24px -20px -18px -24px;
+      padding: 10px 0;
+      margin-bottom: 18px;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0 0 0 16px;
+    }
+
+    .nav-button {
+      display: inline-block;
+      text-decoration: none;
+      background: #555;
+      color: white;
+      border: 1px solid #aaa;
+      padding: 15px;
+      margin: 0;
+      margin-right: 8px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .nav-button:hover {
+      background: #777;
+    }
+
+    .settings-nav-button {
+      margin-left: auto;
+      margin-right: 16px;
+    }
+
+    .shell {
+      max-width: 980px;
+      margin: 0 auto;
+      text-align: left;
+      display: grid;
+      gap: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 36px;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, var(--panel-bg) 0%, #12191f 100%);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .panel-title {
+      margin: 0 0 8px;
+      color: var(--text-strong);
+      font-size: 20px;
+    }
+
+    .panel-help {
+      margin: 0 0 12px;
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9dc2d8;
+    }
+
+    .field select,
+    .breed-action-btn {
+      border: 1px solid #587487;
+      border-radius: 10px;
+      background: #142029;
+      color: #e8f6ff;
+      padding: 10px;
+      font-size: 14px;
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    .breed-action-btn {
+      cursor: pointer;
+      background: linear-gradient(180deg, #3f7fa2 0%, #285a74 100%);
+      border-color: #79acc5;
+      font-weight: bold;
+    }
+
+    .breed-action-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      background: #2e4655;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #d7edf8;
+      min-height: 22px;
+    }
+
+    .timer {
+      margin-top: 8px;
+      font-size: 22px;
+      color: #f5f2c4;
+      font-weight: bold;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .summary-card {
+      border: 1px solid #35505f;
+      border-radius: 10px;
+      padding: 10px;
+      background: #0f171d;
+    }
+
+    .summary-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9dc2d8;
+    }
+
+    .summary-value {
+      margin-top: 5px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #f3fbff;
+    }
+
+    .log {
+      margin: 0;
+      padding-left: 18px;
+      color: #cde3ef;
+      line-height: 1.5;
+      font-size: 14px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .death-toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 140;
+      min-width: 260px;
+      max-width: 360px;
+      border: 1px solid #a6603f;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #4d1f15 0%, #32140f 100%);
+      color: #ffd6c7;
+      padding: 12px 14px;
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .death-toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .death-toast-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+      color: #ffc9b1;
+      font-weight: bold;
+    }
+
+    .death-toast-text {
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 860px) {
+      .form-grid,
+      .summary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="top-nav">
+      <button class="nav-button" onclick="window.location.href='../'">Game</button>
+      <button class="nav-button" onclick="window.location.href='../inventaire/'">Inventory</button>
+      <button class="nav-button" onclick="window.location.href='../team/'">Team</button>
+      <button class="nav-button" onclick="window.location.href='../shop/'">Shop</button>
+      <button class="nav-button" onclick="window.location.href='./'">Reproduction</button>
+      <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <h1>Reproduction</h1>
+
+    <div class="panel">
+      <h2 class="panel-title">Fish Breeding</h2>
+      <p class="panel-help">Choose two fish of the same species. Breeding takes 5 minutes. Most offspring are smaller/lighter, but luck can create bigger or heavier fish.</p>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="speciesSelect">Species</label>
+          <select id="speciesSelect"></select>
+        </div>
+        <div class="field">
+          <label for="parentASelect">Parent A</label>
+          <select id="parentASelect"></select>
+        </div>
+        <div class="field">
+          <label for="parentBSelect">Parent B</label>
+          <select id="parentBSelect"></select>
+        </div>
+      </div>
+
+      <div class="form-grid" style="margin-top: 10px;">
+        <div></div>
+        <div></div>
+        <button class="breed-action-btn" id="startBreedingBtn" type="button">Start Breeding (5m)</button>
+      </div>
+
+      <div class="status" id="statusText"></div>
+      <div class="timer" id="timerText"></div>
+    </div>
+
+    <div class="summary">
+      <div class="summary-card">
+        <div class="summary-label">Inventory Fish</div>
+        <div class="summary-value" id="inventoryCount">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Breedable Species</div>
+        <div class="summary-value" id="speciesCount">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Completed Breeds</div>
+        <div class="summary-value" id="completedCount">0</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 class="panel-title">Recent Results</h2>
+      <ul class="log" id="resultLog"></ul>
+    </div>
+  </div>
+
+  <script>
+    const INVENTORY_KEY = "clicker_inventory";
+    const BREEDING_TASK_KEY = "clicker_reproductionTask";
+    const BREEDING_DONE_KEY = "clicker_reproductionDoneCount";
+    const BREEDING_LOG_KEY = "clicker_reproductionLog";
+    const BREED_DURATION_MS = 300000;
+
+    const speciesSelect = document.getElementById("speciesSelect");
+    const parentASelect = document.getElementById("parentASelect");
+    const parentBSelect = document.getElementById("parentBSelect");
+    const startBreedingBtn = document.getElementById("startBreedingBtn");
+    const statusText = document.getElementById("statusText");
+    const timerText = document.getElementById("timerText");
+    const inventoryCount = document.getElementById("inventoryCount");
+    const speciesCount = document.getElementById("speciesCount");
+    const completedCount = document.getElementById("completedCount");
+    const resultLog = document.getElementById("resultLog");
+
+    let inventory = [];
+    let breedingTask = null;
+    let tickInterval = null;
+    let deathToastTimeout = null;
+
+    function createFishUid() {
+      return `fish-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+
+    function randomBetween(min, max, decimals) {
+      const value = min + Math.random() * (max - min);
+      return Number(value.toFixed(decimals));
+    }
+
+    function rarityRank(rarity) {
+      const ranks = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5 };
+      return ranks[rarity] || 1;
+    }
+
+    function rarityByRank(rank) {
+      const map = { 1: "common", 2: "uncommon", 3: "rare", 4: "epic", 5: "legendary" };
+      return map[Math.min(5, Math.max(1, rank))] || "common";
+    }
+
+    function loadInventory() {
+      try {
+        const raw = localStorage.getItem(INVENTORY_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        inventory = Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        inventory = [];
+      }
+
+      let touched = false;
+      inventory.forEach((fish) => {
+        if (!fish || typeof fish !== "object") {
+          return;
+        }
+        if (!fish.uid) {
+          fish.uid = createFishUid();
+          touched = true;
+        }
+      });
+
+      if (touched) {
+        saveInventory();
+      }
+    }
+
+    function saveInventory() {
+      localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
+    }
+
+    function loadBreedingTask() {
+      try {
+        const raw = localStorage.getItem(BREEDING_TASK_KEY);
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (!parsed || typeof parsed !== "object") {
+          breedingTask = null;
+          return;
+        }
+        breedingTask = parsed;
+      } catch (error) {
+        breedingTask = null;
+      }
+    }
+
+    function saveBreedingTask() {
+      if (!breedingTask) {
+        localStorage.removeItem(BREEDING_TASK_KEY);
+        return;
+      }
+      localStorage.setItem(BREEDING_TASK_KEY, JSON.stringify(breedingTask));
+    }
+
+    function getBreedableSpeciesMap() {
+      const map = new Map();
+      inventory.forEach((fish) => {
+        const type = fish?.type || "Fish";
+        if (!map.has(type)) {
+          map.set(type, []);
+        }
+        map.get(type).push({ fish, uid: fish.uid });
+      });
+
+      const filtered = new Map();
+      map.forEach((list, type) => {
+        if (list.length >= 2) {
+          filtered.set(type, list);
+        }
+      });
+
+      return filtered;
+    }
+
+    function formatFishOption(entry) {
+      const fish = entry.fish;
+      const size = Number(fish?.size) || 0;
+      const weight = Number(fish?.weight) || 0;
+      const rarity = fish?.rarity || "common";
+      const label = `${fish?.type || "Fish"} | ${rarity} | ${size} cm | ${weight} kg`;
+      return { value: String(entry.uid), label };
+    }
+
+    function setSelectOptions(select, options) {
+      select.innerHTML = "";
+      options.forEach((opt) => {
+        const option = document.createElement("option");
+        option.value = opt.value;
+        option.textContent = opt.label;
+        select.appendChild(option);
+      });
+    }
+
+    function refreshSelectors() {
+      const speciesMap = getBreedableSpeciesMap();
+      const speciesList = Array.from(speciesMap.keys()).sort((a, b) => a.localeCompare(b));
+
+      const speciesOptions = speciesList.length
+        ? speciesList.map((species) => ({ value: species, label: `${species} (${speciesMap.get(species).length})` }))
+        : [{ value: "", label: "No breedable species" }];
+
+      setSelectOptions(speciesSelect, speciesOptions);
+
+      const selectedSpecies = speciesSelect.value && speciesMap.has(speciesSelect.value)
+        ? speciesSelect.value
+        : (speciesList[0] || "");
+
+      if (selectedSpecies) {
+        speciesSelect.value = selectedSpecies;
+      }
+
+      refreshParentSelectors();
+      inventoryCount.textContent = String(inventory.length);
+      speciesCount.textContent = String(speciesList.length);
+    }
+
+    function refreshParentSelectors() {
+      const speciesMap = getBreedableSpeciesMap();
+      const species = speciesSelect.value;
+      const candidates = speciesMap.get(species) || [];
+
+      const options = candidates.map(formatFishOption);
+      setSelectOptions(parentASelect, options);
+
+      const selectedA = String(parentASelect.value || "");
+      const optionsB = candidates
+        .filter((entry) => String(entry.uid) !== selectedA)
+        .map(formatFishOption);
+      setSelectOptions(parentBSelect, optionsB);
+
+      const canStart = candidates.length >= 2 && !!species && !breedingTask;
+      startBreedingBtn.disabled = !canStart;
+
+      if (!species) {
+        statusText.textContent = "You need at least 2 fish of the same species.";
+      }
+    }
+
+    function clampPositive(value, fallback) {
+      const num = Number(value);
+      if (!Number.isFinite(num)) {
+        return fallback;
+      }
+      return Math.max(0, num);
+    }
+
+    function buildChildFish(parentA, parentB) {
+      const type = parentA.type || parentB.type || "Fish";
+      const avgSize = (clampPositive(parentA.size, 0) + clampPositive(parentB.size, 0)) / 2;
+      const avgWeight = (clampPositive(parentA.weight, 0) + clampPositive(parentB.weight, 0)) / 2;
+      const avgPrice = Math.max(1, Math.round((clampPositive(parentA.basePrice ?? parentA.price, 1) + clampPositive(parentB.basePrice ?? parentB.price, 1)) / 2));
+
+      const sizeLucky = Math.random() < 0.25;
+      const weightLucky = Math.random() < 0.25;
+
+      const sizeFactor = sizeLucky
+        ? randomBetween(1.02, 1.22, 3)
+        : randomBetween(0.78, 0.98, 3);
+      const weightFactor = weightLucky
+        ? randomBetween(1.02, 1.22, 3)
+        : randomBetween(0.76, 0.98, 3);
+
+      const rarityBaseRank = Math.round((rarityRank(parentA.rarity) + rarityRank(parentB.rarity)) / 2);
+      const luckyRarityRoll = Math.random();
+      let rarityRankResult = rarityBaseRank;
+      if (luckyRarityRoll < 0.12) {
+        rarityRankResult += 1;
+      } else if (luckyRarityRoll > 0.9) {
+        rarityRankResult -= 1;
+      }
+      const rarity = rarityByRank(rarityRankResult);
+
+      const childSize = Math.max(1, Number((avgSize * sizeFactor).toFixed(1)));
+      const childWeight = Math.max(0.1, Number((avgWeight * weightFactor).toFixed(2)));
+      const childBasePrice = Math.max(1, Math.round(avgPrice * ((sizeFactor + weightFactor) / 2)));
+      const spoiledValue = Math.max(1, Math.round(childBasePrice * 0.08));
+
+      return {
+        type,
+        rarity,
+        size: childSize,
+        weight: childWeight,
+        price: childBasePrice,
+        basePrice: childBasePrice,
+        currentValue: childBasePrice,
+        spoiledValue,
+        storageState: "fridge",
+        outDurationMs: 0,
+        outStartedAtMs: 0,
+        outStartValue: childBasePrice,
+        outBonusPercent: null,
+        outTargetValue: null,
+        outCount: 0,
+        totalOutMs: 0,
+        hiddenSpoilMs: Math.floor(randomBetween(2, 6, 0)) * 10000,
+        hiddenResistance: randomBetween(0.9, 1.05, 3),
+        growthRate: randomBetween(0.05, 0.1, 3),
+        spoiled: false,
+        bredAt: new Date().toISOString(),
+        breedingLuckySize: sizeLucky,
+        breedingLuckyWeight: weightLucky
+      };
+    }
+
+    function appendResultLog(line) {
+      let entries = [];
+      try {
+        const raw = localStorage.getItem(BREEDING_LOG_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        entries = Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        entries = [];
+      }
+
+      entries.unshift(`${new Date().toLocaleTimeString()} - ${line}`);
+      entries = entries.slice(0, 20);
+      localStorage.setItem(BREEDING_LOG_KEY, JSON.stringify(entries));
+      renderResultLog();
+    }
+
+    function showDeathNotification(message) {
+      const toast = document.getElementById("deathToast");
+      const toastText = document.getElementById("deathToastText");
+      if (!toast || !toastText) {
+        return;
+      }
+
+      toastText.textContent = message;
+      toast.classList.add("visible");
+
+      if (deathToastTimeout) {
+        clearTimeout(deathToastTimeout);
+      }
+
+      deathToastTimeout = setTimeout(() => {
+        toast.classList.remove("visible");
+      }, 3400);
+    }
+
+    function renderResultLog() {
+      let entries = [];
+      try {
+        const raw = localStorage.getItem(BREEDING_LOG_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        entries = Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        entries = [];
+      }
+
+      resultLog.innerHTML = "";
+      if (!entries.length) {
+        const li = document.createElement("li");
+        li.textContent = "No breeding result yet.";
+        resultLog.appendChild(li);
+        return;
+      }
+
+      entries.forEach((entry) => {
+        const li = document.createElement("li");
+        li.textContent = entry;
+        resultLog.appendChild(li);
+      });
+    }
+
+    function completeBreedingIfReady() {
+      if (!breedingTask) {
+        return false;
+      }
+
+      const now = Date.now();
+      if (now < Number(breedingTask.endsAtMs)) {
+        return false;
+      }
+
+      const child = breedingTask.childFish;
+      if (!child) {
+        breedingTask = null;
+        saveBreedingTask();
+        return true;
+      }
+
+      const parentAUid = String(breedingTask.parentAUid || "");
+      const parentBUid = String(breedingTask.parentBUid || "");
+
+      // 25% each: parent A dies, parent B dies, both die, none die.
+      const deathRoll = Math.random();
+      let deathMode = "none";
+      if (deathRoll < 0.25) {
+        deathMode = "a";
+      } else if (deathRoll < 0.5) {
+        deathMode = "b";
+      } else if (deathRoll < 0.75) {
+        deathMode = "both";
+      }
+
+      const shouldRemoveA = deathMode === "a" || deathMode === "both";
+      const shouldRemoveB = deathMode === "b" || deathMode === "both";
+
+      if (shouldRemoveA) {
+        const indexA = inventory.findIndex((fish) => String(fish?.uid || "") === parentAUid);
+        if (indexA >= 0) {
+          inventory.splice(indexA, 1);
+        }
+      }
+
+      if (shouldRemoveB) {
+        const indexB = inventory.findIndex((fish) => String(fish?.uid || "") === parentBUid);
+        if (indexB >= 0) {
+          inventory.splice(indexB, 1);
+        }
+      }
+
+      inventory.push(child);
+      saveInventory();
+
+      const done = Number(localStorage.getItem(BREEDING_DONE_KEY)) || 0;
+      localStorage.setItem(BREEDING_DONE_KEY, String(done + 1));
+
+      const sizeMsg = child.breedingLuckySize ? "lucky size" : "smaller size";
+      const weightMsg = child.breedingLuckyWeight ? "lucky weight" : "lighter weight";
+      let deathLabel = "no parent died";
+      if (deathMode === "a") {
+        deathLabel = "parent A died";
+      } else if (deathMode === "b") {
+        deathLabel = "parent B died";
+      } else if (deathMode === "both") {
+        deathLabel = "both parents died";
+      }
+
+      if (deathMode !== "none") {
+        showDeathNotification(`A fish died during breeding: ${deathLabel}.`);
+      }
+
+      appendResultLog(`${child.type} born (${sizeMsg}, ${weightMsg}) - ${child.size} cm, ${child.weight} kg | ${deathLabel}`);
+
+      statusText.textContent = `Breeding complete: new ${child.type} added to inventory (${deathLabel}).`;
+      breedingTask = null;
+      saveBreedingTask();
+      refreshSelectors();
+      updateCompletedCount();
+      return true;
+    }
+
+    function updateCompletedCount() {
+      completedCount.textContent = String(Number(localStorage.getItem(BREEDING_DONE_KEY)) || 0);
+    }
+
+    function updateTimer() {
+      if (!breedingTask) {
+        timerText.textContent = "";
+        return;
+      }
+
+      const remainingMs = Math.max(0, Number(breedingTask.endsAtMs) - Date.now());
+      const seconds = (remainingMs / 1000).toFixed(1);
+      timerText.textContent = `Time left: ${seconds}s`;
+
+      if (remainingMs <= 0) {
+        completeBreedingIfReady();
+      }
+    }
+
+    function startBreeding() {
+      if (breedingTask) {
+        return;
+      }
+
+      const species = speciesSelect.value;
+      const parentAUid = String(parentASelect.value || "");
+      const parentBUid = String(parentBSelect.value || "");
+
+      if (!species || !parentAUid || !parentBUid || parentAUid === parentBUid) {
+        statusText.textContent = "Select 2 different fish of the same species.";
+        return;
+      }
+
+      const parentA = inventory.find((fish) => String(fish?.uid || "") === parentAUid);
+      const parentB = inventory.find((fish) => String(fish?.uid || "") === parentBUid);
+
+      if (!parentA || !parentB || (parentA.type || "") !== species || (parentB.type || "") !== species) {
+        statusText.textContent = "Invalid selection. Please choose again.";
+        refreshSelectors();
+        return;
+      }
+
+      const childFish = buildChildFish(parentA, parentB);
+
+      breedingTask = {
+        species,
+        parentAUid,
+        parentBUid,
+        startedAtMs: Date.now(),
+        endsAtMs: Date.now() + BREED_DURATION_MS,
+        childFish
+      };
+      saveBreedingTask();
+
+      statusText.textContent = `Breeding started for ${species}. Come back in 5 minutes.`;
+      refreshSelectors();
+      updateTimer();
+    }
+
+    function syncFromStorage() {
+      loadInventory();
+      loadBreedingTask();
+      completeBreedingIfReady();
+      refreshSelectors();
+      updateCompletedCount();
+      renderResultLog();
+
+      if (breedingTask) {
+        statusText.textContent = `Breeding in progress: ${breedingTask.species}`;
+      }
+
+      updateTimer();
+    }
+
+    speciesSelect.addEventListener("change", () => {
+      refreshParentSelectors();
+    });
+
+    parentASelect.addEventListener("change", () => {
+      refreshParentSelectors();
+    });
+
+    startBreedingBtn.addEventListener("click", startBreeding);
+
+    window.addEventListener("storage", (event) => {
+      if (event.key === INVENTORY_KEY || event.key === BREEDING_TASK_KEY || event.key === BREEDING_DONE_KEY || event.key === BREEDING_LOG_KEY) {
+        syncFromStorage();
+      }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        syncFromStorage();
+      }
+    });
+
+    syncFromStorage();
+    tickInterval = setInterval(updateTimer, 250);
+  </script>
+
+  <div class="death-toast" id="deathToast" role="status" aria-live="polite">
+    <div class="death-toast-title">Breeding Alert</div>
+    <div class="death-toast-text" id="deathToastText">A fish died.</div>
+  </div>
+</body>
+</html>

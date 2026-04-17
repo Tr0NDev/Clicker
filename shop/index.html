@@ -56,6 +56,11 @@
       background: #777;
     }
 
+    .settings-nav-button {
+      margin-left: auto;
+      margin-right: 16px;
+    }
+
     .shell {
       max-width: 1080px;
       margin: 0 auto;
@@ -423,6 +428,70 @@
       font-size: 14px;
     }
 
+    .talent-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      vertical-align: middle;
+      min-width: 0;
+    }
+
+    .talent-name-text {
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .talent-help {
+      position: relative;
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid #84a9be;
+      color: #d9ecf8;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      background: #203240;
+      cursor: help;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .talent-help::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%) translateY(4px);
+      background: #0f1519;
+      color: #d9ecf8;
+      border: 1px solid #4b6878;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.35;
+      min-width: 220px;
+      max-width: 320px;
+      white-space: normal;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      z-index: 120;
+      transition: opacity 0.06s ease, transform 0.06s ease, visibility 0.06s ease;
+    }
+
+    .talent-help:hover::after,
+    .talent-help:focus-visible::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
     @media (max-width: 760px) {
       .gacha-summary {
         grid-template-columns: 1fr;
@@ -444,7 +513,8 @@
       <button class="nav-button" onclick="window.location.href='../inventaire/'">Inventory</button>
       <button class="nav-button" onclick="window.location.href='../team/'">Team</button>
       <button class="nav-button" onclick="window.location.href='./'">Shop</button>
-      <button class="nav-button" onclick="window.location.href='../settings/'">Settings</button>
+      <button class="nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
+      <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
     </div>
   </div>
 
@@ -523,6 +593,50 @@
     const RESERVE_MAX = 50;
     const MONEY_KEY = "clicker_money";
     const RESERVE_KEY = "clicker_characterReserve";
+
+    const TALENT_POOL = [
+      { id: "avant-garde", name: "Avant-Garde" },
+      { id: "relais", name: "Relais" },
+      { id: "capitaine", name: "Capitaine" },
+      { id: "finisseur", name: "Finisseur" },
+      { id: "ancre", name: "Ancre" },
+      { id: "duo-parfait", name: "Duo Parfait" },
+      { id: "escalier", name: "Escalier" },
+      { id: "miroir", name: "Miroir" },
+      { id: "specialiste-income", name: "Specialiste Income" },
+      { id: "specialiste-chance", name: "Specialiste Chance" },
+      { id: "specialiste-resale", name: "Specialiste Resale" },
+      { id: "pecheur-equipe", name: "Pecheur d'Equipe" },
+      { id: "combo-additif", name: "Combo Additif" },
+      { id: "combo-multiplicatif", name: "Combo Multiplicatif" },
+      { id: "solitaire-tactique", name: "Solitaire Tactique" },
+      { id: "duo-tactique", name: "Duo Tactique" },
+      { id: "trio-tactique", name: "Trio Tactique" },
+      { id: "swap-ready", name: "Swap Ready" },
+      { id: "anti-synergie", name: "Anti-Synergie" }
+    ];
+
+    const TALENT_DESCRIPTION_BY_ID = {
+      "avant-garde": "Slot 1 only: this character income and click are multiplied by x1.25.",
+      "relais": "Gives +8% chance to the teammate directly on the right.",
+      "capitaine": "Slot 2 only: applies x1.15 fishing speed to the two other teammates.",
+      "finisseur": "Slot 3 only: this character click multiplier is multiplied by x1.35.",
+      "ancre": "Gives +20% weight to slot 2 and +10% resale to slot 3.",
+      "duo-parfait": "Adjacent teammates with same stars gain x1.2 income.",
+      "escalier": "If stars strictly increase left to right, team gains +15% chance.",
+      "miroir": "If slot 1 and slot 3 have same stars, slot 2 gains x1.3 click.",
+      "specialiste-income": "If base income is at least x1.3, gains an extra x1.15 income.",
+      "specialiste-chance": "Converts up to +10% own weight bonus into +10% own chance bonus.",
+      "specialiste-resale": "Own resale is multiplied by x1.2, but own click is multiplied by x0.95.",
+      "pecheur-equipe": "For each teammate with fishing speed >= x1.2, gains +0.05x fishing speed.",
+      "combo-additif": "If at least two additive bonuses are non-zero, lowest additive bonus gets +12%.",
+      "combo-multiplicatif": "Each existing stat multiplier above x1 gets +0.05.",
+      "solitaire-tactique": "If alone in team, own income/click/fishing are multiplied by x1.8.",
+      "duo-tactique": "If exactly 2 teammates, gains +12% chance and +12% resale.",
+      "trio-tactique": "If team is full: slot1 x1.1 income, slot2 +10% weight, slot3 x1.1 click.",
+      "swap-ready": "If this copy changed slot since last save, gains +20% size.",
+      "anti-synergie": "Risk/reward: own income x1.35 and own chance -12%."
+    };
 
     const rarityConfig = {
       1: { label: "Common (★)", className: "rarity-common", chance: 70 },
@@ -606,9 +720,51 @@
 
       try {
         const parsed = JSON.parse(raw);
-        return Array.isArray(parsed)
-          ? parsed.map((id) => Number(id)).filter((id) => Number.isInteger(id))
-          : [];
+        if (!Array.isArray(parsed)) {
+          return [];
+        }
+
+        return parsed.map((entry) => {
+          if (Number.isInteger(Number(entry))) {
+            return {
+              templateId: Number(entry),
+              talentId: pickRandomTalent().id,
+              instanceId: createReserveInstanceId()
+            };
+          }
+
+          if (entry && typeof entry === "object") {
+            const templateId = Number(entry.templateId ?? entry.id);
+            if (!Number.isInteger(templateId)) {
+              return null;
+            }
+            const talentId = typeof entry.talentId === "string"
+              ? entry.talentId
+              : pickRandomTalent().id;
+
+            return {
+              templateId,
+              talentId,
+              instanceId: typeof entry.instanceId === "string" && entry.instanceId
+                ? entry.instanceId
+                : createReserveInstanceId(),
+              level: entry.level,
+              incomeMultiplier: entry.incomeMultiplier,
+              clickMultiplier: entry.clickMultiplier,
+              sizeAdd: entry.sizeAdd,
+              sizeMult: entry.sizeMult,
+              weightAdd: entry.weightAdd,
+              weightMult: entry.weightMult,
+              chanceAdd: entry.chanceAdd,
+              chanceMult: entry.chanceMult,
+              resaleAdd: entry.resaleAdd,
+              resaleMult: entry.resaleMult,
+              fishingSpeed: entry.fishingSpeed
+            };
+          }
+
+          return null;
+        }).filter(Boolean);
       } catch (error) {
         return [];
       }
@@ -620,6 +776,38 @@
 
     function getReserveCount() {
       return loadReserveList().length;
+    }
+
+    function createReserveInstanceId() {
+      return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+
+    function pickRandomTalent() {
+      return TALENT_POOL[Math.floor(Math.random() * TALENT_POOL.length)];
+    }
+
+    function getTalentNameById(talentId) {
+      const match = TALENT_POOL.find((talent) => talent.id === talentId);
+      return match ? match.name : "Unknown Talent";
+    }
+
+    function getTalentDescriptionById(talentId) {
+      return TALENT_DESCRIPTION_BY_ID[talentId] || "No description available.";
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function renderTalentWithHelp(talentName, talentId) {
+      const safeName = escapeHtml(talentName || "Unknown Talent");
+      const safeDescription = escapeHtml(getTalentDescriptionById(talentId));
+      return `<span class="talent-inline"><span class="talent-name-text">${safeName}</span><span class="talent-help" tabindex="0" data-tooltip="${safeDescription}" aria-label="Talent description">?</span></span>`;
     }
 
     function getRarityClassByStars(stars) {
@@ -745,21 +933,25 @@
       });
     }
 
-    function applyReward(rewardChar) {
+    function applyReward(rewardChar, rewardTalent) {
       const reserveList = loadReserveList();
-      reserveList.push(rewardChar.id);
+      reserveList.push({
+        templateId: rewardChar.id,
+        talentId: rewardTalent.id,
+        instanceId: createReserveInstanceId()
+      });
       saveReserveList(reserveList);
 
       const rarityClass = getRarityClassByStars(rewardChar.stars);
       resultBox.className = `result-box visible ${rarityClass}`;
       resultName.className = `result-name ${rarityClass}`;
-      resultName.textContent = `${rewardChar.name} ${getStarsString(rewardChar.stars)}`;
-      statusText.textContent = `${rewardChar.name} unlocked and sent to Team reserve.`;
+      resultName.innerHTML = `${escapeHtml(rewardChar.name)} ${escapeHtml(getStarsString(rewardChar.stars))} - ${renderTalentWithHelp(rewardTalent.name, rewardTalent.id)}`;
+      statusText.innerHTML = `${escapeHtml(rewardChar.name)} unlocked with talent ${renderTalentWithHelp(rewardTalent.name, rewardTalent.id)} and sent to Team reserve.`;
 
       drawRecap.className = `draw-recap visible ${rarityClass}`;
       drawRecapName.className = `draw-recap-name ${rarityClass}`;
       drawRecapName.textContent = `${rewardChar.name} ${getStarsString(rewardChar.stars)}`;
-      drawRecapText.textContent = "Added to your Team reserve.";
+      drawRecapText.innerHTML = `Talent won: ${renderTalentWithHelp(rewardTalent.name, rewardTalent.id)}. Added to your Team reserve.`;
       drawOkBtn.style.display = "inline-block";
 
       refreshSummary();
@@ -787,6 +979,7 @@
         statusText.textContent = "No available character to draw.";
         return;
       }
+      const rewardTalent = pickRandomTalent();
 
       spinning = true;
       startDrawBtn.disabled = true;
@@ -800,7 +993,7 @@
       refreshSummary();
 
       await runCaseOpeningAnimation(rewardChar);
-      applyReward(rewardChar);
+      applyReward(rewardChar, rewardTalent);
 
       startDrawBtn.disabled = true;
       openGachaBtn.disabled = true;

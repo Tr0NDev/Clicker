@@ -58,6 +58,11 @@
       background: #777;
     }
 
+    .settings-nav-button {
+      margin-left: auto;
+      margin-right: 16px;
+    }
+
     .shell {
       max-width: 1080px;
       margin: 0 auto;
@@ -331,6 +336,161 @@
       color: #a9c2d3;
     }
 
+    .talent-badge {
+      margin-top: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #4b6878;
+      background: #142029;
+      color: #d9ecf8;
+      font-size: 11px;
+      letter-spacing: 0.03em;
+      max-width: 170px;
+      overflow: visible;
+      position: relative;
+    }
+
+    .talent-state {
+      margin-top: 5px;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #8aa6b8;
+    }
+
+    .talent-state.active {
+      color: #7ee787;
+    }
+
+    .talent-state.inactive {
+      color: #f1c27d;
+    }
+
+    .talent-state.none {
+      color: #88a0af;
+    }
+
+    .talent-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .talent-name-text {
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .talent-help {
+      position: relative;
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid #84a9be;
+      color: #d9ecf8;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      background: #203240;
+      cursor: help;
+      flex: 0 0 auto;
+      line-height: 1;
+    }
+
+    .talent-help::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%) translateY(4px);
+      background: #0f1519;
+      color: #d9ecf8;
+      border: 1px solid #4b6878;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.35;
+      min-width: 220px;
+      max-width: 320px;
+      white-space: normal;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      z-index: 90;
+      transition: opacity 0.06s ease, transform 0.06s ease, visibility 0.06s ease;
+    }
+
+    .talent-help:hover::after,
+    .talent-help:focus-visible::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .modal-talent-value {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .stack-nav {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .stack-nav-btn {
+      border: 1px solid #4b6878;
+      background: #142029;
+      color: #d9ecf8;
+      border-radius: 6px;
+      width: 24px;
+      height: 24px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+      font-size: 14px;
+    }
+
+    .stack-nav-btn:hover {
+      background: #1d2d39;
+    }
+
+    .stack-nav-index {
+      font-size: 11px;
+      color: #a9c2d3;
+      min-width: 54px;
+    }
+
+    .sell-btn {
+      margin-top: 8px;
+      border: 1px solid #9f6d3a;
+      background: #3b2413;
+      color: #ffd7a8;
+      border-radius: 8px;
+      padding: 5px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      line-height: 1.1;
+    }
+
+    .sell-btn:hover {
+      background: #4a2d18;
+    }
+
     .character-stats {
       display: grid;
       gap: 10px;
@@ -507,7 +667,7 @@
       border: 1px solid #2f4d5c;
       border-radius: 16px;
       width: 90%;
-      max-width: 500px;
+      max-width: 900px;
       max-height: 80vh;
       overflow-y: auto;
     }
@@ -553,6 +713,41 @@
       gap: 12px;
     }
 
+    .modal-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .modal-left {
+      min-width: 0;
+    }
+
+    .modal-right {
+      min-width: 0;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .modal-image-slot {
+      border: 1px dashed #4b6878;
+      border-radius: 12px;
+      height: 180px;
+      background: linear-gradient(180deg, rgba(20, 32, 41, 0.65) 0%, rgba(15, 22, 28, 0.75) 100%);
+      color: #8aa6b8;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: center;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
     .modal-stat-item {
       background: #0f1519;
       border-radius: 8px;
@@ -573,6 +768,228 @@
       color: #f7f0c4;
       font-weight: bold;
       font-size: 16px;
+    }
+
+    .modal-actions-row {
+      display: flex;
+      justify-content: flex-start;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .modal-action-btn {
+      border: 1px solid #7cb0ca;
+      background: linear-gradient(180deg, #3f7fa2 0%, #285a74 100%);
+      color: #f2fbff;
+      border-radius: 14px;
+      padding: 14px 22px;
+      font-size: 17px;
+      font-weight: bold;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(124, 176, 202, 0.18);
+      transition: transform 0.1s ease, filter 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .modal-action-btn:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(124, 176, 202, 0.28);
+    }
+
+    .modal-action-btn:active {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    .modal-action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+      filter: grayscale(0.15);
+    }
+
+    .fusion-panel {
+      display: none;
+      padding: 12px;
+      border: 1px solid #35505f;
+      border-radius: 10px;
+      background: #10191f;
+    }
+
+    .fusion-panel.visible {
+      display: block;
+    }
+
+    .fusion-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9dc2d8;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .fusion-help {
+      font-size: 12px;
+      color: #b8d4e3;
+      margin-bottom: 8px;
+    }
+
+    .fusion-list {
+      display: grid;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      padding-right: 4px;
+    }
+
+    .fusion-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 9px;
+      border: 1px solid #35505f;
+      border-radius: 8px;
+      background: #132029;
+      font-size: 12px;
+      color: #d9ecf8;
+    }
+
+    .fusion-option-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .fusion-confirm {
+      border: 1px solid #4d7a3f;
+      background: #25451f;
+      color: #d8ffd0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .fusion-confirm:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .fusion-empty {
+      font-size: 12px;
+      color: #89a2b1;
+      font-style: italic;
+    }
+
+    .sell-confirm-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      z-index: 120;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .sell-confirm-modal.visible {
+      display: flex;
+    }
+
+    .sell-confirm-card {
+      width: min(420px, 100%);
+      background: linear-gradient(180deg, #18222a 0%, #12191f 100%);
+      border: 1px solid #3f6075;
+      border-radius: 14px;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .sell-confirm-title {
+      font-size: 18px;
+      color: #f2fbff;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .sell-confirm-text {
+      color: #cde3ef;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    .sell-confirm-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .sell-confirm-btn {
+      border: 1px solid #6a8798;
+      background: #243946;
+      color: #eaf7ff;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .sell-confirm-btn.primary {
+      border-color: #9f6d3a;
+      background: #5a3115;
+      color: #ffd7a8;
+      font-weight: bold;
+    }
+
+    .fusion-preview {
+      margin-bottom: 10px;
+      padding: 9px;
+      border: 1px solid #365564;
+      border-radius: 8px;
+      background: #0f171d;
+      display: grid;
+      gap: 5px;
+    }
+
+    .fusion-preview-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .fusion-preview-label {
+      color: #9dc2d8;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .fusion-preview-values {
+      color: #d9ecf8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .fusion-arrow {
+      color: #8dc4e0;
+      font-weight: bold;
+      margin: 0 6px;
+    }
+
+    .fusion-gain {
+      color: #7ee787;
+      font-weight: bold;
+      margin-left: 6px;
     }
 
     .stat-origin {
@@ -608,6 +1025,14 @@
         background: transparent;
         border-left: 0;
       }
+
+      .modal-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-image-slot {
+        height: 140px;
+      }
     }
   </style>
 </head>
@@ -620,7 +1045,8 @@
       <button class="nav-button" onclick="window.location.href='../inventaire/'">Inventory</button>
       <button class="nav-button" onclick="window.location.href='./'">Team</button>
       <button class="nav-button" onclick="window.location.href='../shop/'">Shop</button>
-      <button class="nav-button" onclick="window.location.href='../settings/'">Settings</button>
+      <button class="nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
+      <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
     </div>
   </div>
 
@@ -704,8 +1130,30 @@
         </div>
         <button class="close-btn" onclick="closeStatsModal()">&times;</button>
       </div>
-      <div class="modal-stats" id="modalStatsList">
-        <!-- Stats will be generated here -->
+      <div class="modal-layout">
+        <div class="modal-left">
+          <div class="modal-stats" id="modalStatsList">
+            <!-- Stats will be generated here -->
+          </div>
+        </div>
+        <div class="modal-right">
+          <div class="modal-image-slot">Image Slot</div>
+          <div class="modal-actions-row">
+            <button class="modal-action-btn" id="modalFusionBtn" type="button">Fusion</button>
+          </div>
+          <div class="fusion-panel" id="fusionPanel"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sellConfirmModal" class="sell-confirm-modal">
+    <div class="sell-confirm-card">
+      <div class="sell-confirm-title">Confirmation</div>
+      <div class="sell-confirm-text" id="sellConfirmText">Etes-vous sur ?</div>
+      <div class="sell-confirm-actions">
+        <button class="sell-confirm-btn" id="sellCancelBtn" type="button">Annuler</button>
+        <button class="sell-confirm-btn primary" id="sellConfirmBtn" type="button">Confirmer</button>
       </div>
     </div>
   </div>
@@ -764,8 +1212,320 @@
     const MAX_RESERVE_SIZE = 50;
     let reserveSortDirection = 'desc';
 
+    const TALENT_POOL = [
+      { id: 'avant-garde', name: 'Avant-Garde' },
+      { id: 'relais', name: 'Relais' },
+      { id: 'capitaine', name: 'Capitaine' },
+      { id: 'finisseur', name: 'Finisseur' },
+      { id: 'ancre', name: 'Ancre' },
+      { id: 'duo-parfait', name: 'Duo Parfait' },
+      { id: 'escalier', name: 'Escalier' },
+      { id: 'miroir', name: 'Miroir' },
+      { id: 'specialiste-income', name: 'Specialiste Income' },
+      { id: 'specialiste-chance', name: 'Specialiste Chance' },
+      { id: 'specialiste-resale', name: 'Specialiste Resale' },
+      { id: 'pecheur-equipe', name: "Pecheur d'Equipe" },
+      { id: 'combo-additif', name: 'Combo Additif' },
+      { id: 'combo-multiplicatif', name: 'Combo Multiplicatif' },
+      { id: 'solitaire-tactique', name: 'Solitaire Tactique' },
+      { id: 'duo-tactique', name: 'Duo Tactique' },
+      { id: 'trio-tactique', name: 'Trio Tactique' },
+      { id: 'swap-ready', name: 'Swap Ready' },
+      { id: 'anti-synergie', name: 'Anti-Synergie' }
+    ];
+
+    const TALENT_NAME_BY_ID = new Map(TALENT_POOL.map((talent) => [talent.id, talent.name]));
+    const TALENT_DESCRIPTION_BY_ID = {
+      'avant-garde': 'Slot 1 only: this character income and click are multiplied by x1.25.',
+      'relais': 'Gives +8% chance to the teammate directly on the right.',
+      'capitaine': 'Slot 2 only: applies x1.15 fishing speed to the two other teammates.',
+      'finisseur': 'Slot 3 only: this character click multiplier is multiplied by x1.35.',
+      'ancre': 'Gives +20% weight to slot 2 and +10% resale to slot 3.',
+      'duo-parfait': 'Adjacent teammates with same stars gain x1.2 income.',
+      'escalier': 'If stars strictly increase left to right, team gains +15% chance.',
+      'miroir': 'If slot 1 and slot 3 have same stars, slot 2 gains x1.3 click.',
+      'specialiste-income': 'If base income is at least x1.3, gains an extra x1.15 income.',
+      'specialiste-chance': 'Converts up to +10% own weight bonus into +10% own chance bonus.',
+      'specialiste-resale': 'Own resale is multiplied by x1.2, but own click is multiplied by x0.95.',
+      'pecheur-equipe': 'For each teammate with fishing speed >= x1.2, gains +0.05x fishing speed.',
+      'combo-additif': 'If at least two additive bonuses are non-zero, lowest additive bonus gets +12%.',
+      'combo-multiplicatif': 'Each existing stat multiplier above x1 gets +0.05.',
+      'solitaire-tactique': 'If alone in team, own income/click/fishing are multiplied by x1.8.',
+      'duo-tactique': 'If exactly 2 teammates, gains +12% chance and +12% resale.',
+      'trio-tactique': 'If team is full: slot1 x1.1 income, slot2 +10% weight, slot3 x1.1 click.',
+      'swap-ready': 'If this copy changed slot since last save, gains +20% size.',
+      'anti-synergie': 'Risk/reward: own income x1.35 and own chance -12%.',
+      'no-talent': 'No talent on this character.'
+    };
+
     let draggedChar = null;
     let dragSource = null;
+    const reserveStackCursorByTemplate = {};
+    let lastSavedSlotByInstanceId = {};
+    const MAX_FUSION_LEVEL = 5;
+    const FUSION_PRIMARY_MULT = 1.08;
+    const FUSION_ADDITIVE_MULT = 1.1;
+    let currentModalCharId = null;
+    let sellConfirmResolver = null;
+
+    const sellConfirmModal = document.getElementById('sellConfirmModal');
+    const sellConfirmText = document.getElementById('sellConfirmText');
+    const sellCancelBtn = document.getElementById('sellCancelBtn');
+    const sellConfirmBtn = document.getElementById('sellConfirmBtn');
+
+    function getTalentNameById(talentId) {
+      return TALENT_NAME_BY_ID.get(talentId) || 'Unknown Talent';
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function getTalentDescriptionById(talentId) {
+      if (!talentId) {
+        return TALENT_DESCRIPTION_BY_ID['no-talent'];
+      }
+      return TALENT_DESCRIPTION_BY_ID[talentId] || 'No description available.';
+    }
+
+    function renderTalentWithHelp(name, talentId, wrapperClassName = '') {
+      const safeName = escapeHtml(name || 'No Talent');
+      const safeDescription = escapeHtml(getTalentDescriptionById(talentId));
+      const wrapperClass = wrapperClassName ? ` ${wrapperClassName}` : '';
+      return `<span class="talent-inline${wrapperClass}"><span class="talent-name-text">${safeName}</span><span class="talent-help" tabindex="0" data-tooltip="${safeDescription}" aria-label="Talent description">?</span></span>`;
+    }
+
+    function getCharacterKey(char) {
+      if (!char) {
+        return '';
+      }
+      return char.instanceId ? `instance:${char.instanceId}` : `id:${char.id}`;
+    }
+
+    function getTalentActivityMap() {
+      const orderedTeam = [0, 1, 2]
+        .map((slot) => allCharacters.find((char) => char.teamSlot === slot))
+        .filter(Boolean);
+      const effectiveTeam = applyTalentEffects(orderedTeam);
+      return Object.fromEntries(effectiveTeam.map((char) => [getCharacterKey(char), !!char.talentActive]));
+    }
+
+    function canSellCharacter(char) {
+      if (!char || !char.unlocked) {
+        return false;
+      }
+      const templateId = Number(char.templateId || char.id);
+      return !(templateId === 1 && !char.instanceId);
+    }
+
+    function getCharacterSellValue(char) {
+      const baseCost = Math.max(100, Number(char?.cost) || 100);
+      const stars = Math.max(1, Number(char?.stars) || 1);
+      return Math.max(25, Math.round(baseCost * 0.35 + stars * 10));
+    }
+
+    function getFusionRequirement(level) {
+      const currentLevel = Math.max(1, Number(level) || 1);
+      if (currentLevel >= MAX_FUSION_LEVEL) {
+        return null;
+      }
+      const nextLevel = currentLevel + 1;
+      return {
+        nextLevel,
+        totalNeeded: nextLevel,
+        extraNeeded: nextLevel - 1
+      };
+    }
+
+    function getMatchingFusionCandidates(targetChar) {
+      const targetTemplate = Number(targetChar.templateId || targetChar.id);
+      return allCharacters.filter((char) => {
+        if (!char.unlocked || Number(char.id) === Number(targetChar.id)) {
+          return false;
+        }
+        return Number(char.templateId || char.id) === targetTemplate;
+      });
+    }
+
+    function applyFusionBoost(char) {
+      char.level = Math.max(1, Number(char.level) || 1) + 1;
+      char.incomeMultiplier = (Number(char.incomeMultiplier) || 1) * FUSION_PRIMARY_MULT;
+      char.clickMultiplier = (Number(char.clickMultiplier) || 1) * FUSION_PRIMARY_MULT;
+      char.fishingSpeed = (Number(char.fishingSpeed) || 1) * FUSION_PRIMARY_MULT;
+
+      char.sizeAdd = (Number(char.sizeAdd) || 0) * FUSION_ADDITIVE_MULT;
+      char.weightAdd = (Number(char.weightAdd) || 0) * FUSION_ADDITIVE_MULT;
+      char.chanceAdd = (Number(char.chanceAdd) || 0) * FUSION_ADDITIVE_MULT;
+      char.resaleAdd = (Number(char.resaleAdd) || 0) * FUSION_ADDITIVE_MULT;
+
+      char.sizeMult = 1 + (((Number(char.sizeMult) || 1) - 1) * FUSION_PRIMARY_MULT);
+      char.weightMult = 1 + (((Number(char.weightMult) || 1) - 1) * FUSION_PRIMARY_MULT);
+      char.chanceMult = 1 + (((Number(char.chanceMult) || 1) - 1) * FUSION_PRIMARY_MULT);
+      char.resaleMult = 1 + (((Number(char.resaleMult) || 1) - 1) * FUSION_PRIMARY_MULT);
+    }
+
+    function cloneCharacterStats(char) {
+      return {
+        level: Number(char.level) || 1,
+        incomeMultiplier: Number(char.incomeMultiplier) || 1,
+        clickMultiplier: Number(char.clickMultiplier) || 1,
+        sizeAdd: Number(char.sizeAdd) || 0,
+        sizeMult: Number(char.sizeMult) || 1,
+        weightAdd: Number(char.weightAdd) || 0,
+        weightMult: Number(char.weightMult) || 1,
+        chanceAdd: Number(char.chanceAdd) || 0,
+        chanceMult: Number(char.chanceMult) || 1,
+        resaleAdd: Number(char.resaleAdd) || 0,
+        resaleMult: Number(char.resaleMult) || 1,
+        fishingSpeed: Number(char.fishingSpeed) || 1
+      };
+    }
+
+    function formatFusionPreviewRow(label, before, after, formatter) {
+      const beforeFormatted = formatter(before);
+      const afterFormatted = formatter(after);
+      const deltaFormatted = formatter(after - before, true);
+      const deltaPrefix = (after - before) >= 0 ? '+' : '';
+
+      return `
+        <div class="fusion-preview-row">
+          <span class="fusion-preview-label">${label}</span>
+          <span class="fusion-preview-values">${beforeFormatted}<span class="fusion-arrow">-></span>${afterFormatted}<span class="fusion-gain">(${deltaPrefix}${deltaFormatted})</span></span>
+        </div>
+      `;
+    }
+
+    function getFusionPreviewMarkup(targetChar) {
+      const before = cloneCharacterStats(targetChar);
+      const after = cloneCharacterStats(targetChar);
+      applyFusionBoost(after);
+
+      const asMult = (value, raw = false) => raw ? `${value.toFixed(2)}x` : `${value.toFixed(2)}x`;
+      const asPct = (value, raw = false) => raw ? `${value.toFixed(1)}%` : `${value.toFixed(1)}%`;
+      const levelDelta = Math.round(after.level - before.level);
+      const levelRow = `
+        <div class="fusion-preview-row">
+          <span class="fusion-preview-label">Level</span>
+          <span class="fusion-preview-values">Lv.${Math.round(before.level)}<span class="fusion-arrow">-></span>Lv.${Math.round(after.level)}<span class="fusion-gain">(+${levelDelta})</span></span>
+        </div>
+      `;
+
+      return `
+        <div class="fusion-preview">
+          ${levelRow}
+          ${formatFusionPreviewRow('Income', before.incomeMultiplier, after.incomeMultiplier, asMult)}
+          ${formatFusionPreviewRow('Click', before.clickMultiplier, after.clickMultiplier, asMult)}
+          ${formatFusionPreviewRow('Fishing', before.fishingSpeed, after.fishingSpeed, asMult)}
+          ${formatFusionPreviewRow('Size Add', before.sizeAdd, after.sizeAdd, asPct)}
+          ${formatFusionPreviewRow('Weight Add', before.weightAdd, after.weightAdd, asPct)}
+          ${formatFusionPreviewRow('Chance Add', before.chanceAdd, after.chanceAdd, asPct)}
+          ${formatFusionPreviewRow('Resale Add', before.resaleAdd, after.resaleAdd, asPct)}
+        </div>
+      `;
+    }
+
+    function formatFusionSourceLabel(char) {
+      const origin = Number.isInteger(char.teamSlot) ? `Team slot ${char.teamSlot + 1}` : 'Reserve';
+      return `${origin} | Lv.${Number(char.level) || 1} | ${char.talentName || 'No Talent'}`;
+    }
+
+    function formatCharacterForReserveStorage(char) {
+      return {
+        templateId: Number(char.templateId || char.id),
+        talentId: char.talentId || null,
+        instanceId: char.instanceId || `legacy-${char.id}`,
+        level: Number(char.level) || 1,
+        incomeMultiplier: Number(char.incomeMultiplier) || 1,
+        clickMultiplier: Number(char.clickMultiplier) || 1,
+        sizeAdd: Number(char.sizeAdd) || 0,
+        sizeMult: Number(char.sizeMult) || 1,
+        weightAdd: Number(char.weightAdd) || 0,
+        weightMult: Number(char.weightMult) || 1,
+        chanceAdd: Number(char.chanceAdd) || 0,
+        chanceMult: Number(char.chanceMult) || 1,
+        resaleAdd: Number(char.resaleAdd) || 0,
+        resaleMult: Number(char.resaleMult) || 1,
+        fishingSpeed: Number(char.fishingSpeed) || 1
+      };
+    }
+
+    function persistOwnedCharactersToReserveStorage() {
+      const ownedEntries = allCharacters
+        .filter((char) => char.unlocked && canSellCharacter(char))
+        .map((char) => formatCharacterForReserveStorage(char))
+        .slice(0, MAX_RESERVE_SIZE);
+
+      localStorage.setItem(TEAM_RESERVE_STORAGE_KEY, JSON.stringify(ownedEntries));
+    }
+
+    function closeSellConfirmation(result) {
+      sellConfirmModal.classList.remove('visible');
+      if (sellConfirmResolver) {
+        const resolve = sellConfirmResolver;
+        sellConfirmResolver = null;
+        resolve(result);
+      }
+    }
+
+    function askSellConfirmation(charName, sellValue) {
+      const safeName = escapeHtml(charName);
+      sellConfirmText.innerHTML = `Etes-vous sur de vendre <strong>${safeName}</strong> pour <strong>${sellValue}</strong> ?`;
+      sellConfirmModal.classList.add('visible');
+
+      return new Promise((resolve) => {
+        sellConfirmResolver = resolve;
+      });
+    }
+
+    async function sellCharacter(charId) {
+      const index = allCharacters.findIndex((entry) => Number(entry.id) === Number(charId));
+      if (index < 0) {
+        return;
+      }
+
+      const char = allCharacters[index];
+      if (!canSellCharacter(char)) {
+        return;
+      }
+
+      const sellValue = getCharacterSellValue(char);
+      const confirmed = await askSellConfirmation(char.name, sellValue);
+      if (!confirmed) {
+        return;
+      }
+
+      const currentMoney = Math.max(0, Number(localStorage.getItem('clicker_money')) || 0);
+      localStorage.setItem('clicker_money', String(Math.floor(currentMoney + sellValue)));
+
+      allCharacters.splice(index, 1);
+      persistOwnedCharactersToReserveStorage();
+
+      const openModal = document.getElementById('statsModal');
+      if (openModal && openModal.style.display === 'block') {
+        openModal.style.display = 'none';
+      }
+
+      renderCharacters();
+    }
+
+    sellCancelBtn.addEventListener('click', () => {
+      closeSellConfirmation(false);
+    });
+
+    sellConfirmBtn.addEventListener('click', () => {
+      closeSellConfirmation(true);
+    });
+
+    sellConfirmModal.addEventListener('click', (event) => {
+      if (event.target === sellConfirmModal) {
+        closeSellConfirmation(false);
+      }
+    });
 
     function applyReserveCharactersFromSave() {
       // Remove previously generated duplicate instances before rebuilding from storage
@@ -784,22 +1544,64 @@
         }
       });
 
-      let reserveIds = [];
+      let reserveEntries = [];
       try {
         const raw = localStorage.getItem(TEAM_RESERVE_STORAGE_KEY);
         const parsed = raw ? JSON.parse(raw) : [];
-        reserveIds = Array.isArray(parsed)
-          ? parsed.map((id) => Number(id)).filter((id) => Number.isInteger(id))
+        reserveEntries = Array.isArray(parsed)
+          ? parsed.map((entry, index) => {
+            if (Number.isInteger(Number(entry))) {
+              return {
+                templateId: Number(entry),
+                talentId: null,
+                instanceId: `legacy-${Date.now()}-${index}`
+              };
+            }
+
+            if (entry && typeof entry === 'object') {
+              const templateId = Number(entry.templateId || entry.id);
+              if (!Number.isInteger(templateId)) {
+                return null;
+              }
+
+              return {
+                templateId,
+                talentId: typeof entry.talentId === 'string' ? entry.talentId : null,
+                instanceId: typeof entry.instanceId === 'string' && entry.instanceId
+                  ? entry.instanceId
+                  : `legacy-${Date.now()}-${index}`,
+                level: entry.level,
+                incomeMultiplier: entry.incomeMultiplier,
+                clickMultiplier: entry.clickMultiplier,
+                sizeAdd: entry.sizeAdd,
+                sizeMult: entry.sizeMult,
+                weightAdd: entry.weightAdd,
+                weightMult: entry.weightMult,
+                chanceAdd: entry.chanceAdd,
+                chanceMult: entry.chanceMult,
+                resaleAdd: entry.resaleAdd,
+                resaleMult: entry.resaleMult,
+                fishingSpeed: entry.fishingSpeed
+              };
+            }
+
+            return null;
+          }).filter(Boolean)
           : [];
       } catch (error) {
-        reserveIds = [];
+        reserveEntries = [];
       }
 
-      const limitedReserve = reserveIds.slice(0, MAX_RESERVE_SIZE);
+      const limitedReserve = reserveEntries.slice(0, MAX_RESERVE_SIZE);
       const templateById = new Map(allCharacters.slice(0, BASE_CHARACTER_COUNT).map((char) => [char.templateId || char.id, char]));
 
-      limitedReserve.forEach((templateId, index) => {
-        const template = templateById.get(templateId);
+      const readOverride = (value, fallback) => {
+        const numeric = Number(value);
+        return Number.isFinite(numeric) ? numeric : fallback;
+      };
+
+      limitedReserve.forEach((entry, index) => {
+        const template = templateById.get(entry.templateId);
         if (!template) {
           return;
         }
@@ -807,7 +1609,22 @@
         allCharacters.push({
           ...template,
           id: BASE_CHARACTER_COUNT + index + 1,
+          instanceId: entry.instanceId,
           templateId: template.templateId || template.id,
+          talentId: entry.talentId,
+          talentName: entry.talentId ? getTalentNameById(entry.talentId) : 'No Talent',
+          level: readOverride(entry.level, template.level),
+          incomeMultiplier: readOverride(entry.incomeMultiplier, template.incomeMultiplier),
+          clickMultiplier: readOverride(entry.clickMultiplier, template.clickMultiplier),
+          sizeAdd: readOverride(entry.sizeAdd, template.sizeAdd),
+          sizeMult: readOverride(entry.sizeMult, template.sizeMult),
+          weightAdd: readOverride(entry.weightAdd, template.weightAdd),
+          weightMult: readOverride(entry.weightMult, template.weightMult),
+          chanceAdd: readOverride(entry.chanceAdd, template.chanceAdd),
+          chanceMult: readOverride(entry.chanceMult, template.chanceMult),
+          resaleAdd: readOverride(entry.resaleAdd, template.resaleAdd),
+          resaleMult: readOverride(entry.resaleMult, template.resaleMult),
+          fishingSpeed: readOverride(entry.fishingSpeed, template.fishingSpeed),
           unlocked: true,
           teamSlot: null
         });
@@ -829,7 +1646,8 @@
         return parsed.teamChars
           .map((char) => ({
             templateId: Number(char.templateId || char.id),
-            teamSlot: Number(char.teamSlot)
+            teamSlot: Number(char.teamSlot),
+            instanceId: typeof char.instanceId === 'string' ? char.instanceId : null
           }))
           .filter((char) => Number.isInteger(char.templateId) && Number.isInteger(char.teamSlot));
       } catch (error) {
@@ -858,6 +1676,7 @@
         const match = allCharacters.find((char) => {
           const templateId = Number(char.templateId || char.id);
           return templateId === savedChar.templateId
+            && (savedChar.instanceId ? char.instanceId === savedChar.instanceId : true)
             && char.unlocked
             && char.teamSlot === null
             && !usedCharacterIds.has(char.id);
@@ -868,6 +1687,33 @@
           usedCharacterIds.add(match.id);
         }
       });
+
+      const fallbackSaved = savedTeam.filter((entry) => entry.instanceId);
+      fallbackSaved.forEach((savedChar) => {
+        const alreadyPlaced = allCharacters.some((char) => char.teamSlot === savedChar.teamSlot);
+        if (alreadyPlaced) {
+          return;
+        }
+
+        const fallbackMatch = allCharacters.find((char) => {
+          const templateId = Number(char.templateId || char.id);
+          return templateId === savedChar.templateId
+            && char.unlocked
+            && char.teamSlot === null
+            && !usedCharacterIds.has(char.id);
+        });
+
+        if (fallbackMatch) {
+          fallbackMatch.teamSlot = savedChar.teamSlot;
+          usedCharacterIds.add(fallbackMatch.id);
+        }
+      });
+
+      lastSavedSlotByInstanceId = Object.fromEntries(
+        allCharacters
+          .filter((char) => typeof char.instanceId === 'string' && char.teamSlot !== null)
+          .map((char) => [char.instanceId, char.teamSlot])
+      );
     }
 
     function getStarString(stars) {
@@ -880,11 +1726,274 @@
       return `<span style="color: ${color}; font-weight: bold;">${starSymbols}</span>`;
     }
 
+    function toEffectiveChar(char) {
+      return {
+        id: char.id,
+        instanceId: char.instanceId || null,
+        templateId: char.templateId || char.id,
+        name: char.name,
+        stars: char.stars,
+        level: char.level,
+        teamSlot: char.teamSlot,
+        talentId: char.talentId || null,
+        talentName: char.talentName || 'No Talent',
+        incomeMultiplier: Number(char.incomeMultiplier) || 1,
+        clickMultiplier: Number(char.clickMultiplier) || 1,
+        sizeAdd: Number(char.sizeAdd) || 0,
+        sizeMult: Number(char.sizeMult) || 1,
+        weightAdd: Number(char.weightAdd) || 0,
+        weightMult: Number(char.weightMult) || 1,
+        chanceAdd: Number(char.chanceAdd) || 0,
+        chanceMult: Number(char.chanceMult) || 1,
+        resaleAdd: Number(char.resaleAdd) || 0,
+        resaleMult: Number(char.resaleMult) || 1,
+        fishingSpeed: Number(char.fishingSpeed) || 1
+      };
+    }
+
+    function getTalentEffectContext(orderedTeam) {
+      return {
+        teamCount: orderedTeam.length,
+        bySlot: [0, 1, 2].map((slot) => orderedTeam.find((char) => char.teamSlot === slot) || null)
+      };
+    }
+
+    function applyTalentEffects(baseTeam) {
+      const team = baseTeam.map((char) => toEffectiveChar(char));
+      const context = getTalentEffectContext(team);
+      const bySlot = context.bySlot;
+      const talentActiveByKey = {};
+
+      const getCharKey = (char) => (char && char.instanceId) ? `instance:${char.instanceId}` : (char ? `id:${char.id}` : '');
+      const markActive = (char) => {
+        if (!char || !char.talentId) {
+          return;
+        }
+        talentActiveByKey[getCharKey(char)] = true;
+      };
+
+      team.forEach((char) => {
+        if (char.talentId) {
+          talentActiveByKey[getCharKey(char)] = false;
+        }
+      });
+
+      team.forEach((char) => {
+        switch (char.talentId) {
+          case 'avant-garde':
+            if (char.teamSlot === 0) {
+              char.incomeMultiplier *= 1.25;
+              char.clickMultiplier *= 1.25;
+              markActive(char);
+            }
+            break;
+          case 'capitaine':
+            if (char.teamSlot === 1) {
+              bySlot.forEach((target) => {
+                if (target && target.id !== char.id) {
+                  target.fishingSpeed *= 1.15;
+                }
+              });
+              markActive(char);
+            }
+            break;
+          case 'finisseur':
+            if (char.teamSlot === 2) {
+              char.clickMultiplier *= 1.35;
+              markActive(char);
+            }
+            break;
+          case 'ancre':
+            if (bySlot[1]) {
+              bySlot[1].weightAdd += 20;
+            }
+            if (bySlot[2]) {
+              bySlot[2].resaleAdd += 10;
+            }
+            if (bySlot[1] || bySlot[2]) {
+              markActive(char);
+            }
+            break;
+          case 'specialiste-income':
+            if (char.incomeMultiplier >= 1.3) {
+              char.incomeMultiplier *= 1.15;
+              markActive(char);
+            }
+            break;
+          case 'specialiste-chance': {
+            const converted = Math.min(10, Math.max(0, char.weightAdd));
+            char.weightAdd -= converted;
+            char.chanceAdd += converted;
+            if (converted > 0) {
+              markActive(char);
+            }
+            break;
+          }
+          case 'specialiste-resale':
+            char.resaleMult *= 1.2;
+            char.clickMultiplier *= 0.95;
+            markActive(char);
+            break;
+          case 'pecheur-equipe': {
+            const fishingSources = team.filter((entry) => entry.fishingSpeed >= 1.2).length;
+            char.fishingSpeed += fishingSources * 0.05;
+            if (fishingSources > 0) {
+              markActive(char);
+            }
+            break;
+          }
+          case 'combo-additif': {
+            const additiveEntries = [
+              { key: 'sizeAdd', value: char.sizeAdd },
+              { key: 'weightAdd', value: char.weightAdd },
+              { key: 'chanceAdd', value: char.chanceAdd },
+              { key: 'resaleAdd', value: char.resaleAdd }
+            ].filter((entry) => entry.value > 0);
+
+            if (additiveEntries.length >= 2) {
+              additiveEntries.sort((left, right) => left.value - right.value);
+              const lowest = additiveEntries[0];
+              char[lowest.key] += 12;
+              markActive(char);
+            }
+            break;
+          }
+          case 'combo-multiplicatif': {
+            const multiplicativeKeys = ['sizeMult', 'weightMult', 'chanceMult', 'resaleMult'];
+            let applied = false;
+            multiplicativeKeys.forEach((key) => {
+              if (char[key] > 1) {
+                char[key] += 0.05;
+                applied = true;
+              }
+            });
+            if (applied) {
+              markActive(char);
+            }
+            break;
+          }
+          case 'solitaire-tactique':
+            if (context.teamCount === 1) {
+              char.incomeMultiplier *= 1.8;
+              char.clickMultiplier *= 1.8;
+              char.fishingSpeed *= 1.8;
+              markActive(char);
+            }
+            break;
+          case 'duo-tactique':
+            if (context.teamCount === 2) {
+              char.chanceAdd += 12;
+              char.resaleAdd += 12;
+              markActive(char);
+            }
+            break;
+          case 'trio-tactique':
+            if (context.teamCount === 3) {
+              if (char.teamSlot === 0) {
+                char.incomeMultiplier *= 1.1;
+              } else if (char.teamSlot === 1) {
+                char.weightAdd += 10;
+              } else if (char.teamSlot === 2) {
+                char.clickMultiplier *= 1.1;
+              }
+              markActive(char);
+            }
+            break;
+          case 'swap-ready': {
+            if (char.instanceId && Number.isInteger(lastSavedSlotByInstanceId[char.instanceId]) && lastSavedSlotByInstanceId[char.instanceId] !== char.teamSlot) {
+              char.sizeAdd += 20;
+              markActive(char);
+            }
+            break;
+          }
+          case 'anti-synergie':
+            char.incomeMultiplier *= 1.35;
+            char.chanceAdd -= 12;
+            markActive(char);
+            break;
+          default:
+            break;
+        }
+      });
+
+      // Pair and team-wide synergies resolved in a second pass.
+      team.forEach((char) => {
+        if (char.talentId === 'relais') {
+          const right = bySlot[char.teamSlot + 1];
+          if (right) {
+            right.chanceAdd += 8;
+            markActive(char);
+          }
+        }
+      });
+
+      team.forEach((char) => {
+        if (char.talentId === 'duo-parfait') {
+          const left = bySlot[char.teamSlot - 1];
+          const right = bySlot[char.teamSlot + 1];
+          let applied = false;
+          if (left && left.stars === char.stars) {
+            char.incomeMultiplier *= 1.2;
+            left.incomeMultiplier *= 1.2;
+            applied = true;
+          }
+          if (right && right.stars === char.stars) {
+            char.incomeMultiplier *= 1.2;
+            right.incomeMultiplier *= 1.2;
+            applied = true;
+          }
+          if (applied) {
+            markActive(char);
+          }
+        }
+      });
+
+      const isAscendingStars = context.teamCount === 3
+        && bySlot[0]
+        && bySlot[1]
+        && bySlot[2]
+        && bySlot[0].stars < bySlot[1].stars
+        && bySlot[1].stars < bySlot[2].stars;
+      if (isAscendingStars) {
+        team.forEach((char) => {
+          if (char.talentId === 'escalier') {
+            team.forEach((member) => {
+              member.chanceAdd += 15;
+            });
+            markActive(char);
+          }
+        });
+      }
+
+      const hasMirror = bySlot[0] && bySlot[1] && bySlot[2] && bySlot[0].stars === bySlot[2].stars;
+      if (hasMirror) {
+        team.forEach((char) => {
+          if (char.talentId === 'miroir' && bySlot[1]) {
+            bySlot[1].clickMultiplier *= 1.3;
+            markActive(char);
+          }
+        });
+      }
+
+      team.forEach((char) => {
+        const key = getCharKey(char);
+        char.talentActive = !!talentActiveByKey[key];
+      });
+
+      return team.sort((left, right) => left.teamSlot - right.teamSlot);
+    }
+
     function openStatsModal(charId) {
       const char = allCharacters.find(c => c.id === charId);
       if (!char) {
         return;
       }
+      currentModalCharId = char.id;
+      const talentActivityMap = getTalentActivityMap();
+      const charKey = getCharacterKey(char);
+      const hasTalent = !!char.talentId;
+      const isTalentActive = !!talentActivityMap[charKey] && hasTalent;
+      const talentStateText = hasTalent ? (isTalentActive ? 'Active' : 'Inactive') : 'No Talent';
       document.getElementById('modalCharName').textContent = char.name;
       document.getElementById('modalCharStars').innerHTML = getStarString(char.stars);
 
@@ -893,6 +2002,14 @@
         <div class="modal-stat-item">
           <span class="modal-stat-label">Level</span>
           <span class="modal-stat-value">${char.level}</span>
+        </div>
+        <div class="modal-stat-item">
+          <span class="modal-stat-label">Talent</span>
+          <span class="modal-stat-value modal-talent-value">${renderTalentWithHelp(char.talentName || 'No Talent', char.talentId)}</span>
+        </div>
+        <div class="modal-stat-item">
+          <span class="modal-stat-label">Talent Status</span>
+          <span class="modal-stat-value">${talentStateText}</span>
         </div>
         <div class="modal-stat-item">
           <span class="modal-stat-label">Income Multiplier</span>
@@ -924,11 +2041,147 @@
         </div>
       `;
 
+      setupFusionSection(char);
       document.getElementById('statsModal').style.display = 'block';
+    }
+
+    function setupFusionSection(char) {
+      const fusionBtn = document.getElementById('modalFusionBtn');
+      const fusionPanel = document.getElementById('fusionPanel');
+      const requirement = getFusionRequirement(char.level);
+      const candidates = getMatchingFusionCandidates(char);
+
+      fusionPanel.className = 'fusion-panel';
+      fusionPanel.innerHTML = '';
+
+      if (!requirement) {
+        fusionBtn.disabled = true;
+        fusionBtn.textContent = 'Fusion (Max level)';
+        return;
+      }
+
+      const enough = candidates.length >= requirement.extraNeeded;
+      fusionBtn.disabled = !enough;
+      fusionBtn.textContent = `Fusion -> Lv.${requirement.nextLevel}`;
+
+      fusionBtn.onclick = () => {
+        renderFusionPanel(char, requirement, candidates);
+      };
+    }
+
+    function renderFusionPanel(targetChar, requirement, candidates) {
+      const fusionPanel = document.getElementById('fusionPanel');
+
+      if (fusionPanel.classList.contains('visible')) {
+        fusionPanel.classList.remove('visible');
+        fusionPanel.innerHTML = '';
+        return;
+      }
+
+      const candidateRows = candidates.map((candidate) => {
+        const safeName = escapeHtml(candidate.name);
+        const safeMeta = escapeHtml(formatFusionSourceLabel(candidate));
+        return `
+          <label class="fusion-option">
+            <span class="fusion-option-main">${safeName} (${candidate.stars}★)</span>
+            <span>${safeMeta}</span>
+            <input type="checkbox" class="fusion-candidate-checkbox" data-fusion-id="${candidate.id}">
+          </label>
+        `;
+      }).join('');
+
+      fusionPanel.innerHTML = `
+        <div class="fusion-title">Fusion ${escapeHtml(targetChar.name)} Lv.${Number(targetChar.level) || 1} -> Lv.${requirement.nextLevel}</div>
+        <div class="fusion-help">Need ${requirement.extraNeeded} extra copy/copies of the same character. Available: ${candidates.length}.</div>
+        ${getFusionPreviewMarkup(targetChar)}
+        <div class="fusion-list">
+          ${candidateRows || '<div class="fusion-empty">No matching copy available.</div>'}
+        </div>
+        <button class="fusion-confirm" id="fusionConfirmBtn" type="button" disabled>Confirm fusion</button>
+      `;
+
+      fusionPanel.classList.add('visible');
+
+      const checkboxes = Array.from(fusionPanel.querySelectorAll('.fusion-candidate-checkbox'));
+      const confirmBtn = document.getElementById('fusionConfirmBtn');
+
+      const refreshSelectionState = () => {
+        const selected = checkboxes.filter((checkbox) => checkbox.checked);
+        const reachedLimit = selected.length >= requirement.extraNeeded;
+        checkboxes.forEach((checkbox) => {
+          checkbox.disabled = reachedLimit && !checkbox.checked;
+        });
+        confirmBtn.disabled = selected.length !== requirement.extraNeeded;
+      };
+
+      checkboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', refreshSelectionState);
+      });
+
+      confirmBtn.addEventListener('click', () => {
+        const selectedIds = checkboxes
+          .filter((checkbox) => checkbox.checked)
+          .map((checkbox) => Number(checkbox.dataset.fusionId))
+          .filter((id) => Number.isInteger(id));
+
+        if (selectedIds.length !== requirement.extraNeeded) {
+          return;
+        }
+
+        executeFusion(targetChar.id, selectedIds);
+      });
+
+      refreshSelectionState();
+    }
+
+    function executeFusion(targetCharId, consumedIds) {
+      const target = allCharacters.find((char) => Number(char.id) === Number(targetCharId));
+      if (!target) {
+        return;
+      }
+
+      const requirement = getFusionRequirement(target.level);
+      if (!requirement || consumedIds.length !== requirement.extraNeeded) {
+        return;
+      }
+
+      const consumedSet = new Set(consumedIds.map((id) => Number(id)));
+      const validConsumed = allCharacters.filter((char) => consumedSet.has(Number(char.id)));
+
+      if (validConsumed.length !== requirement.extraNeeded) {
+        return;
+      }
+
+      const sameTemplate = validConsumed.every((char) => Number(char.templateId || char.id) === Number(target.templateId || target.id));
+      if (!sameTemplate) {
+        return;
+      }
+
+      applyFusionBoost(target);
+
+      const removalIndexes = allCharacters
+        .map((char, index) => ({ id: Number(char.id), index }))
+        .filter((entry) => consumedSet.has(entry.id))
+        .map((entry) => entry.index)
+        .sort((left, right) => right - left);
+
+      removalIndexes.forEach((index) => {
+        allCharacters.splice(index, 1);
+      });
+
+      persistOwnedCharactersToReserveStorage();
+      renderCharacters();
+      openStatsModal(target.id);
     }
 
     function closeStatsModal() {
       document.getElementById('statsModal').style.display = 'none';
+      const fusionPanel = document.getElementById('fusionPanel');
+      if (fusionPanel) {
+        fusionPanel.className = 'fusion-panel';
+        fusionPanel.innerHTML = '';
+      }
+      currentModalCharId = null;
     }
 
     window.onclick = function(event) {
@@ -938,7 +2191,7 @@
       }
     }
 
-    function createCharacterCard(char, isReserve = false) {
+    function createCharacterCard(char, isReserve = false, stackMeta = null, cardOptions = {}) {
       const card = document.createElement('div');
       card.className = isReserve ? 'reserve-character-card' : 'character-card';
       card.classList.add(`stars-${char.stars}`);
@@ -953,14 +2206,69 @@
       const stackLabel = isReserve && stackCount > 1
         ? `<span class="stack-count">x${stackCount}</span>`
         : '';
+      const talentLabel = char.talentName || 'No Talent';
+      const hasTalent = !!char.talentId;
+      const talentIsActive = hasTalent && !isReserve && !!cardOptions.talentActive;
+      const talentStateClass = !hasTalent ? 'none' : (talentIsActive ? 'active' : 'inactive');
+      const talentStateText = !hasTalent ? 'No Talent' : (talentIsActive ? 'Active' : 'Inactive');
+      const canSell = canSellCharacter(char);
+      const sellValue = getCharacterSellValue(char);
+      const stackNavigation = isReserve && stackMeta && stackMeta.stackCount > 1
+        ? `
+          <div class="stack-nav">
+            <button class="stack-nav-btn" data-stack-action="prev" type="button">&#9664;</button>
+            <span class="stack-nav-index">${stackMeta.stackIndex + 1}/${stackMeta.stackCount}</span>
+            <button class="stack-nav-btn" data-stack-action="next" type="button">&#9654;</button>
+          </div>
+        `
+        : '';
       
       card.innerHTML = `
         <div class="character-header">
           <div class="character-name">${char.name} ${stackLabel}</div>
           <div class="character-stars">${getStarString(char.stars)}</div>
           <div class="character-level">Level ${char.level}</div>
+          <div class="talent-badge">${renderTalentWithHelp(talentLabel, char.talentId)}</div>
+          <div class="talent-state ${talentStateClass}">${talentStateText}</div>
+          ${stackNavigation}
+          ${canSell ? `<button class="sell-btn" data-sell-id="${char.id}" type="button">Sell ${sellValue}</button>` : ''}
         </div>
       `;
+
+      const sellButton = card.querySelector('.sell-btn');
+      if (sellButton) {
+        sellButton.addEventListener('pointerdown', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        });
+
+        sellButton.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          sellCharacter(char.id);
+        });
+      }
+
+      if (isReserve && stackMeta && stackMeta.stackCount > 1) {
+        const buttons = card.querySelectorAll('.stack-nav-btn');
+        buttons.forEach((button) => {
+          button.addEventListener('pointerdown', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          });
+
+          button.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const direction = button.dataset.stackAction === 'prev' ? -1 : 1;
+            const templateId = Number(char.templateId || char.id);
+            const current = Number(reserveStackCursorByTemplate[templateId]) || 0;
+            const next = (current + direction + stackMeta.stackCount) % stackMeta.stackCount;
+            reserveStackCursorByTemplate[templateId] = next;
+            renderCharacters();
+          });
+        });
+      }
 
       // Drag events
       card.addEventListener('dragstart', (e) => {
@@ -1031,6 +2339,14 @@
       teamContainer.innerHTML = '';
       reserveContainer.innerHTML = '';
 
+      const orderedTeam = [0, 1, 2]
+        .map(slot => allCharacters.find(c => c.teamSlot === slot))
+        .filter(Boolean);
+      const effectiveTeam = applyTalentEffects(orderedTeam);
+      const talentActivityByKey = Object.fromEntries(
+        effectiveTeam.map((char) => [getCharacterKey(char), !!char.talentActive])
+      );
+
       let totalPower = 0;
       let totalIncomeBonus = 1;
       let totalClickBonus = 1;
@@ -1052,17 +2368,27 @@
         reserveGroups.get(key).push(char);
       });
 
-      const stackedReserveCharacters = Array.from(reserveGroups.values()).map((group) => {
-        const representative = group[0];
-        representative.stackCount = group.length;
-        return representative;
+      const stackedReserveCharacters = Array.from(reserveGroups.entries()).map(([templateId, group]) => {
+        const stackCount = group.length;
+        const savedCursor = Number(reserveStackCursorByTemplate[templateId]) || 0;
+        const stackIndex = ((savedCursor % stackCount) + stackCount) % stackCount;
+        reserveStackCursorByTemplate[templateId] = stackIndex;
+        const selected = group[stackIndex];
+        selected.stackCount = stackCount;
+
+        return {
+          char: selected,
+          templateId,
+          stackCount,
+          stackIndex
+        };
       }).sort((left, right) => {
-        if (left.stars !== right.stars) {
+        if (left.char.stars !== right.char.stars) {
           return reserveSortDirection === 'desc'
-            ? right.stars - left.stars
-            : left.stars - right.stars;
+            ? right.char.stars - left.char.stars
+            : left.char.stars - right.char.stars;
         }
-        return left.name.localeCompare(right.name);
+        return left.char.name.localeCompare(right.char.name);
       });
 
       // Render team with fixed 3 slots
@@ -1071,7 +2397,9 @@
         
         if (char) {
           totalPower += 1;
-          const card = createCharacterCard(char, false);
+          const card = createCharacterCard(char, false, null, {
+            talentActive: !!talentActivityByKey[getCharacterKey(char)]
+          });
           card.dataset.slotIndex = i;
           teamContainer.appendChild(card);
         } else {
@@ -1176,8 +2504,11 @@
         emptyMsg.textContent = 'No characters in reserve';
         reserveContainer.appendChild(emptyMsg);
       } else {
-        stackedReserveCharacters.forEach((char) => {
-          const card = createCharacterCard(char, true);
+        stackedReserveCharacters.forEach((stackEntry) => {
+          const card = createCharacterCard(stackEntry.char, true, {
+            stackCount: stackEntry.stackCount,
+            stackIndex: stackEntry.stackIndex
+          });
           reserveContainer.appendChild(card);
         });
       }
@@ -1196,11 +2527,7 @@
         }
       });
 
-      const orderedTeam = [0, 1, 2]
-        .map(slot => allCharacters.find(c => c.teamSlot === slot))
-        .filter(Boolean);
-
-      orderedTeam.forEach(char => {
+      effectiveTeam.forEach(char => {
         totalIncomeBonus *= char.incomeMultiplier;
         totalClickBonus *= char.clickMultiplier;
         totalSizeBonus = applyOrderedBonus(totalSizeBonus, char.sizeAdd, char.sizeMult);
@@ -1219,7 +2546,7 @@
       document.getElementById('totalResaleBonus').textContent = totalResaleBonus.toFixed(1) + '%';
       document.getElementById('totalFishingSpeed').textContent = totalFishingSpeed.toFixed(1) + 'x';
 
-      updateContributionDetails(orderedTeam);
+      updateContributionDetails(effectiveTeam);
       saveTeamState(orderedTeam, {
         incomeMultiplier: totalIncomeBonus,
         clickMultiplier: totalClickBonus,
@@ -1235,6 +2562,11 @@
     }
 
     function updateStatProgression() {
+      const orderedTeam = [0, 1, 2]
+        .map(slot => allCharacters.find(c => c.teamSlot === slot))
+        .filter(Boolean);
+      const effectiveTeam = applyTalentEffects(orderedTeam);
+
       // Calculate cumulative stats from left to right (slot 0, 0+1, 0+1+2)
       const progressions = {
         income: [],
@@ -1256,7 +2588,7 @@
       let cumFishing = 1;
 
       for (let i = 0; i < 3; i++) {
-        const char = allCharacters.find(c => c.teamSlot === i);
+        const char = effectiveTeam.find(c => c.teamSlot === i);
         if (char) {
           cumIncome *= char.incomeMultiplier;
           cumClick *= char.clickMultiplier;
@@ -1287,10 +2619,13 @@
     }
 
     function formatBonusValue(add, mult) {
-      // Format bonus as "+X%" if only additive, "×X" if only multiplicative, or both
+      // Format additive and multiplicative values, including penalties.
       let result = '';
-      if (add > 0) result += '+' + add.toFixed(1) + '%';
-      if (mult > 1) {
+      if (add !== 0) {
+        const addPrefix = add > 0 ? '+' : '';
+        result += addPrefix + add.toFixed(1) + '%';
+      }
+      if (mult !== 1) {
         if (result) result += ' ';
         result += '×' + mult.toFixed(2);
       }
@@ -1332,9 +2667,12 @@
       const persistedChars = teamChars.map((char) => ({
         id: char.templateId || char.id,
         templateId: char.templateId || char.id,
+        instanceId: char.instanceId || null,
         name: char.name,
         stars: char.stars,
         level: char.level,
+        talentId: char.talentId || null,
+        talentName: char.talentName || 'No Talent',
         incomeMultiplier: char.incomeMultiplier,
         clickMultiplier: char.clickMultiplier,
         sizeAdd: char.sizeAdd,
@@ -1359,6 +2697,7 @@
         updatedAt: Date.now(),
         slots: teamChars.map((char) => ({
           templateId: char.templateId || char.id,
+          instanceId: char.instanceId || null,
           slot: char.teamSlot,
           id: char.templateId || char.id,
           name: char.name,
@@ -1366,6 +2705,12 @@
         })),
         totals
       }));
+
+      lastSavedSlotByInstanceId = Object.fromEntries(
+        teamChars
+          .filter((char) => typeof char.instanceId === 'string' && char.instanceId)
+          .map((char) => [char.instanceId, char.teamSlot])
+      );
     }
 
     function displayProgression(elementId, values) {

@@ -614,6 +614,11 @@
       border-radius: 10px;
       cursor: pointer;
     }
+
+    .settings-nav-button {
+      margin-left: auto;
+      margin-right: 16px;
+    }
   </style>
 </head>
 
@@ -625,7 +630,8 @@
       <button class="nav-button" onclick="window.location.href='inventaire/'">Inventory</button>
       <button class="nav-button" onclick="window.location.href='team/'">Team</button>
       <button class="nav-button" onclick="window.location.href='shop/'">Shop</button>
-      <button class="nav-button" onclick="window.location.href='settings/'">Settings</button>
+      <button class="nav-button" onclick="window.location.href='reproduction/'">Reproduction</button>
+      <button class="nav-button settings-nav-button" onclick="window.location.href='settings/'">Settings</button>
     </div>
   </div>
 
@@ -903,6 +909,7 @@
       let lastManualCatchMs = 0;
       let inventoryTurn = Number(localStorage.getItem("clicker_inventoryTurn")) || 0;
       const TEAM_STATE_STORAGE_KEY = "clicker_teamState";
+      const TEAM_ROSTER_STORAGE_KEY = "clicker_teamRoster";
 
       const defaultTeamBonuses = {
         incomeMultiplier: 1,
@@ -998,7 +1005,7 @@
           }
         }
 
-        if (event.key === TEAM_STATE_STORAGE_KEY) {
+        if (event.key === TEAM_STATE_STORAGE_KEY || event.key === TEAM_ROSTER_STORAGE_KEY) {
           refreshTeamBonuses();
         }
       });
@@ -1202,18 +1209,22 @@
 
       function loadTeamBonuses() {
         try {
-          const stored = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
-          if (!stored) {
-            return { ...defaultTeamBonuses };
+          const storedState = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
+          const storedRoster = localStorage.getItem(TEAM_ROSTER_STORAGE_KEY);
+
+          const parsedState = storedState ? JSON.parse(storedState) : null;
+          const parsedRoster = storedRoster ? JSON.parse(storedRoster) : null;
+
+          if (parsedState?.totals) {
+            return normalizeTeamBonuses(parsedState.totals);
           }
 
-          const parsed = JSON.parse(stored);
-          if (parsed && parsed.totals) {
-            return normalizeTeamBonuses(parsed.totals);
+          if (parsedRoster?.totals) {
+            return normalizeTeamBonuses(parsedRoster.totals);
           }
 
-          if (parsed && Array.isArray(parsed.teamChars)) {
-            return computeTeamBonusesFromChars(parsed.teamChars);
+          if (Array.isArray(parsedState?.teamChars)) {
+            return computeTeamBonusesFromChars(parsedState.teamChars);
           }
         } catch (error) {
           return { ...defaultTeamBonuses };
@@ -1225,7 +1236,7 @@
       function loadTeamReminder() {
         try {
           const storedState = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
-          const storedRoster = localStorage.getItem("clicker_teamRoster");
+          const storedRoster = localStorage.getItem(TEAM_ROSTER_STORAGE_KEY);
 
           if (!storedState && !storedRoster) {
             return { teamChars: [], totals: { ...defaultTeamBonuses } };
@@ -1233,6 +1244,11 @@
 
           const parsedState = storedState ? JSON.parse(storedState) : null;
           const parsedRoster = storedRoster ? JSON.parse(storedRoster) : null;
+          const stateUpdatedAt = Number(parsedState?.updatedAt) || 0;
+          const rosterUpdatedAt = Number(parsedRoster?.updatedAt) || 0;
+          const preferredTotals = stateUpdatedAt >= rosterUpdatedAt
+            ? parsedState?.totals
+            : parsedRoster?.totals;
           const teamChars = Array.isArray(parsedState?.teamChars)
             ? parsedState.teamChars
             : (Array.isArray(parsedRoster?.slots)
@@ -1257,9 +1273,11 @@
                   teamSlot: Number(entry.slot)
                 }))
               : []);
-          const totals = parsedState?.totals
-            ? normalizeTeamBonuses(parsedState.totals)
-            : (parsedRoster?.totals ? normalizeTeamBonuses(parsedRoster.totals) : computeTeamBonusesFromChars(teamChars));
+          const totals = preferredTotals
+            ? normalizeTeamBonuses(preferredTotals)
+            : (parsedState?.totals
+              ? normalizeTeamBonuses(parsedState.totals)
+              : (parsedRoster?.totals ? normalizeTeamBonuses(parsedRoster.totals) : computeTeamBonusesFromChars(teamChars)));
           return { teamChars, totals };
         } catch (error) {
           return { teamChars: [], totals: { ...defaultTeamBonuses } };
