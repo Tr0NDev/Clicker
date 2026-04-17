@@ -635,7 +635,7 @@
 
     <div class="reserve-section">
       <div class="reserve-title">
-        <span>Réserve de personnages</span>
+        <span>Character Reserve</span>
         <label class="reserve-sort" for="reserveSortSelect">
           Sort:
           <select id="reserveSortSelect">
@@ -1079,7 +1079,7 @@
           const emptySlot = document.createElement('div');
           emptySlot.className = 'character-card slot-empty';
           emptySlot.dataset.slotIndex = i;
-          emptySlot.innerHTML = '<div class="slot-empty-text">Emplacement vide</div>';
+          emptySlot.innerHTML = '<div class="slot-empty-text">Empty slot</div>';
           
           // Drag over effects for empty slot
           emptySlot.addEventListener('dragover', (e) => {
@@ -1173,7 +1173,7 @@
       if (stackedReserveCharacters.length === 0) {
         const emptyMsg = document.createElement('div');
         emptyMsg.className = 'reserve-empty';
-        emptyMsg.textContent = 'Aucun personnage en réserve';
+        emptyMsg.textContent = 'No characters in reserve';
         reserveContainer.appendChild(emptyMsg);
       } else {
         stackedReserveCharacters.forEach((char) => {
@@ -1309,13 +1309,13 @@
       };
 
       if (noMembers) {
-        setDetail('incomeOrigins', 'Aucun bonus actif');
-        setDetail('clickOrigins', 'Aucun bonus actif');
-        setDetail('sizeOrigins', 'Aucun bonus actif');
-        setDetail('weightOrigins', 'Aucun bonus actif');
-        setDetail('chanceOrigins', 'Aucun bonus actif');
-        setDetail('resaleOrigins', 'Aucun bonus actif');
-        setDetail('fishingOrigins', 'Aucun bonus actif');
+        setDetail('incomeOrigins', 'No active bonus');
+        setDetail('clickOrigins', 'No active bonus');
+        setDetail('sizeOrigins', 'No active bonus');
+        setDetail('weightOrigins', 'No active bonus');
+        setDetail('chanceOrigins', 'No active bonus');
+        setDetail('resaleOrigins', 'No active bonus');
+        setDetail('fishingOrigins', 'No active bonus');
         return;
       }
 
