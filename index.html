@@ -2,10 +2,6 @@
 <html>
 <head>
   <title>Clicker</title>
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WRX7NXVH"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -1061,6 +1057,10 @@
 </head>
 
 <body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WRX7NXVH"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
 
   <div class="top-bar">
     <div class="top-nav">
@@ -2418,6 +2418,7 @@
         const fishDescriptors = getFishDescriptors(currentFish);
         const fishPerClick = 1 + tripleHookLevel;
         const rodTier = getRodTierInfo(rodTierLevel);
+        const hideFishCharacteristics = !tutorialCompleted && caughtCount < 30;
         const inventoryTotalValue = inventory.reduce((sum, fish) => {
           const fishValue = Number(fish.currentValue) || Number(fish.basePrice) || Number(fish.price) || 0;
           return sum + fishValue;
@@ -2432,7 +2433,9 @@
         inventoryTotalValueDisplay.textContent = String(inventoryTotalValue);
         fishButtonLabel.textContent = currentFish.type + " " + fishDescriptors;
         fishButtonLabel.className = "fish-title " + rarityClass;
-        fishDescription.textContent = "Rarity: " + formatRarityLabel(currentFish.rarity) + " | Size: " + currentFish.size + " cm | Weight: " + currentFish.weight + " kg | Price: " + currentFish.price;
+        fishDescription.textContent = hideFishCharacteristics
+          ? ""
+          : "Rarity: " + formatRarityLabel(currentFish.rarity) + " | Size: " + currentFish.size + " cm | Weight: " + currentFish.weight + " kg | Price: " + currentFish.price;
         fishPrice.textContent = String(currentFish.price);
         tripleHookUpgradeCount.textContent = String(tripleHookLevel);
         rodUpgradeCount.textContent = String(rodTierLevel);
@@ -2599,7 +2602,9 @@
       }
 
       function showTutorialDialog() {
-        tutorialCaughtCount.textContent = String(caughtCount);
+        if (tutorialCaughtCount) {
+          tutorialCaughtCount.textContent = String(caughtCount);
+        }
         tutorialDialog.classList.add("show");
         tutorialBackdrop.classList.add("show");
       }

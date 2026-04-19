@@ -353,19 +353,6 @@
     </div>
 
     <section class="danger-zone">
-      <h2>Cheat Menu - Add Missing Variables</h2>
-      <div class="small">This allows you to add or modify any localStorage variables that might be missing.</div>
-      <div class="cheat-menu">
-        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-          <input type="text" id="cheatVarName" placeholder="Variable name (e.g., clicker_customVar)" style="flex: 1; padding: 8px; border: 1px solid #627b8c; background: #10171d; color: #fff; border-radius: 8px;">
-          <input type="text" id="cheatVarValue" placeholder="Value" style="flex: 1; padding: 8px; border: 1px solid #627b8c; background: #10171d; color: #fff; border-radius: 8px;">
-          <button id="cheatAddVar" style="padding: 8px 16px; cursor: pointer;">Add/Update</button>
-        </div>
-        <div id="cheatStatus" style="color: #9ec3d8; font-size: 14px; min-height: 20px;"></div>
-      </div>
-    </section>
-
-    <section class="danger-zone">
       <h2>Danger Zone</h2>
       <div class="small">This will delete all game save data (money, inventory, upgrades, team, shop, and settings).</div>
       <button id="resetSave" class="danger-button">Reset Save</button>
@@ -381,10 +368,28 @@
     const reloadParams = document.getElementById("reloadParams");
     const resetSave = document.getElementById("resetSave");
     const paramsStatus = document.getElementById("paramsStatus");
-    const cheatAddVar = document.getElementById("cheatAddVar");
-    const cheatVarName = document.getElementById("cheatVarName");
-    const cheatVarValue = document.getElementById("cheatVarValue");
-    const cheatStatus = document.getElementById("cheatStatus");
+
+    const LEGACY_SAVE_KEY_MAP = {
+      money: "clicker_money",
+      hooks: "clicker_hooks",
+      caughtCount: "clicker_caughtCount",
+      inventory: "clicker_inventory",
+      currentFish: "clicker_currentFish",
+      inventoryTurn: "clicker_inventoryTurn",
+      tripleHookLevel: "clicker_tripleHookLevel",
+      rodTierLevel: "clicker_rodTierLevel",
+      sizeBoostLevel: "clicker_sizeBoostLevel",
+      autoFisherLevel: "clicker_autoFisherLevel",
+      weightBoostLevel: "clicker_weightBoostLevel",
+      autoWaitReductionLevel: "clicker_autoWaitReductionLevel",
+      autoSellEnabled: "clicker_autoSellEnabled",
+      autoSellMode: "clicker_autoSellMode",
+      autoSellMaxPrice: "clicker_autoSellMaxPrice",
+      autoSellMaxRarity: "clicker_autoSellMaxRarity",
+      tutorialCompleted: "clicker_tutorialCompleted",
+      upgradesUnlocked: "clicker_upgradesUnlocked",
+      upgradesWidth: "clicker_upgradesWidth"
+    };
 
     const paramMoney = document.getElementById("paramMoney");
     const paramHooks = document.getElementById("paramHooks");
@@ -429,129 +434,56 @@
       };
     }
 
-    function buildSaveText(state) {
-      return [
-        "money=" + state.money,
-        "hooks=" + state.hooks,
-        "caughtCount=" + state.caughtCount,
-        "inventory=" + state.inventory,
-        "currentFish=" + state.currentFish,
-        "inventoryTurn=" + state.inventoryTurn,
-        "tripleHookLevel=" + state.tripleHookLevel,
-        "rodTierLevel=" + state.rodTierLevel,
-        "sizeBoostLevel=" + state.sizeBoostLevel,
-        "autoFisherLevel=" + state.autoFisherLevel,
-        "weightBoostLevel=" + state.weightBoostLevel,
-        "autoWaitReductionLevel=" + state.autoWaitReductionLevel,
-        "autoSellEnabled=" + state.autoSellEnabled,
-        "autoSellMode=" + state.autoSellMode,
-        "autoSellMaxPrice=" + state.autoSellMaxPrice,
-        "autoSellMaxRarity=" + state.autoSellMaxRarity,
-        "tutorialCompleted=" + state.tutorialCompleted,
-        "upgradesUnlocked=" + state.upgradesUnlocked,
-        "upgradesWidth=" + state.upgradesWidth,
-        "saveTime=" + state.saveTime
-      ].join("\n");
+    function getAllClickerEntries() {
+      const entries = [];
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (!key || !key.startsWith("clicker_")) {
+          continue;
+        }
+
+        entries.push({ key, value: localStorage.getItem(key) || "" });
+      }
+
+      entries.sort((a, b) => a.key.localeCompare(b.key));
+      return entries;
+    }
+
+    function buildSaveText() {
+      return getAllClickerEntries()
+        .map((entry) => entry.key + "=" + entry.value)
+        .join("\n");
     }
 
     function parseSaveText(text) {
-      const state = {
-        money: 0,
-        hooks: 0,
-        caughtCount: 0,
-        inventory: "[]",
-        currentFish: "",
-        inventoryTurn: 0,
-        tripleHookLevel: 0,
-        rodTierLevel: 0,
-        sizeBoostLevel: 0,
-        autoFisherLevel: 0,
-        weightBoostLevel: 0,
-        autoWaitReductionLevel: 0,
-        autoSellEnabled: "false",
-        autoSellMode: "price",
-        autoSellMaxPrice: 25,
-        autoSellMaxRarity: "common",
-        tutorialCompleted: "false",
-        upgradesUnlocked: "false",
-        upgradesWidth: 420,
-        saveTime: ""
-      };
+      const importedEntries = {};
 
       const lines = text.split(/\r?\n/);
       for (const line of lines) {
+        if (!line.trim()) {
+          continue;
+        }
+
         const parts = line.split("=");
         if (parts.length < 2) {
           continue;
         }
 
         const key = parts[0].trim();
-        const rawValue = parts.slice(1).join("=").trim();
-        const value = Number(rawValue);
+        const rawValue = parts.slice(1).join("=");
 
-        if (key === "money" && !Number.isNaN(value)) {
-          state.money = value;
+        if (key.startsWith("clicker_")) {
+          importedEntries[key] = rawValue;
+          continue;
         }
-        if (key === "hooks" && !Number.isNaN(value)) {
-          state.hooks = value;
-        }
-        if (key === "caughtCount" && !Number.isNaN(value)) {
-          state.caughtCount = value;
-        }
-        if (key === "inventory") {
-          state.inventory = rawValue;
-        }
-        if (key === "currentFish") {
-          state.currentFish = rawValue;
-        }
-        if (key === "inventoryTurn" && !Number.isNaN(value)) {
-          state.inventoryTurn = value;
-        }
-        if (key === "tripleHookLevel" && !Number.isNaN(value)) {
-          state.tripleHookLevel = value;
-        }
-        if (key === "rodTierLevel" && !Number.isNaN(value)) {
-          state.rodTierLevel = value;
-        }
-        if (key === "sizeBoostLevel" && !Number.isNaN(value)) {
-          state.sizeBoostLevel = value;
-        }
-        if (key === "autoFisherLevel" && !Number.isNaN(value)) {
-          state.autoFisherLevel = value;
-        }
-        if (key === "weightBoostLevel" && !Number.isNaN(value)) {
-          state.weightBoostLevel = value;
-        }
-        if (key === "autoWaitReductionLevel" && !Number.isNaN(value)) {
-          state.autoWaitReductionLevel = value;
-        }
-        if (key === "autoSellEnabled") {
-          state.autoSellEnabled = rawValue === "true" ? "true" : "false";
-        }
-        if (key === "autoSellMode") {
-          state.autoSellMode = rawValue === "rarity" ? "rarity" : "price";
-        }
-        if (key === "autoSellMaxPrice" && !Number.isNaN(value)) {
-          state.autoSellMaxPrice = value;
-        }
-        if (key === "autoSellMaxRarity") {
-          state.autoSellMaxRarity = rawValue || "common";
-        }
-        if (key === "tutorialCompleted") {
-          state.tutorialCompleted = rawValue === "true" ? "true" : "false";
-        }
-        if (key === "upgradesUnlocked") {
-          state.upgradesUnlocked = rawValue === "true" ? "true" : "false";
-        }
-        if (key === "upgradesWidth" && !Number.isNaN(value)) {
-          state.upgradesWidth = value;
-        }
-        if (key === "saveTime") {
-          state.saveTime = rawValue;
+
+        const mappedKey = LEGACY_SAVE_KEY_MAP[key];
+        if (mappedKey) {
+          importedEntries[mappedKey] = rawValue;
         }
       }
 
-      return state;
+      return importedEntries;
     }
 
     function clampInt(value, min, fallback) {
@@ -604,7 +536,7 @@
       localStorage.setItem("clicker_upgradesWidth", String(clampInt(paramUpgradesWidth.value, 260, 420)));
 
       const state = readGameState();
-      saveOutput.value = buildSaveText(state);
+      saveOutput.value = buildSaveText();
       paramsStatus.textContent = "Parameters applied.";
     }
 
@@ -627,65 +559,46 @@
       const freshState = readGameState();
       fillParamInputs(freshState);
       saveInput.value = "";
-      saveOutput.value = buildSaveText(freshState);
+      saveOutput.value = buildSaveText();
       paramsStatus.textContent = "Save reset complete.";
       alert("Save reset complete.");
     }
 
     generateSave.addEventListener("click", () => {
-      const saveText = buildSaveText(readGameState());
+      const saveText = buildSaveText();
       saveOutput.value = saveText;
       saveOutput.focus();
       saveOutput.select();
     });
 
     loadSave.addEventListener("click", () => {
-      const state = parseSaveText(saveInput.value);
-      localStorage.setItem("clicker_money", String(state.money));
-      localStorage.setItem("clicker_hooks", String(state.hooks));
-      localStorage.setItem("clicker_caughtCount", String(state.caughtCount));
-      localStorage.setItem("clicker_inventory", state.inventory);
-      localStorage.setItem("clicker_inventoryTurn", String(state.inventoryTurn));
-      localStorage.setItem("clicker_tripleHookLevel", String(state.tripleHookLevel));
-      localStorage.setItem("clicker_rodTierLevel", String(state.rodTierLevel));
-      localStorage.setItem("clicker_sizeBoostLevel", String(state.sizeBoostLevel));
-      localStorage.setItem("clicker_autoFisherLevel", String(state.autoFisherLevel));
-      localStorage.setItem("clicker_weightBoostLevel", String(state.weightBoostLevel));
-      localStorage.setItem("clicker_autoWaitReductionLevel", String(state.autoWaitReductionLevel));
-      localStorage.setItem("clicker_autoSellEnabled", state.autoSellEnabled);
-      localStorage.setItem("clicker_autoSellMode", state.autoSellMode);
-      localStorage.setItem("clicker_autoSellMaxPrice", String(state.autoSellMaxPrice));
-      localStorage.setItem("clicker_autoSellMaxRarity", state.autoSellMaxRarity);
-      localStorage.setItem("clicker_upgradesWidth", String(state.upgradesWidth));
+      const importedEntries = parseSaveText(saveInput.value);
+      const importedKeys = Object.keys(importedEntries);
 
-      if (state.currentFish) {
-        localStorage.setItem("clicker_currentFish", state.currentFish);
+      if (importedKeys.length === 0) {
+        alert("No valid save data found.");
+        return;
       }
 
-      const loadedState = {
-        money: state.money,
-        hooks: state.hooks,
-        caughtCount: state.caughtCount,
-        inventory: state.inventory,
-        currentFish: state.currentFish || localStorage.getItem("clicker_currentFish") || "",
-        inventoryTurn: state.inventoryTurn,
-        tripleHookLevel: state.tripleHookLevel,
-        rodTierLevel: state.rodTierLevel,
-        sizeBoostLevel: state.sizeBoostLevel,
-        autoFisherLevel: state.autoFisherLevel,
-        weightBoostLevel: state.weightBoostLevel,
-        autoWaitReductionLevel: state.autoWaitReductionLevel,
-        autoSellEnabled: state.autoSellEnabled,
-        autoSellMode: state.autoSellMode,
-        autoSellMaxPrice: state.autoSellMaxPrice,
-        autoSellMaxRarity: state.autoSellMaxRarity,
-        upgradesWidth: state.upgradesWidth,
-        saveTime: new Date().toISOString()
-      };
+      const keysToDelete = [];
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("clicker_")) {
+          keysToDelete.push(key);
+        }
+      }
+
+      keysToDelete.forEach((key) => localStorage.removeItem(key));
+
+      importedKeys.forEach((key) => {
+        localStorage.setItem(key, importedEntries[key]);
+      });
+
+      const loadedState = readGameState();
 
       fillParamInputs(loadedState);
       paramsStatus.textContent = "Save loaded and parameters synced.";
-      saveOutput.value = buildSaveText(loadedState);
+      saveOutput.value = buildSaveText();
       alert("Save successfully loaded!");
     });
 
@@ -698,37 +611,13 @@
       paramsStatus.textContent = "Parameters reloaded from save.";
     });
 
-    cheatAddVar.addEventListener("click", () => {
-      const varName = cheatVarName.value.trim();
-      const varValue = cheatVarValue.value.trim();
-
-      if (!varName) {
-        cheatStatus.textContent = "❌ Please enter a variable name.";
-        return;
-      }
-
-      if (!varValue) {
-        cheatStatus.textContent = "❌ Please enter a value.";
-        return;
-      }
-
-      localStorage.setItem(varName, varValue);
-      cheatStatus.textContent = "✅ Variable added/updated: " + varName + " = " + varValue;
-      cheatVarName.value = "";
-      cheatVarValue.value = "";
-
-      const state = readGameState();
-      fillParamInputs(state);
-      saveOutput.value = buildSaveText(state);
-    });
-
     resetSave.addEventListener("click", () => {
       resetAllGameSave();
     });
 
     const initialState = readGameState();
     fillParamInputs(initialState);
-    saveOutput.value = buildSaveText(initialState);
+    saveOutput.value = buildSaveText();
 
     // Apply limited navigation mode if upgrades not unlocked
     const upgradesUnlocked = localStorage.getItem("clicker_upgradesUnlocked") === "true";
