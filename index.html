@@ -989,11 +989,53 @@
     }
 
     /* Limited navigation mode (after 30 fish, before 10k money) */
-    body.limited-nav-mode .nav-button:nth-child(3),
-    body.limited-nav-mode .nav-button:nth-child(4),
-    body.limited-nav-mode .nav-button:nth-child(5),
-    body.limited-nav-mode .nav-button:nth-child(6) {
+    body.limited-nav-mode .locked-nav-button {
       display: none;
+    }
+
+    .hook-notification-layer {
+      position: fixed;
+      right: 14px;
+      top: 90px;
+      z-index: 260;
+      display: grid;
+      gap: 8px;
+      pointer-events: none;
+      max-width: min(92vw, 420px);
+    }
+
+    .hook-notification {
+      border: 1px solid #4f89a8;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #123244 0%, #0d2431 100%);
+      color: #dcf3ff;
+      font-size: 13px;
+      line-height: 1.4;
+      padding: 10px 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      transform: translateX(12px);
+      animation: hookToastIn 0.18s ease forwards;
+    }
+
+    .hook-notification.fade-out {
+      animation: hookToastOut 0.25s ease forwards;
+    }
+
+    .hook-notification-title {
+      font-weight: bold;
+      color: #9ad9ff;
+      margin-bottom: 4px;
+    }
+
+    @keyframes hookToastIn {
+      from { opacity: 0; transform: translateX(12px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes hookToastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(18px); }
     }
   </style>
 </head>
@@ -1004,13 +1046,15 @@
     <div class="top-nav">
       <button class="nav-button active-nav-button" onclick="window.location.href='./'">Game</button>
       <button class="nav-button" onclick="window.location.href='inventory/'">Inventory</button>
-      <button class="nav-button" onclick="window.location.href='team/'">Team</button>
-      <button class="nav-button" onclick="window.location.href='shop/'">Shop</button>
-      <button class="nav-button" onclick="window.location.href='battle/'">Battle</button>
-      <button class="nav-button" onclick="window.location.href='reproduction/'">Reproduction</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='team/'">Team</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='shop/'">Shop</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='battle/'">Battle</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='reproduction/'">Reproduction</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='missions/'">Missions</button>
       <button class="nav-button settings-nav-button" onclick="window.location.href='settings/'">Settings</button>
     </div>
   </div>
+  <div class="hook-notification-layer" id="hookNotificationLayer"></div>
 
   <div class="shell">
     <div class="money-header">
@@ -1162,20 +1206,18 @@
     <div class="tutorial-initial-dialog" id="tutorialInitialDialog">
       <h2 class="tutorial-initial-dialog-title">Welcome to Clicker</h2>
       <p class="tutorial-initial-dialog-text">Here we only fish for fish and watch a number increment, nothing more.</p>
-      <button class="tutorial-initial-dialog-button" id="tutorialInitialConfirmBtn">start</button>
+      <button class="tutorial-initial-dialog-button" id="tutorialInitialConfirmBtn">OK</button>
     </div>
     <div class="tutorial-fish-caught" id="tutorialFishCaught">
-      <div style="font-size: 36px; margin-bottom: 20px;">🎣</div>
       <div>Fish caught: <span id="tutorialFishCaughtCount">0</span></div>
     </div>
     <div class="tutorial-dialog" id="tutorialDialog">
-      <h2 class="tutorial-dialog-title">🎣 Welcome to the Fishing Game!</h2>
-      <p class="tutorial-dialog-text">You've caught <span id="tutorialCaughtCount">0</span> fish!</p>
+      <h2 class="tutorial-dialog-title">Welcome to the Fishing Game!</h2>
       <p class="tutorial-dialog-text">You really thought we would only do that? Well, I'm adding a few things but not much.</p>
       <button class="tutorial-dialog-button" id="tutorialConfirmBtn">Continue</button>
     </div>
     <div class="upgrades-unlock-dialog" id="upgradesUnlockDialog">
-      <h2 class="upgrades-unlock-dialog-title">🎣 You Did It!</h2>
+      <h2 class="upgrades-unlock-dialog-title">You Did It!</h2>
       <p class="upgrades-unlock-dialog-text">Well, I see you're determined. I'm giving you everything now, that's fine.</p>
       <button class="upgrades-unlock-dialog-button" id="upgradesUnlockConfirmBtn">Awesome</button>
     </div>
@@ -1241,8 +1283,6 @@
         }
       ];
 
-      const ROD_UPGRADE_COSTS = [5600, 24500, 98000];
-
       const RARITY_MULTIPLIERS = {
         common: 1,
         uncommon: 1.35,
@@ -1307,10 +1347,13 @@
       const tutorialFishCaughtCount = document.getElementById("tutorialFishCaughtCount");
       const upgradesUnlockDialog = document.getElementById("upgradesUnlockDialog");
       const upgradesUnlockConfirmBtn = document.getElementById("upgradesUnlockConfirmBtn");
+      const hookNotificationLayer = document.getElementById("hookNotificationLayer");
 
       let money = Number(localStorage.getItem("clicker_money")) || 0;
       let hooks = Number(localStorage.getItem("clicker_hooks")) || 0;
       let caughtCount = Number(localStorage.getItem("clicker_caughtCount")) || 0;
+      let epicCaughtCount = Number(localStorage.getItem("clicker_epicCaught")) || 0;
+      let legendaryCaughtCount = Number(localStorage.getItem("clicker_legendaryCaught")) || 0;
       let tutorialCompleted = localStorage.getItem("clicker_tutorialCompleted") === "true";
       let upgradesUnlocked = localStorage.getItem("clicker_upgradesUnlocked") === "true";
       let sizeBoostLevel = Number(localStorage.getItem("clicker_sizeBoostLevel")) || 0;
@@ -1732,31 +1775,50 @@
       });
 
       function getSizeUpgradeCost(level) {
-        return Math.floor(1050 * Math.pow(2.15, level));
+        return Math.floor(700 * Math.pow(2.05, level));
       }
 
       function getTripleHookCost(level) {
-        return Math.floor(1750 * Math.pow(2.2, level));
+        return Math.floor(7800 * Math.pow(2.3, level));
       }
 
       function getRodUpgradeCost(level) {
-        if (level >= ROD_UPGRADE_COSTS.length) {
-          return null;
+        return Math.floor(5200 * Math.pow(2.28, level));
+      }
+
+      function getRodTierInfo(level) {
+        const baseTierIndex = Math.min(level, ROD_TIERS.length - 1);
+        const baseTier = ROD_TIERS[baseTierIndex];
+        const extraLevels = Math.max(0, level - (ROD_TIERS.length - 1));
+
+        if (extraLevels <= 0) {
+          return baseTier;
         }
 
-        return ROD_UPGRADE_COSTS[level];
+        const masteryBoost = 1 + (extraLevels * 0.08);
+        return {
+          name: `Ultimate+${extraLevels}`,
+          desc: `Ultimate mastery improves rare catches (+${Math.round(extraLevels * 8)}%).`,
+          multipliers: {
+            common: Math.max(0.2, baseTier.multipliers.common * (1 - (extraLevels * 0.02))),
+            uncommon: baseTier.multipliers.uncommon * (1 + (extraLevels * 0.03)),
+            rare: baseTier.multipliers.rare * masteryBoost,
+            epic: baseTier.multipliers.epic * masteryBoost,
+            legendary: baseTier.multipliers.legendary * masteryBoost
+          }
+        };
       }
 
       function getAutoUpgradeCost(level) {
-        return Math.floor(2100 * Math.pow(2.25, level));
+        return Math.floor(1300 * Math.pow(2.15, level));
       }
 
       function getWeightUpgradeCost(level) {
-        return Math.floor(1400 * Math.pow(2.05, level));
+        return Math.floor(900 * Math.pow(1.98, level));
       }
 
       function getWaitUpgradeCost(level) {
-        return Math.floor(2800 * Math.pow(2.3, level));
+        return Math.floor(1700 * Math.pow(2.2, level));
       }
 
       function getAutoIntervalMs() {
@@ -2130,7 +2192,7 @@
       }
 
       function getAdjustedRarityWeights() {
-        const tier = ROD_TIERS[Math.min(rodTierLevel, ROD_TIERS.length - 1)];
+        const tier = getRodTierInfo(rodTierLevel);
 
         return RARITY_WEIGHTS.map((entry) => {
           const multiplier = tier.multipliers[entry.rarity] || 1;
@@ -2238,6 +2300,8 @@
         localStorage.setItem("clicker_money", String(money));
         localStorage.setItem("clicker_hooks", String(hooks));
         localStorage.setItem("clicker_caughtCount", String(caughtCount));
+        localStorage.setItem("clicker_epicCaught", String(epicCaughtCount));
+        localStorage.setItem("clicker_legendaryCaught", String(legendaryCaughtCount));
         localStorage.setItem("clicker_currentFish", JSON.stringify(currentFish));
         localStorage.setItem("clicker_inventory", JSON.stringify(inventory));
         localStorage.setItem("clicker_inventoryTurn", String(inventoryTurn));
@@ -2252,6 +2316,39 @@
         localStorage.setItem("clicker_autoSellMaxPrice", String(autoSellMaxPrice));
         localStorage.setItem("clicker_autoSellMaxRarity", autoSellMaxRarity);
         localStorage.setItem("clicker_tutorialCompleted", String(tutorialCompleted));
+      }
+
+      function showHookNotification(title, text) {
+        if (!hookNotificationLayer) {
+          return;
+        }
+
+        const toast = document.createElement("div");
+        toast.className = "hook-notification";
+        toast.innerHTML = `
+          <div class="hook-notification-title">${title}</div>
+          <div>${text}</div>
+        `;
+
+        hookNotificationLayer.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add("fade-out");
+          setTimeout(() => {
+            toast.remove();
+          }, 260);
+        }, 2300);
+      }
+
+      function addHooks(amount, reasonTitle, reasonText) {
+        const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
+        if (safeAmount <= 0) {
+          return;
+        }
+
+        hooks += safeAmount;
+        localStorage.setItem("clicker_hooks", String(hooks));
+        showHookNotification(reasonTitle, `${reasonText} (+${safeAmount} Hooks)`);
       }
 
       function catchCurrentFish(source) {
@@ -2275,6 +2372,14 @@
           inventory.push(fishToStore);
         }
 
+        if (fishToStore.rarity === "epic") {
+          epicCaughtCount += 1;
+          addHooks(10, "Epic Catch", `${fishToStore.type} rewarded you`);
+        } else if (fishToStore.rarity === "legendary") {
+          legendaryCaughtCount += 1;
+          addHooks(30, "Legendary Catch", `${fishToStore.type} rewarded you`);
+        }
+
         caughtCount++;
         currentFish = createFish();
         return true;
@@ -2292,7 +2397,7 @@
         const rarityClass = getRarityClass(currentFish.rarity);
         const fishDescriptors = getFishDescriptors(currentFish);
         const fishPerClick = 1 + tripleHookLevel;
-        const rodTier = ROD_TIERS[Math.min(rodTierLevel, ROD_TIERS.length - 1)];
+        const rodTier = getRodTierInfo(rodTierLevel);
         const inventoryTotalValue = inventory.reduce((sum, fish) => {
           const fishValue = Number(fish.currentValue) || Number(fish.basePrice) || Number(fish.price) || 0;
           return sum + fishValue;
@@ -2315,7 +2420,7 @@
         rodTierLabel.textContent = rodTier.name;
         rodUpgradeDesc.textContent = rodTier.desc;
         tripleHookUpgradeCost.textContent = String(nextTripleHookCost);
-        rodUpgradeCost.textContent = nextRodUpgradeCost === null ? "MAX" : String(nextRodUpgradeCost);
+        rodUpgradeCost.textContent = String(nextRodUpgradeCost);
         sizeUpgradeCount.textContent = String(sizeBoostLevel);
         autoUpgradeCount.textContent = String(autoFisherLevel);
         weightUpgradeCount.textContent = String(weightBoostLevel);
@@ -2327,7 +2432,7 @@
         autoDelayLabel.textContent = autoDelaySeconds;
 
         tripleHookUpgrade.disabled = money < nextTripleHookCost;
-        rodUpgrade.disabled = nextRodUpgradeCost === null || money < nextRodUpgradeCost;
+        rodUpgrade.disabled = money < nextRodUpgradeCost;
         sizeUpgrade.disabled = money < nextSizeCost;
         autoUpgrade.disabled = money < nextAutoCost;
         weightUpgrade.disabled = money < nextWeightCost;
@@ -2372,7 +2477,7 @@
 
       rodUpgrade.addEventListener("click", () => {
         const cost = getRodUpgradeCost(rodTierLevel);
-        if (cost !== null && money >= cost) {
+        if (money >= cost) {
           money -= cost;
           rodTierLevel++;
           render();

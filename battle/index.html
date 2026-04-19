@@ -629,11 +629,53 @@
     }
 
     /* Limited navigation mode (after 30 fish, before 10k money) */
-    body.limited-nav-mode .nav-button:nth-child(3),
-    body.limited-nav-mode .nav-button:nth-child(4),
-    body.limited-nav-mode .nav-button:nth-child(5),
-    body.limited-nav-mode .nav-button:nth-child(6) {
+    body.limited-nav-mode .locked-nav-button {
       display: none;
+    }
+
+    .hook-notification-layer {
+      position: fixed;
+      right: 14px;
+      top: 86px;
+      z-index: 260;
+      display: grid;
+      gap: 8px;
+      pointer-events: none;
+      max-width: min(92vw, 420px);
+    }
+
+    .hook-notification {
+      border: 1px solid #4f89a8;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #123244 0%, #0d2431 100%);
+      color: #dcf3ff;
+      font-size: 13px;
+      line-height: 1.4;
+      padding: 10px 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      transform: translateX(12px);
+      animation: hookToastIn 0.18s ease forwards;
+    }
+
+    .hook-notification.fade-out {
+      animation: hookToastOut 0.25s ease forwards;
+    }
+
+    .hook-notification-title {
+      font-weight: bold;
+      color: #9ad9ff;
+      margin-bottom: 4px;
+    }
+
+    @keyframes hookToastIn {
+      from { opacity: 0; transform: translateX(12px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes hookToastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(18px); }
     }
   </style>
 </head>
@@ -642,13 +684,15 @@
     <div class="top-nav">
       <button class="nav-button" onclick="window.location.href='../'">Game</button>
       <button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
-      <button class="nav-button" onclick="window.location.href='../team/'">Team</button>
-      <button class="nav-button" onclick="window.location.href='../shop/'">Shop</button>
-      <button class="nav-button active-nav-button" onclick="window.location.href='./'">Battle</button>
-      <button class="nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../team/'">Team</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../shop/'">Shop</button>
+      <button class="nav-button locked-nav-button active-nav-button" onclick="window.location.href='./'">Battle</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../missions/'">Missions</button>
       <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
     </div>
   </div>
+  <div class="hook-notification-layer" id="hookNotificationLayer"></div>
 
   <div class="shell">
     <div class="battle-grid">
@@ -794,6 +838,7 @@
     const tierRewardLabel = document.getElementById("tierRewardLabel");
     const captureTierLabel = document.getElementById("captureTierLabel");
     const tierDifficultyLabel = document.getElementById("tierDifficultyLabel");
+    const hookNotificationLayer = document.getElementById("hookNotificationLayer");
 
     let inventory = [];
     let selectedFishUids = [];
@@ -806,6 +851,7 @@
     let battleSpeedMultiplier = 2;
 
     const MONEY_KEY = "clicker_money";
+    const HOOKS_KEY = "clicker_hooks";
     const BATTLE_TIER_KEY = "clicker_battleTier";
     const BATTLE_STEP_MS = 500;
     const BATTLE_PREFIX = "CLICKER_BATTLE_V1:";
@@ -836,6 +882,38 @@
 
     function getBattleStepDelay() {
       return Math.max(80, Math.floor(BATTLE_STEP_MS / battleSpeedMultiplier));
+    }
+
+    function showHookNotification(title, text) {
+      if (!hookNotificationLayer) {
+        return;
+      }
+
+      const toast = document.createElement("div");
+      toast.className = "hook-notification";
+      toast.innerHTML = `
+        <div class="hook-notification-title">${title}</div>
+        <div>${text}</div>
+      `;
+      hookNotificationLayer.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add("fade-out");
+        setTimeout(() => {
+          toast.remove();
+        }, 260);
+      }, 2300);
+    }
+
+    function addHooks(amount, title, text) {
+      const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
+      if (safeAmount <= 0) {
+        return;
+      }
+
+      const currentHooks = Math.max(0, Number(localStorage.getItem(HOOKS_KEY)) || 0);
+      localStorage.setItem(HOOKS_KEY, String(currentHooks + safeAmount));
+      showHookNotification(title, `${text} (+${safeAmount} Hooks)`);
     }
 
     function saveBattleTier() {
@@ -1639,6 +1717,17 @@
         if (result.playerWon && !isCustomBattle) {
           const currentMoney = Math.max(0, Number(localStorage.getItem(MONEY_KEY)) || 0);
           localStorage.setItem(MONEY_KEY, String(currentMoney + tierReward));
+
+          const levelHookReward = 10;
+          const milestoneHookReward = currentTier % 10 === 0 ? 30 : 0;
+          const totalHookReward = levelHookReward + milestoneHookReward;
+          addHooks(
+            totalHookReward,
+            "Battle Hooks",
+            milestoneHookReward > 0
+              ? `Tier ${currentTier} clear + milestone bonus`
+              : `Tier ${currentTier} clear`
+          );
 
           if (currentTier % 10 === 0 && enemyRewardPool.length > 0) {
             const pickIndex = Math.floor(Math.random() * enemyRewardPool.length);

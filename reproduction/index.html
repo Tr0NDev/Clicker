@@ -258,10 +258,7 @@
     }
 
     /* Limited navigation mode (after 30 fish, before 10k money) */
-    body.limited-nav-mode .nav-button:nth-child(3),
-    body.limited-nav-mode .nav-button:nth-child(4),
-    body.limited-nav-mode .nav-button:nth-child(5),
-    body.limited-nav-mode .nav-button:nth-child(6) {
+    body.limited-nav-mode .locked-nav-button {
       display: none;
     }
   </style>
@@ -271,10 +268,11 @@
     <div class="top-nav">
       <button class="nav-button" onclick="window.location.href='../'">Game</button>
       <button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
-      <button class="nav-button" onclick="window.location.href='../team/'">Team</button>
-      <button class="nav-button" onclick="window.location.href='../shop/'">Shop</button>
-      <button class="nav-button" onclick="window.location.href='../battle/'">Battle</button>
-      <button class="nav-button active-nav-button" onclick="window.location.href='./'">Reproduction</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../team/'">Team</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../shop/'">Shop</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../battle/'">Battle</button>
+      <button class="nav-button locked-nav-button active-nav-button" onclick="window.location.href='./'">Reproduction</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../missions/'">Missions</button>
       <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
     </div>
   </div>
