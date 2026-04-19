@@ -121,6 +121,18 @@
       margin-bottom: 8px;
     }
 
+    .cheater-flag {
+      color: #a8bac8;
+      font-size: 12px;
+      margin-top: -4px;
+      margin-bottom: 10px;
+      text-align: right;
+    }
+
+    .cheater-flag strong {
+      color: #ffd2d2;
+    }
+
     .params-panel {
       text-align: left;
       margin-bottom: 22px;
@@ -235,6 +247,7 @@
 
   <div class="panel">
     <h1>Settings</h1>
+    <div class="cheater-flag">Cheater: <strong id="cheaterFlag">No</strong></div>
 
     <section class="params-panel">
       <h2>Game Parameters</h2>
@@ -368,6 +381,7 @@
     const reloadParams = document.getElementById("reloadParams");
     const resetSave = document.getElementById("resetSave");
     const paramsStatus = document.getElementById("paramsStatus");
+    const cheaterFlag = document.getElementById("cheaterFlag");
 
     const LEGACY_SAVE_KEY_MAP = {
       money: "clicker_money",
@@ -429,9 +443,22 @@
         autoSellMaxRarity: localStorage.getItem("clicker_autoSellMaxRarity") || "common",
         tutorialCompleted: localStorage.getItem("clicker_tutorialCompleted") || "false",
         upgradesUnlocked: localStorage.getItem("clicker_upgradesUnlocked") || "false",
+        cheater: localStorage.getItem("clicker_cheater") === "true",
         upgradesWidth: Number(localStorage.getItem("clicker_upgradesWidth")) || 420,
         saveTime: new Date().toISOString()
       };
+    }
+
+    function isCheaterFlagTrue() {
+      return localStorage.getItem("clicker_cheater") === "true";
+    }
+
+    function markCheater() {
+      localStorage.setItem("clicker_cheater", "true");
+    }
+
+    function renderCheaterFlag() {
+      cheaterFlag.textContent = isCheaterFlagTrue() ? "Yes" : "No";
     }
 
     function getAllClickerEntries() {
@@ -513,9 +540,11 @@
       paramTutorialCompleted.value = state.tutorialCompleted === "true" ? "true" : "false";
       paramUpgradesUnlocked.value = state.upgradesUnlocked === "true" ? "true" : "false";
       paramUpgradesWidth.value = String(state.upgradesWidth);
+      renderCheaterFlag();
     }
 
     function applyParameterChanges() {
+      markCheater();
       localStorage.setItem("clicker_money", String(clampInt(paramMoney.value, 0, 0)));
       localStorage.setItem("clicker_hooks", String(clampInt(paramHooks.value, 0, 0)));
       localStorage.setItem("clicker_caughtCount", String(clampInt(paramCaughtCount.value, 0, 0)));
@@ -537,6 +566,7 @@
 
       const state = readGameState();
       saveOutput.value = buildSaveText();
+      fillParamInputs(state);
       paramsStatus.textContent = "Parameters applied.";
     }
 
@@ -593,6 +623,9 @@
       importedKeys.forEach((key) => {
         localStorage.setItem(key, importedEntries[key]);
       });
+
+      // Importing save data through settings is treated as an illegal variable edit.
+      markCheater();
 
       const loadedState = readGameState();
 
