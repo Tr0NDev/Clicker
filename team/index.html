@@ -1418,9 +1418,14 @@
     }
 
     function getCharacterSellValue(char) {
-      const baseCost = Math.max(100, Number(char?.cost) || 100);
       const stars = Math.max(1, Number(char?.stars) || 1);
-      return Math.max(25, Math.round(baseCost * 0.35 + stars * 10));
+      // 1 étoile = 10, 2 étoiles = 25, 3 étoiles = 120, 4 étoiles = 400, 5 étoiles = 1200
+      if (stars === 1) return 10;
+      if (stars === 2) return 25;
+      if (stars === 3) return 120;
+      if (stars === 4) return 400;
+      if (stars === 5) return 1200;
+      return 10;
     }
 
     function getFusionRequirement(level) {
@@ -1588,9 +1593,12 @@
       }
 
       const sellValue = getCharacterSellValue(char);
-      const confirmed = await askSellConfirmation(char.name, sellValue);
-      if (!confirmed) {
-        return;
+      // Pas de confirmation pour 1, 2 ou 3 étoiles
+      if (char.stars >= 4) {
+        const confirmed = await askSellConfirmation(char.name, sellValue);
+        if (!confirmed) {
+          return;
+        }
       }
 
       const currentMoney = Math.max(0, Number(localStorage.getItem('clicker_money')) || 0);

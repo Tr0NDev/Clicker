@@ -803,6 +803,7 @@
             <div class="section-title">Battle Arena</div>
             <div class="battle-grid" id="battleGrid"></div>
             <div class="battle-result" id="battleResult">Start battle to see turn-by-turn results.</div>
+            <div class="battle-score" id="battleScore" style="font-size:16px;color:#f7e3a7;margin:8px 0 0 0;"></div>
             <div class="battle-log" id="battleLog"></div>
           </div>
         </div>
@@ -1308,11 +1309,34 @@
     }
 
     function createTierEnemyFromTemplate(template, index, tier) {
+      // Affiche la couleur selon la rareté
+      function getRarityColor(rarity) {
+        switch (rarity) {
+          case "common": return "#d9d9d9";
+          case "uncommon": return "#7ee787";
+          case "rare": return "#58a6ff";
+          case "epic": return "#d2a8ff";
+          case "legendary": return "#ffa657";
+          default: return "#fff";
+        }
+      }
+
+      // Score sur 100 basé sur HP, ATK, rareté
+      function computeTeamScore(team) {
+        let score = 0;
+        let maxScore = 0;
+        team.forEach(f => {
+          score += (Math.min(f.maxHp, 200) / 200) * 40;
+          score += (Math.min(f.attack, 20) / 20) * 30;
+          score += (rarityRank(f.rarity) / 5) * 30;
+          maxScore += 100;
+        });
+        return Math.round((score / maxScore) * 100);
+      }
       const safeTier = Math.max(1, Number(tier) || 1);
-      const tierBlock = Math.floor((safeTier - 1) / 5);
-      const tierInBlock = ((safeTier - 1) % 5) + 1;
-      const hpScale = 1 + ((safeTier - 1) * 0.12) + (tierBlock * 0.06);
-      const atkScale = 1 + ((safeTier - 1) * 0.10) + (tierBlock * 0.05);
+      // Progression plus douce : hpScale et atkScale moins abrupts
+      const hpScale = 1 + ((safeTier - 1) * 0.09);
+      const atkScale = 1 + ((safeTier - 1) * 0.07);
       const enemySize = Math.max(1, Math.round(template.size * hpScale));
       const enemyWeight = Math.max(1, Math.round(template.weight * atkScale));
 
@@ -1324,7 +1348,7 @@
         hp: enemySize,
         attack: enemyWeight,
         alive: true,
-        descriptor: `(tier ${safeTier}${tierInBlock ? `, wave ${tierInBlock}` : ""})`
+        descriptor: `(tier ${safeTier})`
       };
     }
 
@@ -1451,22 +1475,22 @@
 
       const allySide = document.createElement("div");
       allySide.className = "battle-side";
-      allySide.innerHTML = `<div class="battle-side-title">Your Team</div>`;
+      allySide.innerHTML = `<div class=\"battle-side-title\">Your Team</div>`;
 
       const enemySide = document.createElement("div");
       enemySide.className = "battle-side";
-      enemySide.innerHTML = `<div class="battle-side-title">Enemy Team</div>`;
+      enemySide.innerHTML = `<div class=\"battle-side-title\">Enemy Team</div>`;
 
       state.allies.forEach((fighter) => {
         const hpPercent = fighter.maxHp > 0 ? Math.round((fighter.hp / fighter.maxHp) * 100) : 0;
         const card = document.createElement("div");
         card.className = `battle-fish-card rarity-${fighter.rarity}`;
         card.innerHTML = `
-          <div class="battle-fish-name">${fighter.name}</div>
-          <div class="battle-fish-stats">ATK ${fighter.attack} | HP ${fighter.maxHp}</div>
-          <div class="hp-row">
-            <div class="hp-bar"><div class="hp-fill" style="width:${Math.max(0, hpPercent)}%"></div></div>
-            <div class="hp-value">${fighter.hp}/${fighter.maxHp}</div>
+          <div class=\"battle-fish-name\" style=\"color:${getRarityColor(fighter.rarity)}\">${fighter.name}</div>
+          <div class=\"battle-fish-stats\">ATK ${fighter.attack} | HP ${fighter.maxHp}</div>
+          <div class=\"hp-row\">
+            <div class=\"hp-bar\"><div class=\"hp-fill\" style=\"width:${Math.max(0, hpPercent)}%\"></div></div>
+            <div class=\"hp-value\">${fighter.hp}/${fighter.maxHp}</div>
           </div>
         `;
         allySide.appendChild(card);
@@ -1477,11 +1501,11 @@
         const card = document.createElement("div");
         card.className = `battle-fish-card enemy rarity-${fighter.rarity}`;
         card.innerHTML = `
-          <div class="battle-fish-name">${fighter.name}</div>
-          <div class="battle-fish-stats">ATK ${fighter.attack} | HP ${fighter.maxHp}</div>
-          <div class="hp-row">
-            <div class="hp-bar"><div class="hp-fill" style="width:${Math.max(0, hpPercent)}%"></div></div>
-            <div class="hp-value">${fighter.hp}/${fighter.maxHp}</div>
+          <div class=\"battle-fish-name\" style=\"color:${getRarityColor(fighter.rarity)}\">${fighter.name}</div>
+          <div class=\"battle-fish-stats\">ATK ${fighter.attack} | HP ${fighter.maxHp}</div>
+          <div class=\"hp-row\">
+            <div class=\"hp-bar\"><div class=\"hp-fill\" style=\"width:${Math.max(0, hpPercent)}%\"></div></div>
+            <div class=\"hp-value\">${fighter.hp}/${fighter.maxHp}</div>
           </div>
         `;
         enemySide.appendChild(card);
@@ -1499,6 +1523,14 @@
       });
 
       battleLog.scrollTop = battleLog.scrollHeight;
+
+      // Affiche le score de chaque équipe
+      const scoreAlly = computeTeamScore(state.allies);
+      const scoreEnemy = computeTeamScore(state.enemies);
+      const battleScore = document.getElementById("battleScore");
+      if (battleScore) {
+        battleScore.innerHTML = `<b>Score</b> — Toi: <span style='color:#7ee787'>${scoreAlly}/100</span> | Ennemi: <span style='color:#ffa657'>${scoreEnemy}/100</span>`;
+      }
 
       if (state.resultText) {
         battleResult.textContent = state.resultText;
