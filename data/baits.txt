@@ -1,0 +1,47 @@
+const allBaits = [
+  // ===== 1 STAR (10 baits) - Small bonuses, simple builds =====
+  {id: 1, name: "Worm Niblet", stars: 1, kind: "attack", attack: 2, defense: 0, combo: "none"},
+  {id: 2, name: "Tiny Shrimp", stars: 1, kind: "defense", attack: 0, defense: 2, combo: "none"},
+  {id: 3, name: "Soft Algae", stars: 1, kind: "mixed", attack: 1, defense: 0, combo: "none"},
+  {id: 4, name: "Bread Crumb", stars: 1, kind: "mixed", attack: 1, defense: 1, combo: "none"},
+  {id: 5, name: "Silver Minnow", stars: 1, kind: "attack", attack: 3, defense: 0, combo: "same-species"},
+  {id: 6, name: "Coral Dust", stars: 1, kind: "defense", attack: 0, defense: 3, combo: "same-rarity"},
+  {id: 7, name: "Light Foam", stars: 1, kind: "mixed", attack: 0, defense: 1, combo: "different-species"},
+  {id: 8, name: "Salt Grain", stars: 1, kind: "mixed", attack: 1, defense: 0, combo: "same-species"},
+  {id: 9, name: "Moss Thread", stars: 1, kind: "defense", attack: 0, defense: 4, combo: "heavy-fish"},
+  {id: 10, name: "Bubble Seed", stars: 1, kind: "attack", attack: 4, defense: 0, combo: "full-line"},
+
+  // ===== 2 STARS (10 baits) - Reliable mid-tier bonuses =====
+  {id: 11, name: "River Worm", stars: 2, kind: "attack", attack: 5, defense: 0, combo: "none"},
+  {id: 12, name: "Blue Shrimp", stars: 2, kind: "defense", attack: 0, defense: 5, combo: "none"},
+  {id: 13, name: "Spark Reed", stars: 2, kind: "mixed", attack: 1, defense: 2, combo: "none"},
+  {id: 14, name: "Foam Pellet", stars: 2, kind: "mixed", attack: 2, defense: 2, combo: "same-rarity"},
+  {id: 15, name: "Moon Minnow", stars: 2, kind: "attack", attack: 6, defense: 0, combo: "same-species"},
+  {id: 16, name: "Shell Powder", stars: 2, kind: "defense", attack: 0, defense: 6, combo: "heavy-fish"},
+  {id: 17, name: "Tide Needle", stars: 2, kind: "mixed", attack: 0, defense: 3, combo: "different-species"},
+  {id: 18, name: "Storm Grain", stars: 2, kind: "mixed", attack: 3, defense: 1, combo: "full-line"},
+  {id: 19, name: "Rock Algae", stars: 2, kind: "defense", attack: 0, defense: 7, combo: "same-rarity"},
+  {id: 20, name: "Flash Bait", stars: 2, kind: "attack", attack: 7, defense: 0, combo: "different-species"},
+
+  // ===== 3 STARS (8 baits) - Strong builds and combo triggers =====
+  {id: 21, name: "Predator Call", stars: 3, kind: "attack", attack: 10, defense: 0, combo: "heavy-fish"},
+  {id: 22, name: "Armor Paste", stars: 3, kind: "defense", attack: 0, defense: 10, combo: "same-rarity"},
+  {id: 23, name: "Current Spark", stars: 3, kind: "mixed", attack: 2, defense: 4, combo: "different-species"},
+  {id: 24, name: "Twin Shell", stars: 3, kind: "mixed", attack: 4, defense: 4, combo: "same-species"},
+  {id: 25, name: "Trio Pulse", stars: 3, kind: "mixed", attack: 5, defense: 3, combo: "full-line"},
+  {id: 26, name: "Abyss Hook", stars: 3, kind: "attack", attack: 11, defense: 0, combo: "same-rarity"},
+  {id: 27, name: "Echo Net", stars: 3, kind: "defense", attack: 0, defense: 11, combo: "same-species"},
+  {id: 28, name: "Lucky Foam", stars: 3, kind: "mixed", attack: 1, defense: 2, combo: "different-species"},
+
+  // ===== 4 STARS (4 baits) - Heavy combo specialists =====
+  {id: 29, name: "Titan Worm", stars: 4, kind: "attack", attack: 18, defense: 0, combo: "full-line"},
+  {id: 30, name: "Bastion Shell", stars: 4, kind: "defense", attack: 0, defense: 18, combo: "full-line"},
+  {id: 31, name: "Phantom Drift", stars: 4, kind: "mixed", attack: 6, defense: 10, combo: "same-rarity"},
+  {id: 32, name: "Royal Krill", stars: 4, kind: "mixed", attack: 8, defense: 8, combo: "heavy-fish"},
+
+  // ===== 5 STARS (4 baits) - Legendary bait kits =====
+  {id: 33, name: "Dragon Minnow", stars: 5, kind: "attack", attack: 28, defense: 0, combo: "same-species"},
+  {id: 34, name: "Sea Fortress", stars: 5, kind: "defense", attack: 0, defense: 28, combo: "same-rarity"},
+  {id: 35, name: "Void Current", stars: 5, kind: "mixed", attack: 12, defense: 12, combo: "different-species"},
+  {id: 36, name: "Golden Synergy", stars: 5, kind: "mixed", attack: 15, defense: 15, combo: "full-line"}
+];

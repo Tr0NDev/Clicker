@@ -2,6 +2,22 @@
 <html>
 <head>
   <title>Clicker</title>
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-WRX7NXVH');</script>
+  <!-- End Google Tag Manager -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KTGZQBWB6R"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-KTGZQBWB6R');
+  </script>
   <style>
     :root {
       --sidebar-width: 420px;
@@ -62,7 +78,7 @@
     .top-bar {
       position: sticky;
       top: 0;
-      z-index: 20;
+      z-index: 60;
       background: #0c1217;
       border-bottom: 1px solid #22313b;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
@@ -75,6 +91,7 @@
       justify-content: flex-start;
       gap: 10px;
       flex-wrap: wrap;
+      position: relative;
       width: 100%;
       max-width: none;
       margin: 0;
@@ -371,6 +388,307 @@
       text-overflow: ellipsis;
     }
 
+    .center-drag-block {
+      width: min(760px, calc(100vw - var(--sidebar-width) - 44px));
+      position: fixed;
+      left: 16px;
+      top: 150px;
+      z-index: 24;
+      border: 1px solid #2f4d5c;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #141c22 0%, #10161b 100%);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+      box-sizing: border-box;
+      padding: 12px;
+      text-align: left;
+    }
+
+    .center-drag-grip {
+      height: 16px;
+      width: 28px;
+      border-radius: 6px;
+      margin: 0 auto 8px;
+      cursor: move;
+      background-image: radial-gradient(circle, #8fb1c3 1.2px, transparent 1.2px);
+      background-size: 6px 6px;
+      opacity: 0.45;
+    }
+
+    /* Tutorial Styles */
+    body.tutorial-mode {
+      padding: 24px 20px 36px 16px;
+    }
+
+    body.tutorial-mode .top-bar {
+      display: none;
+    }
+
+    body.tutorial-mode .team-reminder {
+      display: none;
+    }
+
+    body.tutorial-mode .upgrades {
+      display: none;
+    }
+
+    body.tutorial-mode .stats {
+      display: none;
+    }
+
+    body.tutorial-mode .money-header {
+      display: none;
+    }
+
+    body.tutorial-mode .center-drag-block {
+      position: static;
+      width: 100%;
+      margin: 0 auto;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    body.tutorial-mode .center-drag-grip {
+      display: none;
+    }
+
+    body.tutorial-mode .fish-panel {
+      max-width: 400px;
+      margin: 40px auto 0;
+    }
+
+    body.tutorial-mode .content-grid {
+      display: none;
+    }
+
+    .tutorial-fish-caught {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px;
+      font-weight: bold;
+      color: #8dc4e0;
+      z-index: 100;
+      text-align: center;
+      display: none;
+    }
+
+    body.tutorial-mode .tutorial-fish-caught {
+      display: block;
+    }
+
+
+    .tutorial-initial-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 200;
+      background: linear-gradient(135deg, #1a2a35 0%, #0f1519 100%);
+      border: 2px solid #8dc4e0;
+      border-radius: 16px;
+      padding: 32px 28px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+    }
+
+    body.tutorial-mode .tutorial-initial-dialog {
+      display: flex;
+    }
+
+    body.tutorial-mode .tutorial-initial-dialog.dismissed {
+      display: none;
+    }
+
+    .tutorial-initial-dialog-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #8dc4e0;
+      margin: 0;
+    }
+
+    .tutorial-initial-dialog-text {
+      font-size: 16px;
+      color: #d9ecf8;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .tutorial-initial-dialog-button {
+      padding: 14px 28px;
+      border: 2px solid #8dc4e0;
+      background: rgba(141, 196, 224, 0.15);
+      color: #8dc4e0;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .tutorial-initial-dialog-button:hover {
+      background: rgba(141, 196, 224, 0.3);
+      box-shadow: 0 0 15px rgba(141, 196, 224, 0.4);
+    }
+
+    .tutorial-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 200;
+      background: linear-gradient(135deg, #1a2a35 0%, #0f1519 100%);
+      border: 2px solid #8dc4e0;
+      border-radius: 16px;
+      padding: 32px 28px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+    }
+
+    .tutorial-dialog.show {
+      display: flex;
+    }
+
+    .tutorial-dialog-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 199;
+      display: none;
+    }
+
+    .tutorial-dialog-backdrop.show {
+      display: block;
+    }
+
+    .tutorial-dialog-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #8dc4e0;
+      margin: 0;
+    }
+
+    .tutorial-dialog-text {
+      font-size: 16px;
+      color: #d9ecf8;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .tutorial-dialog-button {
+      padding: 14px 28px;
+      border: 2px solid #8dc4e0;
+      background: rgba(141, 196, 224, 0.15);
+      color: #8dc4e0;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .tutorial-dialog-button:hover {
+      background: rgba(141, 196, 224, 0.3);
+      box-shadow: 0 0 15px rgba(141, 196, 224, 0.4);
+    }
+
+    /* Upgrades Unlock Dialog Styles */
+    .upgrades-unlock-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 200;
+      background: linear-gradient(135deg, #1a2a35 0%, #0f1519 100%);
+      border: 2px solid #8dc4e0;
+      border-radius: 16px;
+      padding: 32px 28px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+    }
+
+    .upgrades-unlock-dialog.show {
+      display: flex;
+    }
+
+    .upgrades-unlock-dialog-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #8dc4e0;
+      margin: 0;
+    }
+
+    .upgrades-unlock-dialog-text {
+      font-size: 16px;
+      color: #d9ecf8;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .upgrades-unlock-dialog-button {
+      padding: 14px 28px;
+      border: 2px solid #8dc4e0;
+      background: rgba(141, 196, 224, 0.15);
+      color: #8dc4e0;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .upgrades-unlock-dialog-button:hover {
+      background: rgba(141, 196, 224, 0.3);
+      box-shadow: 0 0 15px rgba(141, 196, 224, 0.4);
+    }
+
+    .tutorial-progress {
+      text-align: center;
+      font-size: 18px;
+      color: #8dc4e0;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    .center-drag-block:hover .center-drag-grip {
+      opacity: 0.72;
+    }
+
+    .center-drag-block .team-reminder,
+    .center-drag-block .stats,
+    .center-drag-block .fish-panel {
+      max-width: none;
+      margin: 0 0 12px;
+    }
+
+    .center-drag-block .fish-panel {
+      margin-bottom: 0;
+    }
+
     #money {
       font-size: 44px;
       margin: 0;
@@ -444,10 +762,14 @@
     }
 
     .auto-sell-panel {
-      width: 100%;
-      max-width: none;
+      width: min(460px, calc(100vw - var(--sidebar-width) - 40px));
+      max-width: 520px;
       margin: 0;
-      padding: 14px;
+      position: fixed;
+      right: calc(var(--sidebar-width) + 16px);
+      top: 84px;
+      z-index: 25;
+      padding: 18px;
       border: 1px solid #354854;
       border-radius: 12px;
       background: #171f25;
@@ -457,10 +779,30 @@
     }
 
     .auto-sell-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-size: 17px;
       color: #e6f4ff;
-      margin-bottom: 4px;
+      margin-bottom: 10px;
       font-weight: bold;
+      cursor: move;
+      user-select: none;
+    }
+
+    .auto-sell-title::before {
+      content: "";
+      width: 12px;
+      height: 16px;
+      border-radius: 4px;
+      background-image: radial-gradient(circle, #8fb1c3 1.2px, transparent 1.2px);
+      background-size: 4px 4px;
+      opacity: 0.45;
+      flex: 0 0 auto;
+    }
+
+    .auto-sell-panel:hover .auto-sell-title::before {
+      opacity: 0.72;
     }
 
     .auto-sell-help {
@@ -489,13 +831,13 @@
 
     .auto-sell-row {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
+      grid-template-columns: 1fr;
+      gap: 8px;
       align-items: start;
     }
 
     .auto-sell-dynamic {
-      grid-column: 1 / -1;
+      grid-column: auto;
     }
 
     .auto-sell-row > label {
@@ -583,6 +925,16 @@
         margin: 0 auto;
       }
 
+      .auto-sell-panel {
+        position: static;
+        left: auto;
+        right: auto;
+        top: auto;
+        z-index: auto;
+        width: 100%;
+        max-width: none;
+      }
+
       .upgrades {
         width: 100%;
         max-width: 720px;
@@ -599,75 +951,173 @@
       .upgrades-resizer {
         display: none;
       }
+
+      .center-drag-block {
+        position: static;
+        left: auto;
+        top: auto;
+        z-index: auto;
+        width: 100%;
+        max-width: 720px;
+        margin: 12px auto 0;
+      }
+
+      .center-drag-grip {
+        display: none;
+      }
     }
 
     .nav-button {
-      display: inline-block;
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       text-decoration: none;
-      background: #555;
-      color: white;
-      border: 1px solid #aaa;
-      padding: 15px;
+      background: #31414d;
+      color: #eef5f9;
+      border: 1px solid #667a86;
+      padding: 12px 16px;
       margin: 0;
       margin-right: 8px;
-      font-size: 16px;
-      border-radius: 10px;
+      font-size: 15px;
+      border-radius: 12px;
       cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-button:hover {
+      background: #3a4c59;
+      border-color: #7f95a3;
+    }
+
+    .nav-button.active-nav-button {
+      background: #dbe3e8;
+      color: #1d2a33;
+      border-color: #dbe3e8;
+      font-weight: bold;
+      z-index: 3;
+    }
+
+    .settings-nav-button {
+      margin-left: auto;
+      margin-right: 16px;
+    }
+
+    /* Limited navigation mode (after 30 fish, before 10k money) */
+    body.limited-nav-mode .locked-nav-button {
+      display: none;
+    }
+
+    .hook-notification-layer {
+      position: fixed;
+      right: 14px;
+      top: 90px;
+      z-index: 260;
+      display: grid;
+      gap: 8px;
+      pointer-events: none;
+      max-width: min(92vw, 420px);
+    }
+
+    .hook-notification {
+      border: 1px solid #4f89a8;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #123244 0%, #0d2431 100%);
+      color: #dcf3ff;
+      font-size: 13px;
+      line-height: 1.4;
+      padding: 10px 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      transform: translateX(12px);
+      animation: hookToastIn 0.18s ease forwards;
+    }
+
+    .hook-notification.fade-out {
+      animation: hookToastOut 0.25s ease forwards;
+    }
+
+    .hook-notification-title {
+      font-weight: bold;
+      color: #9ad9ff;
+      margin-bottom: 4px;
+    }
+
+    @keyframes hookToastIn {
+      from { opacity: 0; transform: translateX(12px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes hookToastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(18px); }
     }
   </style>
 </head>
 
 <body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WRX7NXVH"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
 
   <div class="top-bar">
     <div class="top-nav">
-      <button class="nav-button" onclick="window.location.href='./'">Game</button>
-      <button class="nav-button" onclick="window.location.href='inventaire/'">Inventory</button>
-      <button class="nav-button" onclick="window.location.href='team/'">Team</button>
-      <button class="nav-button" onclick="window.location.href='shop/'">Shop</button>
-      <button class="nav-button" onclick="window.location.href='settings/'">Settings</button>
+      <button class="nav-button active-nav-button" onclick="window.location.href='./'">Game</button>
+      <button class="nav-button" onclick="window.location.href='inventory/'">Inventory</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='team/'">Team</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='shop/'">Shop</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='battle/'">Battle</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='reproduction/'">Reproduction</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='missions/'">Missions</button>
+      <button class="nav-button settings-nav-button" onclick="window.location.href='settings/'">Settings</button>
     </div>
   </div>
+  <div class="hook-notification-layer" id="hookNotificationLayer"></div>
 
   <div class="shell">
     <div class="money-header">
       <h2 id="money">Money: 0</h2>
       <div class="money-rate" id="catchPerSecond">Catches per second: 0</div>
     </div>
-    <div class="team-reminder" id="teamReminder">
-      <div class="team-reminder-title">Active Team</div>
-      <div class="team-reminder-body" id="teamReminderBody">No team selected.</div>
-      <div class="team-reminder-sub" id="teamReminderSub">Open the Team menu to change your lineup.</div>
-      <div class="team-reminder-slots" id="teamReminderSlots"></div>
-    </div>
-    <div class="stats">
-      <div class="stat-box">
-        <div class="stat-label">Fish caught</div>
-        <div class="stat-value" id="caughtCount">0</div>
+
+    <div class="center-drag-block" id="centerDragBlock">
+      <div class="center-drag-grip" id="centerDragGrip" aria-hidden="true"></div>
+      <div class="team-reminder" id="teamReminder">
+        <div class="team-reminder-title">Active Team</div>
+        <div class="team-reminder-body" id="teamReminderBody">No team selected.</div>
+        <div class="team-reminder-sub" id="teamReminderSub">Open the Team menu to change your lineup.</div>
+        <div class="team-reminder-slots" id="teamReminderSlots"></div>
       </div>
-      <div class="stat-box">
-        <div class="stat-label">Fish in inventory</div>
-        <div class="stat-value" id="inventoryCount">0</div>
-        <div class="stat-subvalue">Total value: <span id="inventoryTotalValue">0</span></div>
+
+      <div class="stats">
+        <div class="stat-box">
+          <div class="stat-label">Fish caught</div>
+          <div class="stat-value" id="caughtCount">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Fish in inventory</div>
+          <div class="stat-value" id="inventoryCount">0</div>
+          <div class="stat-subvalue">Total value: <span id="inventoryTotalValue">0</span></div>
+        </div>
+      </div>
+
+      <div class="fish-panel">
+        <button id="clicker" class="fish-button">
+          <div class="fish-info">
+            <div class="fish-title" id="fishButtonLabel">Fish</div>
+            <div class="fish-subtitle" id="fishDescription">Click to fish a random catch.</div>
+          </div>
+          <div class="fish-price" id="fishPrice">0</div>
+        </button>
       </div>
     </div>
 
     <div class="content-grid">
       <div class="main-column">
-        <div class="fish-panel">
-          <button id="clicker" class="fish-button">
-            <div class="fish-info">
-              <div class="fish-title" id="fishButtonLabel">Fish</div>
-              <div class="fish-subtitle" id="fishDescription">Click to fish a random catch.</div>
-            </div>
-            <div class="fish-price" id="fishPrice">0</div>
-          </button>
-
-        </div>
-
         <div class="auto-sell-panel">
           <div class="auto-sell-title">Smart auto-sell</div>
-          <div class="auto-sell-help">Choose one mode: sell by price (<= threshold) or sell by rarity (selected rarity and below).</div>
           <div class="auto-sell-row">
             <label>
               <span class="auto-sell-label">Status</span>
@@ -681,6 +1131,7 @@
               <select id="autoSellMode">
                 <option value="price">Sell by price</option>
                 <option value="rarity">Sell by rarity</option>
+                <option value="all">Sell all</option>
               </select>
             </label>
             <label id="autoSellPriceGroup" class="auto-sell-dynamic">
@@ -771,6 +1222,26 @@
       </div>
     </div>
 
+    <div class="tutorial-dialog-backdrop" id="tutorialBackdrop"></div>
+    <div class="tutorial-initial-dialog" id="tutorialInitialDialog">
+      <h2 class="tutorial-initial-dialog-title">Welcome to Clicker</h2>
+      <p class="tutorial-initial-dialog-text">Here we only fish for fish and watch a number increment, nothing more.</p>
+      <button class="tutorial-initial-dialog-button" id="tutorialInitialConfirmBtn">OK</button>
+    </div>
+    <div class="tutorial-fish-caught" id="tutorialFishCaught">
+      <div>Fish caught: <span id="tutorialFishCaughtCount">0</span></div>
+    </div>
+    <div class="tutorial-dialog" id="tutorialDialog">
+      <h2 class="tutorial-dialog-title">Welcome to the Fishing Game!</h2>
+      <p class="tutorial-dialog-text">You really thought we would only do that? Well, I'm adding a few things but not much.</p>
+      <button class="tutorial-dialog-button" id="tutorialConfirmBtn">Continue</button>
+    </div>
+    <div class="upgrades-unlock-dialog" id="upgradesUnlockDialog">
+      <h2 class="upgrades-unlock-dialog-title">You Did It!</h2>
+      <p class="upgrades-unlock-dialog-text">Well, I see you're determined. I'm giving you everything now, that's fine.</p>
+      <button class="upgrades-unlock-dialog-button" id="upgradesUnlockConfirmBtn">Awesome</button>
+    </div>
+
     <script>
       const FISH_SPECIES = [
         { type: "Common carp", rarity: "common", sizeMin: 25, sizeMax: 55, weightMin: 0.8, weightMax: 2.8 },
@@ -802,11 +1273,11 @@
       ];
 
       const RARITY_WEIGHTS = [
-        { rarity: "common", weight: 88 },
-        { rarity: "uncommon", weight: 9 },
-        { rarity: "rare", weight: 2.2 },
-        { rarity: "epic", weight: 0.7 },
-        { rarity: "legendary", weight: 0.1 }
+        { rarity: "common", weight: 92.6 },
+        { rarity: "uncommon", weight: 6 },
+        { rarity: "rare", weight: 1.2 },
+        { rarity: "epic", weight: 0.18 },
+        { rarity: "legendary", weight: 0.02 }
       ];
 
       const ROD_TIERS = [
@@ -831,8 +1302,6 @@
           multipliers: { common: 0.35, uncommon: 1.25, rare: 3.5, epic: 6.5, legendary: 10 }
         }
       ];
-
-      const ROD_UPGRADE_COSTS = [5600, 24500, 98000];
 
       const RARITY_MULTIPLIERS = {
         common: 1,
@@ -860,6 +1329,10 @@
       const autoSellRarityGroup = document.getElementById("autoSellRarityGroup");
       const autoSellMaxPriceInput = document.getElementById("autoSellMaxPrice");
       const autoSellMaxRaritySelect = document.getElementById("autoSellMaxRarity");
+      const autoSellPanel = document.querySelector(".auto-sell-panel");
+      const autoSellTitle = document.querySelector(".auto-sell-title");
+      const centerDragBlock = document.getElementById("centerDragBlock");
+      const centerDragGrip = document.getElementById("centerDragGrip");
       const upgradesPanel = document.querySelector(".upgrades");
       const upgradesResizer = document.querySelector(".upgrades-resizer");
       const tripleHookUpgrade = document.getElementById("tripleHookUpgrade");
@@ -884,9 +1357,25 @@
       const weightUpgradeCost = document.getElementById("weightUpgradeCost");
       const waitUpgradeCost = document.getElementById("waitUpgradeCost");
       const autoDelayLabel = document.getElementById("autoDelayLabel");
+      const tutorialDialog = document.getElementById("tutorialDialog");
+      const tutorialBackdrop = document.getElementById("tutorialBackdrop");
+      const tutorialInitialDialog = document.getElementById("tutorialInitialDialog");
+      const tutorialConfirmBtn = document.getElementById("tutorialConfirmBtn");
+      const tutorialInitialConfirmBtn = document.getElementById("tutorialInitialConfirmBtn");
+      const tutorialCaughtCount = document.getElementById("tutorialCaughtCount");
+      const tutorialFishCaught = document.getElementById("tutorialFishCaught");
+      const tutorialFishCaughtCount = document.getElementById("tutorialFishCaughtCount");
+      const upgradesUnlockDialog = document.getElementById("upgradesUnlockDialog");
+      const upgradesUnlockConfirmBtn = document.getElementById("upgradesUnlockConfirmBtn");
+      const hookNotificationLayer = document.getElementById("hookNotificationLayer");
 
       let money = Number(localStorage.getItem("clicker_money")) || 0;
+      let hooks = Number(localStorage.getItem("clicker_hooks")) || 0;
       let caughtCount = Number(localStorage.getItem("clicker_caughtCount")) || 0;
+      let epicCaughtCount = Number(localStorage.getItem("clicker_epicCaught")) || 0;
+      let legendaryCaughtCount = Number(localStorage.getItem("clicker_legendaryCaught")) || 0;
+      let tutorialCompleted = localStorage.getItem("clicker_tutorialCompleted") === "true";
+      let upgradesUnlocked = localStorage.getItem("clicker_upgradesUnlocked") === "true";
       let sizeBoostLevel = Number(localStorage.getItem("clicker_sizeBoostLevel")) || 0;
       let autoFisherLevel = Number(localStorage.getItem("clicker_autoFisherLevel")) || 0;
       let weightBoostLevel = Number(localStorage.getItem("clicker_weightBoostLevel")) || 0;
@@ -903,6 +1392,13 @@
       let lastManualCatchMs = 0;
       let inventoryTurn = Number(localStorage.getItem("clicker_inventoryTurn")) || 0;
       const TEAM_STATE_STORAGE_KEY = "clicker_teamState";
+      const TEAM_ROSTER_STORAGE_KEY = "clicker_teamRoster";
+      const AUTO_SELL_PANEL_POS_VERSION_KEY = "clicker_autoSellPanelPosVersion";
+      const CENTER_BLOCK_POS_VERSION_KEY = "clicker_centerBlockPosVersion";
+      const FLOATING_LAYER_MIN = 24;
+      const FLOATING_LAYER_MAX = 55;
+      const floatingPanels = [centerDragBlock, autoSellPanel, upgradesPanel].filter(Boolean);
+      let nextFloatingLayer = 31;
 
       const defaultTeamBonuses = {
         incomeMultiplier: 1,
@@ -920,13 +1416,97 @@
         autoSellMaxPrice = 25;
       }
 
-      if (autoSellMode !== "price" && autoSellMode !== "rarity") {
+      if (autoSellMode !== "price" && autoSellMode !== "rarity" && autoSellMode !== "all") {
         autoSellMode = "price";
       }
 
       function clampUpgradesWidth(value) {
         const maxWidth = Math.max(320, Math.floor(window.innerWidth * 0.58));
         return Math.min(maxWidth, Math.max(320, Math.floor(value)));
+      }
+
+      function isCompactLayout() {
+        return window.matchMedia("(max-width: 980px)").matches;
+      }
+
+      function clampAutoSellPosition(left, top) {
+        if (!autoSellPanel) {
+          return { left: 12, top: 84 };
+        }
+
+        const panelWidth = autoSellPanel.offsetWidth || 460;
+        const panelHeight = autoSellPanel.offsetHeight || 220;
+        const minLeft = 8;
+        const minTop = 56;
+        const maxLeft = Math.max(minLeft, window.innerWidth - panelWidth - 8);
+        const maxTop = Math.max(minTop, window.innerHeight - panelHeight - 8);
+
+        return {
+          left: Math.min(maxLeft, Math.max(minLeft, Math.floor(left))),
+          top: Math.min(maxTop, Math.max(minTop, Math.floor(top)))
+        };
+      }
+
+      function setAutoSellPosition(left, top, persist) {
+        if (!autoSellPanel) {
+          return;
+        }
+
+        if (isCompactLayout()) {
+          autoSellPanel.style.left = "";
+          autoSellPanel.style.right = "";
+          autoSellPanel.style.top = "";
+          return;
+        }
+
+        const next = clampAutoSellPosition(left, top);
+        autoSellPanel.style.right = "auto";
+        autoSellPanel.style.left = `${next.left}px`;
+        autoSellPanel.style.top = `${next.top}px`;
+
+        if (persist) {
+          localStorage.setItem("clicker_autoSellPanelLeft", String(next.left));
+          localStorage.setItem("clicker_autoSellPanelTop", String(next.top));
+        }
+      }
+
+      function clampCenterBlockPosition(left, top) {
+        if (!centerDragBlock) {
+          return { left: 16, top: 150 };
+        }
+
+        const blockWidth = centerDragBlock.offsetWidth || 760;
+        const blockHeight = centerDragBlock.offsetHeight || 360;
+        const minLeft = 8;
+        const minTop = 56;
+        const maxLeft = Math.max(minLeft, window.innerWidth - blockWidth - 8);
+        const maxTop = Math.max(minTop, window.innerHeight - blockHeight - 8);
+
+        return {
+          left: Math.min(maxLeft, Math.max(minLeft, Math.floor(left))),
+          top: Math.min(maxTop, Math.max(minTop, Math.floor(top)))
+        };
+      }
+
+      function setCenterBlockPosition(left, top, persist) {
+        if (!centerDragBlock) {
+          return;
+        }
+
+        if (isCompactLayout()) {
+          centerDragBlock.style.left = "";
+          centerDragBlock.style.top = "";
+          return;
+        }
+
+        const next = clampCenterBlockPosition(left, top);
+        centerDragBlock.style.left = `${next.left}px`;
+        centerDragBlock.style.top = `${next.top}px`;
+
+        if (persist) {
+          localStorage.setItem("clicker_centerBlockLeft", String(next.left));
+          localStorage.setItem("clicker_centerBlockTop", String(next.top));
+        }
       }
 
       function setUpgradesWidth(value, persist) {
@@ -938,13 +1518,204 @@
         }
       }
 
+      function bringFloatingPanelToFront(panel) {
+        if (!panel || isCompactLayout()) {
+          return;
+        }
+
+        nextFloatingLayer += 1;
+        if (nextFloatingLayer > FLOATING_LAYER_MAX) {
+          floatingPanels
+            .slice()
+            .sort((left, right) => (Number(left.style.zIndex) || FLOATING_LAYER_MIN) - (Number(right.style.zIndex) || FLOATING_LAYER_MIN))
+            .forEach((entry, index) => {
+              entry.style.zIndex = String(FLOATING_LAYER_MIN + index);
+            });
+
+          nextFloatingLayer = FLOATING_LAYER_MIN + floatingPanels.length;
+        }
+
+        panel.style.zIndex = String(nextFloatingLayer);
+      }
+
       setUpgradesWidth(upgradesWidth, false);
+
+      function getDefaultAutoSellPosition() {
+        if (!autoSellPanel) {
+          return { left: 12, top: 84 };
+        }
+
+        const panelWidth = autoSellPanel.offsetWidth || 460;
+        const rightReserved = upgradesWidth + 20;
+        const left = Math.max(8, Math.floor(window.innerWidth - rightReserved - panelWidth - 12));
+        return { left, top: 84 };
+      }
+
+      function getDefaultCenterBlockPosition() {
+        if (!centerDragBlock) {
+          return { left: 16, top: 150 };
+        }
+
+        const blockWidth = centerDragBlock.offsetWidth || 760;
+        const left = Math.max(8, Math.floor((window.innerWidth - upgradesWidth - blockWidth) / 2));
+        return { left, top: 150 };
+      }
+
+      const storedAutoSellLeft = Number(localStorage.getItem("clicker_autoSellPanelLeft"));
+      const storedAutoSellTop = Number(localStorage.getItem("clicker_autoSellPanelTop"));
+      const panelPosVersion = Number(localStorage.getItem(AUTO_SELL_PANEL_POS_VERSION_KEY)) || 0;
+      let initialAutoSellPosition = {
+        left: Number.isFinite(storedAutoSellLeft) ? storedAutoSellLeft : getDefaultAutoSellPosition().left,
+        top: Number.isFinite(storedAutoSellTop) ? storedAutoSellTop : 84
+      };
+
+      if (panelPosVersion < 2) {
+        initialAutoSellPosition = getDefaultAutoSellPosition();
+        localStorage.setItem(AUTO_SELL_PANEL_POS_VERSION_KEY, "2");
+        localStorage.setItem("clicker_autoSellPanelLeft", String(initialAutoSellPosition.left));
+        localStorage.setItem("clicker_autoSellPanelTop", String(initialAutoSellPosition.top));
+      }
+
+      setAutoSellPosition(initialAutoSellPosition.left, initialAutoSellPosition.top, false);
+
+      const storedCenterBlockLeft = Number(localStorage.getItem("clicker_centerBlockLeft"));
+      const storedCenterBlockTop = Number(localStorage.getItem("clicker_centerBlockTop"));
+      const centerBlockPosVersion = Number(localStorage.getItem(CENTER_BLOCK_POS_VERSION_KEY)) || 0;
+      let initialCenterBlockPosition = {
+        left: Number.isFinite(storedCenterBlockLeft) ? storedCenterBlockLeft : getDefaultCenterBlockPosition().left,
+        top: Number.isFinite(storedCenterBlockTop) ? storedCenterBlockTop : 150
+      };
+
+      if (centerBlockPosVersion < 1) {
+        initialCenterBlockPosition = getDefaultCenterBlockPosition();
+        localStorage.setItem(CENTER_BLOCK_POS_VERSION_KEY, "1");
+        localStorage.setItem("clicker_centerBlockLeft", String(initialCenterBlockPosition.left));
+        localStorage.setItem("clicker_centerBlockTop", String(initialCenterBlockPosition.top));
+      }
+
+      setCenterBlockPosition(initialCenterBlockPosition.left, initialCenterBlockPosition.top, false);
+
+      if (!isCompactLayout()) {
+        if (centerDragBlock) centerDragBlock.style.zIndex = "24";
+        if (autoSellPanel) autoSellPanel.style.zIndex = "25";
+        if (upgradesPanel) upgradesPanel.style.zIndex = "30";
+      }
+
+      if (autoSellPanel && autoSellTitle) {
+        let isDraggingAutoSell = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        autoSellPanel.addEventListener("mousedown", (event) => {
+          if (isCompactLayout()) {
+            return;
+          }
+
+          bringFloatingPanelToFront(autoSellPanel);
+
+          const interactiveTarget = event.target.closest("input, select, option, button, a, label");
+          if (interactiveTarget) {
+            return;
+          }
+
+          event.preventDefault();
+          const rect = autoSellPanel.getBoundingClientRect();
+          dragOffsetX = event.clientX - rect.left;
+          dragOffsetY = event.clientY - rect.top;
+          isDraggingAutoSell = true;
+          document.body.style.userSelect = "none";
+          document.body.style.cursor = "move";
+        });
+
+        window.addEventListener("mousemove", (event) => {
+          if (!isDraggingAutoSell) {
+            return;
+          }
+
+          setAutoSellPosition(event.clientX - dragOffsetX, event.clientY - dragOffsetY, false);
+        });
+
+        window.addEventListener("mouseup", () => {
+          if (!isDraggingAutoSell) {
+            return;
+          }
+
+          isDraggingAutoSell = false;
+          document.body.style.userSelect = "";
+          document.body.style.cursor = "";
+          const finalLeft = Number.parseInt(autoSellPanel.style.left || "8", 10);
+          const finalTop = Number.parseInt(autoSellPanel.style.top || "84", 10);
+          setAutoSellPosition(finalLeft, finalTop, true);
+        });
+      }
+
+      if (centerDragBlock && centerDragGrip) {
+        let isDraggingCenterBlock = false;
+        let centerOffsetX = 0;
+        let centerOffsetY = 0;
+
+        centerDragBlock.addEventListener("mousedown", (event) => {
+          if (isCompactLayout()) {
+            return;
+          }
+
+          bringFloatingPanelToFront(centerDragBlock);
+
+          const interactiveTarget = event.target.closest("input, select, option, button, a, label");
+          if (interactiveTarget && !event.target.closest("#centerDragGrip")) {
+            return;
+          }
+
+          event.preventDefault();
+          const rect = centerDragBlock.getBoundingClientRect();
+          centerOffsetX = event.clientX - rect.left;
+          centerOffsetY = event.clientY - rect.top;
+          isDraggingCenterBlock = true;
+          document.body.style.userSelect = "none";
+          document.body.style.cursor = "move";
+        });
+
+        window.addEventListener("mousemove", (event) => {
+          if (!isDraggingCenterBlock) {
+            return;
+          }
+
+          setCenterBlockPosition(event.clientX - centerOffsetX, event.clientY - centerOffsetY, false);
+        });
+
+        window.addEventListener("mouseup", () => {
+          if (!isDraggingCenterBlock) {
+            return;
+          }
+
+          isDraggingCenterBlock = false;
+          document.body.style.userSelect = "";
+          document.body.style.cursor = "";
+          const finalLeft = Number.parseInt(centerDragBlock.style.left || "16", 10);
+          const finalTop = Number.parseInt(centerDragBlock.style.top || "150", 10);
+          setCenterBlockPosition(finalLeft, finalTop, true);
+        });
+      }
+
+      window.addEventListener("resize", () => {
+        const currentLeft = Number.parseInt((autoSellPanel && autoSellPanel.style.left) || "8", 10);
+        const currentTop = Number.parseInt((autoSellPanel && autoSellPanel.style.top) || "84", 10);
+        setAutoSellPosition(currentLeft, currentTop, false);
+        const currentCenterLeft = Number.parseInt((centerDragBlock && centerDragBlock.style.left) || "16", 10);
+        const currentCenterTop = Number.parseInt((centerDragBlock && centerDragBlock.style.top) || "150", 10);
+        setCenterBlockPosition(currentCenterLeft, currentCenterTop, false);
+      });
 
       if (upgradesResizer && upgradesPanel) {
         let isResizing = false;
 
+        upgradesPanel.addEventListener("mousedown", () => {
+          bringFloatingPanelToFront(upgradesPanel);
+        });
+
         upgradesResizer.addEventListener("mousedown", (event) => {
           event.preventDefault();
+          bringFloatingPanelToFront(upgradesPanel);
           isResizing = true;
           document.body.style.cursor = "col-resize";
           document.body.style.userSelect = "none";
@@ -998,7 +1769,7 @@
           }
         }
 
-        if (event.key === TEAM_STATE_STORAGE_KEY) {
+        if (event.key === TEAM_STATE_STORAGE_KEY || event.key === TEAM_ROSTER_STORAGE_KEY) {
           refreshTeamBonuses();
         }
       });
@@ -1024,31 +1795,50 @@
       });
 
       function getSizeUpgradeCost(level) {
-        return Math.floor(1050 * Math.pow(2.15, level));
+        return Math.floor(700 * Math.pow(2.05, level));
       }
 
       function getTripleHookCost(level) {
-        return Math.floor(1750 * Math.pow(2.2, level));
+        return Math.floor(7800 * Math.pow(2.3, level));
       }
 
       function getRodUpgradeCost(level) {
-        if (level >= ROD_UPGRADE_COSTS.length) {
-          return null;
+        return Math.floor(5200 * Math.pow(2.28, level));
+      }
+
+      function getRodTierInfo(level) {
+        const baseTierIndex = Math.min(level, ROD_TIERS.length - 1);
+        const baseTier = ROD_TIERS[baseTierIndex];
+        const extraLevels = Math.max(0, level - (ROD_TIERS.length - 1));
+
+        if (extraLevels <= 0) {
+          return baseTier;
         }
 
-        return ROD_UPGRADE_COSTS[level];
+        const masteryBoost = 1 + (extraLevels * 0.08);
+        return {
+          name: `Ultimate+${extraLevels}`,
+          desc: `Ultimate mastery improves rare catches (+${Math.round(extraLevels * 8)}%).`,
+          multipliers: {
+            common: Math.max(0.2, baseTier.multipliers.common * (1 - (extraLevels * 0.02))),
+            uncommon: baseTier.multipliers.uncommon * (1 + (extraLevels * 0.03)),
+            rare: baseTier.multipliers.rare * masteryBoost,
+            epic: baseTier.multipliers.epic * masteryBoost,
+            legendary: baseTier.multipliers.legendary * masteryBoost
+          }
+        };
       }
 
       function getAutoUpgradeCost(level) {
-        return Math.floor(2100 * Math.pow(2.25, level));
+        return Math.floor(1300 * Math.pow(2.15, level));
       }
 
       function getWeightUpgradeCost(level) {
-        return Math.floor(1400 * Math.pow(2.05, level));
+        return Math.floor(900 * Math.pow(1.98, level));
       }
 
       function getWaitUpgradeCost(level) {
-        return Math.floor(2800 * Math.pow(2.3, level));
+        return Math.floor(1700 * Math.pow(2.2, level));
       }
 
       function getAutoIntervalMs() {
@@ -1059,6 +1849,33 @@
       function randomBetween(min, max, decimals) {
         const value = min + Math.random() * (max - min);
         return Number(value.toFixed(decimals));
+      }
+
+      function applyFishPriceReduction(fish) {
+        if (!fish || typeof fish !== "object") {
+          return fish;
+        }
+
+        const migrationVersion = Number(fish.priceReductionVersion) || 0;
+        if (migrationVersion >= 1) {
+          return fish;
+        }
+
+        const scale = 2 / 3;
+        const scaleValue = (value) => {
+          const numeric = Number(value);
+          return Number.isFinite(numeric) ? Math.max(1, Math.round(numeric * scale)) : value;
+        };
+
+        if (Number.isFinite(Number(fish.price))) fish.price = scaleValue(fish.price);
+        if (Number.isFinite(Number(fish.basePrice))) fish.basePrice = scaleValue(fish.basePrice);
+        if (Number.isFinite(Number(fish.currentValue))) fish.currentValue = scaleValue(fish.currentValue);
+        if (Number.isFinite(Number(fish.spoiledValue))) fish.spoiledValue = scaleValue(fish.spoiledValue);
+        if (Number.isFinite(Number(fish.outStartValue))) fish.outStartValue = scaleValue(fish.outStartValue);
+        if (Number.isFinite(Number(fish.outTargetValue))) fish.outTargetValue = scaleValue(fish.outTargetValue);
+
+        fish.priceReductionVersion = 1;
+        return fish;
       }
 
       function pickWeighted(items) {
@@ -1202,18 +2019,22 @@
 
       function loadTeamBonuses() {
         try {
-          const stored = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
-          if (!stored) {
-            return { ...defaultTeamBonuses };
+          const storedState = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
+          const storedRoster = localStorage.getItem(TEAM_ROSTER_STORAGE_KEY);
+
+          const parsedState = storedState ? JSON.parse(storedState) : null;
+          const parsedRoster = storedRoster ? JSON.parse(storedRoster) : null;
+
+          if (parsedState?.totals) {
+            return normalizeTeamBonuses(parsedState.totals);
           }
 
-          const parsed = JSON.parse(stored);
-          if (parsed && parsed.totals) {
-            return normalizeTeamBonuses(parsed.totals);
+          if (parsedRoster?.totals) {
+            return normalizeTeamBonuses(parsedRoster.totals);
           }
 
-          if (parsed && Array.isArray(parsed.teamChars)) {
-            return computeTeamBonusesFromChars(parsed.teamChars);
+          if (Array.isArray(parsedState?.teamChars)) {
+            return computeTeamBonusesFromChars(parsedState.teamChars);
           }
         } catch (error) {
           return { ...defaultTeamBonuses };
@@ -1225,7 +2046,7 @@
       function loadTeamReminder() {
         try {
           const storedState = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
-          const storedRoster = localStorage.getItem("clicker_teamRoster");
+          const storedRoster = localStorage.getItem(TEAM_ROSTER_STORAGE_KEY);
 
           if (!storedState && !storedRoster) {
             return { teamChars: [], totals: { ...defaultTeamBonuses } };
@@ -1233,6 +2054,11 @@
 
           const parsedState = storedState ? JSON.parse(storedState) : null;
           const parsedRoster = storedRoster ? JSON.parse(storedRoster) : null;
+          const stateUpdatedAt = Number(parsedState?.updatedAt) || 0;
+          const rosterUpdatedAt = Number(parsedRoster?.updatedAt) || 0;
+          const preferredTotals = stateUpdatedAt >= rosterUpdatedAt
+            ? parsedState?.totals
+            : parsedRoster?.totals;
           const teamChars = Array.isArray(parsedState?.teamChars)
             ? parsedState.teamChars
             : (Array.isArray(parsedRoster?.slots)
@@ -1257,9 +2083,11 @@
                   teamSlot: Number(entry.slot)
                 }))
               : []);
-          const totals = parsedState?.totals
-            ? normalizeTeamBonuses(parsedState.totals)
-            : (parsedRoster?.totals ? normalizeTeamBonuses(parsedRoster.totals) : computeTeamBonusesFromChars(teamChars));
+          const totals = preferredTotals
+            ? normalizeTeamBonuses(preferredTotals)
+            : (parsedState?.totals
+              ? normalizeTeamBonuses(parsedState.totals)
+              : (parsedRoster?.totals ? normalizeTeamBonuses(parsedRoster.totals) : computeTeamBonusesFromChars(teamChars)));
           return { teamChars, totals };
         } catch (error) {
           return { teamChars: [], totals: { ...defaultTeamBonuses } };
@@ -1384,7 +2212,7 @@
       }
 
       function getAdjustedRarityWeights() {
-        const tier = ROD_TIERS[Math.min(rodTierLevel, ROD_TIERS.length - 1)];
+        const tier = getRodTierInfo(rodTierLevel);
 
         return RARITY_WEIGHTS.map((entry) => {
           const multiplier = tier.multipliers[entry.rarity] || 1;
@@ -1425,6 +2253,10 @@
           return false;
         }
 
+        if (autoSellMode === "all") {
+          return true;
+        }
+
         if (autoSellMode === "rarity") {
           return rarityRank(fish.rarity) <= rarityRank(autoSellMaxRarity);
         }
@@ -1445,7 +2277,8 @@
         const size = Number((baseSize * sizeMultiplier).toFixed(1));
         const weight = Number((baseWeight * weightMultiplier).toFixed(2));
         const basePrice = Math.max(1, Math.round((size * 0.315 + weight * 9) * RARITY_MULTIPLIERS[rarity]));
-        const price = Math.max(1, Math.round(basePrice * teamBonuses.incomeMultiplier * (1 + (teamBonuses.resaleBonus * 0.01))));
+        const reducedBasePrice = Math.max(1, Math.round(basePrice * (2 / 3)));
+        const price = Math.max(1, Math.round(reducedBasePrice * teamBonuses.incomeMultiplier * (1 + (teamBonuses.resaleBonus * 0.01))));
 
         return {
           type: species.type,
@@ -1455,8 +2288,9 @@
           price: price,
           baseSize: baseSize,
           baseWeight: baseWeight,
-          basePrice: basePrice,
+          basePrice: reducedBasePrice,
           currentValue: price,
+          priceReductionVersion: 1,
           sizeProfile: sizeProfile,
           weightProfile: weightProfile
         };
@@ -1474,7 +2308,7 @@
             return createFish();
           }
 
-          return normalizeFishProfiles(parsed);
+          return applyFishPriceReduction(normalizeFishProfiles(parsed));
         } catch (error) {
           return createFish();
         }
@@ -1484,7 +2318,10 @@
 
       function saveGameState() {
         localStorage.setItem("clicker_money", String(money));
+        localStorage.setItem("clicker_hooks", String(hooks));
         localStorage.setItem("clicker_caughtCount", String(caughtCount));
+        localStorage.setItem("clicker_epicCaught", String(epicCaughtCount));
+        localStorage.setItem("clicker_legendaryCaught", String(legendaryCaughtCount));
         localStorage.setItem("clicker_currentFish", JSON.stringify(currentFish));
         localStorage.setItem("clicker_inventory", JSON.stringify(inventory));
         localStorage.setItem("clicker_inventoryTurn", String(inventoryTurn));
@@ -1498,6 +2335,40 @@
         localStorage.setItem("clicker_autoSellMode", autoSellMode);
         localStorage.setItem("clicker_autoSellMaxPrice", String(autoSellMaxPrice));
         localStorage.setItem("clicker_autoSellMaxRarity", autoSellMaxRarity);
+        localStorage.setItem("clicker_tutorialCompleted", String(tutorialCompleted));
+      }
+
+      function showHookNotification(title, text) {
+        if (!hookNotificationLayer) {
+          return;
+        }
+
+        const toast = document.createElement("div");
+        toast.className = "hook-notification";
+        toast.innerHTML = `
+          <div class="hook-notification-title">${title}</div>
+          <div>${text}</div>
+        `;
+
+        hookNotificationLayer.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add("fade-out");
+          setTimeout(() => {
+            toast.remove();
+          }, 260);
+        }, 2300);
+      }
+
+      function addHooks(amount, reasonTitle, reasonText) {
+        const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
+        if (safeAmount <= 0) {
+          return;
+        }
+
+        hooks += safeAmount;
+        localStorage.setItem("clicker_hooks", String(hooks));
+        showHookNotification(reasonTitle, `${reasonText} (+${safeAmount} Hooks)`);
       }
 
       function catchCurrentFish(source) {
@@ -1511,6 +2382,7 @@
           currentValue: Math.max(1, Math.round(currentFish.currentValue || currentFish.price)),
           sizeProfile: currentFish.sizeProfile,
           weightProfile: currentFish.weightProfile,
+          priceReductionVersion: 1,
           caughtAt: new Date().toISOString()
         };
 
@@ -1518,6 +2390,14 @@
           money += fishToStore.price;
         } else {
           inventory.push(fishToStore);
+        }
+
+        if (fishToStore.rarity === "epic") {
+          epicCaughtCount += 1;
+          // No hook reward for epic
+        } else if (fishToStore.rarity === "legendary") {
+          legendaryCaughtCount += 1;
+          // No hook reward for legendary
         }
 
         caughtCount++;
@@ -1537,7 +2417,8 @@
         const rarityClass = getRarityClass(currentFish.rarity);
         const fishDescriptors = getFishDescriptors(currentFish);
         const fishPerClick = 1 + tripleHookLevel;
-        const rodTier = ROD_TIERS[Math.min(rodTierLevel, ROD_TIERS.length - 1)];
+        const rodTier = getRodTierInfo(rodTierLevel);
+        const hideFishCharacteristics = !tutorialCompleted && caughtCount < 30;
         const inventoryTotalValue = inventory.reduce((sum, fish) => {
           const fishValue = Number(fish.currentValue) || Number(fish.basePrice) || Number(fish.price) || 0;
           return sum + fishValue;
@@ -1545,13 +2426,16 @@
         const catchesPerSecond = autoFisherLevel <= 0 ? 0 : Number((autoFisherLevel / (getAutoIntervalMs() / 1000)).toFixed(2));
 
         moneyDisplay.textContent = "Money: " + money;
+        tutorialFishCaughtCount.textContent = String(caughtCount);
         catchPerSecondDisplay.textContent = "Catches per second: " + catchesPerSecond;
         caughtCountDisplay.textContent = String(caughtCount);
         inventoryCountDisplay.textContent = String(inventory.length);
         inventoryTotalValueDisplay.textContent = String(inventoryTotalValue);
         fishButtonLabel.textContent = currentFish.type + " " + fishDescriptors;
         fishButtonLabel.className = "fish-title " + rarityClass;
-        fishDescription.textContent = currentFish.type + " " + fishDescriptors + " | Rarity: " + formatRarityLabel(currentFish.rarity) + " | Size: " + currentFish.size + " cm | Weight: " + currentFish.weight + " kg | Price: " + currentFish.price;
+        fishDescription.textContent = hideFishCharacteristics
+          ? ""
+          : "Rarity: " + formatRarityLabel(currentFish.rarity) + " | Size: " + currentFish.size + " cm | Weight: " + currentFish.weight + " kg | Price: " + currentFish.price;
         fishPrice.textContent = String(currentFish.price);
         tripleHookUpgradeCount.textContent = String(tripleHookLevel);
         rodUpgradeCount.textContent = String(rodTierLevel);
@@ -1559,7 +2443,7 @@
         rodTierLabel.textContent = rodTier.name;
         rodUpgradeDesc.textContent = rodTier.desc;
         tripleHookUpgradeCost.textContent = String(nextTripleHookCost);
-        rodUpgradeCost.textContent = nextRodUpgradeCost === null ? "MAX" : String(nextRodUpgradeCost);
+        rodUpgradeCost.textContent = String(nextRodUpgradeCost);
         sizeUpgradeCount.textContent = String(sizeBoostLevel);
         autoUpgradeCount.textContent = String(autoFisherLevel);
         weightUpgradeCount.textContent = String(weightBoostLevel);
@@ -1571,7 +2455,7 @@
         autoDelayLabel.textContent = autoDelaySeconds;
 
         tripleHookUpgrade.disabled = money < nextTripleHookCost;
-        rodUpgrade.disabled = nextRodUpgradeCost === null || money < nextRodUpgradeCost;
+        rodUpgrade.disabled = money < nextRodUpgradeCost;
         sizeUpgrade.disabled = money < nextSizeCost;
         autoUpgrade.disabled = money < nextAutoCost;
         weightUpgrade.disabled = money < nextWeightCost;
@@ -1583,10 +2467,11 @@
         autoSellMaxRaritySelect.value = autoSellMaxRarity;
         autoSellModeSelect.disabled = !autoSellEnabled;
         const isPriceMode = autoSellMode === "price";
+        const isRarityMode = autoSellMode === "rarity";
         autoSellPriceGroup.classList.toggle("auto-sell-hidden", !isPriceMode);
-        autoSellRarityGroup.classList.toggle("auto-sell-hidden", isPriceMode);
+        autoSellRarityGroup.classList.toggle("auto-sell-hidden", !isRarityMode);
         autoSellMaxPriceInput.disabled = !autoSellEnabled || !isPriceMode;
-        autoSellMaxRaritySelect.disabled = !autoSellEnabled || isPriceMode;
+        autoSellMaxRaritySelect.disabled = !autoSellEnabled || !isRarityMode;
         saveGameState();
       }
 
@@ -1615,7 +2500,7 @@
 
       rodUpgrade.addEventListener("click", () => {
         const cost = getRodUpgradeCost(rodTierLevel);
-        if (cost !== null && money >= cost) {
+        if (money >= cost) {
           money -= cost;
           rodTierLevel++;
           render();
@@ -1664,7 +2549,8 @@
       });
 
       autoSellModeSelect.addEventListener("change", () => {
-        autoSellMode = autoSellModeSelect.value === "rarity" ? "rarity" : "price";
+        const nextMode = autoSellModeSelect.value;
+        autoSellMode = (nextMode === "rarity" || nextMode === "all") ? nextMode : "price";
         render();
       });
 
@@ -1699,6 +2585,71 @@
       }, 500);
 
       render();
+
+      // Tutorial System
+      function initializeTutorial() {
+        if (!tutorialCompleted) {
+          document.body.classList.add("tutorial-mode");
+        } else {
+          document.body.classList.remove("tutorial-mode");
+        }
+      }
+
+      function checkTutorialProgress() {
+        if (!tutorialCompleted && caughtCount >= 30) {
+          showTutorialDialog();
+        }
+      }
+
+      function showTutorialDialog() {
+        if (tutorialCaughtCount) {
+          tutorialCaughtCount.textContent = String(caughtCount);
+        }
+        tutorialDialog.classList.add("show");
+        tutorialBackdrop.classList.add("show");
+      }
+
+      function completeTutorial() {
+        tutorialCompleted = true;
+        localStorage.setItem("clicker_tutorialCompleted", "true");
+        tutorialDialog.classList.remove("show");
+        tutorialBackdrop.classList.remove("show");
+        document.body.classList.remove("tutorial-mode");
+        document.body.classList.add("limited-nav-mode");
+        render();
+      }
+
+      function unlockUpgrades() {
+        upgradesUnlocked = true;
+        localStorage.setItem("clicker_upgradesUnlocked", "true");
+        upgradesUnlockDialog.classList.remove("show");
+        tutorialBackdrop.classList.remove("show");
+        document.body.classList.remove("limited-nav-mode");
+        render();
+      }
+
+      tutorialConfirmBtn.addEventListener("click", completeTutorial);
+      tutorialInitialConfirmBtn.addEventListener("click", () => {
+        tutorialInitialDialog.classList.add("dismissed");
+      });
+      upgradesUnlockConfirmBtn.addEventListener("click", unlockUpgrades);
+
+      // Initialize tutorial state
+      initializeTutorial();
+      if (tutorialCompleted && !upgradesUnlocked) {
+        document.body.classList.add("limited-nav-mode");
+      }
+
+      // Check tutorial progress in the render loop
+      setInterval(() => {
+        if (!tutorialCompleted && caughtCount >= 30) {
+          checkTutorialProgress();
+        }
+        if (tutorialCompleted && !upgradesUnlocked && money >= 10000) {
+          upgradesUnlockDialog.classList.add("show");
+          tutorialBackdrop.classList.add("show");
+        }
+      }, 500);
     </script>
 </body>
 </html>

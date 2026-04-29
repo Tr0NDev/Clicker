@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Inventory - Clicker</title>
+  <style>
+    :root {
+      --sidebar-width: 360px;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #111;
+      color: #fff;
+      margin: 0;
+      padding: 24px 16px 36px 16px;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #0c1217;
+      border-bottom: 1px solid #22313b;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+      margin: -24px -16px 18px;
+      padding: 10px 0;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0 0 0 16px;
+    }
+
+    .nav-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      background: #31414d;
+      color: #eef5f9;
+      border: 1px solid #667a86;
+      padding: 12px 16px;
+      margin: 0;
+      margin-right: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-button:hover {
+      background: #3a4c59;
+      border-color: #7f95a3;
+    }
+
+    .nav-button.active-nav-button {
+      background: #dbe3e8;
+      color: #1d2a33;
+      border-color: #dbe3e8;
+      font-weight: bold;
+    }
+
+    .settings-nav-button {
+      margin-left: auto;
+      margin-right: 16px;
+    }
+
+    .shell {
+      max-width: 1320px;
+      margin: 0 auto;
+      min-height: calc(100vh - 24px - 36px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn {
+      border: 1px solid #8897a5;
+      background: #263541;
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .stats {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .box {
+      background: #1b1b1b;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .box-title {
+      color: #aac2d0;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .box-value {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .list {
+      margin-top: 16px;
+      display: grid;
+      gap: 10px;
+      flex: 1;
+      min-height: 0;
+      max-height: none;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .fish {
+      border: 1px solid #364a57;
+      background: #192128;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .fish.rarity-common {
+      background: #17191c;
+      border-color: #5a5a5a;
+    }
+
+    .fish.rarity-uncommon {
+      background: #132019;
+      border-color: #3f7b4b;
+    }
+
+    .fish.rarity-rare {
+      background: #13202e;
+      border-color: #335f94;
+    }
+
+    .fish.rarity-epic {
+      background: #1b1428;
+      border-color: #7a5bb3;
+    }
+
+    .fish.rarity-legendary {
+      background: #2a1d0f;
+      border-color: #c57a2a;
+    }
+
+    .fish-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+
+    .fish-meta {
+      color: #bed1dd;
+      font-size: 14px;
+    }
+
+    .auto-sell-panel {
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid #3a5262;
+      border-radius: 10px;
+      background: #172028;
+    }
+
+    .auto-sell-title {
+      font-size: 14px;
+      color: #cfe0ea;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .auto-sell-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .auto-sell-row input,
+    .auto-sell-row select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #536c7b;
+      background: #0f1519;
+      color: #fff;
+    }
+
+
+    .fish-left {
+      display: grid;
+      gap: 6px;
+    }
+
+    .fish-state {
+      font-size: 13px;
+      color: #d7e3ec;
+    }
+
+    .fish-value {
+      font-size: 13px;
+      color: #f7f0c4;
+    }
+
+    .fish-actions {
+      display: grid;
+      gap: 8px;
+      justify-items: end;
+      align-content: start;
+    }
+
+    .fish-turn-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 8px;
+      width: 100%;
+      align-items: center;
+    }
+
+    .fish-turn-row input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #635b85;
+      background: #0f1519;
+      color: #fff;
+    }
+
+    .fish-preview {
+      font-size: 13px;
+      color: #f7f0c4;
+      font-weight: bold;
+      min-width: 80px;
+      text-align: right;
+    }
+
+    .fish-actions .btn {
+      min-width: 150px;
+    }
+
+    .spoiled {
+      color: #ff8b8b;
+    }
+
+    .rarity-common { color: #d9d9d9; }
+    .rarity-uncommon { color: #7ee787; }
+    .rarity-rare { color: #58a6ff; }
+    .rarity-epic { color: #d2a8ff; }
+    .rarity-legendary { color: #ffa657; }
+
+    .empty {
+      margin-top: 16px;
+      color: #9eb0bc;
+    }
+
+    .sort-panel {
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid #3a5262;
+      border-radius: 10px;
+      background: #172028;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .sort-label {
+      font-size: 14px;
+      color: #cfe0ea;
+      font-weight: bold;
+    }
+
+    .sort-btn {
+      border: 1px solid #8897a5;
+      background: #263541;
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    .sort-btn.active {
+      background: #3a5f7a;
+      border-color: #5a8faa;
+    }
+
+    .sort-btn:hover {
+      background: #324555;
+    }
+
+    .inventory-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+      margin-top: 18px;
+      flex: 1;
+    }
+
+    .inventory-main {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      height: calc(100vh - 24px - 36px - 70px);
+      min-height: 0;
+    }
+
+    .inventory-main-scroll {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .inventory-sidebar {
+      position: sticky;
+      top: 24px;
+      height: calc(100vh - 60px);
+      border: 1px solid #2f4d5c;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #18222a 0%, #12191f 100%);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+      box-sizing: border-box;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      text-align: left;
+      overflow: hidden;
+    }
+
+    .inventory-sidebar-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #8dc4e0;
+    }
+
+    .inventory-sidebar-body {
+      color: #b8d4e3;
+      font-size: 14px;
+      line-height: 1.5;
+      display: grid;
+      gap: 12px;
+      flex: 1;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .inventory-sidebar-card {
+      border: 1px solid #2f4d5c;
+      border-radius: 12px;
+      background: #0f1519;
+      padding: 12px;
+    }
+
+    .inventory-image-slot {
+      height: 160px;
+      border: 1px dashed #4b6878;
+      border-radius: 12px;
+      background: #10181d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #93aab8;
+      font-size: 14px;
+      text-align: center;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+
+    .inventory-detail-name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+
+    .inventory-detail-meta {
+      color: #bed1dd;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .fish-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .fish-detail-item {
+      border: 1px solid #365062;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #15222a 0%, #111920 100%);
+      padding: 8px;
+    }
+
+    .fish-detail-item-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #8eb0c3;
+      margin-bottom: 4px;
+    }
+
+    .fish-detail-item-value {
+      font-size: 14px;
+      font-weight: bold;
+      color: #f1f8fd;
+    }
+
+    .inventory-detail-name.rarity-common,
+    .fish-detail-item-value.rarity-common { color: #d9d9d9; }
+
+    .inventory-detail-name.rarity-uncommon,
+    .fish-detail-item-value.rarity-uncommon { color: #7ee787; }
+
+    .inventory-detail-name.rarity-rare,
+    .fish-detail-item-value.rarity-rare { color: #58a6ff; }
+
+    .inventory-detail-name.rarity-epic,
+    .fish-detail-item-value.rarity-epic { color: #d2a8ff; }
+
+    .inventory-detail-name.rarity-legendary,
+    .fish-detail-item-value.rarity-legendary { color: #ffa657; }
+
+    .inventory-detail-note {
+      color: #9eb0bc;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .inventory-detail-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .inventory-action-row {
+      display: grid;
+      gap: 10px;
+    }
+
+    .inventory-action-btn {
+      width: 100%;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 14px 12px;
+    }
+
+    .inventory-action-btn.fridge {
+      background: #7a2f2f;
+      border-color: #d88f8f;
+    }
+
+    .inventory-action-btn.fridge:hover {
+      background: #944141;
+    }
+
+    .inventory-action-btn.fridge.in-fridge {
+      background: #2b5b3a;
+      border-color: #79b58d;
+    }
+
+    .inventory-action-btn.fridge.in-fridge:hover {
+      background: #347247;
+    }
+
+    .inventory-action-btn.sell {
+      background: #6a5a1f;
+      border-color: #d4bc57;
+    }
+
+    .inventory-action-btn.sell:hover {
+      background: #7b6823;
+    }
+
+    .inventory-selected {
+      outline: 2px solid #8dc4e0;
+      box-shadow: 0 0 0 2px rgba(141, 196, 224, 0.18);
+    }
+
+    .inventory-sidebar-note {
+      color: #9eb0bc;
+      font-size: 13px;
+    }
+
+    .inventory-sidebar-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .inventory-small-stat {
+      border: 1px solid #2f4d5c;
+      border-radius: 12px;
+      background: #0f1519;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .inventory-small-stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #aac2d0;
+      margin-bottom: 4px;
+    }
+
+    .inventory-small-stat-value {
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .inventory-right-section {
+      display: grid;
+      gap: 10px;
+    }
+
+    .inventory-right-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #8dc4e0;
+    }
+
+    /* Limited navigation mode (after 30 fish, before 10k money) */
+    body.limited-nav-mode .locked-nav-button {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="top-nav">
+      <button class="nav-button" onclick="window.location.href='../'">Game</button>
+      <button class="nav-button active-nav-button" onclick="window.location.href='./'">Inventory</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../team/'">Team</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../shop/'">Shop</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../battle/'">Battle</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../missions/'">Missions</button>
+      <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <div class="inventory-layout">
+      <div class="inventory-main">
+        <div class="inventory-main-scroll">
+          <div class="auto-sell-panel" style="margin-top: 0;">
+            <div class="auto-sell-title">Auto-sell</div>
+            <div class="auto-sell-row">
+              <label>
+                Max price
+                <input type="number" id="autoSellMaxPrice" min="0" step="1" value="25">
+              </label>
+              <label>
+                Max rarity
+                <select id="autoSellMaxRarity">
+                  <option value="common">Common</option>
+                  <option value="uncommon">Uncommon</option>
+                  <option value="rare">Rare</option>
+                  <option value="epic">Epic</option>
+                  <option value="legendary">Legendary</option>
+                </select>
+              </label>
+              <button id="sellByFilter" class="btn">Sell by filters</button>
+            </div>
+          </div>
+
+          <div class="sort-panel">
+            <span class="sort-label">Sort by:</span>
+            <button class="sort-btn active" data-sort="none">Default</button>
+            <button class="sort-btn" data-sort="price">Price ↓</button>
+            <button class="sort-btn" data-sort="weight">Weight ↓</button>
+            <button class="sort-btn" data-sort="size">Size ↓</button>
+            <button class="sort-btn" data-sort="rarity">Rarity ↓</button>
+          </div>
+
+          <div id="list" class="list"></div>
+          <div id="empty" class="empty" style="display:none;">Inventory is empty.</div>
+        </div>
+      </div>
+
+      <aside class="inventory-sidebar">
+        <div class="inventory-sidebar-title">Selected Fish</div>
+        <div class="inventory-sidebar-body">
+          <div class="inventory-sidebar-card">
+            <div class="inventory-image-slot" id="selectedFishImage">Image placeholder</div>
+          </div>
+          <div class="inventory-sidebar-card">
+            <div class="inventory-detail-stack">
+              <div class="inventory-detail-name" id="detailName">No fish selected</div>
+              <div class="inventory-detail-meta" id="detailMeta">Click a fish in the list to view it here.</div>
+            </div>
+          </div>
+          <div class="inventory-sidebar-card">
+            <div class="inventory-action-row">
+              <button id="fridgeButton" class="btn inventory-action-btn fridge" type="button" disabled>Put in Fridge</button>
+              <button id="sellButton" class="btn inventory-action-btn sell" type="button" disabled>Sell</button>
+            </div>
+          </div>
+          <div class="inventory-sidebar-card">
+            <div class="inventory-right-title">Global Info</div>
+            <div class="inventory-sidebar-stats">
+              <div class="inventory-small-stat">
+                <div class="inventory-small-stat-label">Money</div>
+                <div class="inventory-small-stat-value" id="money">0</div>
+              </div>
+              <div class="inventory-small-stat">
+                <div class="inventory-small-stat-label">Fish</div>
+                <div class="inventory-small-stat-value" id="count">0</div>
+              </div>
+              <div class="inventory-small-stat">
+                <div class="inventory-small-stat-label">Value</div>
+                <div class="inventory-small-stat-value" id="value">0</div>
+              </div>
+            </div>
+            <div class="inventory-detail-note" id="detailInfo"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const TURN_SECONDS = 10;
+    const OUT_GAIN_PER_10S_MIN = 5;
+    const OUT_GAIN_PER_10S_MAX = 10;
+
+    const moneyDisplay = document.getElementById("money");
+    const countDisplay = document.getElementById("count");
+    const valueDisplay = document.getElementById("value");
+    const list = document.getElementById("list");
+    const empty = document.getElementById("empty");
+    const selectedFishImage = document.getElementById("selectedFishImage");
+    const detailName = document.getElementById("detailName");
+    const detailMeta = document.getElementById("detailMeta");
+    const detailInfo = document.getElementById("detailInfo");
+    const fridgeButton = document.getElementById("fridgeButton");
+    const sellButton = document.getElementById("sellButton");
+    const autoSellMaxPriceInput = document.getElementById("autoSellMaxPrice");
+    const autoSellMaxRaritySelect = document.getElementById("autoSellMaxRarity");
+    const sellByFilter = document.getElementById("sellByFilter");
+
+    let money = Number(localStorage.getItem("clicker_money")) || 0;
+    let inventory = [];
+    let autoSellMaxPrice = Number(localStorage.getItem("clicker_autoSellMaxPrice"));
+    let autoSellMaxRarity = localStorage.getItem("clicker_autoSellMaxRarity") || "common";
+    let sortMode = "none";
+    let sortDirection = "desc";
+    let selectedFishUid = localStorage.getItem("clicker_inventorySelectedFishUid") || "";
+
+    if (Number.isNaN(autoSellMaxPrice)) {
+      autoSellMaxPrice = 25;
+    }
+
+    function loadInventory() {
+      try {
+        const stored = localStorage.getItem("clicker_inventory");
+        inventory = stored ? JSON.parse(stored) : [];
+        if (!Array.isArray(inventory)) {
+          inventory = [];
+        }
+      } catch (error) {
+        inventory = [];
+      }
+
+      let touched = false;
+      inventory = inventory.map((fish) => {
+        const reduced = applyFishPriceReduction(fish);
+        if (reduced !== fish) {
+          touched = true;
+        }
+
+        const normalized = normalizeFishState(reduced);
+        if (normalized !== reduced) {
+          touched = true;
+        }
+
+        return normalized;
+      });
+
+      if (touched) {
+        saveState();
+      }
+    }
+
+    function getSelectedFish() {
+      return inventory.find((fish) => fish.uid === selectedFishUid) || null;
+    }
+
+    function setSelectedFish(uid) {
+      selectedFishUid = uid || "";
+      localStorage.setItem("clicker_inventorySelectedFishUid", selectedFishUid);
+      render();
+    }
+
+    function rarityLabel(rarity) {
+      const labels = {
+        common: "Common",
+        uncommon: "Uncommon",
+        rare: "Rare",
+        epic: "Epic",
+        legendary: "Legendary"
+      };
+
+      return labels[rarity] || rarity;
+    }
+
+    function fishDescriptors(fish) {
+      const size = Number(fish.size) || 0;
+      const weight = Number(fish.weight) || 0;
+      const tags = [];
+
+      if (size >= 180) {
+        tags.push("huge");
+      } else if (size >= 95) {
+        tags.push("big");
+      } else if (size <= 28) {
+        tags.push("small");
+      }
+
+      if (weight >= 40) {
+        tags.push("heavy");
+      } else if (weight <= 1.2) {
+        tags.push("light");
+      }
+
+      if (tags.length === 0) {
+        return "(average)";
+      }
+
+      return "(" + tags.join(", ") + ")";
+    }
+
+    function rarityRank(rarity) {
+      const ranks = {
+        common: 1,
+        uncommon: 2,
+        rare: 3,
+        epic: 4,
+        legendary: 5
+      };
+
+      return ranks[rarity] || 1;
+    }
+
+    function randomBetween(min, max, decimals) {
+      const value = min + Math.random() * (max - min);
+      return Number(value.toFixed(decimals));
+    }
+
+    function createFishUid() {
+      return "fish_" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
+    }
+
+    function applyFishPriceReduction(fish) {
+      if (!fish || typeof fish !== "object") {
+        return fish;
+      }
+
+      const migrationVersion = Number(fish.priceReductionVersion) || 0;
+      if (migrationVersion >= 1) {
+        return fish;
+      }
+
+      const scale = 2 / 3;
+      const scaleValue = (value) => {
+        const numeric = Number(value);
+        return Number.isFinite(numeric) ? Math.max(1, Math.round(numeric * scale)) : value;
+      };
+
+      if (Number.isFinite(Number(fish.price))) fish.price = scaleValue(fish.price);
+      if (Number.isFinite(Number(fish.basePrice))) fish.basePrice = scaleValue(fish.basePrice);
+      if (Number.isFinite(Number(fish.currentValue))) fish.currentValue = scaleValue(fish.currentValue);
+      if (Number.isFinite(Number(fish.spoiledValue))) fish.spoiledValue = scaleValue(fish.spoiledValue);
+      if (Number.isFinite(Number(fish.outStartValue))) fish.outStartValue = scaleValue(fish.outStartValue);
+      if (Number.isFinite(Number(fish.outTargetValue))) fish.outTargetValue = scaleValue(fish.outTargetValue);
+
+      fish.priceReductionVersion = 1;
+      return fish;
+    }
+
+    function normalizeFishState(fish) {
+      const uid = (fish && typeof fish.uid === "string" && fish.uid.trim()) ? fish.uid : createFishUid();
+      const price = Number(fish && fish.price) || 0;
+      const basePrice = Number(fish && fish.basePrice) || price;
+      const hiddenResistance = Number(fish && fish.hiddenResistance) || randomBetween(0.9, 1.05, 3);
+      const rawGrowthRate = Number(fish && fish.growthRate);
+      const growthRate = Number.isFinite(rawGrowthRate)
+        ? Math.min(0.1, Math.max(0.05, rawGrowthRate))
+        : randomBetween(0.05, 0.1, 3);
+      const spoiledValue = Number(fish && fish.spoiledValue) || Math.max(1, Math.round(basePrice * 0.08));
+      const currentValue = Number(fish && fish.currentValue);
+      const legacyTurnsOut = Number(fish && fish.turnsOut) || 0;
+      const legacySpoilTurns = Number(fish && fish.hiddenSpoilTurns) || Math.max(2, Math.floor(randomBetween(2, 6, 0)));
+      const now = Date.now();
+
+      const outDurationMs = Number(fish && fish.outDurationMs);
+      const outStartedAtMs = Number(fish && fish.outStartedAtMs);
+      const hiddenSpoilMs = Number(fish && fish.hiddenSpoilMs);
+      const outStartValue = Number(fish && fish.outStartValue);
+      const outCount = Number(fish && fish.outCount);
+      const totalOutMs = Number(fish && fish.totalOutMs);
+      const outBonusPercent = Number(fish && fish.outBonusPercent);
+      const outTargetValue = Number(fish && fish.outTargetValue);
+
+      const normalizedOutDurationMs = Number.isFinite(outDurationMs) && outDurationMs > 0
+        ? outDurationMs
+        : Math.max(0, legacyTurnsOut * TURN_SECONDS * 1000);
+
+      const normalizedOutStartedAtMs = Number.isFinite(outStartedAtMs)
+        ? outStartedAtMs
+        : ((fish && fish.storageState === "out" && normalizedOutDurationMs > 0) ? now : 0);
+
+      const normalizedHiddenSpoilMs = Number.isFinite(hiddenSpoilMs) && hiddenSpoilMs > 0
+        ? hiddenSpoilMs
+        : Math.max(legacySpoilTurns * TURN_SECONDS * 1000, TURN_SECONDS * 1000);
+
+      return {
+        uid: uid,
+        type: fish && fish.type ? fish.type : "Fish",
+        rarity: fish && fish.rarity ? fish.rarity : "common",
+        size: Number(fish && fish.size) || 0,
+        weight: Number(fish && fish.weight) || 0,
+        basePrice: basePrice,
+        currentValue: Number.isNaN(currentValue) ? basePrice : currentValue,
+        spoiledValue: spoiledValue,
+        storageState: fish && fish.storageState ? fish.storageState : "fridge",
+        outDurationMs: normalizedOutDurationMs,
+        outStartedAtMs: normalizedOutStartedAtMs,
+        outStartValue: Number.isFinite(outStartValue) && outStartValue > 0 ? outStartValue : (Number.isNaN(currentValue) ? basePrice : currentValue),
+        outBonusPercent: Number.isFinite(outBonusPercent) ? outBonusPercent : null,
+        outTargetValue: Number.isFinite(outTargetValue) && outTargetValue > 0 ? outTargetValue : null,
+        outCount: Number.isFinite(outCount) ? Math.max(0, Math.floor(outCount)) : 0,
+        totalOutMs: Number.isFinite(totalOutMs) ? Math.max(0, totalOutMs) : Math.max(0, legacyTurnsOut * TURN_SECONDS * 1000),
+        hiddenSpoilMs: normalizedHiddenSpoilMs,
+        hiddenResistance: hiddenResistance,
+        growthRate: growthRate,
+        spoiled: Boolean(fish && fish.spoiled),
+        priceReductionVersion: Number(fish && fish.priceReductionVersion) || 1
+      };
+    }
+
+    function getFishValue(fish) {
+      return Math.max(0, Math.round(Number(fish.currentValue) || Number(fish.basePrice) || Number(fish.price) || 0));
+    }
+
+    function getFishStateLabel(fish) {
+      if (fish.spoiled) {
+        return "Spoiled";
+      }
+
+      if (fish.storageState === "out") {
+        return "Out of fridge";
+      }
+
+      return "In fridge";
+    }
+
+    function getElapsedOutMs(fish, now) {
+      if (fish.storageState !== "out") {
+        return 0;
+      }
+
+      const start = Number(fish.outStartedAtMs) || 0;
+      if (start <= 0) {
+        return 0;
+      }
+
+      return Math.max(0, now - start);
+    }
+
+    function getCurrentOutDurationMs(fish) {
+      return Math.max(0, Number(fish.outDurationMs) || 0);
+    }
+
+    function getTotalOutSeconds(fish, now) {
+      const totalOutMs = Math.max(0, Number(fish.totalOutMs) || 0);
+      const currentElapsed = fish.storageState === "out" ? getElapsedOutMs(fish, now) : 0;
+      return (totalOutMs + currentElapsed) / 1000;
+    }
+
+    function closeOutSession(fish, now) {
+      const elapsedOutMs = getElapsedOutMs(fish, now);
+      fish.totalOutMs = Math.max(0, Number(fish.totalOutMs) || 0) + elapsedOutMs;
+      fish.outStartedAtMs = 0;
+      fish.outDurationMs = 0;
+      fish.outStartValue = Math.max(Number(fish.currentValue) || 0, Number(fish.basePrice) || 0);
+    }
+
+    function refreshFishValue(fish, now) {
+      if (fish.spoiled) {
+        fish.currentValue = fish.spoiledValue;
+        return fish;
+      }
+
+      if (fish.storageState !== "out") {
+        fish.currentValue = Math.max(
+          Number(fish.currentValue) || 0,
+          Number(fish.outTargetValue) || 0,
+          Number(fish.basePrice) || 0
+        );
+        return fish;
+      }
+
+      const baseReference = Math.max(Number(fish.outStartValue) || Number(fish.currentValue) || Number(fish.basePrice) || 0, 1);
+      let targetValue = Number(fish.outTargetValue);
+      if (!Number.isFinite(targetValue) || targetValue <= 0) {
+        const storedBonus = Number(fish.outBonusPercent);
+        const bonusPercent = Number.isFinite(storedBonus)
+          ? Math.max(0, storedBonus)
+          : randomBetween(OUT_GAIN_PER_10S_MIN * 3, OUT_GAIN_PER_10S_MAX * 3, 1);
+        targetValue = Math.round(baseReference * (1 + (bonusPercent * 0.01)));
+        fish.outTargetValue = targetValue;
+      }
+
+      const durationMs = Math.max(1, Number(fish.outDurationMs) || (3 * TURN_SECONDS * 1000));
+      const elapsedOutMs = getElapsedOutMs(fish, now);
+      const progress = Math.min(1, elapsedOutMs / durationMs);
+      fish.currentValue = Math.round(baseReference + ((targetValue - baseReference) * progress));
+      return fish;
+    }
+
+    function updateFishLifecycle(fish, now) {
+      let changed = false;
+
+      if (fish.spoiled || fish.storageState !== "out") {
+        return changed;
+      }
+
+      const elapsedOutMs = getElapsedOutMs(fish, now);
+      const spoilLimitMs = Math.max(TURN_SECONDS * 1000, Number(fish.hiddenSpoilMs) || TURN_SECONDS * 1000);
+      const targetDurationMs = getCurrentOutDurationMs(fish);
+      const cumulativeOutMs = Math.max(0, Number(fish.totalOutMs) || 0) + elapsedOutMs;
+
+      if (cumulativeOutMs >= spoilLimitMs) {
+        fish.spoiled = true;
+        fish.currentValue = fish.spoiledValue;
+        changed = true;
+      }
+
+      if (targetDurationMs > 0 && elapsedOutMs >= targetDurationMs) {
+        closeOutSession(fish, now);
+        fish.storageState = "fridge";
+        changed = true;
+      }
+
+      return changed;
+    }
+
+    function takeFishOut(index, turns) {
+      const fish = inventory[index];
+      if (!fish || fish.spoiled) {
+        return;
+      }
+
+      const duration = 3;
+      const startValue = Math.max(Number(fish.currentValue) || 0, Number(fish.basePrice) || 0);
+      const minBonus = OUT_GAIN_PER_10S_MIN * duration;
+      const maxBonus = OUT_GAIN_PER_10S_MAX * duration;
+      const bonusPercent = randomBetween(minBonus, maxBonus, 1);
+      fish.storageState = "out";
+      fish.outStartedAtMs = Date.now();
+      fish.outDurationMs = duration * TURN_SECONDS * 1000;
+      fish.outStartValue = startValue;
+      fish.outBonusPercent = bonusPercent;
+      fish.outTargetValue = Math.round(startValue * (1 + (bonusPercent * 0.01)));
+      fish.outCount = Math.max(0, Number(fish.outCount) || 0) + 1;
+      if (!Number.isFinite(fish.hiddenSpoilMs)) {
+        fish.hiddenSpoilMs = Math.max(2, Math.floor(randomBetween(2, 6, 0))) * TURN_SECONDS * 1000;
+      }
+      if (!Number.isFinite(fish.hiddenResistance)) {
+        fish.hiddenResistance = randomBetween(0.9, 1.05, 3);
+      }
+      refreshFishValue(fish, Date.now());
+      saveState();
+      render();
+    }
+
+    function returnFishToFridge(index) {
+      const fish = inventory[index];
+      if (!fish || fish.spoiled) {
+        return;
+      }
+
+      closeOutSession(fish, Date.now());
+      fish.storageState = "fridge";
+      refreshFishValue(fish, Date.now());
+      saveState();
+      render();
+    }
+
+    function shouldAutoSell(fish) {
+      const price = getFishValue(fish);
+      const isUnderPrice = price <= autoSellMaxPrice;
+      const isUnderRarity = rarityRank(fish.rarity) <= rarityRank(autoSellMaxRarity);
+      return isUnderPrice && isUnderRarity;
+    }
+
+    function saveState() {
+      localStorage.setItem("clicker_money", String(money));
+      localStorage.setItem("clicker_inventory", JSON.stringify(inventory));
+      localStorage.setItem("clicker_autoSellMaxPrice", String(autoSellMaxPrice));
+      localStorage.setItem("clicker_autoSellMaxRarity", autoSellMaxRarity);
+    }
+
+    function applyAutoSellToInventory() {
+      const now = Date.now();
+      let lifecycleChanged = false;
+      let soldValue = 0;
+      const kept = [];
+
+      for (const fish of inventory) {
+        if (updateFishLifecycle(fish, now)) {
+          lifecycleChanged = true;
+        }
+        refreshFishValue(fish, now);
+
+        if (shouldAutoSell(fish)) {
+          soldValue += getFishValue(fish);
+        } else {
+          kept.push(fish);
+        }
+      }
+
+      money += soldValue;
+      inventory = kept;
+      if (lifecycleChanged) {
+        saveState();
+      }
+      saveState();
+      render();
+    }
+
+    function sellOne(index) {
+      const fish = inventory[index];
+      if (!fish) {
+        return;
+      }
+
+      money += getFishValue(fish);
+      inventory.splice(index, 1);
+      saveState();
+      render();
+    }
+
+    function updateSidebar(selectedFish, now) {
+      if (!selectedFish) {
+        selectedFishImage.textContent = "Image placeholder";
+        detailName.textContent = "No fish selected";
+        detailName.className = "inventory-detail-name";
+        detailMeta.textContent = "Click a fish in the list to view it here.";
+        detailInfo.textContent = "";
+        fridgeButton.disabled = true;
+        fridgeButton.textContent = "Take out of the fridge";
+        fridgeButton.classList.remove("in-fridge");
+        sellButton.disabled = true;
+        return;
+      }
+
+      selectedFishImage.textContent = "Image placeholder";
+      const rarityClass = "rarity-" + (selectedFish.rarity || "common");
+      detailName.textContent = selectedFish.type || "Fish";
+      detailName.className = "inventory-detail-name " + rarityClass;
+      const isOut = selectedFish.storageState === "out" && !selectedFish.spoiled;
+      detailMeta.innerHTML =
+        "<div class='fish-detail-grid'>" +
+          "<div class='fish-detail-item'><div class='fish-detail-item-label'>State</div><div class='fish-detail-item-value'>" + getFishStateLabel(selectedFish) + "</div></div>" +
+          "<div class='fish-detail-item'><div class='fish-detail-item-label'>Outings</div><div class='fish-detail-item-value'>" + (Math.max(0, Number(selectedFish.outCount) || 0)) + "</div></div>" +
+          "<div class='fish-detail-item'><div class='fish-detail-item-label'>Out of fridge</div><div class='fish-detail-item-value'>" + getTotalOutSeconds(selectedFish, now).toFixed(1) + " s</div></div>" +
+          "<div class='fish-detail-item'><div class='fish-detail-item-label'>Rarity</div><div class='fish-detail-item-value " + rarityClass + "'>" + rarityLabel(selectedFish.rarity || "common") + "</div></div>" +
+          "<div class='fish-detail-item'><div class='fish-detail-item-label'>Size</div><div class='fish-detail-item-value'>" + (selectedFish.size || 0) + " cm</div></div>" +
+          "<div class='fish-detail-item'><div class='fish-detail-item-label'>Weight</div><div class='fish-detail-item-value'>" + (selectedFish.weight || 0) + " kg</div></div>" +
+          "<div class='fish-detail-item'><div class='fish-detail-item-label'>Value</div><div class='fish-detail-item-value'>" + getFishValue(selectedFish) + "</div></div>" +
+        "</div>";
+      detailInfo.textContent = "";
+      fridgeButton.disabled = selectedFish.spoiled;
+      fridgeButton.textContent = isOut ? "Put in Fridge" : "Take out of the fridge";
+      fridgeButton.classList.toggle("in-fridge", !isOut && !selectedFish.spoiled);
+      sellButton.disabled = false;
+    }
+
+    function render() {
+      const now = Date.now();
+      let lifecycleChanged = false;
+      let selectedFish = getSelectedFish();
+
+      inventory.forEach((fish) => {
+        if (updateFishLifecycle(fish, now)) {
+          lifecycleChanged = true;
+        }
+        refreshFishValue(fish, now);
+      });
+
+      if (lifecycleChanged) {
+        saveState();
+      }
+
+      const totalValue = inventory.reduce((sum, fish) => sum + getFishValue(fish), 0);
+      moneyDisplay.textContent = String(money);
+      countDisplay.textContent = String(inventory.length);
+      valueDisplay.textContent = String(totalValue);
+      autoSellMaxPriceInput.value = String(autoSellMaxPrice);
+      autoSellMaxRaritySelect.value = autoSellMaxRarity;
+
+      if (inventory.length === 0) {
+        list.innerHTML = "";
+        empty.style.display = "block";
+        updateSidebar(null, now);
+        return;
+      }
+
+      empty.style.display = "none";
+      list.innerHTML = "";
+
+      let displayInventory = [...inventory];
+      
+      const directionFactor = sortDirection === "asc" ? 1 : -1;
+      if (sortMode === "price") {
+        displayInventory.sort((a, b) => (getFishValue(a) - getFishValue(b)) * directionFactor);
+      } else if (sortMode === "weight") {
+        displayInventory.sort((a, b) => (Number(a.weight) - Number(b.weight)) * directionFactor);
+      } else if (sortMode === "size") {
+        displayInventory.sort((a, b) => (Number(a.size) - Number(b.size)) * directionFactor);
+      } else if (sortMode === "rarity") {
+        displayInventory.sort((a, b) => (rarityRank(a.rarity) - rarityRank(b.rarity)) * directionFactor);
+      }
+
+      displayInventory.forEach((fish, displayIndex) => {
+        const originalIndex = inventory.indexOf(fish);
+        const item = document.createElement("div");
+        const descriptorText = fishDescriptors(fish);
+        const fishValue = getFishValue(fish);
+        const elapsedMs = getElapsedOutMs(fish, now);
+        const durationMs = getCurrentOutDurationMs(fish);
+        const remainingMs = Math.max(0, durationMs - elapsedMs);
+        const remainingSeconds = (remainingMs / 1000).toFixed(1);
+        const totalOutSeconds = getTotalOutSeconds(fish, now).toFixed(1);
+        const outCount = Math.max(0, Number(fish.outCount) || 0);
+        item.className = "fish rarity-" + (fish.rarity || "common");
+        if (fish.uid === selectedFishUid) {
+          item.classList.add("inventory-selected");
+        }
+        item.setAttribute("data-uid", fish.uid);
+        item.innerHTML =
+          "<div class='fish-left'>" +
+            "<div class='fish-title'>" + (fish.type || "Fish") + " " + descriptorText + "</div>" +
+            "<div class='fish-meta'>Rarity: <span class='rarity-" + (fish.rarity || "common") + "'>" + rarityLabel(fish.rarity || "common") + "</span> | Size: " + (fish.size || 0) + " cm | Weight: " + (fish.weight || 0) + " kg</div>" +
+            "<div class='fish-state'>State: <span class='" + (fish.spoiled ? 'spoiled' : '') + "'>" + getFishStateLabel(fish) + "</span></div>" +
+            "<div class='fish-state'>Outings: " + outCount + " | Out of fridge: " + totalOutSeconds + " s</div>" +
+            (fish.storageState === "out" && !fish.spoiled ? "<div class='fish-state'>Time left: " + remainingSeconds + " s</div>" : "") +
+            "<div class='fish-value'>Current value: " + fishValue + "</div>" +
+          "</div>";
+
+        list.appendChild(item);
+      });
+
+      list.querySelectorAll(".fish").forEach((item) => {
+        item.addEventListener("click", () => {
+          const uid = item.getAttribute("data-uid");
+          setSelectedFish(uid);
+        });
+      });
+
+      selectedFish = getSelectedFish();
+      updateSidebar(selectedFish, now);
+    }
+
+    sellByFilter.addEventListener("click", () => {
+      applyAutoSellToInventory();
+    });
+
+    fridgeButton.addEventListener("click", () => {
+      const selectedFish = getSelectedFish();
+      if (!selectedFish) {
+        return;
+      }
+
+      const index = inventory.indexOf(selectedFish);
+      if (index >= 0) {
+        if (selectedFish.spoiled) {
+          return;
+        }
+
+        if (selectedFish.storageState === "out") {
+          returnFishToFridge(index);
+        } else {
+          takeFishOut(index, 3);
+        }
+      }
+    });
+
+    sellButton.addEventListener("click", () => {
+      const selectedFish = getSelectedFish();
+      if (!selectedFish) {
+        return;
+      }
+
+      const index = inventory.indexOf(selectedFish);
+      if (index >= 0) {
+        sellOne(index);
+        selectedFishUid = "";
+        localStorage.setItem("clicker_inventorySelectedFishUid", "");
+      }
+    });
+
+    autoSellMaxPriceInput.addEventListener("input", () => {
+      const value = Number(autoSellMaxPriceInput.value);
+      autoSellMaxPrice = Number.isNaN(value) ? 0 : Math.max(0, Math.floor(value));
+      saveState();
+      render();
+    });
+
+    autoSellMaxRaritySelect.addEventListener("change", () => {
+      autoSellMaxRarity = autoSellMaxRaritySelect.value;
+      saveState();
+      render();
+    });
+
+    const sortButtons = document.querySelectorAll(".sort-btn");
+
+    function refreshSortLabels() {
+      sortButtons.forEach((btn) => {
+        const mode = btn.getAttribute("data-sort");
+        if (mode === "none") {
+          btn.textContent = "Default";
+          return;
+        }
+
+        const baseLabels = {
+          price: "Price",
+          weight: "Weight",
+          size: "Size",
+          rarity: "Rarity"
+        };
+
+        let arrow = "↓";
+        if (sortMode === mode && sortDirection === "asc") {
+          arrow = "↑";
+        }
+
+        btn.textContent = baseLabels[mode] + " " + arrow;
+      });
+    }
+
+    sortButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const nextMode = button.getAttribute("data-sort");
+
+        if (nextMode === "none") {
+          sortMode = "none";
+          sortDirection = "desc";
+        } else if (sortMode === nextMode) {
+          sortDirection = sortDirection === "desc" ? "asc" : "desc";
+        } else {
+          sortMode = nextMode;
+          sortDirection = "desc";
+        }
+
+        sortButtons.forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+        refreshSortLabels();
+        render();
+      });
+    });
+
+    loadInventory();
+    refreshSortLabels();
+    if (selectedFishUid && !getSelectedFish()) {
+      selectedFishUid = "";
+      localStorage.setItem("clicker_inventorySelectedFishUid", "");
+    }
+    render();
+
+    // Keep values/timers updating in real time while the inventory page is open.
+    setInterval(() => {
+      render();
+    }, 500);
+
+    // Apply limited navigation mode if upgrades not unlocked
+    const upgradesUnlocked = localStorage.getItem("clicker_upgradesUnlocked") === "true";
+    if (!upgradesUnlocked) {
+      document.body.classList.add("limited-nav-mode");
+    }
+  </script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Shop - Clicker</title>
+  <title>Draw - Clicker</title>
   <style>
     body {
       font-family: Arial;
@@ -39,21 +39,37 @@
     }
 
     .nav-button {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       text-decoration: none;
-      background: #555;
-      color: white;
-      border: 1px solid #aaa;
-      padding: 15px;
+      background: #31414d;
+      color: #eef5f9;
+      border: 1px solid #667a86;
+      padding: 12px 16px;
       margin: 0;
       margin-right: 8px;
-      font-size: 16px;
+      font-size: 15px;
       border-radius: 10px;
       cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
 
     .nav-button:hover {
-      background: #777;
+      background: #3a4c59;
+      border-color: #7f95a3;
+    }
+
+    .nav-button.active-nav-button {
+      background: #dbe3e8;
+      color: #1d2a33;
+      border-color: #dbe3e8;
+      font-weight: bold;
+    }
+
+    .settings-nav-button {
+      margin-left: auto;
+      margin-right: 16px;
     }
 
     .shell {
@@ -129,6 +145,17 @@
       flex-wrap: wrap;
     }
 
+    .draw-top-info {
+      margin-top: 14px;
+      border: 1px solid #365062;
+      border-radius: 10px;
+      background: #101920;
+      color: #d9ebf7;
+      padding: 10px 12px;
+      font-size: 14px;
+      text-align: left;
+    }
+
     .action-btn {
       border: 1px solid #6ea0bd;
       background: #21455a;
@@ -146,6 +173,62 @@
     .action-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+    }
+
+    .draw-main-btn {
+      width: min(560px, 100%);
+      padding: 18px 20px;
+      text-align: left;
+      display: grid;
+      gap: 4px;
+      border: 1px solid #8ec4df;
+      background: linear-gradient(180deg, #2a607a 0%, #224d63 100%);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(142, 196, 223, 0.25);
+      transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .draw-main-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(142, 196, 223, 0.35);
+    }
+
+    .draw-main-btn:active {
+      transform: translateY(0);
+    }
+
+    .money-top {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #f2fbff;
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+
+    .draw-btn-name {
+      font-size: 20px;
+      font-weight: bold;
+      letter-spacing: 0.02em;
+      color: #f4fbff;
+    }
+
+    .draw-btn-price {
+      font-size: 16px;
+      color: #f7f0c4;
+      font-weight: bold;
+    }
+
+    .draw-btn-effect {
+      font-size: 13px;
+      color: #cde3ef;
+    }
+
+    .draw-cost-note {
+      margin-top: 8px;
+      color: #b8d4e3;
+      font-size: 14px;
+      text-align: right;
     }
 
     .status-text {
@@ -281,14 +364,68 @@
       font-size: 22px;
     }
 
-    .close-btn {
-      border: 1px solid #769cb3;
-      background: #2a4453;
-      color: #fff;
-      border-radius: 8px;
-      cursor: pointer;
-      padding: 8px 10px;
+    .draw-quick-info {
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid #3f6075;
+      border-radius: 12px;
+      background: #101a21;
+      text-align: left;
+      display: grid;
+      gap: 8px;
+    }
+
+    .draw-quick-title {
+      margin: 0;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9dc2d8;
+      font-weight: bold;
+    }
+
+    .draw-quick-text {
+      margin: 0;
+      color: #d9ebf7;
       font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .draw-price-badge {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      border: 1px solid #476072;
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: #142029;
+      color: #d6e8f2;
+      width: fit-content;
+    }
+
+    .draw-price-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9dc2d8;
+    }
+
+    .draw-price-value {
+      font-size: 22px;
+      font-weight: bold;
+      color: #e6f4fb;
+      line-height: 1;
+    }
+
+    .close-btn {
+      border: 1px solid #8eb9d0;
+      background: #2f5368;
+      color: #fff;
+      border-radius: 10px;
+      cursor: pointer;
+      padding: 10px 14px;
+      font-size: 16px;
+      font-weight: bold;
     }
 
     .drop-table {
@@ -384,9 +521,14 @@
     .modal-actions {
       margin-top: 12px;
       display: flex;
-      justify-content: flex-end;
+      justify-content: flex-start;
+      align-items: center;
       gap: 8px;
       flex-wrap: wrap;
+    }
+
+    .modal-close-bottom {
+      margin-right: auto;
     }
 
     .draw-recap {
@@ -423,6 +565,70 @@
       font-size: 14px;
     }
 
+    .talent-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      vertical-align: middle;
+      min-width: 0;
+    }
+
+    .talent-name-text {
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .talent-help {
+      position: relative;
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid #84a9be;
+      color: #d9ecf8;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      background: #203240;
+      cursor: help;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .talent-help::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%) translateY(4px);
+      background: #0f1519;
+      color: #d9ecf8;
+      border: 1px solid #4b6878;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.35;
+      min-width: 220px;
+      max-width: 320px;
+      white-space: normal;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      z-index: 120;
+      transition: opacity 0.06s ease, transform 0.06s ease, visibility 0.06s ease;
+    }
+
+    .talent-help:hover::after,
+    .talent-help:focus-visible::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
     @media (max-width: 760px) {
       .gacha-summary {
         grid-template-columns: 1fr;
@@ -433,6 +639,11 @@
         min-width: 120px;
       }
     }
+
+    /* Limited navigation mode (after 30 fish, before 10k money) */
+    body.limited-nav-mode .locked-nav-button {
+      display: none;
+    }
   </style>
 </head>
 
@@ -441,43 +652,30 @@
   <div class="top-bar">
     <div class="top-nav">
       <button class="nav-button" onclick="window.location.href='../'">Game</button>
-      <button class="nav-button" onclick="window.location.href='../inventaire/'">Inventory</button>
-      <button class="nav-button" onclick="window.location.href='../team/'">Team</button>
-      <button class="nav-button" onclick="window.location.href='./'">Shop</button>
-      <button class="nav-button" onclick="window.location.href='../settings/'">Settings</button>
+      <button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../team/'">Team</button>
+      <button class="nav-button locked-nav-button active-nav-button" onclick="window.location.href='./'">Shop</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../battle/'">Battle</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../missions/'">Missions</button>
+      <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
     </div>
   </div>
 
   <div class="shell">
-    <h1>Shop</h1>
     <div class="shop-container">
-      <h2 class="shop-title">Character Gacha</h2>
-      <p class="shop-text">Spend 100 money to roll a character. You can get duplicates, and each draw adds one character copy to your Team reserve.</p>
-
-      <div class="gacha-summary">
-        <div class="summary-card">
-          <div class="summary-label">Money</div>
-          <div class="summary-value" id="moneyValue">0</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Cost / Draw</div>
-          <div class="summary-value">100</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Reserve Slots</div>
-          <div class="summary-value" id="lockedCount">0</div>
-        </div>
-      </div>
-
+      <div class="money-top" id="hooksTop">🪝 0 Hooks</div>
       <div class="actions">
-        <button class="action-btn" id="openGachaBtn">Character draw</button>
-      </div>
-
-      <div class="status-text" id="statusText"></div>
-
-      <div class="result-box" id="resultBox">
-        <p class="result-title">Last Character Won</p>
-        <div class="result-name" id="resultName"></div>
+        <button class="action-btn draw-main-btn" id="openGachaBtn">
+          <span class="draw-btn-name">Character Draw</span>
+          <span class="draw-btn-price">Price: 100 🪝 Hooks</span>
+          <span class="draw-btn-effect">Effect: Random character copy added to the Team</span>
+        </button>
+        <button class="action-btn draw-main-btn" id="openBaitBtn">
+          <span class="draw-btn-name">Bait Draw</span>
+          <span class="draw-btn-price">Price: 100 🪝 Hooks</span>
+          <span class="draw-btn-effect">Effect: Random bait added to your bait reserve</span>
+        </button>
       </div>
     </div>
   </div>
@@ -485,8 +683,17 @@
   <div class="modal" id="gachaModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 class="modal-title">Character Draw Details</h3>
-        <button class="close-btn" id="closeGachaBtn">Close</button>
+        <h3 class="modal-title">Character Draw</h3>
+      </div>
+
+      <div class="draw-quick-info">
+        <p class="draw-quick-title">How this draw works</p>
+        <p class="draw-quick-text">One click spends money once and gives you exactly one random character copy with one random talent. The copy is added to your Team reserve.</p>
+        <div class="draw-price-badge">
+          <span class="draw-price-label">Price</span>
+          <span class="draw-price-value">100</span>
+          <span>money</span>
+        </div>
       </div>
 
       <table class="drop-table" id="dropTable">
@@ -512,8 +719,53 @@
       </div>
 
       <div class="modal-actions">
-        <button class="action-btn" id="startDrawBtn">Buy and Roll (100)</button>
-        <button class="action-btn" id="drawOkBtn" style="display: none;">OK</button>
+        <button class="close-btn modal-close-bottom" id="closeGachaBtn">Close</button>
+        <button class="action-btn" id="startDrawBtn">Start Draw</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="baitModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Bait Draw</h3>
+      </div>
+
+      <div class="draw-quick-info">
+        <p class="draw-quick-title">How this bait draw works</p>
+        <p class="draw-quick-text">One click spends money once and gives you exactly one random bait. Baits boost battle stats like attack and defense, and some are built for combos.</p>
+        <div class="draw-price-badge">
+          <span class="draw-price-label">Price</span>
+          <span class="draw-price-value">100</span>
+          <span>money</span>
+        </div>
+      </div>
+
+      <table class="drop-table" id="baitDropTable">
+        <thead>
+          <tr>
+            <th>Rarity</th>
+            <th>Base Probability</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="roll-area" id="baitRollArea">
+        <div class="roll-window" id="baitRollWindow">
+          <div class="roll-track" id="baitRollTrack"></div>
+        </div>
+      </div>
+
+      <div class="draw-recap" id="baitRecap">
+        <p class="draw-recap-title">Bait obtained</p>
+        <div class="draw-recap-name" id="baitRecapName"></div>
+        <div class="draw-recap-text" id="baitRecapText"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="close-btn modal-close-bottom" id="closeBaitBtn">Close</button>
+        <button class="action-btn" id="startBaitDrawBtn">Start Draw</button>
       </div>
     </div>
   </div>
@@ -523,6 +775,50 @@
     const RESERVE_MAX = 50;
     const MONEY_KEY = "clicker_money";
     const RESERVE_KEY = "clicker_characterReserve";
+
+    const TALENT_POOL = [
+      { id: "avant-garde", name: "Avant-Garde" },
+      { id: "relais", name: "Relais" },
+      { id: "capitaine", name: "Capitaine" },
+      { id: "finisseur", name: "Finisseur" },
+      { id: "ancre", name: "Ancre" },
+      { id: "duo-parfait", name: "Duo Parfait" },
+      { id: "escalier", name: "Escalier" },
+      { id: "miroir", name: "Miroir" },
+      { id: "specialiste-income", name: "Specialiste Income" },
+      { id: "specialiste-chance", name: "Specialiste Chance" },
+      { id: "specialiste-resale", name: "Specialiste Resale" },
+      { id: "pecheur-equipe", name: "Pecheur d'Equipe" },
+      { id: "combo-additif", name: "Combo Additif" },
+      { id: "combo-multiplicatif", name: "Combo Multiplicatif" },
+      { id: "solitaire-tactique", name: "Solitaire Tactique" },
+      { id: "duo-tactique", name: "Duo Tactique" },
+      { id: "trio-tactique", name: "Trio Tactique" },
+      { id: "swap-ready", name: "Swap Ready" },
+      { id: "anti-synergie", name: "Anti-Synergie" }
+    ];
+
+    const TALENT_DESCRIPTION_BY_ID = {
+      "avant-garde": "Slot 1 only: this character income and click are multiplied by x1.25.",
+      "relais": "Gives +8% chance to the teammate directly on the right.",
+      "capitaine": "Slot 2 only: applies x1.15 fishing speed to the two other teammates.",
+      "finisseur": "Slot 3 only: this character click multiplier is multiplied by x1.35.",
+      "ancre": "Gives +20% weight to slot 2 and +10% resale to slot 3.",
+      "duo-parfait": "Adjacent teammates with same stars gain x1.2 income.",
+      "escalier": "If stars strictly increase left to right, team gains +15% chance.",
+      "miroir": "If slot 1 and slot 3 have same stars, slot 2 gains x1.3 click.",
+      "specialiste-income": "If base income is at least x1.3, gains an extra x1.15 income.",
+      "specialiste-chance": "Converts up to +10% own weight bonus into +10% own chance bonus.",
+      "specialiste-resale": "Own resale is multiplied by x1.2, but own click is multiplied by x0.95.",
+      "pecheur-equipe": "For each teammate with fishing speed >= x1.2, gains +0.05x fishing speed.",
+      "combo-additif": "If at least two additive bonuses are non-zero, lowest additive bonus gets +12%.",
+      "combo-multiplicatif": "Each existing stat multiplier above x1 gets +0.05.",
+      "solitaire-tactique": "If alone in team, own income/click/fishing are multiplied by x1.8.",
+      "duo-tactique": "If exactly 2 teammates, gains +12% chance and +12% resale.",
+      "trio-tactique": "If team is full: slot1 x1.1 income, slot2 +10% weight, slot3 x1.1 click.",
+      "swap-ready": "If this copy changed slot since last save, gains +20% size.",
+      "anti-synergie": "Risk/reward: own income x1.35 and own chance -12%."
+    };
 
     const rarityConfig = {
       1: { label: "Common (★)", className: "rarity-common", chance: 70 },
@@ -570,16 +866,39 @@
       { id: 36, name: "Draco", stars: 5 }
     ];
 
-    const moneyValue = document.getElementById("moneyValue");
-    const lockedCount = document.getElementById("lockedCount");
+    const baitPool = [
+      { id: 1, name: "Worm Niblet", stars: 1, kind: "attack", attack: 2, defense: 0, combo: "none" },
+      { id: 2, name: "Tiny Shrimp", stars: 1, kind: "defense", attack: 0, defense: 2, combo: "none" },
+      { id: 3, name: "Soft Algae", stars: 1, kind: "mixed", attack: 1, defense: 0, combo: "none" },
+      { id: 4, name: "Bread Crumb", stars: 1, kind: "mixed", attack: 1, defense: 1, combo: "none" },
+      { id: 5, name: "Silver Minnow", stars: 1, kind: "attack", attack: 3, defense: 0, combo: "same-species" },
+      { id: 6, name: "Coral Dust", stars: 1, kind: "defense", attack: 0, defense: 3, combo: "same-rarity" },
+      { id: 7, name: "Light Foam", stars: 1, kind: "mixed", attack: 0, defense: 1, combo: "different-species" },
+      { id: 8, name: "Salt Grain", stars: 1, kind: "mixed", attack: 1, defense: 0, combo: "same-species" },
+      { id: 9, name: "Moss Thread", stars: 1, kind: "defense", attack: 0, defense: 4, combo: "heavy-fish" },
+      { id: 10, name: "Bubble Seed", stars: 1, kind: "attack", attack: 4, defense: 0, combo: "full-line" },
+      { id: 11, name: "River Worm", stars: 2, kind: "attack", attack: 5, defense: 0, combo: "none" },
+      { id: 12, name: "Blue Shrimp", stars: 2, kind: "defense", attack: 0, defense: 5, combo: "none" },
+      { id: 13, name: "Spark Reed", stars: 2, kind: "mixed", attack: 1, defense: 2, combo: "none" },
+      { id: 14, name: "Foam Pellet", stars: 2, kind: "mixed", attack: 2, defense: 2, combo: "same-rarity" },
+      { id: 15, name: "Moon Minnow", stars: 2, kind: "attack", attack: 6, defense: 0, combo: "same-species" },
+      { id: 16, name: "Shell Powder", stars: 2, kind: "defense", attack: 0, defense: 6, combo: "heavy-fish" },
+      { id: 17, name: "Tide Needle", stars: 2, kind: "mixed", attack: 0, defense: 3, combo: "different-species" },
+      { id: 18, name: "Storm Grain", stars: 2, kind: "mixed", attack: 3, defense: 1, combo: "full-line" },
+      { id: 19, name: "Rock Algae", stars: 2, kind: "defense", attack: 0, defense: 7, combo: "same-rarity" },
+      { id: 20, name: "Flash Bait", stars: 2, kind: "attack", attack: 7, defense: 0, combo: "different-species" },
+      { id: 21, name: "Predator Call", stars: 3, kind: "attack", attack: 10, defense: 0, combo: "heavy-fish" },
+      { id: 22, name: "Armor Paste", stars: 3, kind: "defense", attack: 0, defense: 10, combo: "same-rarity" },
+      { id: 23, name: "Current Spark", stars: 3, kind: "mixed", attack: 2, defense: 4, combo: "different-species" },
+      { id: 24, name: "Twin Shell", stars: 3, kind: "mixed", attack: 4, defense: 4, combo: "same-species" }
+    ];
+
     const openGachaBtn = document.getElementById("openGachaBtn");
-    const statusText = document.getElementById("statusText");
-    const resultBox = document.getElementById("resultBox");
-    const resultName = document.getElementById("resultName");
+    const openBaitBtn = document.getElementById("openBaitBtn");
+    const hooksTop = document.getElementById("hooksTop");
     const gachaModal = document.getElementById("gachaModal");
     const closeGachaBtn = document.getElementById("closeGachaBtn");
     const startDrawBtn = document.getElementById("startDrawBtn");
-    const drawOkBtn = document.getElementById("drawOkBtn");
     const dropTableBody = document.querySelector("#dropTable tbody");
     const rollArea = document.getElementById("rollArea");
     const rollTrack = document.getElementById("rollTrack");
@@ -587,8 +906,29 @@
     const drawRecap = document.getElementById("drawRecap");
     const drawRecapName = document.getElementById("drawRecapName");
     const drawRecapText = document.getElementById("drawRecapText");
+    const baitModal = document.getElementById("baitModal");
+    const closeBaitBtn = document.getElementById("closeBaitBtn");
+    const startBaitDrawBtn = document.getElementById("startBaitDrawBtn");
+    const baitDropTableBody = document.querySelector("#baitDropTable tbody");
+    const baitRollArea = document.getElementById("baitRollArea");
+    const baitRollTrack = document.getElementById("baitRollTrack");
+    const baitRollWindow = document.getElementById("baitRollWindow");
+    const baitRecap = document.getElementById("baitRecap");
+    const baitRecapName = document.getElementById("baitRecapName");
+    const baitRecapText = document.getElementById("baitRecapText");
 
     let spinning = false;
+    let baitSpinning = false;
+
+    const HOOKS_KEY = "clicker_hooks";
+
+    function getHooks() {
+      return Math.max(0, Number(localStorage.getItem(HOOKS_KEY)) || 0);
+    }
+
+    function setHooks(value) {
+      localStorage.setItem(HOOKS_KEY, String(Math.max(0, Math.floor(value))));
+    }
 
     function getMoney() {
       return Math.max(0, Number(localStorage.getItem(MONEY_KEY)) || 0);
@@ -596,6 +936,10 @@
 
     function setMoney(value) {
       localStorage.setItem(MONEY_KEY, String(Math.max(0, Math.floor(value))));
+    }
+
+    function getBaitReserveKey() {
+      return "clicker_baitReserve";
     }
 
     function loadReserveList() {
@@ -606,9 +950,90 @@
 
       try {
         const parsed = JSON.parse(raw);
-        return Array.isArray(parsed)
-          ? parsed.map((id) => Number(id)).filter((id) => Number.isInteger(id))
-          : [];
+        if (!Array.isArray(parsed)) {
+          return [];
+        }
+
+        return parsed.map((entry) => {
+          if (Number.isInteger(Number(entry))) {
+            return {
+              templateId: Number(entry),
+              talentId: pickRandomTalent().id,
+              instanceId: createReserveInstanceId()
+            };
+          }
+
+          if (entry && typeof entry === "object") {
+            const templateId = Number(entry.templateId ?? entry.id);
+            if (!Number.isInteger(templateId)) {
+              return null;
+            }
+            const talentId = typeof entry.talentId === "string"
+              ? entry.talentId
+              : pickRandomTalent().id;
+
+            return {
+              templateId,
+              talentId,
+              instanceId: typeof entry.instanceId === "string" && entry.instanceId
+                ? entry.instanceId
+                : createReserveInstanceId(),
+              level: entry.level,
+              incomeMultiplier: entry.incomeMultiplier,
+              clickMultiplier: entry.clickMultiplier,
+              sizeAdd: entry.sizeAdd,
+              sizeMult: entry.sizeMult,
+              weightAdd: entry.weightAdd,
+              weightMult: entry.weightMult,
+              chanceAdd: entry.chanceAdd,
+              chanceMult: entry.chanceMult,
+              resaleAdd: entry.resaleAdd,
+              resaleMult: entry.resaleMult,
+              fishingSpeed: entry.fishingSpeed
+            };
+          }
+
+          return null;
+        }).filter(Boolean);
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function loadBaitReserveList() {
+      const raw = localStorage.getItem(getBaitReserveKey());
+      if (!raw) {
+        return [];
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+          return [];
+        }
+
+        return parsed.map((entry) => {
+          if (Number.isInteger(Number(entry))) {
+            const templateId = Number(entry);
+            const bait = baitPool.find((item) => item.id === templateId) || baitPool[0];
+            return {
+              ...bait,
+              instanceId: createReserveInstanceId()
+            };
+          }
+
+          if (entry && typeof entry === "object") {
+            const templateId = Number(entry.templateId ?? entry.id);
+            const bait = baitPool.find((item) => item.id === templateId) || baitPool[0];
+            return {
+              ...bait,
+              templateId: bait.id,
+              instanceId: typeof entry.instanceId === "string" && entry.instanceId ? entry.instanceId : createReserveInstanceId()
+            };
+          }
+
+          return null;
+        }).filter(Boolean);
       } catch (error) {
         return [];
       }
@@ -618,8 +1043,61 @@
       localStorage.setItem(RESERVE_KEY, JSON.stringify(reserveList.slice(0, RESERVE_MAX)));
     }
 
+    function saveBaitReserveList(reserveList) {
+      localStorage.setItem(getBaitReserveKey(), JSON.stringify(reserveList.slice(0, RESERVE_MAX)));
+    }
+
     function getReserveCount() {
       return loadReserveList().length;
+    }
+
+    function getBaitReserveCount() {
+      return loadBaitReserveList().length;
+    }
+
+    function createReserveInstanceId() {
+      return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+
+    function pickRandomTalent() {
+      return TALENT_POOL[Math.floor(Math.random() * TALENT_POOL.length)];
+    }
+
+    function pickWeightedRarityFromPool(pool) {
+      const rarityCandidates = [1, 2, 3, 4, 5]
+        .filter((stars) => pool.some((item) => item.stars === stars))
+        .map((stars) => ({ stars, weight: rarityConfig[stars].chance }));
+
+      const totalWeight = rarityCandidates.reduce((sum, entry) => sum + entry.weight, 0);
+      let roll = Math.random() * totalWeight;
+
+      for (const entry of rarityCandidates) {
+        roll -= entry.weight;
+        if (roll <= 0) {
+          return entry.stars;
+        }
+      }
+
+      return rarityCandidates[rarityCandidates.length - 1].stars;
+    }
+
+    function getTalentDescriptionById(talentId) {
+      return TALENT_DESCRIPTION_BY_ID[talentId] || "No description available.";
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function renderTalentWithHelp(talentName, talentId) {
+      const safeName = escapeHtml(talentName || "Unknown Talent");
+      const safeDescription = escapeHtml(getTalentDescriptionById(talentId));
+      return `<span class="talent-inline"><span class="talent-name-text">${safeName}</span><span class="talent-help" tabindex="0" data-tooltip="${safeDescription}" aria-label="Talent description">?</span></span>`;
     }
 
     function getRarityClassByStars(stars) {
@@ -630,6 +1108,32 @@
       return "★".repeat(stars);
     }
 
+    function getBaitStatsText(bait) {
+      const parts = [];
+      if (Number(bait.attack)) parts.push(`+${bait.attack} Attack`);
+      if (Number(bait.defense)) parts.push(`+${bait.defense} Defense`);
+      return parts.length ? parts.join(" | ") : "No stat bonus";
+    }
+
+    function getBaitComboText(bait) {
+      const comboLabels = {
+        none: "No combo condition",
+        "same-species": "Bonus if 2 fish are the same species",
+        "same-rarity": "Bonus if the 3 fish share the same rarity",
+        "different-species": "Bonus if all 3 fish are different species",
+        "heavy-fish": "Bonus if at least 2 fish are heavy",
+        "full-line": "Bonus if the full line is balanced or aligned"
+      };
+
+      return comboLabels[bait.combo] || "No combo condition";
+    }
+
+    function renderBaitWithHelp(bait) {
+      const safeName = escapeHtml(bait.name || "Unknown Bait");
+      const safeDescription = escapeHtml(`${getBaitStatsText(bait)}. ${getBaitComboText(bait)}`);
+      return `<span class="talent-inline"><span class="talent-name-text">${safeName}</span><span class="talent-help" tabindex="0" data-tooltip="${safeDescription}" aria-label="Bait description">?</span></span>`;
+    }
+
     function formatChanceValue(value) {
       if (Number.isInteger(value)) {
         return String(value);
@@ -638,22 +1142,18 @@
     }
 
     function refreshSummary() {
-      const money = getMoney();
+      const hooks = getHooks();
       const reserveCount = getReserveCount();
+      const baitReserveCount = getBaitReserveCount();
       const hasSpace = reserveCount < RESERVE_MAX;
-      const canAfford = money >= DRAW_COST;
+      const hasBaitSpace = baitReserveCount < RESERVE_MAX;
+      const canAfford = hooks >= DRAW_COST;
       const canDraw = hasSpace && canAfford;
-      moneyValue.textContent = String(money);
-      lockedCount.textContent = `${reserveCount} / ${RESERVE_MAX}`;
+      hooksTop.textContent = `🪝 ${hooks} Hooks`;
       openGachaBtn.disabled = !canDraw;
       startDrawBtn.disabled = !canDraw || spinning;
-      if (!hasSpace && !spinning) {
-        statusText.textContent = `Reserve full (${RESERVE_MAX}/${RESERVE_MAX}).`;
-      } else if (!canAfford && !spinning) {
-        statusText.textContent = `Not enough money. Need ${DRAW_COST}.`;
-      } else if (!spinning) {
-        statusText.textContent = "";
-      }
+      openBaitBtn.disabled = !hasBaitSpace || !canAfford;
+      startBaitDrawBtn.disabled = !hasBaitSpace || !canAfford || baitSpinning;
     }
 
     function buildDropTable() {
@@ -667,6 +1167,20 @@
           <td>${formatChanceValue(rarity.chance)}%</td>
         `;
         dropTableBody.appendChild(row);
+      });
+    }
+
+    function buildBaitDropTable() {
+      baitDropTableBody.innerHTML = "";
+
+      [1, 2, 3, 4, 5].forEach((stars) => {
+        const row = document.createElement("tr");
+        const rarity = rarityConfig[stars];
+        row.innerHTML = `
+          <td class="${rarity.className}">${rarity.label}</td>
+          <td>${formatChanceValue(rarity.chance)}%</td>
+        `;
+        baitDropTableBody.appendChild(row);
       });
     }
 
@@ -698,12 +1212,32 @@
       return candidates[Math.floor(Math.random() * candidates.length)];
     }
 
+    function pickRewardBait() {
+      if (!baitPool.length) {
+        return null;
+      }
+
+      const pickedStars = pickWeightedRarityFromPool(baitPool);
+      const candidates = baitPool.filter((bait) => bait.stars === pickedStars);
+      return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
     function createRollItem(char) {
       const rarityClass = getRarityClassByStars(char.stars);
       return `
         <div class="roll-item ${rarityClass}">
           <div class="roll-name">${char.name}</div>
           <div class="roll-stars">${getStarsString(char.stars)}</div>
+        </div>
+      `;
+    }
+
+    function createBaitRollItem(bait) {
+      const rarityClass = getRarityClassByStars(bait.stars);
+      return `
+        <div class="roll-item ${rarityClass}">
+          <div class="roll-name">${bait.name}</div>
+          <div class="roll-stars">${getStarsString(bait.stars)}</div>
         </div>
       `;
     }
@@ -745,25 +1279,84 @@
       });
     }
 
-    function applyReward(rewardChar) {
+    function runBaitOpeningAnimation(rewardBait) {
+      return new Promise((resolve) => {
+        const sequence = [];
+        const baseLength = 42;
+        const rewardIndex = 35;
+
+        for (let i = 0; i < baseLength; i += 1) {
+          const randomBait = baitPool[Math.floor(Math.random() * baitPool.length)];
+          sequence.push(randomBait);
+        }
+
+        sequence[rewardIndex] = rewardBait;
+        baitRollTrack.innerHTML = sequence.map((bait) => createBaitRollItem(bait)).join("");
+        baitRollTrack.style.transition = "none";
+        baitRollTrack.style.transform = "translateX(0px)";
+
+        const firstItem = baitRollTrack.querySelector(".roll-item");
+        const itemWidth = firstItem ? firstItem.offsetWidth : 140;
+        const gap = 8;
+        const step = itemWidth + gap;
+        const centerOffset = (baitRollWindow.clientWidth / 2) - (itemWidth / 2);
+        const finalOffset = -((rewardIndex * step) - centerOffset);
+
+        requestAnimationFrame(() => {
+          baitRollTrack.style.transition = "transform 4.2s cubic-bezier(0.15, 0.88, 0.2, 1)";
+          baitRollTrack.style.transform = `translateX(${finalOffset}px)`;
+        });
+
+        const done = () => {
+          baitRollTrack.removeEventListener("transitionend", done);
+          resolve();
+        };
+
+        baitRollTrack.addEventListener("transitionend", done);
+      });
+    }
+
+    function applyReward(rewardChar, rewardTalent) {
       const reserveList = loadReserveList();
-      reserveList.push(rewardChar.id);
+      reserveList.push({
+        templateId: rewardChar.id,
+        talentId: rewardTalent.id,
+        instanceId: createReserveInstanceId()
+      });
       saveReserveList(reserveList);
 
       const rarityClass = getRarityClassByStars(rewardChar.stars);
-      resultBox.className = `result-box visible ${rarityClass}`;
-      resultName.className = `result-name ${rarityClass}`;
-      resultName.textContent = `${rewardChar.name} ${getStarsString(rewardChar.stars)}`;
-      statusText.textContent = `${rewardChar.name} unlocked and sent to Team reserve.`;
-
       drawRecap.className = `draw-recap visible ${rarityClass}`;
       drawRecapName.className = `draw-recap-name ${rarityClass}`;
       drawRecapName.textContent = `${rewardChar.name} ${getStarsString(rewardChar.stars)}`;
-      drawRecapText.textContent = "Added to your Team reserve.";
-      drawOkBtn.style.display = "inline-block";
+      drawRecapText.innerHTML = `Talent won: ${renderTalentWithHelp(rewardTalent.name, rewardTalent.id)}. Added to your Team reserve.`;
 
       refreshSummary();
       buildDropTable();
+    }
+
+    function applyBaitReward(rewardBait) {
+      const reserveList = loadBaitReserveList();
+      reserveList.push({
+        templateId: rewardBait.id,
+        instanceId: createReserveInstanceId(),
+        name: rewardBait.name,
+        stars: rewardBait.stars,
+        kind: rewardBait.kind,
+        attack: rewardBait.attack,
+        defense: rewardBait.defense,
+        combo: rewardBait.combo
+      });
+      saveBaitReserveList(reserveList);
+
+      const rarityClass = getRarityClassByStars(rewardBait.stars);
+      baitRecap.className = `draw-recap visible ${rarityClass}`;
+      baitRecapName.className = `draw-recap-name ${rarityClass}`;
+      baitRecapName.textContent = `${rewardBait.name} ${getStarsString(rewardBait.stars)}`;
+      baitRecapText.innerHTML = `${renderBaitWithHelp(rewardBait)}. ${getBaitStatsText(rewardBait)}. ${getBaitComboText(rewardBait)}. Added to your bait reserve.`;
+
+      refreshSummary();
+      buildBaitDropTable();
     }
 
     async function startDraw() {
@@ -772,35 +1365,31 @@
       }
 
       if (getReserveCount() >= RESERVE_MAX) {
-        statusText.textContent = `Reserve full (${RESERVE_MAX}/${RESERVE_MAX}).`;
         return;
       }
 
-      const money = getMoney();
-      if (money < DRAW_COST) {
-        statusText.textContent = `Not enough money. Need ${DRAW_COST}.`;
+      const hooks = getHooks();
+      if (hooks < DRAW_COST) {
         return;
       }
 
       const rewardChar = pickRewardCharacter();
       if (!rewardChar) {
-        statusText.textContent = "No available character to draw.";
         return;
       }
+      const rewardTalent = pickRandomTalent();
 
       spinning = true;
       startDrawBtn.disabled = true;
       openGachaBtn.disabled = true;
-      drawOkBtn.style.display = "none";
       drawRecap.classList.remove("visible");
       rollArea.classList.add("visible");
-      statusText.textContent = "Rolling...";
 
-      setMoney(money - DRAW_COST);
+      setHooks(hooks - DRAW_COST);
       refreshSummary();
 
       await runCaseOpeningAnimation(rewardChar);
-      applyReward(rewardChar);
+      applyReward(rewardChar, rewardTalent);
 
       startDrawBtn.disabled = true;
       openGachaBtn.disabled = true;
@@ -808,12 +1397,56 @@
       refreshSummary();
     }
 
+    async function startBaitDraw() {
+      if (baitSpinning) {
+        return;
+      }
+
+      if (getBaitReserveCount() >= RESERVE_MAX) {
+        return;
+      }
+
+      const hooks = getHooks();
+      if (hooks < DRAW_COST) {
+        return;
+      }
+
+      const rewardBait = pickRewardBait();
+      if (!rewardBait) {
+        return;
+      }
+
+      baitSpinning = true;
+      startBaitDrawBtn.disabled = true;
+      openBaitBtn.disabled = true;
+      baitRecap.classList.remove("visible");
+      baitRollArea.classList.add("visible");
+
+      setHooks(hooks - DRAW_COST);
+      refreshSummary();
+
+      await runBaitOpeningAnimation(rewardBait);
+      applyBaitReward(rewardBait);
+
+      startBaitDrawBtn.disabled = true;
+      openBaitBtn.disabled = true;
+      baitSpinning = false;
+      refreshSummary();
+    }
+
     function openGachaModal() {
       buildDropTable();
-      drawOkBtn.style.display = "none";
       drawRecap.classList.remove("visible");
       rollArea.classList.remove("visible");
       gachaModal.classList.add("visible");
+      refreshSummary();
+    }
+
+    function openBaitModal() {
+      buildBaitDropTable();
+      baitRecap.classList.remove("visible");
+      baitRollArea.classList.remove("visible");
+      baitModal.classList.add("visible");
       refreshSummary();
     }
 
@@ -824,20 +1457,25 @@
       gachaModal.classList.remove("visible");
       rollArea.classList.remove("visible");
       drawRecap.className = "draw-recap";
-      drawOkBtn.style.display = "none";
       rollTrack.innerHTML = "";
     }
 
-    function acknowledgeDraw() {
-      drawRecap.className = "draw-recap";
-      drawOkBtn.style.display = "none";
-      closeGachaModal();
+    function closeBaitModal() {
+      if (baitSpinning) {
+        return;
+      }
+      baitModal.classList.remove("visible");
+      baitRollArea.classList.remove("visible");
+      baitRecap.className = "draw-recap";
+      baitRollTrack.innerHTML = "";
     }
 
     openGachaBtn.addEventListener("click", openGachaModal);
+    openBaitBtn.addEventListener("click", openBaitModal);
     closeGachaBtn.addEventListener("click", closeGachaModal);
     startDrawBtn.addEventListener("click", startDraw);
-    drawOkBtn.addEventListener("click", acknowledgeDraw);
+    closeBaitBtn.addEventListener("click", closeBaitModal);
+    startBaitDrawBtn.addEventListener("click", startBaitDraw);
 
     gachaModal.addEventListener("click", (event) => {
       if (event.target === gachaModal) {
@@ -845,8 +1483,20 @@
       }
     });
 
+    baitModal.addEventListener("click", (event) => {
+      if (event.target === baitModal) {
+        closeBaitModal();
+      }
+    });
+
     refreshSummary();
     buildDropTable();
+    buildBaitDropTable();
+    // Apply limited navigation mode if upgrades not unlocked
+    const upgradesUnlocked = localStorage.getItem("clicker_upgradesUnlocked") === "true";
+    if (!upgradesUnlocked) {
+      document.body.classList.add("limited-nav-mode");
+    }
   </script>
 
 </body>

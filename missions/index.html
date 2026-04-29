@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Missions - Clicker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #111;
+      color: #fff;
+      margin: 0;
+      padding: 24px 16px 36px 16px;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #0c1217;
+      border-bottom: 1px solid #22313b;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+      margin: -24px -16px 18px;
+      padding: 10px 0;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0 0 0 16px;
+    }
+
+    .nav-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      background: #31414d;
+      color: #eef5f9;
+      border: 1px solid #667a86;
+      padding: 12px 16px;
+      margin: 0;
+      margin-right: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-button:hover {
+      background: #3a4c59;
+      border-color: #7f95a3;
+    }
+
+    .nav-button.active-nav-button {
+      background: #dbe3e8;
+      color: #1d2a33;
+      border-color: #dbe3e8;
+      font-weight: bold;
+    }
+
+    .settings-nav-button {
+      margin-left: auto;
+      margin-right: 16px;
+    }
+
+    body.limited-nav-mode .locked-nav-button {
+      display: none;
+    }
+
+    .shell {
+      max-width: 1040px;
+      margin: 0 auto;
+      text-align: left;
+      display: grid;
+      gap: 14px;
+    }
+
+    .header-card {
+      border: 1px solid #35515f;
+      border-radius: 14px;
+      background: #15222b;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .header-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: #9ad9ff;
+    }
+
+    .header-sub {
+      color: #cbe4f2;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat-box {
+      border: 1px solid #324b58;
+      border-radius: 10px;
+      background: #0f181f;
+      padding: 10px;
+    }
+
+    .stat-label {
+      color: #9db8c8;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: bold;
+      color: #eaf8ff;
+    }
+
+    .section-card {
+      border: 1px solid #35515f;
+      border-radius: 14px;
+      background: #15222b;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #9ad9ff;
+    }
+
+    .mission-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mission-item {
+      border: 1px solid #365563;
+      border-radius: 12px;
+      background: #0f1519;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .mission-title {
+      font-weight: bold;
+      color: #eaf8ff;
+      font-size: 15px;
+    }
+
+    .mission-desc {
+      color: #c2d9e7;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .mission-progress {
+      color: #9fd3ef;
+      font-size: 13px;
+    }
+
+    .mission-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .reward-pill {
+      border: 1px solid #3f7491;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      color: #9ad9ff;
+      background: #0f2734;
+    }
+
+    .claim-btn {
+      border: 1px solid #8ea3b1;
+      background: #263541;
+      color: #fff;
+      border-radius: 9px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .claim-btn:hover {
+      background: #324555;
+    }
+
+    .claim-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .hook-notification-layer {
+      position: fixed;
+      right: 14px;
+      top: 86px;
+      z-index: 260;
+      display: grid;
+      gap: 8px;
+      pointer-events: none;
+      max-width: min(92vw, 420px);
+    }
+
+    .hook-notification {
+      border: 1px solid #4f89a8;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #123244 0%, #0d2431 100%);
+      color: #dcf3ff;
+      font-size: 13px;
+      line-height: 1.4;
+      padding: 10px 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      transform: translateX(12px);
+      animation: hookToastIn 0.18s ease forwards;
+    }
+
+    .hook-notification.fade-out {
+      animation: hookToastOut 0.25s ease forwards;
+    }
+
+    .hook-notification-title {
+      font-weight: bold;
+      color: #9ad9ff;
+      margin-bottom: 4px;
+    }
+
+    @keyframes hookToastIn {
+      from { opacity: 0; transform: translateX(12px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes hookToastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(18px); }
+    }
+
+    @media (max-width: 760px) {
+      .stats-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="top-nav">
+      <button class="nav-button" onclick="window.location.href='../'">Game</button>
+      <button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../team/'">Team</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../shop/'">Shop</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../battle/'">Battle</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
+      <button class="nav-button locked-nav-button active-nav-button" onclick="window.location.href='./'">Missions</button>
+      <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
+    </div>
+  </div>
+
+  <div class="hook-notification-layer" id="hookNotificationLayer"></div>
+
+  <div class="shell">
+    <div class="header-card">
+      <div class="header-title">Missions</div>
+      <div class="header-sub">Complete classic objectives to earn hooks. Battle hooks are automatic: +10 hooks every cleared tier, and +30 extra on each tier multiple of 10.</div>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-label">Hooks</div>
+          <div class="stat-value" id="hooksValue">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Fish Caught</div>
+          <div class="stat-value" id="caughtValue">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Epic Catches</div>
+          <div class="stat-value" id="epicValue">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Legendary Catches</div>
+          <div class="stat-value" id="legendaryValue">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">Classic Missions</div>
+      <div class="mission-list" id="missionList"></div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">Battle Progress</div>
+      <div class="mission-desc" id="battleProgressText">No battle progress yet.</div>
+    </div>
+  </div>
+
+  <script>
+    const HOOKS_KEY = "clicker_hooks";
+    const BATTLE_TIER_KEY = "clicker_battleTier";
+
+    const hooksValue = document.getElementById("hooksValue");
+    const caughtValue = document.getElementById("caughtValue");
+    const epicValue = document.getElementById("epicValue");
+    const legendaryValue = document.getElementById("legendaryValue");
+    const missionList = document.getElementById("missionList");
+    const battleProgressText = document.getElementById("battleProgressText");
+    const hookNotificationLayer = document.getElementById("hookNotificationLayer");
+
+    const MISSION_CHAINS = [
+      {
+        id: "catch_chain",
+        steps: [
+          { id: "classic_catch_50", title: "Rookie Fisher I", desc: "Catch 50 fish.", target: 50, rewardHooks: 15, getProgress: () => getInt("clicker_caughtCount") },
+          { id: "classic_catch_150", title: "Rookie Fisher II", desc: "Catch 150 fish.", target: 150, rewardHooks: 20, getProgress: () => getInt("clicker_caughtCount") },
+          { id: "classic_catch_500", title: "Rookie Fisher III", desc: "Catch 500 fish.", target: 500, rewardHooks: 35, getProgress: () => getInt("clicker_caughtCount") },
+          { id: "classic_catch_1500", title: "Rookie Fisher IV", desc: "Catch 1,500 fish.", target: 1500, rewardHooks: 70, getProgress: () => getInt("clicker_caughtCount") }
+        ]
+      },
+      {
+        id: "epic_chain",
+        steps: [
+            { id: "classic_epic_3", title: "Epic Hunter I", desc: "Catch 3 epic fish.", target: 3, rewardHooks: 0, getProgress: () => getInt("clicker_epicCaught") },
+            { id: "classic_epic_10", title: "Epic Hunter II", desc: "Catch 10 epic fish.", target: 10, rewardHooks: 0, getProgress: () => getInt("clicker_epicCaught") },
+            { id: "classic_epic_30", title: "Epic Hunter III", desc: "Catch 30 epic fish.", target: 30, rewardHooks: 0, getProgress: () => getInt("clicker_epicCaught") }
+        ]
+      },
+      {
+        id: "legendary_chain",
+        steps: [
+            { id: "classic_legendary_1", title: "Legendary Hunter I", desc: "Catch 1 legendary fish.", target: 1, rewardHooks: 0, getProgress: () => getInt("clicker_legendaryCaught") },
+            { id: "classic_legendary_5", title: "Legendary Hunter II", desc: "Catch 5 legendary fish.", target: 5, rewardHooks: 0, getProgress: () => getInt("clicker_legendaryCaught") },
+            { id: "classic_legendary_15", title: "Legendary Hunter III", desc: "Catch 15 legendary fish.", target: 15, rewardHooks: 0, getProgress: () => getInt("clicker_legendaryCaught") }
+        ]
+      },
+      {
+        id: "money_chain",
+        steps: [
+          { id: "classic_money_5000", title: "Rich Pond I", desc: "Reach 5,000 money in your wallet.", target: 5000, rewardHooks: 25, getProgress: () => getInt("clicker_money") },
+          { id: "classic_money_20000", title: "Rich Pond II", desc: "Reach 20,000 money in your wallet.", target: 20000, rewardHooks: 50, getProgress: () => getInt("clicker_money") },
+          { id: "classic_money_100000", title: "Rich Pond III", desc: "Reach 100,000 money in your wallet.", target: 100000, rewardHooks: 180, getProgress: () => getInt("clicker_money") }
+        ]
+      },
+      {
+        id: "hooks_chain",
+        steps: [
+          { id: "classic_hooks_100", title: "Hook Saver I", desc: "Own 100 hooks at once.", target: 100, rewardHooks: 25, getProgress: () => getInt("clicker_hooks") },
+          { id: "classic_hooks_400", title: "Hook Saver II", desc: "Own 400 hooks at once.", target: 400, rewardHooks: 70, getProgress: () => getInt("clicker_hooks") },
+          { id: "classic_hooks_1200", title: "Hook Saver III", desc: "Own 1,200 hooks at once.", target: 1200, rewardHooks: 220, getProgress: () => getInt("clicker_hooks") }
+        ]
+      },
+      {
+        id: "inventory_chain",
+        steps: [
+          { id: "classic_inventory_25", title: "Storage I", desc: "Have 25 fish in inventory at once.", target: 25, rewardHooks: 20, getProgress: () => getInventoryCount() },
+          { id: "classic_inventory_80", title: "Storage II", desc: "Have 80 fish in inventory at once.", target: 80, rewardHooks: 60, getProgress: () => getInventoryCount() },
+          { id: "classic_inventory_180", title: "Storage III", desc: "Have 180 fish in inventory at once.", target: 180, rewardHooks: 170, getProgress: () => getInventoryCount() }
+        ]
+      },
+      {
+        id: "battle_chain",
+        steps: [
+          { id: "classic_battle_3", title: "Arena Path I", desc: "Clear 3 battle tiers.", target: 3, rewardHooks: 25, getProgress: () => getClearedBattleTier() },
+          { id: "classic_battle_10", title: "Arena Path II", desc: "Clear 10 battle tiers.", target: 10, rewardHooks: 90, getProgress: () => getClearedBattleTier() },
+          { id: "classic_battle_25", title: "Arena Path III", desc: "Clear 25 battle tiers.", target: 25, rewardHooks: 260, getProgress: () => getClearedBattleTier() }
+        ]
+      },
+      {
+        id: "auto_chain",
+        steps: [
+          { id: "classic_auto_3", title: "Automation I", desc: "Reach auto fisher level 3.", target: 3, rewardHooks: 20, getProgress: () => getInt("clicker_autoFisherLevel") },
+          { id: "classic_auto_6", title: "Automation II", desc: "Reach auto fisher level 6.", target: 6, rewardHooks: 25, getProgress: () => getInt("clicker_autoFisherLevel") },
+          { id: "classic_auto_10", title: "Automation III", desc: "Reach auto fisher level 10.", target: 10, rewardHooks: 35, getProgress: () => getInt("clicker_autoFisherLevel") },
+          { id: "classic_auto_15", title: "Automation IV", desc: "Reach auto fisher level 15.", target: 15, rewardHooks: 50, getProgress: () => getInt("clicker_autoFisherLevel") },
+          { id: "classic_auto_22", title: "Automation V", desc: "Reach auto fisher level 22.", target: 22, rewardHooks: 80, getProgress: () => getInt("clicker_autoFisherLevel") }
+        ]
+      },
+      {
+        id: "rod_chain",
+        steps: [
+          { id: "classic_rod_1", title: "Rod Mastery I", desc: "Upgrade your rod to tier 1.", target: 1, rewardHooks: 20, getProgress: () => getInt("clicker_rodTierLevel") },
+          { id: "classic_rod_2", title: "Rod Mastery II", desc: "Upgrade your rod to tier 2.", target: 2, rewardHooks: 35, getProgress: () => getInt("clicker_rodTierLevel") },
+          { id: "classic_rod_3", title: "Rod Mastery III", desc: "Upgrade your rod to tier 3.", target: 3, rewardHooks: 50, getProgress: () => getInt("clicker_rodTierLevel") },
+          { id: "classic_rod_4", title: "Rod Mastery IV", desc: "Upgrade your rod to tier 4.", target: 4, rewardHooks: 70, getProgress: () => getInt("clicker_rodTierLevel") },
+          { id: "classic_rod_5", title: "Rod Mastery V", desc: "Upgrade your rod to tier 5.", target: 5, rewardHooks: 95, getProgress: () => getInt("clicker_rodTierLevel") }
+        ]
+      },
+      {
+        id: "triple_chain",
+        steps: [
+          { id: "classic_triple_2", title: "Triple Hook I", desc: "Reach triple hook level 2.", target: 2, rewardHooks: 20, getProgress: () => getInt("clicker_tripleHookLevel") },
+          { id: "classic_triple_4", title: "Triple Hook II", desc: "Reach triple hook level 4.", target: 4, rewardHooks: 30, getProgress: () => getInt("clicker_tripleHookLevel") },
+          { id: "classic_triple_7", title: "Triple Hook III", desc: "Reach triple hook level 7.", target: 7, rewardHooks: 45, getProgress: () => getInt("clicker_tripleHookLevel") },
+          { id: "classic_triple_10", title: "Triple Hook IV", desc: "Reach triple hook level 10.", target: 10, rewardHooks: 60, getProgress: () => getInt("clicker_tripleHookLevel") },
+          { id: "classic_triple_14", title: "Triple Hook V", desc: "Reach triple hook level 14.", target: 14, rewardHooks: 85, getProgress: () => getInt("clicker_tripleHookLevel") }
+        ]
+      },
+      {
+        id: "size_chain",
+        steps: [
+          { id: "classic_size_4", title: "Big Fish Theory I", desc: "Reach size boost level 4.", target: 4, rewardHooks: 20, getProgress: () => getInt("clicker_sizeBoostLevel") },
+          { id: "classic_size_8", title: "Big Fish Theory II", desc: "Reach size boost level 8.", target: 8, rewardHooks: 28, getProgress: () => getInt("clicker_sizeBoostLevel") },
+          { id: "classic_size_12", title: "Big Fish Theory III", desc: "Reach size boost level 12.", target: 12, rewardHooks: 40, getProgress: () => getInt("clicker_sizeBoostLevel") },
+          { id: "classic_size_16", title: "Big Fish Theory IV", desc: "Reach size boost level 16.", target: 16, rewardHooks: 58, getProgress: () => getInt("clicker_sizeBoostLevel") },
+          { id: "classic_size_20", title: "Big Fish Theory V", desc: "Reach size boost level 20.", target: 20, rewardHooks: 80, getProgress: () => getInt("clicker_sizeBoostLevel") }
+        ]
+      },
+      {
+        id: "weight_chain",
+        steps: [
+          { id: "classic_weight_4", title: "Heavy Catch Theory I", desc: "Reach weight boost level 4.", target: 4, rewardHooks: 20, getProgress: () => getInt("clicker_weightBoostLevel") },
+          { id: "classic_weight_8", title: "Heavy Catch Theory II", desc: "Reach weight boost level 8.", target: 8, rewardHooks: 28, getProgress: () => getInt("clicker_weightBoostLevel") },
+          { id: "classic_weight_12", title: "Heavy Catch Theory III", desc: "Reach weight boost level 12.", target: 12, rewardHooks: 40, getProgress: () => getInt("clicker_weightBoostLevel") },
+          { id: "classic_weight_16", title: "Heavy Catch Theory IV", desc: "Reach weight boost level 16.", target: 16, rewardHooks: 58, getProgress: () => getInt("clicker_weightBoostLevel") },
+          { id: "classic_weight_20", title: "Heavy Catch Theory V", desc: "Reach weight boost level 20.", target: 20, rewardHooks: 80, getProgress: () => getInt("clicker_weightBoostLevel") }
+        ]
+      },
+      {
+        id: "wait_chain",
+        steps: [
+          { id: "classic_wait_3", title: "Speed Engine I", desc: "Reach wait reduction level 3.", target: 3, rewardHooks: 20, getProgress: () => getInt("clicker_autoWaitReductionLevel") },
+          { id: "classic_wait_6", title: "Speed Engine II", desc: "Reach wait reduction level 6.", target: 6, rewardHooks: 30, getProgress: () => getInt("clicker_autoWaitReductionLevel") },
+          { id: "classic_wait_9", title: "Speed Engine III", desc: "Reach wait reduction level 9.", target: 9, rewardHooks: 45, getProgress: () => getInt("clicker_autoWaitReductionLevel") },
+          { id: "classic_wait_12", title: "Speed Engine IV", desc: "Reach wait reduction level 12.", target: 12, rewardHooks: 65, getProgress: () => getInt("clicker_autoWaitReductionLevel") },
+          { id: "classic_wait_15", title: "Speed Engine V", desc: "Reach wait reduction level 15.", target: 15, rewardHooks: 90, getProgress: () => getInt("clicker_autoWaitReductionLevel") }
+        ]
+      }
+    ];
+
+    function getInt(key) {
+      return Math.max(0, Number(localStorage.getItem(key)) || 0);
+    }
+
+    function getInventoryCount() {
+      try {
+        const raw = localStorage.getItem("clicker_inventory");
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed.length : 0;
+      } catch (error) {
+        return 0;
+      }
+    }
+
+    function getClearedBattleTier() {
+      const currentTier = Math.max(1, getInt(BATTLE_TIER_KEY) || 1);
+      return Math.max(0, currentTier - 1);
+    }
+
+    function missionClaimKey(id) {
+      return `clicker_mission_claimed_${id}`;
+    }
+
+    function isClaimed(id) {
+      return localStorage.getItem(missionClaimKey(id)) === "true";
+    }
+
+    function getActiveMissionForChain(chain) {
+      for (const mission of chain.steps) {
+        if (!isClaimed(mission.id)) {
+          return mission;
+        }
+      }
+
+      return null;
+    }
+
+    function findMissionById(id) {
+      for (const chain of MISSION_CHAINS) {
+        const found = chain.steps.find((entry) => entry.id === id);
+        if (found) {
+          return found;
+        }
+      }
+
+      return null;
+    }
+
+    function showHookNotification(title, text) {
+      if (!hookNotificationLayer) {
+        return;
+      }
+
+      const toast = document.createElement("div");
+      toast.className = "hook-notification";
+      toast.innerHTML = `
+        <div class="hook-notification-title">${title}</div>
+        <div>${text}</div>
+      `;
+      hookNotificationLayer.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add("fade-out");
+        setTimeout(() => {
+          toast.remove();
+        }, 260);
+      }, 2300);
+    }
+
+    function addHooks(amount, title, text) {
+      const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
+      if (safeAmount <= 0) {
+        return;
+      }
+
+      const currentHooks = getInt(HOOKS_KEY);
+      localStorage.setItem(HOOKS_KEY, String(currentHooks + safeAmount));
+      showHookNotification(title, `${text} (+${safeAmount} Hooks)`);
+    }
+
+    function renderBattleProgress() {
+      const currentTier = Math.max(1, getInt(BATTLE_TIER_KEY) || 1);
+      const clearedTier = Math.max(0, currentTier - 1);
+      const nextLevelHooks = 10;
+      const nextMilestoneHooks = currentTier % 10 === 0 ? 30 : 0;
+      const totalNextHooks = nextLevelHooks + nextMilestoneHooks;
+
+      battleProgressText.textContent = `Cleared tiers: ${clearedTier}. Next clear reward: +${totalNextHooks} Hooks (${nextLevelHooks} level reward${nextMilestoneHooks > 0 ? ` + ${nextMilestoneHooks} milestone bonus` : ""}).`;
+    }
+
+    function claimMission(mission) {
+      if (isClaimed(mission.id)) {
+        return;
+      }
+
+      const progress = mission.getProgress();
+      if (progress < mission.target) {
+        return;
+      }
+
+      localStorage.setItem(missionClaimKey(mission.id), "true");
+      addHooks(mission.rewardHooks, "Mission Complete", `${mission.title} claimed`);
+      render();
+    }
+
+    function renderMissions() {
+      missionList.innerHTML = "";
+
+      MISSION_CHAINS.forEach((chain) => {
+        const mission = getActiveMissionForChain(chain);
+        if (!mission) {
+          return;
+        }
+
+        const progress = mission.getProgress();
+        const clampedProgress = Math.min(progress, mission.target);
+        const completed = progress >= mission.target;
+
+        const card = document.createElement("div");
+        card.className = "mission-item";
+        card.innerHTML = `
+          <div class="mission-title">${mission.title}</div>
+          <div class="mission-desc">${mission.desc}</div>
+          <div class="mission-progress">Progress: ${clampedProgress} / ${mission.target}</div>
+          <div class="mission-meta">
+            <span class="reward-pill">Reward: ${mission.rewardHooks} Hooks</span>
+            <button class="claim-btn" type="button" data-claim="${mission.id}" ${(!completed) ? "disabled" : ""}>
+              ${completed ? "Claim" : "Incomplete"}
+            </button>
+          </div>
+        `;
+
+        missionList.appendChild(card);
+      });
+
+      missionList.querySelectorAll("button[data-claim]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const missionId = button.getAttribute("data-claim");
+          const mission = findMissionById(missionId);
+          if (mission) {
+            claimMission(mission);
+          }
+        });
+      });
+    }
+
+    function renderStats() {
+      hooksValue.textContent = String(getInt(HOOKS_KEY));
+      caughtValue.textContent = String(getInt("clicker_caughtCount"));
+      epicValue.textContent = String(getInt("clicker_epicCaught"));
+      legendaryValue.textContent = String(getInt("clicker_legendaryCaught"));
+    }
+
+    function render() {
+      renderStats();
+      renderMissions();
+      renderBattleProgress();
+    }
+
+    const upgradesUnlocked = localStorage.getItem("clicker_upgradesUnlocked") === "true";
+    if (!upgradesUnlocked) {
+      document.body.classList.add("limited-nav-mode");
+    }
+
+    render();
+    setInterval(render, 700);
+  </script>
+</body>
+</html>
