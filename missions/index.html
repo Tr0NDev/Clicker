@@ -139,10 +139,42 @@
       gap: 10px;
     }
 
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
     .section-title {
       font-size: 18px;
       font-weight: bold;
       color: #9ad9ff;
+    }
+
+    /* Claim All Button */
+    .claim-all-btn {
+      border: 1px solid #5aaed4;
+      background: linear-gradient(135deg, #1a4a62 0%, #0f2e42 100%);
+      color: #9ad9ff;
+      border-radius: 9px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .claim-all-btn:hover {
+      background: linear-gradient(135deg, #225f7e 0%, #12384f 100%);
+      border-color: #7ecbec;
+      color: #c8ecff;
+    }
+
+    .claim-all-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
 
     .mission-list {
@@ -157,6 +189,29 @@
       padding: 12px;
       display: grid;
       gap: 8px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    /* Completed missions highlighted */
+    .mission-item.completed-ready {
+      border-color: #4fa8d1;
+      background: #0d1e2a;
+      box-shadow: 0 0 0 1px #2d6e93 inset;
+    }
+
+    .mission-ready-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #112a3a;
+      border: 1px solid #3d8cb5;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      color: #7fd4f7;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .mission-title {
@@ -306,7 +361,10 @@
     </div>
 
     <div class="section-card">
-      <div class="section-title">Classic Missions</div>
+      <div class="section-header">
+        <div class="section-title">Classic Missions</div>
+        <button class="claim-all-btn" id="claimAllBtn" type="button">Claim All</button>
+      </div>
       <div class="mission-list" id="missionList"></div>
     </div>
 
@@ -327,6 +385,7 @@
     const missionList = document.getElementById("missionList");
     const battleProgressText = document.getElementById("battleProgressText");
     const hookNotificationLayer = document.getElementById("hookNotificationLayer");
+    const claimAllBtn = document.getElementById("claimAllBtn");
 
     const MISSION_CHAINS = [
       {
@@ -341,17 +400,17 @@
       {
         id: "epic_chain",
         steps: [
-            { id: "classic_epic_3", title: "Epic Hunter I", desc: "Catch 3 epic fish.", target: 3, rewardHooks: 0, getProgress: () => getInt("clicker_epicCaught") },
-            { id: "classic_epic_10", title: "Epic Hunter II", desc: "Catch 10 epic fish.", target: 10, rewardHooks: 0, getProgress: () => getInt("clicker_epicCaught") },
-            { id: "classic_epic_30", title: "Epic Hunter III", desc: "Catch 30 epic fish.", target: 30, rewardHooks: 0, getProgress: () => getInt("clicker_epicCaught") }
+          { id: "classic_epic_3", title: "Epic Hunter I", desc: "Catch 3 epic fish.", target: 3, rewardHooks: 0, getProgress: () => getInt("clicker_epicCaught") },
+          { id: "classic_epic_10", title: "Epic Hunter II", desc: "Catch 10 epic fish.", target: 10, rewardHooks: 0, getProgress: () => getInt("clicker_epicCaught") },
+          { id: "classic_epic_30", title: "Epic Hunter III", desc: "Catch 30 epic fish.", target: 30, rewardHooks: 0, getProgress: () => getInt("clicker_epicCaught") }
         ]
       },
       {
         id: "legendary_chain",
         steps: [
-            { id: "classic_legendary_1", title: "Legendary Hunter I", desc: "Catch 1 legendary fish.", target: 1, rewardHooks: 0, getProgress: () => getInt("clicker_legendaryCaught") },
-            { id: "classic_legendary_5", title: "Legendary Hunter II", desc: "Catch 5 legendary fish.", target: 5, rewardHooks: 0, getProgress: () => getInt("clicker_legendaryCaught") },
-            { id: "classic_legendary_15", title: "Legendary Hunter III", desc: "Catch 15 legendary fish.", target: 15, rewardHooks: 0, getProgress: () => getInt("clicker_legendaryCaught") }
+          { id: "classic_legendary_1", title: "Legendary Hunter I", desc: "Catch 1 legendary fish.", target: 1, rewardHooks: 0, getProgress: () => getInt("clicker_legendaryCaught") },
+          { id: "classic_legendary_5", title: "Legendary Hunter II", desc: "Catch 5 legendary fish.", target: 5, rewardHooks: 0, getProgress: () => getInt("clicker_legendaryCaught") },
+          { id: "classic_legendary_15", title: "Legendary Hunter III", desc: "Catch 15 legendary fish.", target: 15, rewardHooks: 0, getProgress: () => getInt("clicker_legendaryCaught") }
         ]
       },
       {
@@ -481,7 +540,6 @@
           return mission;
         }
       }
-
       return null;
     }
 
@@ -492,7 +550,6 @@
           return found;
         }
       }
-
       return null;
     }
 
@@ -550,38 +607,78 @@
 
       localStorage.setItem(missionClaimKey(mission.id), "true");
       addHooks(mission.rewardHooks, "Mission Complete", `${mission.title} claimed`);
-      render();
+    }
+
+    // Claim all claimable missions at once
+    function claimAll() {
+      let count = 0;
+      let totalHooks = 0;
+
+      for (const chain of MISSION_CHAINS) {
+        const mission = getActiveMissionForChain(chain);
+        if (!mission || isClaimed(mission.id)) continue;
+        const progress = mission.getProgress();
+        if (progress < mission.target) continue;
+        localStorage.setItem(missionClaimKey(mission.id), "true");
+        const safeAmount = Math.max(0, Math.floor(Number(mission.rewardHooks) || 0));
+        totalHooks += safeAmount;
+        count++;
+      }
+
+      if (count > 0) {
+        const currentHooks = getInt(HOOKS_KEY);
+        localStorage.setItem(HOOKS_KEY, String(currentHooks + totalHooks));
+        showHookNotification("Claim All", `${count} mission${count > 1 ? "s" : ""} claimed (+${totalHooks} Hooks)`);
+        render();
+      }
     }
 
     function renderMissions() {
       missionList.innerHTML = "";
 
-      MISSION_CHAINS.forEach((chain) => {
-        const mission = getActiveMissionForChain(chain);
-        if (!mission) {
-          return;
-        }
+      // Separate completed (claimable) and incomplete missions
+      const completedMissions = [];
+      const incompleteMissions = [];
 
+      for (const chain of MISSION_CHAINS) {
+        const mission = getActiveMissionForChain(chain);
+        if (!mission) continue;
         const progress = mission.getProgress();
-        const clampedProgress = Math.min(progress, mission.target);
+        if (progress >= mission.target) {
+          completedMissions.push({ mission, progress });
+        } else {
+          incompleteMissions.push({ mission, progress });
+        }
+      }
+
+      // Update Claim All button state
+      claimAllBtn.disabled = completedMissions.length === 0;
+
+      // Render completed first, then incomplete
+      const ordered = [...completedMissions, ...incompleteMissions];
+
+      for (const { mission, progress } of ordered) {
         const completed = progress >= mission.target;
+        const clampedProgress = Math.min(progress, mission.target);
 
         const card = document.createElement("div");
-        card.className = "mission-item";
+        card.className = "mission-item" + (completed ? " completed-ready" : "");
         card.innerHTML = `
-          <div class="mission-title">${mission.title}</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div class="mission-title">${mission.title}</div>
+            ${completed ? '<span class="mission-ready-badge">✦ Ready to claim</span>' : ""}
+          </div>
           <div class="mission-desc">${mission.desc}</div>
           <div class="mission-progress">Progress: ${clampedProgress} / ${mission.target}</div>
           <div class="mission-meta">
             <span class="reward-pill">Reward: ${mission.rewardHooks} Hooks</span>
-            <button class="claim-btn" type="button" data-claim="${mission.id}" ${(!completed) ? "disabled" : ""}>
+            <button class="claim-btn" type="button" data-claim="${mission.id}" ${!completed ? "disabled" : ""}>
               ${completed ? "Claim" : "Incomplete"}
             </button>
           </div>
         `;
-
         missionList.appendChild(card);
-      });
+      }
 
       missionList.querySelectorAll("button[data-claim]").forEach((button) => {
         button.addEventListener("click", () => {
@@ -589,6 +686,7 @@
           const mission = findMissionById(missionId);
           if (mission) {
             claimMission(mission);
+            render();
           }
         });
       });
@@ -606,6 +704,8 @@
       renderMissions();
       renderBattleProgress();
     }
+
+    claimAllBtn.addEventListener("click", claimAll);
 
     const upgradesUnlocked = localStorage.getItem("clicker_upgradesUnlocked") === "true";
     if (!upgradesUnlocked) {
