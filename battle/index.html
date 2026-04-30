@@ -361,9 +361,22 @@
       if (weightEl) weightEl.textContent = "+" + teamStats.weightBonus.toFixed(1) + "%";
       if (incEl)    incEl.textContent    = teamStats.incomeMultiplier.toFixed(2) + "x";
 
-      const playerGoesFirst = teamStats.fishingSpeed >= ENEMY_FISHING_SPEED_BASE;
-      if (fishEl)   fishEl.textContent   = teamStats.fishingSpeed.toFixed(2) + "x";
+      // If a custom battle is imported and has team stats, compare fishing speeds
+      const opponentFishing = (importedBattle && importedBattle.exportedTeamStats)
+        ? Number(importedBattle.exportedTeamStats.fishingSpeed) || 1
+        : (ENEMY_FISHING_SPEED_BASE + (battleTier - 1) * 0.01);
 
+      const playerGoesFirst = teamStats.fishingSpeed >= opponentFishing;
+      if (fishEl) {
+        if (importedBattle && importedBattle.exportedTeamStats) {
+          fishEl.textContent = teamStats.fishingSpeed.toFixed(2) + "x vs " + opponentFishing.toFixed(2) + "x";
+        } else {
+          fishEl.textContent = teamStats.fishingSpeed.toFixed(2) + "x";
+        }
+      }
+      if (noteEl) noteEl.textContent = playerGoesFirst
+        ? "Your team is faster — you go first!"
+        : (importedBattle ? "Opponent is faster — they go first." : "Enemy is faster — they go first.");
 
       const pill = document.getElementById("hudInitiativePill");
       if (pill) {
@@ -537,10 +550,33 @@
     }
     function buildBattlePayload() {
       const f=getSelectedFish(); if(f.length!==3) return null;
-      return { version:1, createdAt:new Date().toISOString(),
-        lineup: f.map(x=>({ name:x.type||"Fish", rarity:x.rarity||"common",
-          size:Math.max(1,Math.round(Number(x.size)||1)), weight:Math.max(1,Math.round(Number(x.weight)||1)) })),
-        bait:[null,null] };
+      // Export the already-boosted HP/ATK so the importer fights the real stats
+      const lineup = f.map(x=>{
+        const boosted = applyTeamBoostsToFishStats(
+          Math.max(1,Math.round(Number(x.size)||1)),
+          Math.max(1,Math.round(Number(x.weight)||1))
+        );
+        return {
+          name:   x.type||"Fish",
+          rarity: x.rarity||"common",
+          size:   boosted.hp,   // HP already includes team bonuses
+          weight: boosted.atk,  // ATK already includes team bonuses
+          sizeRaw:   Math.max(1,Math.round(Number(x.size)||1)),
+          weightRaw: Math.max(1,Math.round(Number(x.weight)||1))
+        };
+      });
+      return {
+        version: 2,
+        createdAt: new Date().toISOString(),
+        lineup,
+        teamStats: {
+          sizeBonus:        teamStats.sizeBonus,
+          weightBonus:      teamStats.weightBonus,
+          incomeMultiplier: teamStats.incomeMultiplier,
+          fishingSpeed:     teamStats.fishingSpeed
+        },
+        bait: [null,null]
+      };
     }
     function parseImportedBattleText(text) {
       let p=null; try { p=decodeBattlePayload(text); } catch { return null; }
@@ -549,10 +585,14 @@
         uid:`import-${i}-${Date.now()}`,
         type:typeof e?.name==="string"&&e.name.trim()?e.name.trim():`Enemy ${i+1}`,
         rarity:typeof e?.rarity==="string"?e.rarity:"common",
-        size:Math.max(1,Math.round(Number(e?.size)||1)), weight:Math.max(1,Math.round(Number(e?.weight)||1)),
+        // Use pre-boosted size/weight from v2 exports; fall back for v1 compatibility
+        size:   Math.max(1,Math.round(Number(e?.size)||1)),
+        weight: Math.max(1,Math.round(Number(e?.weight)||1)),
         currentValue:0, basePrice:0, price:0
       }));
-      return {...p, lineup};
+      // Carry over exported team stats for display in the HUD info
+      const exportedTeamStats = p.teamStats || null;
+      return {...p, lineup, exportedTeamStats};
     }
 
     function sortInventory(items) {
@@ -628,9 +668,13 @@
       battleReady.textContent=fish.length===3?"Yes":"No";
       statusText.textContent=fish.length===3?(importedBattle?"Imported custom battle ready.":`${tierLabel} ready.`):"Pick 3 fish to prepare battle.";
       startBattleButton.disabled=fish.length!==3||isBattleAnimating;
-      const goesFirst = playerStartsFirst();
+      const goesFirst = importedBattle && importedBattle.exportedTeamStats
+        ? teamStats.fishingSpeed >= (Number(importedBattle.exportedTeamStats.fishingSpeed) || 1)
+        : playerStartsFirst();
       actionNote.textContent=fish.length===3
-        ?(isBattleAnimating?"Battle in progress...":(importedBattle?"Imported battle ready. Press Start Battle.":`Win ${tierLabel} to claim +${reward} money. ${goesFirst ? "Your team goes first." : "Enemy goes first."}`))
+        ?(isBattleAnimating?"Battle in progress...":(importedBattle
+            ? `Imported battle ready. ${goesFirst ? "You go first." : "Opponent goes first."}`
+            : `Win ${tierLabel} to claim +${reward} money. ${goesFirst ? "Your team goes first." : "Enemy goes first."}`))
         :`Select 3 fish first. ${tierLabel} awaits.`;
     }
 
@@ -697,7 +741,7 @@
 
       const initiativeMsg = allyGoesFirst
         ? `Initiative: Your team is faster (Fishing Speed ${teamStats.fishingSpeed.toFixed(2)}x) — you go first!`
-        : `Initiative: Enemy is faster — they go first.`;
+        : `Initiative: Opponent is faster — they go first.`;
       push(initiativeMsg);
 
       let pt = allyGoesFirst;
@@ -823,7 +867,11 @@
     importBattleBtn.addEventListener("click",()=>{
       const p=parseImportedBattleText(battleTextArea.value);
       if(!p){ detailLine.textContent="Invalid battle text. Paste a valid exported text."; return; }
-      importedBattle=p; detailLine.textContent="Battle imported. Press Start Battle."; renderSummary();
+      importedBattle=p;
+      const oppFs = p.exportedTeamStats ? Number(p.exportedTeamStats.fishingSpeed).toFixed(2) : "?";
+      detailLine.textContent=`Battle imported (opponent Fishing Speed: ${oppFs}x). Press Start Battle.`;
+      updateTeamHud();
+      renderSummary();
     });
 
     exportBattleBtn.addEventListener("click",()=>{
@@ -851,16 +899,37 @@
 
       const isCustom=Boolean(importedBattle), currentTier=battleTier, reward=getTierReward(currentTier);
 
-      // Allies get team bonuses applied, enemies don't
-      const allies  = fish.map((f,i) => createBattleantFromFish(f, "ally", i, true));
-      const enemies = importedBattle
-        ? importedBattle.lineup.map((f,i) => createBattleantFromFish(f, "enemy", i, false))
-        : createTierEnemyRoster(currentTier);
+      // Allies always get team bonuses applied
+      const allies = fish.map((f,i) => createBattleantFromFish(f, "ally", i, true));
+
+      let enemies;
+      if (importedBattle) {
+        // Imported enemies already have team bonuses baked in (size = boosted HP, weight = boosted ATK)
+        enemies = importedBattle.lineup.map((f,i) => ({
+          id: `enemy-import-${i}-${Date.now()}`,
+          name: f.type || `Enemy ${i+1}`,
+          rarity: f.rarity || "common",
+          maxHp:  Math.max(1, Math.round(Number(f.size)   || 1)),
+          hp:     Math.max(1, Math.round(Number(f.size)   || 1)),
+          attack: Math.max(1, Math.round(Number(f.weight) || 1)),
+          alive: true,
+          descriptor: fishDescriptors(f)
+        }));
+      } else {
+        enemies = createTierEnemyRoster(currentTier);
+      }
 
       const rewardPool=enemies.map(e=>({...e}));
 
-      // Determine initiative from fishing speed (no coin flip)
-      const allyGoesFirst = playerStartsFirst();
+      // Determine initiative: compare fishing speeds
+      // For custom battles, use the exported fishing speed of the opponent if available
+      let allyGoesFirst;
+      if (importedBattle && importedBattle.exportedTeamStats && importedBattle.exportedTeamStats.fishingSpeed) {
+        const opponentFishingSpeed = Number(importedBattle.exportedTeamStats.fishingSpeed) || 1;
+        allyGoesFirst = teamStats.fishingSpeed >= opponentFishingSpeed;
+      } else {
+        allyGoesFirst = playerStartsFirst();
+      }
       const result = runBattle(allies, enemies, allyGoesFirst);
 
       let stepIndex=0; const displayedLog=[];
