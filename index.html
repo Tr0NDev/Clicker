@@ -15,7 +15,6 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-KTGZQBWB6R');
   </script>
   <style>
@@ -269,6 +268,15 @@
       font-weight: bold;
     }
 
+    /* FIX 4: Hooks display in header */
+    .hooks-display {
+      margin: 4px 0 0;
+      text-align: center;
+      color: #f7d87a;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
     .money-header {
       max-width: 720px;
       margin: 0 auto;
@@ -482,7 +490,6 @@
     body.tutorial-mode .tutorial-fish-caught {
       display: block;
     }
-
 
     .tutorial-initial-dialog {
       position: fixed;
@@ -1079,6 +1086,8 @@
   <div class="shell">
     <div class="money-header">
       <h2 id="money">Money: 0</h2>
+      <!-- FIX 4: Hooks display -->
+      <div class="hooks-display" id="hooksDisplay">🪝 Hooks: 0</div>
       <div class="money-rate" id="catchPerSecond">Catches per second: 0</div>
     </div>
 
@@ -1311,7 +1320,10 @@
         legendary: 4.2
       };
 
+      const RARITY_ORDER = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5 };
+
       const moneyDisplay = document.getElementById("money");
+      const hooksDisplay = document.getElementById("hooksDisplay");
       const catchPerSecondDisplay = document.getElementById("catchPerSecond");
       const caughtCountDisplay = document.getElementById("caughtCount");
       const inventoryCountDisplay = document.getElementById("inventoryCount");
@@ -1388,9 +1400,15 @@
       let upgradesWidth = Number(localStorage.getItem("clicker_upgradesWidth")) || 420;
       let autoSellMaxPrice = Number(localStorage.getItem("clicker_autoSellMaxPrice"));
       let autoSellMaxRarity = localStorage.getItem("clicker_autoSellMaxRarity") || "common";
-      let lastAutoCatchMs = Date.now();
+
+      // FIX 1: Track when we left so auto-fisher catches up on return
+      let lastAutoCatchMs = Number(localStorage.getItem("clicker_lastAutoCatchMs")) || Date.now();
       let lastManualCatchMs = 0;
       let inventoryTurn = Number(localStorage.getItem("clicker_inventoryTurn")) || 0;
+
+      // FIX 3: Scheduled catch times for smooth spam distribution
+      let scheduledCatches = [];
+
       const TEAM_STATE_STORAGE_KEY = "clicker_teamState";
       const TEAM_ROSTER_STORAGE_KEY = "clicker_teamRoster";
       const AUTO_SELL_PANEL_POS_VERSION_KEY = "clicker_autoSellPanelPosVersion";
@@ -1433,14 +1451,12 @@
         if (!autoSellPanel) {
           return { left: 12, top: 84 };
         }
-
         const panelWidth = autoSellPanel.offsetWidth || 460;
         const panelHeight = autoSellPanel.offsetHeight || 220;
         const minLeft = 8;
         const minTop = 56;
         const maxLeft = Math.max(minLeft, window.innerWidth - panelWidth - 8);
         const maxTop = Math.max(minTop, window.innerHeight - panelHeight - 8);
-
         return {
           left: Math.min(maxLeft, Math.max(minLeft, Math.floor(left))),
           top: Math.min(maxTop, Math.max(minTop, Math.floor(top)))
@@ -1448,22 +1464,17 @@
       }
 
       function setAutoSellPosition(left, top, persist) {
-        if (!autoSellPanel) {
-          return;
-        }
-
+        if (!autoSellPanel) return;
         if (isCompactLayout()) {
           autoSellPanel.style.left = "";
           autoSellPanel.style.right = "";
           autoSellPanel.style.top = "";
           return;
         }
-
         const next = clampAutoSellPosition(left, top);
         autoSellPanel.style.right = "auto";
         autoSellPanel.style.left = `${next.left}px`;
         autoSellPanel.style.top = `${next.top}px`;
-
         if (persist) {
           localStorage.setItem("clicker_autoSellPanelLeft", String(next.left));
           localStorage.setItem("clicker_autoSellPanelTop", String(next.top));
@@ -1471,17 +1482,13 @@
       }
 
       function clampCenterBlockPosition(left, top) {
-        if (!centerDragBlock) {
-          return { left: 16, top: 150 };
-        }
-
+        if (!centerDragBlock) return { left: 16, top: 150 };
         const blockWidth = centerDragBlock.offsetWidth || 760;
         const blockHeight = centerDragBlock.offsetHeight || 360;
         const minLeft = 8;
         const minTop = 56;
         const maxLeft = Math.max(minLeft, window.innerWidth - blockWidth - 8);
         const maxTop = Math.max(minTop, window.innerHeight - blockHeight - 8);
-
         return {
           left: Math.min(maxLeft, Math.max(minLeft, Math.floor(left))),
           top: Math.min(maxTop, Math.max(minTop, Math.floor(top)))
@@ -1489,20 +1496,15 @@
       }
 
       function setCenterBlockPosition(left, top, persist) {
-        if (!centerDragBlock) {
-          return;
-        }
-
+        if (!centerDragBlock) return;
         if (isCompactLayout()) {
           centerDragBlock.style.left = "";
           centerDragBlock.style.top = "";
           return;
         }
-
         const next = clampCenterBlockPosition(left, top);
         centerDragBlock.style.left = `${next.left}px`;
         centerDragBlock.style.top = `${next.top}px`;
-
         if (persist) {
           localStorage.setItem("clicker_centerBlockLeft", String(next.left));
           localStorage.setItem("clicker_centerBlockTop", String(next.top));
@@ -1512,17 +1514,13 @@
       function setUpgradesWidth(value, persist) {
         upgradesWidth = clampUpgradesWidth(value);
         document.documentElement.style.setProperty("--sidebar-width", upgradesWidth + "px");
-
         if (persist) {
           localStorage.setItem("clicker_upgradesWidth", String(upgradesWidth));
         }
       }
 
       function bringFloatingPanelToFront(panel) {
-        if (!panel || isCompactLayout()) {
-          return;
-        }
-
+        if (!panel || isCompactLayout()) return;
         nextFloatingLayer += 1;
         if (nextFloatingLayer > FLOATING_LAYER_MAX) {
           floatingPanels
@@ -1531,20 +1529,15 @@
             .forEach((entry, index) => {
               entry.style.zIndex = String(FLOATING_LAYER_MIN + index);
             });
-
           nextFloatingLayer = FLOATING_LAYER_MIN + floatingPanels.length;
         }
-
         panel.style.zIndex = String(nextFloatingLayer);
       }
 
       setUpgradesWidth(upgradesWidth, false);
 
       function getDefaultAutoSellPosition() {
-        if (!autoSellPanel) {
-          return { left: 12, top: 84 };
-        }
-
+        if (!autoSellPanel) return { left: 12, top: 84 };
         const panelWidth = autoSellPanel.offsetWidth || 460;
         const rightReserved = upgradesWidth + 20;
         const left = Math.max(8, Math.floor(window.innerWidth - rightReserved - panelWidth - 12));
@@ -1552,10 +1545,7 @@
       }
 
       function getDefaultCenterBlockPosition() {
-        if (!centerDragBlock) {
-          return { left: 16, top: 150 };
-        }
-
+        if (!centerDragBlock) return { left: 16, top: 150 };
         const blockWidth = centerDragBlock.offsetWidth || 760;
         const left = Math.max(8, Math.floor((window.innerWidth - upgradesWidth - blockWidth) / 2));
         return { left, top: 150 };
@@ -1607,17 +1597,10 @@
         let dragOffsetY = 0;
 
         autoSellPanel.addEventListener("mousedown", (event) => {
-          if (isCompactLayout()) {
-            return;
-          }
-
+          if (isCompactLayout()) return;
           bringFloatingPanelToFront(autoSellPanel);
-
           const interactiveTarget = event.target.closest("input, select, option, button, a, label");
-          if (interactiveTarget) {
-            return;
-          }
-
+          if (interactiveTarget) return;
           event.preventDefault();
           const rect = autoSellPanel.getBoundingClientRect();
           dragOffsetX = event.clientX - rect.left;
@@ -1628,18 +1611,12 @@
         });
 
         window.addEventListener("mousemove", (event) => {
-          if (!isDraggingAutoSell) {
-            return;
-          }
-
+          if (!isDraggingAutoSell) return;
           setAutoSellPosition(event.clientX - dragOffsetX, event.clientY - dragOffsetY, false);
         });
 
         window.addEventListener("mouseup", () => {
-          if (!isDraggingAutoSell) {
-            return;
-          }
-
+          if (!isDraggingAutoSell) return;
           isDraggingAutoSell = false;
           document.body.style.userSelect = "";
           document.body.style.cursor = "";
@@ -1655,17 +1632,10 @@
         let centerOffsetY = 0;
 
         centerDragBlock.addEventListener("mousedown", (event) => {
-          if (isCompactLayout()) {
-            return;
-          }
-
+          if (isCompactLayout()) return;
           bringFloatingPanelToFront(centerDragBlock);
-
           const interactiveTarget = event.target.closest("input, select, option, button, a, label");
-          if (interactiveTarget && !event.target.closest("#centerDragGrip")) {
-            return;
-          }
-
+          if (interactiveTarget && !event.target.closest("#centerDragGrip")) return;
           event.preventDefault();
           const rect = centerDragBlock.getBoundingClientRect();
           centerOffsetX = event.clientX - rect.left;
@@ -1676,18 +1646,12 @@
         });
 
         window.addEventListener("mousemove", (event) => {
-          if (!isDraggingCenterBlock) {
-            return;
-          }
-
+          if (!isDraggingCenterBlock) return;
           setCenterBlockPosition(event.clientX - centerOffsetX, event.clientY - centerOffsetY, false);
         });
 
         window.addEventListener("mouseup", () => {
-          if (!isDraggingCenterBlock) {
-            return;
-          }
-
+          if (!isDraggingCenterBlock) return;
           isDraggingCenterBlock = false;
           document.body.style.userSelect = "";
           document.body.style.cursor = "";
@@ -1722,19 +1686,13 @@
         });
 
         window.addEventListener("mousemove", (event) => {
-          if (!isResizing) {
-            return;
-          }
-
+          if (!isResizing) return;
           const nextWidth = window.innerWidth - event.clientX;
           setUpgradesWidth(nextWidth, false);
         });
 
         window.addEventListener("mouseup", () => {
-          if (!isResizing) {
-            return;
-          }
-
+          if (!isResizing) return;
           isResizing = false;
           document.body.style.cursor = "";
           document.body.style.userSelect = "";
@@ -1749,9 +1707,7 @@
       try {
         const storedInventory = localStorage.getItem("clicker_inventory");
         inventory = storedInventory ? JSON.parse(storedInventory) : [];
-        if (!Array.isArray(inventory)) {
-          inventory = [];
-        }
+        if (!Array.isArray(inventory)) inventory = [];
       } catch (error) {
         inventory = [];
       }
@@ -1761,36 +1717,40 @@
         if (event.key === "clicker_inventory") {
           try {
             inventory = event.newValue ? JSON.parse(event.newValue) : [];
-            if (!Array.isArray(inventory)) {
-              inventory = [];
-            }
+            if (!Array.isArray(inventory)) inventory = [];
           } catch (error) {
             inventory = [];
           }
         }
-
         if (event.key === TEAM_STATE_STORAGE_KEY || event.key === TEAM_ROSTER_STORAGE_KEY) {
           refreshTeamBonuses();
         }
       });
 
-      // Reload inventory when page becomes visible (after returning from inventory page)
+      // FIX 1: Reload inventory + compute missed auto-catches when page becomes visible
       document.addEventListener("visibilitychange", () => {
         if (!document.hidden) {
           try {
             const storedInventory = localStorage.getItem("clicker_inventory");
             inventory = storedInventory ? JSON.parse(storedInventory) : [];
-            if (!Array.isArray(inventory)) {
-              inventory = [];
-            }
-            // Also reload money since it changes when selling fish
+            if (!Array.isArray(inventory)) inventory = [];
             money = Number(localStorage.getItem("clicker_money")) || 0;
+            hooks = Number(localStorage.getItem("clicker_hooks")) || 0;
+            // Restore lastAutoCatchMs from storage so we can compute the gap
+            const storedLastAuto = Number(localStorage.getItem("clicker_lastAutoCatchMs"));
+            if (storedLastAuto && Number.isFinite(storedLastAuto)) {
+              lastAutoCatchMs = storedLastAuto;
+            }
             refreshTeamBonuses();
+            // Immediately process any missed catches
+            processAutoFisher();
           } catch (error) {
             inventory = [];
           }
-
-          refreshTeamBonuses();
+        } else {
+          // Page hidden: persist lastAutoCatchMs so we can catch up later
+          localStorage.setItem("clicker_lastAutoCatchMs", String(lastAutoCatchMs));
+          saveGameState();
         }
       });
 
@@ -1810,11 +1770,7 @@
         const baseTierIndex = Math.min(level, ROD_TIERS.length - 1);
         const baseTier = ROD_TIERS[baseTierIndex];
         const extraLevels = Math.max(0, level - (ROD_TIERS.length - 1));
-
-        if (extraLevels <= 0) {
-          return baseTier;
-        }
-
+        if (extraLevels <= 0) return baseTier;
         const masteryBoost = 1 + (extraLevels * 0.08);
         return {
           name: `Ultimate+${extraLevels}`,
@@ -1852,28 +1808,20 @@
       }
 
       function applyFishPriceReduction(fish) {
-        if (!fish || typeof fish !== "object") {
-          return fish;
-        }
-
+        if (!fish || typeof fish !== "object") return fish;
         const migrationVersion = Number(fish.priceReductionVersion) || 0;
-        if (migrationVersion >= 1) {
-          return fish;
-        }
-
+        if (migrationVersion >= 1) return fish;
         const scale = 2 / 3;
         const scaleValue = (value) => {
           const numeric = Number(value);
           return Number.isFinite(numeric) ? Math.max(1, Math.round(numeric * scale)) : value;
         };
-
         if (Number.isFinite(Number(fish.price))) fish.price = scaleValue(fish.price);
         if (Number.isFinite(Number(fish.basePrice))) fish.basePrice = scaleValue(fish.basePrice);
         if (Number.isFinite(Number(fish.currentValue))) fish.currentValue = scaleValue(fish.currentValue);
         if (Number.isFinite(Number(fish.spoiledValue))) fish.spoiledValue = scaleValue(fish.spoiledValue);
         if (Number.isFinite(Number(fish.outStartValue))) fish.outStartValue = scaleValue(fish.outStartValue);
         if (Number.isFinite(Number(fish.outTargetValue))) fish.outTargetValue = scaleValue(fish.outTargetValue);
-
         fish.priceReductionVersion = 1;
         return fish;
       }
@@ -1881,14 +1829,10 @@
       function pickWeighted(items) {
         const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
         let roll = Math.random() * totalWeight;
-
         for (const item of items) {
           roll -= item.weight;
-          if (roll <= 0) {
-            return item.rarity;
-          }
+          if (roll <= 0) return item.rarity;
         }
-
         return items[0].rarity;
       }
 
@@ -1898,28 +1842,17 @@
 
       function pickTernaryProfile() {
         const roll = Math.random();
-
-        if (roll < (1 / 3)) {
-          return "low";
-        }
-
-        if (roll < (2 / 3)) {
-          return "mid";
-        }
-
+        if (roll < (1 / 3)) return "low";
+        if (roll < (2 / 3)) return "mid";
         return "high";
       }
 
       function pickSegmentValue(min, max, decimals, profile) {
         const span = max - min;
-        if (span <= 0) {
-          return Number(min.toFixed(decimals));
-        }
-
+        if (span <= 0) return Number(min.toFixed(decimals));
         const third = span / 3;
         let rangeMin = min;
         let rangeMax = max;
-
         if (profile === "low") {
           rangeMax = min + third;
         } else if (profile === "mid") {
@@ -1928,25 +1861,15 @@
         } else {
           rangeMin = min + (2 * third);
         }
-
         return randomBetween(rangeMin, rangeMax, decimals);
       }
 
       function deriveProfileFromValue(value, min, max) {
         const span = max - min;
-        if (span <= 0) {
-          return "mid";
-        }
-
+        if (span <= 0) return "mid";
         const third = span / 3;
-        if (value <= min + third) {
-          return "low";
-        }
-
-        if (value <= min + (2 * third)) {
-          return "mid";
-        }
-
+        if (value <= min + third) return "low";
+        if (value <= min + (2 * third)) return "mid";
         return "high";
       }
 
@@ -1955,10 +1878,7 @@
       }
 
       function normalizeFishProfiles(fish) {
-        if (fish.sizeProfile && fish.weightProfile) {
-          return fish;
-        }
-
+        if (fish.sizeProfile && fish.weightProfile) return fish;
         const species = getSpeciesByType(fish.type);
         if (!species) {
           return {
@@ -1967,7 +1887,6 @@
             weightProfile: fish.weightProfile || "mid"
           };
         }
-
         return {
           ...fish,
           sizeProfile: fish.sizeProfile || deriveProfileFromValue(fish.size, species.sizeMin, species.sizeMax),
@@ -1995,7 +1914,6 @@
         let chanceBonus = 0;
         let resaleBonus = 0;
         let fishingSpeed = 1;
-
         teamChars.forEach((char) => {
           incomeMultiplier *= Number(char.incomeMultiplier) || 1;
           clickMultiplier *= Number(char.clickMultiplier) || 1;
@@ -2005,41 +1923,21 @@
           resaleBonus = (resaleBonus + (Number(char.resaleAdd) || 0)) * (Number(char.resaleMult) || 1);
           fishingSpeed *= Number(char.fishingSpeed) || 1;
         });
-
-        return normalizeTeamBonuses({
-          incomeMultiplier,
-          clickMultiplier,
-          sizeBonus,
-          weightBonus,
-          chanceBonus,
-          resaleBonus,
-          fishingSpeed
-        });
+        return normalizeTeamBonuses({ incomeMultiplier, clickMultiplier, sizeBonus, weightBonus, chanceBonus, resaleBonus, fishingSpeed });
       }
 
       function loadTeamBonuses() {
         try {
           const storedState = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
           const storedRoster = localStorage.getItem(TEAM_ROSTER_STORAGE_KEY);
-
           const parsedState = storedState ? JSON.parse(storedState) : null;
           const parsedRoster = storedRoster ? JSON.parse(storedRoster) : null;
-
-          if (parsedState?.totals) {
-            return normalizeTeamBonuses(parsedState.totals);
-          }
-
-          if (parsedRoster?.totals) {
-            return normalizeTeamBonuses(parsedRoster.totals);
-          }
-
-          if (Array.isArray(parsedState?.teamChars)) {
-            return computeTeamBonusesFromChars(parsedState.teamChars);
-          }
+          if (parsedState?.totals) return normalizeTeamBonuses(parsedState.totals);
+          if (parsedRoster?.totals) return normalizeTeamBonuses(parsedRoster.totals);
+          if (Array.isArray(parsedState?.teamChars)) return computeTeamBonusesFromChars(parsedState.teamChars);
         } catch (error) {
           return { ...defaultTeamBonuses };
         }
-
         return { ...defaultTeamBonuses };
       }
 
@@ -2047,38 +1945,25 @@
         try {
           const storedState = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
           const storedRoster = localStorage.getItem(TEAM_ROSTER_STORAGE_KEY);
-
-          if (!storedState && !storedRoster) {
-            return { teamChars: [], totals: { ...defaultTeamBonuses } };
-          }
-
+          if (!storedState && !storedRoster) return { teamChars: [], totals: { ...defaultTeamBonuses } };
           const parsedState = storedState ? JSON.parse(storedState) : null;
           const parsedRoster = storedRoster ? JSON.parse(storedRoster) : null;
           const stateUpdatedAt = Number(parsedState?.updatedAt) || 0;
           const rosterUpdatedAt = Number(parsedRoster?.updatedAt) || 0;
-          const preferredTotals = stateUpdatedAt >= rosterUpdatedAt
-            ? parsedState?.totals
-            : parsedRoster?.totals;
+          const preferredTotals = stateUpdatedAt >= rosterUpdatedAt ? parsedState?.totals : parsedRoster?.totals;
           const teamChars = Array.isArray(parsedState?.teamChars)
             ? parsedState.teamChars
             : (Array.isArray(parsedRoster?.slots)
-              ? parsedRoster.slots
-                .slice()
-                .sort((left, right) => Number(left.slot) - Number(right.slot))
-                .map((entry) => ({
+              ? parsedRoster.slots.slice().sort((left, right) => Number(left.slot) - Number(right.slot)).map((entry) => ({
                   id: entry.id,
                   name: entry.name,
                   stars: entry.stars,
                   incomeMultiplier: 1,
                   clickMultiplier: 1,
-                  sizeAdd: 0,
-                  sizeMult: 1,
-                  weightAdd: 0,
-                  weightMult: 1,
-                  chanceAdd: 0,
-                  chanceMult: 1,
-                  resaleAdd: 0,
-                  resaleMult: 1,
+                  sizeAdd: 0, sizeMult: 1,
+                  weightAdd: 0, weightMult: 1,
+                  chanceAdd: 0, chanceMult: 1,
+                  resaleAdd: 0, resaleMult: 1,
                   fishingSpeed: 1,
                   teamSlot: Number(entry.slot)
                 }))
@@ -2094,22 +1979,14 @@
         }
       }
 
-          function getCharacterRarityFromStars(stars) {
-            const starCount = Number(stars) || 1;
-            if (starCount >= 5) {
-              return "legendary";
-            }
-            if (starCount === 4) {
-              return "epic";
-            }
-            if (starCount === 3) {
-              return "rare";
-            }
-            if (starCount === 2) {
-              return "uncommon";
-            }
-            return "common";
-          }
+      function getCharacterRarityFromStars(stars) {
+        const starCount = Number(stars) || 1;
+        if (starCount >= 5) return "legendary";
+        if (starCount === 4) return "epic";
+        if (starCount === 3) return "rare";
+        if (starCount === 2) return "uncommon";
+        return "common";
+      }
 
       function formatTeamReminder(teamChars, totals) {
         if (!teamChars.length) {
@@ -2118,29 +1995,16 @@
           teamReminderSlots.innerHTML = "";
           return;
         }
-
         const names = teamChars.map((char) => `${char.name} (${char.stars}★)`).join(" • ");
         teamReminderBody.textContent = names;
         teamReminderSub.textContent = `Income x${totals.incomeMultiplier.toFixed(1)} | Click x${totals.clickMultiplier.toFixed(1)} | Size +${totals.sizeBonus.toFixed(1)}% | Weight +${totals.weightBonus.toFixed(1)}% | Chance +${totals.chanceBonus.toFixed(1)}% | Resale +${totals.resaleBonus.toFixed(1)}% | Speed x${totals.fishingSpeed.toFixed(1)}`;
         teamReminderSlots.innerHTML = [0, 1, 2].map((slotIndex) => {
           const char = teamChars.find((entry) => Number(entry.teamSlot) === slotIndex);
           if (!char) {
-            return `
-              <div class="team-reminder-slot">
-                <div class="team-reminder-slot-name">Empty</div>
-                <div class="team-reminder-slot-stats">No character</div>
-              </div>
-            `;
+            return `<div class="team-reminder-slot"><div class="team-reminder-slot-name">Empty</div><div class="team-reminder-slot-stats">No character</div></div>`;
           }
-
           const rarityClass = `rarity-${getCharacterRarityFromStars(char.stars)}`;
-
-          return `
-            <div class="team-reminder-slot active ${rarityClass}">
-              <div class="team-reminder-slot-name">${char.name} ${"★".repeat(char.stars)}</div>
-              <div class="team-reminder-slot-stats">${char.incomeMultiplier.toFixed(1)}x income | ${char.fishingSpeed.toFixed(1)}x speed</div>
-            </div>
-          `;
+          return `<div class="team-reminder-slot active ${rarityClass}"><div class="team-reminder-slot-name">${char.name} ${"★".repeat(char.stars)}</div><div class="team-reminder-slot-stats">${char.incomeMultiplier.toFixed(1)}x income | ${char.fishingSpeed.toFixed(1)}x speed</div></div>`;
         }).join("");
       }
 
@@ -2152,22 +2016,18 @@
       }
 
       function applyTeamBonusesToCurrentFish() {
-        if (!currentFish) {
-          return;
-        }
-
+        if (!currentFish) return;
         const baseSize = Number(currentFish.baseSize) || Number(currentFish.size) || 0;
         const baseWeight = Number(currentFish.baseWeight) || Number(currentFish.weight) || 0;
         const basePrice = Number(currentFish.basePrice) || Number(currentFish.price) || 0;
         const sizeMultiplier = (1 + (sizeBoostLevel * 0.01)) * (1 + (teamBonuses.sizeBonus * 0.01));
         const weightMultiplier = (1 + (weightBoostLevel * 0.01)) * (1 + (teamBonuses.weightBonus * 0.01));
         const valueMultiplier = Math.max(0.1, teamBonuses.incomeMultiplier * (1 + (teamBonuses.resaleBonus * 0.01)));
-
         currentFish = {
           ...currentFish,
-          baseSize: baseSize,
-          baseWeight: baseWeight,
-          basePrice: basePrice,
+          baseSize,
+          baseWeight,
+          basePrice,
           size: Number((baseSize * sizeMultiplier).toFixed(1)),
           weight: Number((baseWeight * weightMultiplier).toFixed(2)),
           price: Math.max(1, Math.round(basePrice * valueMultiplier)),
@@ -2176,91 +2036,45 @@
       }
 
       function formatRarityLabel(rarity) {
-        const labels = {
-          common: "Common",
-          uncommon: "Uncommon",
-          rare: "Rare",
-          epic: "Epic",
-          legendary: "Legendary"
-        };
-
+        const labels = { common: "Common", uncommon: "Uncommon", rare: "Rare", epic: "Epic", legendary: "Legendary" };
         return labels[rarity] || rarity;
       }
 
       function rarityRank(rarity) {
-        const ranks = {
-          common: 1,
-          uncommon: 2,
-          rare: 3,
-          epic: 4,
-          legendary: 5
-        };
-
+        const ranks = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5 };
         return ranks[rarity] || 1;
       }
 
       function getRarityClass(rarity) {
-        const classes = {
-          common: "rarity-common",
-          uncommon: "rarity-uncommon",
-          rare: "rarity-rare",
-          epic: "rarity-epic",
-          legendary: "rarity-legendary"
-        };
-
+        const classes = { common: "rarity-common", uncommon: "rarity-uncommon", rare: "rarity-rare", epic: "rarity-epic", legendary: "rarity-legendary" };
         return classes[rarity] || "rarity-common";
       }
 
       function getAdjustedRarityWeights() {
         const tier = getRodTierInfo(rodTierLevel);
-
         return RARITY_WEIGHTS.map((entry) => {
           const multiplier = tier.multipliers[entry.rarity] || 1;
           const rank = rarityRank(entry.rarity);
           const chanceBoost = 1 + ((rank - 1) * (teamBonuses.chanceBonus * 0.0125));
-          return {
-            rarity: entry.rarity,
-            weight: entry.weight * multiplier * chanceBoost
-          };
+          return { rarity: entry.rarity, weight: entry.weight * multiplier * chanceBoost };
         });
       }
 
       function getFishDescriptors(fish) {
         const normalizedFish = normalizeFishProfiles(fish);
         const tags = [];
-
-        if (normalizedFish.sizeProfile === "high") {
-          tags.push("big");
-        } else if (normalizedFish.sizeProfile === "low") {
-          tags.push("small");
-        }
-
-        if (normalizedFish.weightProfile === "high") {
-          tags.push("heavy");
-        } else if (normalizedFish.weightProfile === "low") {
-          tags.push("light");
-        }
-
-        if (tags.length === 0) {
-          return "(average)";
-        }
-
+        if (normalizedFish.sizeProfile === "high") tags.push("big");
+        else if (normalizedFish.sizeProfile === "low") tags.push("small");
+        if (normalizedFish.weightProfile === "high") tags.push("heavy");
+        else if (normalizedFish.weightProfile === "low") tags.push("light");
+        if (tags.length === 0) return "(average)";
         return "(" + tags.join(", ") + ")";
       }
 
       function shouldAutoSell(fish) {
-        if (!autoSellEnabled) {
-          return false;
-        }
-
-        if (autoSellMode === "all") {
-          return true;
-        }
-
-        if (autoSellMode === "rarity") {
-          return rarityRank(fish.rarity) <= rarityRank(autoSellMaxRarity);
-        }
-
+        if (!autoSellEnabled) return false;
+        if (autoSellMode === "all") return true;
+        if (autoSellMode === "rarity") return rarityRank(fish.rarity) <= rarityRank(autoSellMaxRarity);
         return fish.price <= autoSellMaxPrice;
       }
 
@@ -2279,35 +2093,28 @@
         const basePrice = Math.max(1, Math.round((size * 0.315 + weight * 9) * RARITY_MULTIPLIERS[rarity]));
         const reducedBasePrice = Math.max(1, Math.round(basePrice * (2 / 3)));
         const price = Math.max(1, Math.round(reducedBasePrice * teamBonuses.incomeMultiplier * (1 + (teamBonuses.resaleBonus * 0.01))));
-
         return {
           type: species.type,
-          rarity: rarity,
-          size: size,
-          weight: weight,
-          price: price,
-          baseSize: baseSize,
-          baseWeight: baseWeight,
+          rarity,
+          size,
+          weight,
+          price,
+          baseSize,
+          baseWeight,
           basePrice: reducedBasePrice,
           currentValue: price,
           priceReductionVersion: 1,
-          sizeProfile: sizeProfile,
-          weightProfile: weightProfile
+          sizeProfile,
+          weightProfile
         };
       }
 
       function loadCurrentFish() {
         const stored = localStorage.getItem("clicker_currentFish");
-        if (!stored) {
-          return createFish();
-        }
-
+        if (!stored) return createFish();
         try {
           const parsed = JSON.parse(stored);
-          if (!parsed || typeof parsed.type !== "string") {
-            return createFish();
-          }
-
+          if (!parsed || typeof parsed.type !== "string") return createFish();
           return applyFishPriceReduction(normalizeFishProfiles(parsed));
         } catch (error) {
           return createFish();
@@ -2315,6 +2122,10 @@
       }
 
       let currentFish = loadCurrentFish();
+
+      // FIX 2: Track the best fish caught in this "batch" to show on button
+      let bestCaughtFishDisplay = null;
+      let bestCaughtDisplayTimer = null;
 
       function saveGameState() {
         localStorage.setItem("clicker_money", String(money));
@@ -2336,41 +2147,30 @@
         localStorage.setItem("clicker_autoSellMaxPrice", String(autoSellMaxPrice));
         localStorage.setItem("clicker_autoSellMaxRarity", autoSellMaxRarity);
         localStorage.setItem("clicker_tutorialCompleted", String(tutorialCompleted));
+        localStorage.setItem("clicker_lastAutoCatchMs", String(lastAutoCatchMs));
       }
 
       function showHookNotification(title, text) {
-        if (!hookNotificationLayer) {
-          return;
-        }
-
+        if (!hookNotificationLayer) return;
         const toast = document.createElement("div");
         toast.className = "hook-notification";
-        toast.innerHTML = `
-          <div class="hook-notification-title">${title}</div>
-          <div>${text}</div>
-        `;
-
+        toast.innerHTML = `<div class="hook-notification-title">${title}</div><div>${text}</div>`;
         hookNotificationLayer.appendChild(toast);
-
         setTimeout(() => {
           toast.classList.add("fade-out");
-          setTimeout(() => {
-            toast.remove();
-          }, 260);
+          setTimeout(() => { toast.remove(); }, 260);
         }, 2300);
       }
 
       function addHooks(amount, reasonTitle, reasonText) {
         const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
-        if (safeAmount <= 0) {
-          return;
-        }
-
+        if (safeAmount <= 0) return;
         hooks += safeAmount;
         localStorage.setItem("clicker_hooks", String(hooks));
         showHookNotification(reasonTitle, `${reasonText} (+${safeAmount} Hooks)`);
       }
 
+      // FIX 2: catchCurrentFish returns the fish caught so we can compare
       function catchCurrentFish(source) {
         const fishToStore = {
           type: currentFish.type,
@@ -2394,15 +2194,93 @@
 
         if (fishToStore.rarity === "epic") {
           epicCaughtCount += 1;
-          // No hook reward for epic
         } else if (fishToStore.rarity === "legendary") {
           legendaryCaughtCount += 1;
-          // No hook reward for legendary
         }
 
         caughtCount++;
         currentFish = createFish();
-        return true;
+        return fishToStore;
+      }
+
+      // FIX 2: Pick the best fish from a batch to display on the button
+      function pickBestFish(fishList) {
+        if (!fishList || fishList.length === 0) return null;
+        return fishList.reduce((best, fish) => {
+          const bestRank = rarityRank(best.rarity);
+          const fishRank = rarityRank(fish.rarity);
+          if (fishRank > bestRank) return fish;
+          if (fishRank === bestRank && fish.price > best.price) return fish;
+          return best;
+        });
+      }
+
+      // FIX 3: Schedule distributed auto catches over the interval instead of all at once
+      function scheduleDistributedCatches(count, intervalMs) {
+        const now = Date.now();
+        for (let i = 0; i < count; i++) {
+          // Spread catches randomly across the next interval
+          const delay = Math.random() * intervalMs;
+          scheduledCatches.push(now + delay);
+        }
+        scheduledCatches.sort((a, b) => a - b);
+      }
+
+      // FIX 1 + FIX 3: Main auto-fisher logic, works in background and distributes catches
+      function processAutoFisher() {
+        if (autoFisherLevel <= 0) {
+          lastAutoCatchMs = Date.now();
+          return;
+        }
+
+        const interval = getAutoIntervalMs();
+        const now = Date.now();
+        let catchesDone = 0;
+
+        // Catch up on missed intervals (background mode)
+        while (now - lastAutoCatchMs >= interval) {
+          // FIX 3: Schedule distributed catches for this cycle instead of immediate batch
+          scheduleDistributedCatches(autoFisherLevel, interval);
+          lastAutoCatchMs += interval;
+        }
+
+        // Execute any scheduled catches that are due now
+        const caughtBatch = [];
+        while (scheduledCatches.length > 0 && scheduledCatches[0] <= now) {
+          scheduledCatches.shift();
+          const fish = catchCurrentFish("auto");
+          caughtBatch.push(fish);
+          catchesDone++;
+        }
+
+        if (catchesDone > 0 && caughtBatch.length > 0) {
+          // FIX 2: Show the best fish from this batch on the button
+          const best = pickBestFish(caughtBatch);
+          if (best) {
+            bestCaughtFishDisplay = best;
+            if (bestCaughtDisplayTimer) clearTimeout(bestCaughtDisplayTimer);
+            bestCaughtDisplayTimer = setTimeout(() => {
+              bestCaughtFishDisplay = null;
+              renderDisplay();
+            }, 3000);
+          }
+          render();
+        }
+      }
+
+      function renderDisplay() {
+        // Lightweight re-render just for the fish button display
+        const fishToShow = bestCaughtFishDisplay || currentFish;
+        const rarityClass = getRarityClass(fishToShow.rarity);
+        const fishDescriptors = getFishDescriptors(fishToShow);
+        const hideFishCharacteristics = !tutorialCompleted && caughtCount < 30;
+
+        fishButtonLabel.textContent = fishToShow.type + " " + fishDescriptors;
+        fishButtonLabel.className = "fish-title " + rarityClass;
+        fishDescription.textContent = hideFishCharacteristics
+          ? ""
+          : "Rarity: " + formatRarityLabel(fishToShow.rarity) + " | Size: " + fishToShow.size + " cm | Weight: " + fishToShow.weight + " kg | Price: " + fishToShow.price;
+        fishPrice.textContent = String(fishToShow.price);
       }
 
       function render() {
@@ -2414,29 +2292,28 @@
         const nextWeightCost = getWeightUpgradeCost(weightBoostLevel);
         const nextWaitCost = getWaitUpgradeCost(autoWaitReductionLevel);
         const autoDelaySeconds = (getAutoIntervalMs() / 1000).toFixed(1);
-        const rarityClass = getRarityClass(currentFish.rarity);
-        const fishDescriptors = getFishDescriptors(currentFish);
         const fishPerClick = 1 + tripleHookLevel;
         const rodTier = getRodTierInfo(rodTierLevel);
-        const hideFishCharacteristics = !tutorialCompleted && caughtCount < 30;
         const inventoryTotalValue = inventory.reduce((sum, fish) => {
           const fishValue = Number(fish.currentValue) || Number(fish.basePrice) || Number(fish.price) || 0;
           return sum + fishValue;
         }, 0);
+
+        // FIX 3: Smooth catches per second — based on scheduled catches density
         const catchesPerSecond = autoFisherLevel <= 0 ? 0 : Number((autoFisherLevel / (getAutoIntervalMs() / 1000)).toFixed(2));
 
         moneyDisplay.textContent = "Money: " + money;
+        // FIX 4: Show hooks
+        hooksDisplay.textContent = "🪝 Hooks: " + hooks;
         tutorialFishCaughtCount.textContent = String(caughtCount);
         catchPerSecondDisplay.textContent = "Catches per second: " + catchesPerSecond;
         caughtCountDisplay.textContent = String(caughtCount);
         inventoryCountDisplay.textContent = String(inventory.length);
         inventoryTotalValueDisplay.textContent = String(inventoryTotalValue);
-        fishButtonLabel.textContent = currentFish.type + " " + fishDescriptors;
-        fishButtonLabel.className = "fish-title " + rarityClass;
-        fishDescription.textContent = hideFishCharacteristics
-          ? ""
-          : "Rarity: " + formatRarityLabel(currentFish.rarity) + " | Size: " + currentFish.size + " cm | Weight: " + currentFish.weight + " kg | Price: " + currentFish.price;
-        fishPrice.textContent = String(currentFish.price);
+
+        // FIX 2: Show best recently caught fish if available, otherwise current fish
+        renderDisplay();
+
         tripleHookUpgradeCount.textContent = String(tripleHookLevel);
         rodUpgradeCount.textContent = String(rodTierLevel);
         fishPerClickLabel.textContent = String(fishPerClick);
@@ -2477,70 +2354,56 @@
 
       clicker.addEventListener("click", () => {
         const now = Date.now();
-        if (now - lastManualCatchMs < 200) {
-          return;
-        }
-
+        if (now - lastManualCatchMs < 200) return;
         lastManualCatchMs = now;
         const fishPerClick = Math.max(1, Math.round((1 + tripleHookLevel) * Math.max(1, teamBonuses.clickMultiplier)));
+        const caughtBatch = [];
         for (let i = 0; i < fishPerClick; i++) {
-          catchCurrentFish("manual");
+          caughtBatch.push(catchCurrentFish("manual"));
+        }
+        // FIX 2: Show best fish from click batch
+        if (caughtBatch.length > 1) {
+          const best = pickBestFish(caughtBatch);
+          if (best) {
+            bestCaughtFishDisplay = best;
+            if (bestCaughtDisplayTimer) clearTimeout(bestCaughtDisplayTimer);
+            bestCaughtDisplayTimer = setTimeout(() => {
+              bestCaughtFishDisplay = null;
+              renderDisplay();
+            }, 3000);
+          }
         }
         render();
       });
 
       tripleHookUpgrade.addEventListener("click", () => {
         const cost = getTripleHookCost(tripleHookLevel);
-        if (money >= cost) {
-          money -= cost;
-          tripleHookLevel++;
-          render();
-        }
+        if (money >= cost) { money -= cost; tripleHookLevel++; render(); }
       });
 
       rodUpgrade.addEventListener("click", () => {
         const cost = getRodUpgradeCost(rodTierLevel);
-        if (money >= cost) {
-          money -= cost;
-          rodTierLevel++;
-          render();
-        }
+        if (money >= cost) { money -= cost; rodTierLevel++; render(); }
       });
 
       sizeUpgrade.addEventListener("click", () => {
         const cost = getSizeUpgradeCost(sizeBoostLevel);
-        if (money >= cost) {
-          money -= cost;
-          sizeBoostLevel++;
-          render();
-        }
+        if (money >= cost) { money -= cost; sizeBoostLevel++; render(); }
       });
 
       autoUpgrade.addEventListener("click", () => {
         const cost = getAutoUpgradeCost(autoFisherLevel);
-        if (money >= cost) {
-          money -= cost;
-          autoFisherLevel++;
-          render();
-        }
+        if (money >= cost) { money -= cost; autoFisherLevel++; render(); }
       });
 
       weightUpgrade.addEventListener("click", () => {
         const cost = getWeightUpgradeCost(weightBoostLevel);
-        if (money >= cost) {
-          money -= cost;
-          weightBoostLevel++;
-          render();
-        }
+        if (money >= cost) { money -= cost; weightBoostLevel++; render(); }
       });
 
       waitUpgrade.addEventListener("click", () => {
         const cost = getWaitUpgradeCost(autoWaitReductionLevel);
-        if (money >= cost) {
-          money -= cost;
-          autoWaitReductionLevel++;
-          render();
-        }
+        if (money >= cost) { money -= cost; autoWaitReductionLevel++; render(); }
       });
 
       autoSellEnabledInput.addEventListener("change", () => {
@@ -2565,24 +2428,11 @@
         render();
       });
 
+      // FIX 1 + FIX 3: Main game loop — runs every 250ms for smooth distribution
       setInterval(() => {
-        if (autoFisherLevel <= 0) {
-          lastAutoCatchMs = Date.now();
-          return;
-        }
-
-        const interval = getAutoIntervalMs();
-        const now = Date.now();
-
-        while (now - lastAutoCatchMs >= interval) {
-          for (let i = 0; i < autoFisherLevel; i++) {
-            catchCurrentFish("auto");
-          }
-          lastAutoCatchMs += interval;
-        }
-
+        processAutoFisher();
         render();
-      }, 500);
+      }, 250);
 
       render();
 
@@ -2602,9 +2452,7 @@
       }
 
       function showTutorialDialog() {
-        if (tutorialCaughtCount) {
-          tutorialCaughtCount.textContent = String(caughtCount);
-        }
+        if (tutorialCaughtCount) tutorialCaughtCount.textContent = String(caughtCount);
         tutorialDialog.classList.add("show");
         tutorialBackdrop.classList.add("show");
       }
@@ -2634,17 +2482,13 @@
       });
       upgradesUnlockConfirmBtn.addEventListener("click", unlockUpgrades);
 
-      // Initialize tutorial state
       initializeTutorial();
       if (tutorialCompleted && !upgradesUnlocked) {
         document.body.classList.add("limited-nav-mode");
       }
 
-      // Check tutorial progress in the render loop
       setInterval(() => {
-        if (!tutorialCompleted && caughtCount >= 30) {
-          checkTutorialProgress();
-        }
+        if (!tutorialCompleted && caughtCount >= 30) checkTutorialProgress();
         if (tutorialCompleted && !upgradesUnlocked && money >= 10000) {
           upgradesUnlockDialog.classList.add("show");
           tutorialBackdrop.classList.add("show");
