@@ -126,6 +126,63 @@
     .team-stat-pill.initiative-winner { border-color: #4a9eff; background: #0a1e30; }
     .team-stat-pill.initiative-winner .team-stat-pill-value { color: #4a9eff; }
     .initiative-note { font-size: 11px; color: #5a7a8a; margin-top: 6px; text-align: center; font-style: italic; }
+
+    /* === DIFFICULTY BADGE === */
+    .difficulty-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: bold;
+      border: 1px solid; margin-bottom: 8px;
+    }
+    .diff-very-easy  { background: #0e2213; border-color: #2d6b40; color: #7ee787; }
+    .diff-easy       { background: #13220e; border-color: #5a8f30; color: #a8d86a; }
+    .diff-normal     { background: #1a1e0d; border-color: #8f7d20; color: #e0c840; }
+    .diff-hard       { background: #241409; border-color: #b05a20; color: #ffa040; }
+    .diff-very-hard  { background: #280e0e; border-color: #b03030; color: #ff6060; }
+    .diff-extreme    { background: #1e0a28; border-color: #8a30b0; color: #d060ff; }
+    .diff-nightmare  { background: #12040a; border-color: #c0106a; color: #ff50a0; }
+
+    /* === ENEMY TEAM TOOLTIP === */
+    .enemy-team-preview-wrap {
+      position: relative; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .enemy-team-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #1e3545; border: 1px solid #4a7a94; color: #8dc4e0;
+      font-size: 12px; font-weight: bold; cursor: pointer;
+      transition: background .15s, border-color .15s;
+      user-select: none; flex-shrink: 0;
+    }
+    .enemy-team-btn:hover { background: #2a4d63; border-color: #6aaece; }
+    .enemy-team-tooltip {
+      position: absolute; right: 0; top: 28px; z-index: 100;
+      background: #0c1a22; border: 1px solid #3a6070; border-radius: 12px;
+      padding: 10px; min-width: 230px; max-width: 290px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.6);
+      display: none; text-align: left;
+    }
+    .enemy-team-tooltip.open { display: block; }
+    .enemy-team-tooltip-title { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #5a8899; font-weight: bold; margin-bottom: 8px; }
+    .enemy-fish-row {
+      border: 1px solid #364a57; border-radius: 8px; background: #111e27;
+      padding: 8px; margin-bottom: 6px;
+    }
+    .enemy-fish-row:last-child { margin-bottom: 0; }
+    .enemy-fish-row-name { font-size: 13px; font-weight: bold; margin-bottom: 3px; }
+    .enemy-fish-row-stats { font-size: 12px; color: #8db4c8; }
+    .enemy-fish-row.boss-fish { background: #1a1020; border-color: #7a3080; }
+
+    /* === BOSS TIER INDICATOR === */
+    .boss-indicator {
+      display: flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #1a0820 0%, #2a1040 100%);
+      border: 1px solid #8a30c0; border-radius: 10px;
+      padding: 8px 12px; margin-bottom: 8px;
+      font-size: 13px; color: #d060ff; font-weight: bold;
+    }
+    .boss-indicator-icon { font-size: 16px; }
+    .boss-indicator-text { line-height: 1.3; }
+    .boss-indicator-sub { font-size: 11px; color: #a070cc; font-weight: normal; }
   </style>
 </head>
 <body>
@@ -219,9 +276,11 @@
               <div class="initiative-note" id="hudInitiativeNote">Higher fishing speed = your team goes first</div>
             </div>
 
+            <!-- ENEMY TEAM PREVIEW (boss indicator + tooltip btn) -->
+            <div id="tierInfoBar" style="margin-bottom:8px;"></div>
+
             <div class="battle-arena-grid" id="battleGrid"></div>
             <div class="battle-result" id="battleResult">Start battle to see turn-by-turn results.</div>
-            <!-- SCORE SUR 100 — affiché à la fin du combat -->
             <div class="battle-score-panel" id="battleScorePanel">
               <div class="score-title">Combat Score</div>
               <div class="score-row">
@@ -249,6 +308,7 @@
               <div class="tier-hud-row"><span class="tier-hud-label">Next reward</span><span class="tier-hud-value" id="tierRewardLabel">+0 money</span></div>
               <div class="tier-hud-row"><span class="tier-hud-label">Capture tier</span><span class="tier-hud-value" id="captureTierLabel">Tier 10</span></div>
               <div class="tier-hud-row"><span class="tier-hud-label">Difficulty</span><span class="tier-hud-value" id="tierDifficultyLabel">Very easy</span></div>
+              <div class="tier-hud-row"><span class="tier-hud-label">Enemy power</span><span class="tier-hud-value" id="tierPowerLabel">×1.0</span></div>
             </div>
             <div class="speed-ticks">
               <span>Battle speed:</span>
@@ -296,7 +356,6 @@
     const BATTLE_STEP_MS       = 500;
     const BATTLE_PREFIX        = "CLICKER_BATTLE_V1:";
 
-    // Enemy fishing speed reference for initiative comparison
     const ENEMY_FISHING_SPEED_BASE = 1.0;
 
     const RARITY_COLOR = {
@@ -309,20 +368,136 @@
 
     const RARITY_VALUE_MULTIPLIERS = { common:1, uncommon:1.35, rare:1.9, epic:2.8, legendary:4.2 };
 
+    // =============================================
+    // ENEMY POOL — 5 fish per rarity tier (bigger and meaner)
+    // =============================================
     const TIER_ENEMY_POOL = [
-      { name:"Training Carp",     rarity:"common",    size:18, weight:1   },
-      { name:"Creek Roach",       rarity:"common",    size:20, weight:1   },
-      { name:"River Perch",       rarity:"common",    size:22, weight:1.2 },
-      { name:"Silver Trout",      rarity:"uncommon",  size:28, weight:1.6 },
-      { name:"Brook Pike",        rarity:"uncommon",  size:31, weight:1.8 },
-      { name:"Wild Bream",        rarity:"uncommon",  size:34, weight:2   },
-      { name:"Blue Sturgeon",     rarity:"rare",      size:42, weight:2.6 },
-      { name:"Sea Bass",          rarity:"rare",      size:45, weight:2.9 },
-      { name:"Storm Tuna",        rarity:"epic",      size:54, weight:3.8 },
-      { name:"Prism Ray",         rarity:"epic",      size:58, weight:4.1 },
-      { name:"Golden Shark",      rarity:"legendary", size:70, weight:5.2 },
-      { name:"Ancient Leviathan", rarity:"legendary", size:78, weight:5.8 }
+      // Common
+      { name:"River Roach",       rarity:"common",    baseHp:18,  baseAtk:2   },
+      { name:"Creek Perch",       rarity:"common",    baseHp:22,  baseAtk:2   },
+      { name:"Mudfish",           rarity:"common",    baseHp:26,  baseAtk:3   },
+      { name:"Puddle Carp",       rarity:"common",    baseHp:30,  baseAtk:3   },
+      { name:"Silt Eel",          rarity:"common",    baseHp:34,  baseAtk:4   },
+      // Uncommon
+      { name:"Brook Trout",       rarity:"uncommon",  baseHp:40,  baseAtk:5   },
+      { name:"Silver Bream",      rarity:"uncommon",  baseHp:46,  baseAtk:6   },
+      { name:"Wild Pike",         rarity:"uncommon",  baseHp:52,  baseAtk:7   },
+      { name:"Amber Perch",       rarity:"uncommon",  baseHp:60,  baseAtk:8   },
+      { name:"Forest Catfish",    rarity:"uncommon",  baseHp:68,  baseAtk:9   },
+      // Rare
+      { name:"Blue Sturgeon",     rarity:"rare",      baseHp:80,  baseAtk:12  },
+      { name:"Storm Bass",        rarity:"rare",      baseHp:95,  baseAtk:14  },
+      { name:"Deep Barracuda",    rarity:"rare",      baseHp:110, baseAtk:16  },
+      { name:"Coral Hunter",      rarity:"rare",      baseHp:130, baseAtk:19  },
+      { name:"Iron Grouper",      rarity:"rare",      baseHp:155, baseAtk:22  },
+      // Epic
+      { name:"Abyssal Ray",       rarity:"epic",      baseHp:180, baseAtk:28  },
+      { name:"Thunder Marlin",    rarity:"epic",      baseHp:210, baseAtk:34  },
+      { name:"Void Eel",          rarity:"epic",      baseHp:250, baseAtk:40  },
+      { name:"Prism Shark",       rarity:"epic",      baseHp:300, baseAtk:48  },
+      { name:"Titan Tuna",        rarity:"epic",      baseHp:360, baseAtk:57  },
+      // Legendary
+      { name:"Golden Leviathan",  rarity:"legendary", baseHp:420, baseAtk:68  },
+      { name:"Ancient Kraken",    rarity:"legendary", baseHp:500, baseAtk:82  },
+      { name:"Celestial Whale",   rarity:"legendary", baseHp:600, baseAtk:100 },
+      { name:"Void Serpent",      rarity:"legendary", baseHp:720, baseAtk:122 },
+      { name:"Abyssal God",       rarity:"legendary", baseHp:880, baseAtk:150 },
     ];
+
+    // =============================================
+    // DIFFICULTY SCALING (linear + boss spikes)
+    // =============================================
+    function isBossTier(t) { return t > 0 && t % 10 === 0; }
+
+    /**
+     * Returns the HP and ATK multipliers for a given tier.
+     * - Base scaling: linear growth (no more sqrt — much harder progression)
+     * - Every 10 tiers: extra cumulative boss multiplier
+     * - Boss tiers themselves get an additional spike
+     */
+    function getTierScaling(t) {
+      const tier = Math.max(1, Number(t) || 1);
+      // Linear base: each tier adds 8% HP and 7% ATK on top of baseline
+      const baseHpMult  = 1 + (tier - 1) * 0.08;
+      const baseAtkMult = 1 + (tier - 1) * 0.07;
+      // Cumulative boss bonus: every completed set of 10 tiers adds +20% permanent
+      const bossBonusCount = Math.floor((tier - 1) / 10);
+      const bossMult = Math.pow(1.20, bossBonusCount);
+      // Boss tier spike: bosses are 50% stronger on their own tier
+      const bossSpikeHp  = isBossTier(tier) ? 1.50 : 1.0;
+      const bossSpikeAtk = isBossTier(tier) ? 1.60 : 1.0;
+
+      return {
+        hp:  baseHpMult  * bossMult * bossSpikeHp,
+        atk: baseAtkMult * bossMult * bossSpikeAtk
+      };
+    }
+
+    /** Returns overall power multiplier for display */
+    function getTierPowerMult(t) {
+      const s = getTierScaling(t);
+      return ((s.hp + s.atk) / 2).toFixed(1);
+    }
+
+    /** Pick which enemies appear at a given tier */
+    function getEnemyTemplatesForTier(tier) {
+      const t = Math.max(1, Number(tier) || 1);
+      // Pick rarity band based on tier
+      // Tiers 1-5: common; 6-15: uncommon; 16-30: rare; 31-50: epic; 51+: legendary
+      let band;
+      if      (t <=  5) band = 0;
+      else if (t <= 15) band = 1;
+      else if (t <= 30) band = 2;
+      else if (t <= 50) band = 3;
+      else              band = 4;
+
+      // Boss tiers jump one band higher (or stay at max)
+      if (isBossTier(t) && band < 4) band++;
+
+      const startIdx = band * 5;
+      // Pick 3 from the 5 available in that band using tier as seed
+      const indices = [0, 1, 2].map(i => startIdx + ((t + i * 3) % 5));
+      return indices.map(i => TIER_ENEMY_POOL[i]);
+    }
+
+    function createTierEnemyFromTemplate(template, index, tier) {
+      const s = getTierScaling(tier);
+      const jitterHp  = 0.92 + Math.random() * 0.16;
+      const jitterAtk = 0.92 + Math.random() * 0.16;
+      const hp  = Math.max(1, Math.round(template.baseHp  * s.hp  * jitterHp));
+      const atk = Math.max(1, Math.round(template.baseAtk * s.atk * jitterAtk));
+      const isBoss = isBossTier(tier);
+      return {
+        id: `enemy-tier-${tier}-${index}-${Date.now()}`,
+        name: isBoss ? `⚡ ${template.name} [BOSS]` : `${template.name}`,
+        rarity: template.rarity,
+        maxHp: hp, hp, attack: atk,
+        alive: true,
+        descriptor: `(tier ${tier}${isBoss ? " BOSS" : ""})`,
+        isBoss
+      };
+    }
+
+    function createTierEnemyRoster(tier) {
+      const templates = getEnemyTemplatesForTier(tier);
+      return templates.map((tmpl, i) => createTierEnemyFromTemplate(tmpl, i, tier));
+    }
+
+    /** Preview roster (deterministic, no jitter) for tooltip */
+    function previewEnemyRoster(tier) {
+      const t = Math.max(1, Number(tier) || 1);
+      const templates = getEnemyTemplatesForTier(t);
+      const s = getTierScaling(t);
+      return templates.map((tmpl, i) => {
+        const hp  = Math.max(1, Math.round(tmpl.baseHp  * s.hp));
+        const atk = Math.max(1, Math.round(tmpl.baseAtk * s.atk));
+        return {
+          name: isBossTier(t) ? `⚡ ${tmpl.name} [BOSS]` : tmpl.name,
+          rarity: tmpl.rarity,
+          hp, atk, isBoss: isBossTier(t)
+        };
+      });
+    }
 
     // =============================================
     // TEAM STATS LOADING
@@ -361,7 +536,6 @@
       if (weightEl) weightEl.textContent = "+" + teamStats.weightBonus.toFixed(1) + "%";
       if (incEl)    incEl.textContent    = teamStats.incomeMultiplier.toFixed(2) + "x";
 
-      // If a custom battle is imported and has team stats, compare fishing speeds
       const opponentFishing = (importedBattle && importedBattle.exportedTeamStats)
         ? Number(importedBattle.exportedTeamStats.fishingSpeed) || 1
         : (ENEMY_FISHING_SPEED_BASE + (battleTier - 1) * 0.01);
@@ -386,30 +560,94 @@
       }
     }
 
-    // Apply team bonuses to a fish's HP and ATK
     function applyTeamBoostsToFishStats(size, weight) {
-      // Size Bonus -> HP: each % adds 0.5% to HP
       const hpMult   = 1 + (teamStats.sizeBonus   * 0.005);
-      // Weight Bonus -> ATK: each % adds 0.5% to ATK
       const atkMult  = 1 + (teamStats.weightBonus * 0.005);
-      // Income Multiplier -> global bonus on HP and ATK
       const incMult  = teamStats.incomeMultiplier;
-
       const boostedHp  = Math.max(1, Math.round(size   * hpMult  * incMult));
       const boostedAtk = Math.max(1, Math.round(weight * atkMult * incMult));
       return { hp: boostedHp, atk: boostedAtk };
     }
 
-    // =============================================
-    // INITIATIVE: fishing speed determines who starts
-    // (no coin flip)
-    // =============================================
     function playerStartsFirst() {
-      // Enemy has a base fishing speed of 1.0 (scales slightly with tier)
       const enemyFishingSpeed = ENEMY_FISHING_SPEED_BASE + (battleTier - 1) * 0.01;
       return teamStats.fishingSpeed >= enemyFishingSpeed;
     }
 
+    // =============================================
+    // TIER INFO BAR (boss indicator + enemy preview tooltip)
+    // =============================================
+    let tooltipOpen = false;
+
+    function renderTierInfoBar() {
+      const tierInfoBar = document.getElementById("tierInfoBar");
+      if (!tierInfoBar) return;
+      const t = battleTier;
+      const boss = isBossTier(t);
+      const preview = previewEnemyRoster(t);
+      const diffClass = getDifficultyClass(t);
+      const diffLabel = getTierDifficultyLabel(t);
+      const powerMult = getTierPowerMult(t);
+
+      let html = "";
+
+      if (boss) {
+        html += `<div class="boss-indicator">
+          <span class="boss-indicator-icon">👹</span>
+          <div class="boss-indicator-text">
+            BOSS TIER ${t}
+            <div class="boss-indicator-sub">Enemies are greatly empowered — +50% HP, +60% ATK + cumulative bonus</div>
+          </div>
+        </div>`;
+      }
+
+      html += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+        <div class="difficulty-badge ${diffClass}">${diffLabel}</div>
+        <div class="enemy-team-preview-wrap">
+          <span style="font-size:12px;color:#7a9baa;">Enemy Power: <strong style="color:#ffa657;">×${powerMult}</strong></span>
+          <div class="enemy-team-btn" id="enemyTeamBtn" title="Preview enemy team">?</div>
+          <div class="enemy-team-tooltip" id="enemyTeamTooltip">
+            <div class="enemy-team-tooltip-title">Enemy Team — Tier ${t}${boss ? " 👹 BOSS" : ""}</div>
+            ${preview.map(f => `
+              <div class="enemy-fish-row ${f.isBoss ? "boss-fish" : ""}">
+                <div class="enemy-fish-row-name" style="color:${RARITY_COLOR[f.rarity]||"#fff"}">${f.name}</div>
+                <div class="enemy-fish-row-stats">HP: ${f.hp} &nbsp;|&nbsp; ATK: ${f.atk} &nbsp;|&nbsp; ${rarityLabel(f.rarity)}</div>
+              </div>
+            `).join("")}
+            <div style="font-size:11px;color:#5a7a8a;margin-top:6px;font-style:italic;">
+              Actual values vary slightly (±8% jitter). Power ×${powerMult}.
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+      tierInfoBar.innerHTML = html;
+
+      const btn = document.getElementById("enemyTeamBtn");
+      const tooltip = document.getElementById("enemyTeamTooltip");
+      if (btn && tooltip) {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          tooltipOpen = !tooltipOpen;
+          tooltip.classList.toggle("open", tooltipOpen);
+        });
+      }
+    }
+
+    function getDifficultyClass(t) {
+      const tier = Math.max(1, Number(t) || 1);
+      if (tier <= 3)  return "diff-very-easy";
+      if (tier <= 7)  return "diff-easy";
+      if (tier <= 12) return "diff-normal";
+      if (tier <= 20) return "diff-hard";
+      if (tier <= 35) return "diff-very-hard";
+      if (tier <= 60) return "diff-extreme";
+      return "diff-nightmare";
+    }
+
+    // =============================================
+    // DOM refs
+    // =============================================
     const collectionList      = document.getElementById("collectionList");
     const selectedSlots       = document.getElementById("selectedSlots");
     const emptyState          = document.getElementById("emptyState");
@@ -440,6 +678,7 @@
     const tierRewardLabel     = document.getElementById("tierRewardLabel");
     const captureTierLabel    = document.getElementById("captureTierLabel");
     const tierDifficultyLabel = document.getElementById("tierDifficultyLabel");
+    const tierPowerLabel      = document.getElementById("tierPowerLabel");
     const hookNotificationLayer = document.getElementById("hookNotificationLayer");
 
     let inventory          = [];
@@ -476,18 +715,23 @@
 
     function getTierReward(t) {
       const s = Math.max(1, Number(t)||1);
-      return Math.max(100, Math.floor(180 + s*95 + Math.pow(s,1.32)*22));
+      // Reward also scales harder with difficulty
+      const bossBonus = isBossTier(s) ? 3.0 : 1.0;
+      return Math.max(100, Math.floor((180 + s * 150 + Math.pow(s, 1.55) * 30) * bossBonus));
     }
 
     function getTierDifficultyLabel(t) {
       const s = Math.max(1, Number(t)||1);
-      if (s<=3) return "Very easy"; if (s<=7) return "Easy";
-      if (s<=12) return "Normal"; if (s<=20) return "Hard";
-      if (s<=35) return "Very hard"; return "Extreme";
+      if (s <= 3)  return "Very easy";
+      if (s <= 7)  return "Easy";
+      if (s <= 12) return "Normal";
+      if (s <= 20) return "Hard";
+      if (s <= 35) return "Very hard";
+      if (s <= 60) return "Extreme";
+      return "Nightmare";
     }
 
     function createFishUid() { return `fish-${Date.now()}-${Math.random().toString(36).slice(2,10)}`; }
-
     function rarityRank(r) { return {common:1,uncommon:2,rare:3,epic:4,legendary:5}[r]||1; }
     function rarityLabel(r) { return {common:"Common",uncommon:"Uncommon",rare:"Rare",epic:"Epic",legendary:"Legendary"}[r]||r; }
 
@@ -550,7 +794,6 @@
     }
     function buildBattlePayload() {
       const f=getSelectedFish(); if(f.length!==3) return null;
-      // Export the already-boosted HP/ATK so the importer fights the real stats
       const lineup = f.map(x=>{
         const boosted = applyTeamBoostsToFishStats(
           Math.max(1,Math.round(Number(x.size)||1)),
@@ -559,8 +802,8 @@
         return {
           name:   x.type||"Fish",
           rarity: x.rarity||"common",
-          size:   boosted.hp,   // HP already includes team bonuses
-          weight: boosted.atk,  // ATK already includes team bonuses
+          size:   boosted.hp,
+          weight: boosted.atk,
           sizeRaw:   Math.max(1,Math.round(Number(x.size)||1)),
           weightRaw: Math.max(1,Math.round(Number(x.weight)||1))
         };
@@ -585,12 +828,10 @@
         uid:`import-${i}-${Date.now()}`,
         type:typeof e?.name==="string"&&e.name.trim()?e.name.trim():`Enemy ${i+1}`,
         rarity:typeof e?.rarity==="string"?e.rarity:"common",
-        // Use pre-boosted size/weight from v2 exports; fall back for v1 compatibility
         size:   Math.max(1,Math.round(Number(e?.size)||1)),
         weight: Math.max(1,Math.round(Number(e?.weight)||1)),
         currentValue:0, basePrice:0, price:0
       }));
-      // Carry over exported team stats for display in the HUD info
       const exportedTeamStats = p.teamStats || null;
       return {...p, lineup, exportedTeamStats};
     }
@@ -632,7 +873,6 @@
         slot.className="slot-card";
         if(f){
           slot.classList.add(`rarity-${f.rarity}`,"selected-highlight");
-          // Show boosted stats preview
           const boosted = applyTeamBoostsToFishStats(f.size, f.weight);
           slot.innerHTML=`
             <div class="slot-label">Fish ${i+1}</div>
@@ -655,6 +895,7 @@
       currentTierLabel.textContent=tierLabel; tierRewardLabel.textContent=`+${reward} money`;
       captureTierLabel.textContent=battleTier%10===0?"Now":`Tier ${nextCap}`;
       tierDifficultyLabel.textContent=getTierDifficultyLabel(battleTier);
+      if (tierPowerLabel) tierPowerLabel.textContent="×" + getTierPowerMult(battleTier);
       if(!fish.length){
         averageRarity.textContent="-"; averageValue.textContent="0"; battleReady.textContent="No";
         statusText.textContent="Pick 3 fish to prepare battle."; startBattleButton.disabled=true;
@@ -678,47 +919,23 @@
         :`Select 3 fish first. ${tierLabel} awaits.`;
     }
 
-    // Create a battlant from a fish, applying team bonuses for allies
     function createBattleantFromFish(fish, teamLabel, index, applyTeamBonus) {
       const rawHp  = Math.max(1, Math.round(Number(fish.size)   || 1));
       const rawAtk = Math.max(1, Math.round(Number(fish.weight) || 1));
-
-      let finalHp  = rawHp;
-      let finalAtk = rawAtk;
-
+      let finalHp  = rawHp, finalAtk = rawAtk;
       if (applyTeamBonus) {
         const boosted = applyTeamBoostsToFishStats(rawHp, rawAtk);
-        finalHp  = boosted.hp;
-        finalAtk = boosted.atk;
+        finalHp  = boosted.hp; finalAtk = boosted.atk;
       }
-
       return {
         id: `${teamLabel}-${index}-${fish.uid}`,
         name: fish.type || "Fish",
         rarity: fish.rarity || "common",
-        maxHp: finalHp,
-        hp: finalHp,
+        maxHp: finalHp, hp: finalHp,
         attack: finalAtk,
         alive: true,
         descriptor: fishDescriptors(fish)
       };
-    }
-
-    function createTierEnemyFromTemplate(template, index, tier) {
-      const t=Math.max(1,Number(tier)||1);
-      const hpScale  = 1 + Math.sqrt(t-1)*0.32;
-      const atkScale = 1 + Math.sqrt(t-1)*0.24;
-      const hpJ  = 0.92+Math.random()*0.16;
-      const atkJ = 0.92+Math.random()*0.16;
-      const sz = Math.max(1, Math.round(template.size   * hpScale  * hpJ));
-      const wt = Math.max(1, Math.round(template.weight * atkScale * atkJ));
-      return { id:`enemy-tier-${t}-${index}-${Date.now()}`, name:`${template.name} T${t}`,
-        rarity:template.rarity||"common", maxHp:sz, hp:sz, attack:wt, alive:true, descriptor:`(tier ${t})` };
-    }
-
-    function createTierEnemyRoster(tier) {
-      const t=Math.max(1,Number(tier)||1);
-      return [0,1,2].map(i=>createTierEnemyFromTemplate(TIER_ENEMY_POOL[((t-1)*3+i)%TIER_ENEMY_POOL.length],i,t));
     }
 
     function createRewardFishFromEnemy(enemy, tier) {
@@ -733,17 +950,14 @@
 
     function snapshotBattleants(team) { return team.map(f=>({...f})); }
 
-    // Battle engine — uses fishing speed to determine initiative (no coin flip)
     function runBattle(allies, enemies, allyGoesFirst) {
       const log=[], steps=[];
       const push=text=>{ log.push(text); steps.push({text,allies:snapshotBattleants(allies),enemies:snapshotBattleants(enemies)}); };
       let eD=0, aD=0, ai=0, ei=0, turn=1;
-
       const initiativeMsg = allyGoesFirst
         ? `Initiative: Your team is faster (Fishing Speed ${teamStats.fishingSpeed.toFixed(2)}x) — you go first!`
         : `Initiative: Opponent is faster — they go first.`;
       push(initiativeMsg);
-
       let pt = allyGoesFirst;
       if(allies[ai]&&enemies[ei]) push(`Battle starts: ${allies[ai].name} vs ${enemies[ei].name}`);
       while(ai<allies.length&&ei<enemies.length){
@@ -841,13 +1055,19 @@
     }
 
     function render() {
-      // Reload team stats in case they changed
       const fresh = loadTeamStats();
       if (fresh) teamStats = fresh;
       updateTeamHud();
+      renderTierInfoBar();
       renderSelectedSlots(); renderSummary(); renderCollection(); renderSortButtons();
       if(lastBattleState) renderBattleState(lastBattleState); else { battleGrid.innerHTML=""; battleLog.innerHTML=""; }
     }
+
+    // Close tooltip when clicking outside
+    document.addEventListener("click", () => {
+      const tooltip = document.getElementById("enemyTeamTooltip");
+      if (tooltip && tooltipOpen) { tooltip.classList.remove("open"); tooltipOpen = false; }
+    });
 
     loadInventory(); loadSelection();
     if(normalizeSelectedFishUids()) saveSelection();
@@ -870,8 +1090,7 @@
       importedBattle=p;
       const oppFs = p.exportedTeamStats ? Number(p.exportedTeamStats.fishingSpeed).toFixed(2) : "?";
       detailLine.textContent=`Battle imported (opponent Fishing Speed: ${oppFs}x). Press Start Battle.`;
-      updateTeamHud();
-      renderSummary();
+      updateTeamHud(); renderSummary();
     });
 
     exportBattleBtn.addEventListener("click",()=>{
@@ -898,13 +1117,10 @@
       battleScorePanel.classList.remove("visible");
 
       const isCustom=Boolean(importedBattle), currentTier=battleTier, reward=getTierReward(currentTier);
-
-      // Allies always get team bonuses applied
       const allies = fish.map((f,i) => createBattleantFromFish(f, "ally", i, true));
 
       let enemies;
       if (importedBattle) {
-        // Imported enemies already have team bonuses baked in (size = boosted HP, weight = boosted ATK)
         enemies = importedBattle.lineup.map((f,i) => ({
           id: `enemy-import-${i}-${Date.now()}`,
           name: f.type || `Enemy ${i+1}`,
@@ -921,12 +1137,9 @@
 
       const rewardPool=enemies.map(e=>({...e}));
 
-      // Determine initiative: compare fishing speeds
-      // For custom battles, use the exported fishing speed of the opponent if available
       let allyGoesFirst;
       if (importedBattle && importedBattle.exportedTeamStats && importedBattle.exportedTeamStats.fishingSpeed) {
-        const opponentFishingSpeed = Number(importedBattle.exportedTeamStats.fishingSpeed) || 1;
-        allyGoesFirst = teamStats.fishingSpeed >= opponentFishingSpeed;
+        allyGoesFirst = teamStats.fishingSpeed >= (Number(importedBattle.exportedTeamStats.fishingSpeed) || 1);
       } else {
         allyGoesFirst = playerStartsFirst();
       }
@@ -964,11 +1177,13 @@
             inventory.push(captured); saveInventory();
           }
           battleTier=currentTier+1; saveBattleTier();
+          renderTierInfoBar(); // refresh after tier advance
         }
+        const bossStr = isBossTier(currentTier) ? " [BOSS CLEARED!]" : "";
         const resultText=result.playerWon
           ?(isCustom?`Victory! Enemies defeated: ${result.allyWins}/3.`
-            :captured?`Victory! Tier ${currentTier} cleared. +${reward} money. Captured: ${captured.type}.`
-            :`Victory! Tier ${currentTier} cleared. +${reward} money. Next: Tier ${battleTier}.`)
+            :captured?`Victory!${bossStr} Tier ${currentTier} cleared. +${reward} money. Captured: ${captured.type}.`
+            :`Victory!${bossStr} Tier ${currentTier} cleared. +${reward} money. Next: Tier ${battleTier}.`)
           :`Defeat. Enemies defeated: ${result.allyWins}/3.`;
         lastBattleState={ allies:result.allies, enemies:result.enemies, log:[...displayedLog],
           playerWon:result.playerWon, allyWins:result.allyWins, resultText, final:true };
