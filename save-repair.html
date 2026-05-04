@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Save Repair — Clicker</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #0f1519; color: #d9ecf8; margin: 0; padding: 20px 16px 40px; min-height: 100vh; }
+    h1 { color: #8dc4e0; font-size: 26px; margin: 0 0 4px; }
+    .subtitle { color: #5a8899; font-size: 14px; margin: 0 0 24px; }
+
+    .step { background: #142028; border: 1px solid #2f4d5c; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+    .step-title { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: #8dc4e0; font-weight: bold; margin-bottom: 10px; }
+
+    textarea {
+      width: 100%; height: 220px; background: #0c1519; border: 1px solid #3a5566;
+      border-radius: 8px; color: #d9f0e8; font-family: monospace; font-size: 12px;
+      padding: 10px; resize: vertical; outline: none;
+    }
+    textarea:focus { border-color: #6aaece; }
+    textarea::placeholder { color: #3a5566; }
+
+    .format-help { font-size: 12px; color: #5a7a8a; margin-top: 8px; line-height: 1.5; }
+    .format-help code { background: #0c1519; border: 1px solid #2a4050; border-radius: 4px; padding: 1px 5px; color: #7ec8e3; }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    button { border: none; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: bold; cursor: pointer; transition: filter .15s; }
+    button:hover { filter: brightness(1.12); }
+    .btn-primary { background: #2f9f6a; color: #fff; }
+    .btn-secondary { background: #1d3545; border: 1px solid #3a5566; color: #8dc4e0; }
+    .btn-danger { background: #7a2030; color: #ffd0d8; }
+    .btn-apply { background: #1a6aa0; color: #fff; font-size: 16px; padding: 14px 28px; }
+    button:disabled { opacity: .45; cursor: not-allowed; filter: none; }
+
+    .issues-box { margin-top: 4px; }
+    .issue-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 10px; border-radius: 8px; margin-bottom: 6px;
+      font-size: 13px; line-height: 1.4;
+    }
+    .issue-item.error   { background: #280e0e; border: 1px solid #7a2020; color: #ffb0b0; }
+    .issue-item.warning { background: #261a00; border: 1px solid #7a5500; color: #ffd080; }
+    .issue-item.ok      { background: #0e2213; border: 1px solid #2d6b40; color: #7ee787; }
+    .issue-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+    .issue-fix  { font-size: 11px; color: #7ee787; margin-top: 3px; }
+
+    .keys-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+    .keys-table th { text-align: left; color: #5a8899; font-weight: bold; padding: 4px 8px; border-bottom: 1px solid #1e3545; }
+    .keys-table td { padding: 4px 8px; border-bottom: 1px solid #1a2f3d; vertical-align: top; word-break: break-all; }
+    .keys-table tr:hover td { background: rgba(141,196,224,.04); }
+    .key-name  { color: #8dc4e0; font-family: monospace; width: 280px; }
+    .key-value { color: #d9ecf8; font-family: monospace; }
+    .key-status { text-align: center; width: 80px; }
+    .badge { display: inline-block; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold; }
+    .badge-ok      { background: #0e2213; color: #7ee787; }
+    .badge-fixed   { background: #1a1000; color: #ffd080; }
+    .badge-removed { background: #280e0e; color: #ff6f6f; }
+
+    .status-bar { padding: 14px 16px; border-radius: 10px; font-size: 14px; display: none; margin-top: 16px; }
+    .status-bar.ok  { background: #0e2213; border: 1px solid #2d6b40; color: #7ee787; display: block; }
+    .status-bar.err { background: #280e0e; border: 1px solid #7a2020; color: #ffb0b0; display: block; }
+
+    .divider { border: none; border-top: 1px solid #1e3545; margin: 18px 0; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 10px; }
+    .summary-pill { background: #0c1a22; border: 1px solid #1e3a47; border-radius: 8px; padding: 8px 10px; }
+    .summary-pill-label { font-size: 11px; color: #5a8899; text-transform: uppercase; letter-spacing: .04em; }
+    .summary-pill-value { font-size: 15px; font-weight: bold; color: #d9ecf8; margin-top: 2px; word-break: break-all; }
+  </style>
+</head>
+<body>
+
+<h1>🛠️ Clicker — Save Repair</h1>
+<p class="subtitle">Paste any save. The tool auto-detects problems, applies fixes, and imports it.</p>
+
+<div class="step">
+  <div class="step-title">Step 1 — Paste your save</div>
+  <textarea id="saveInput" placeholder="Paste your save here.
+
+Accepted formats:
+  • key=value lines  (one per line)
+  • JSON object  { &quot;clicker_money&quot;: &quot;1000&quot;, ... }
+
+Tip: in the browser console on the game page, run:
+  copy(JSON.stringify(localStorage))
+then paste the result here."></textarea>
+  <div class="format-help">
+    You can also click <strong>Load current localStorage</strong> to load whatever is already saved in this browser.
+  </div>
+  <div class="btn-row">
+    <button class="btn-primary" onclick="analyzeSave()">🔍 Analyze &amp; fix</button>
+    <button class="btn-secondary" onclick="loadCurrent()">📥 Load current localStorage</button>
+    <button class="btn-danger" onclick="document.getElementById('saveInput').value='';clearResults()">✕ Clear</button>
+  </div>
+</div>
+
+<div class="step" id="resultsStep" style="display:none">
+  <div class="step-title">Step 2 — Analysis results</div>
+  <div class="issues-box" id="issuesList"></div>
+
+  <hr class="divider">
+  <div class="step-title">Save summary</div>
+  <div class="summary-grid" id="summaryGrid"></div>
+
+  <hr class="divider">
+  <div class="step-title">All keys (<span id="keyCount">0</span>) — scroll to review</div>
+  <div style="max-height:320px;overflow:auto;border:1px solid #1e3545;border-radius:8px;">
+    <table class="keys-table">
+      <thead><tr><th>Key</th><th>Value</th><th>Status</th></tr></thead>
+      <tbody id="keysBody"></tbody>
+    </table>
+  </div>
+
+  <div class="btn-row" style="margin-top:20px">
+    <button class="btn-apply" onclick="applySave(true)">✔ Apply &amp; go to game</button>
+    <button class="btn-secondary" onclick="applySave(false)">Apply without redirect</button>
+  </div>
+  <div class="status-bar" id="statusBar"></div>
+</div>
+
+<script>
+// ─── ISSUE DETECTORS ────────────────────────────────────────────────────────
+// Each detector returns null (no issue) or an issue object:
+//   { severity: "error"|"warning", message, fix, apply(data) }
+
+const DETECTORS = [
+  {
+    // Auto-fisher catch-up: if lastAutoCatchMs is old enough that the game
+    // would try to process thousands of missed catches synchronously → freeze
+    check(data) {
+      const v = Number(data["clicker_lastAutoCatchMs"]);
+      if (!v || !Number.isFinite(v)) return null;
+      const fisherLevel = Number(data["clicker_autoFisherLevel"]) || 0;
+      if (fisherLevel <= 0) return null;
+      const waitLevel  = Number(data["clicker_autoWaitReductionLevel"]) || 0;
+      let fishingSpeed = 1;
+      try { fishingSpeed = Number(JSON.parse(data["clicker_teamState"] || "{}").totals?.fishingSpeed) || 1; } catch {}
+      const base     = Math.max(2000, 10000 - waitLevel * 500);
+      const interval = Math.max(400, Math.floor(base / Math.max(1, fishingSpeed)));
+      const elapsed  = Date.now() - v;
+      if (elapsed <= 0) return null; // timestamp is in the future — harmless
+      const missedIntervals = Math.floor(elapsed / interval);
+      const totalCatches    = missedIntervals * fisherLevel;
+      if (totalCatches > 5000) {
+        const mins = Math.round(elapsed / 60000);
+        return {
+          severity: "error",
+          message: `lastAutoCatchMs is ${mins} min old → ${totalCatches.toLocaleString()} missed auto-catches would run on load → browser freeze / crash.`,
+          fix: "Reset lastAutoCatchMs to now. You lose the offline catch-up, but the game loads normally.",
+          apply(d) { d["clicker_lastAutoCatchMs"] = String(Date.now()); }
+        };
+      }
+      return null;
+    }
+  },
+  {
+    // Auto-sell price so high it sells legendaries
+    check(data) {
+      if (data["clicker_autoSellEnabled"] !== "true") return null;
+      if ((data["clicker_autoSellMode"] || "price") !== "price") return null;
+      const maxPrice = Number(data["clicker_autoSellMaxPrice"]);
+      if (!maxPrice || maxPrice <= 0) return null;
+      let income = 1;
+      try { income = Number(JSON.parse(data["clicker_teamState"] || "{}").totals?.incomeMultiplier) || 1; } catch {}
+      const approxLegendary = Math.round(6000 * income);
+      if (maxPrice >= approxLegendary * 0.85) {
+        const safePrice = Math.round(approxLegendary * 0.4);
+        return {
+          severity: "warning",
+          message: `autoSellMaxPrice=${maxPrice.toLocaleString()} ≥ ~${approxLegendary.toLocaleString()} (estimated legendary value). Your legendary fish will be auto-sold the moment they are caught.`,
+          fix: `Lower to ${safePrice.toLocaleString()} (40 % of legendary value).`,
+          apply(d) { d["clicker_autoSellMaxPrice"] = String(safePrice); }
+        };
+      }
+      return null;
+    }
+  },
+  {
+    // Corrupt / non-array inventory
+    check(data) {
+      const raw = data["clicker_inventory"];
+      if (!raw) return null;
+      try {
+        const inv = JSON.parse(raw);
+        if (!Array.isArray(inv)) throw new Error("not array");
+        return null;
+      } catch {
+        return {
+          severity: "error",
+          message: "clicker_inventory is malformed JSON or not an array.",
+          fix: "Reset inventory to [] (empty). All fish will be lost.",
+          apply(d) { d["clicker_inventory"] = "[]"; }
+        };
+      }
+    }
+  },
+  {
+    // Corrupt character reserve
+    check(data) {
+      const raw = data["clicker_characterReserve"];
+      if (!raw) return null;
+      try {
+        const r = JSON.parse(raw);
+        if (!Array.isArray(r)) throw new Error("not array");
+        return null;
+      } catch {
+        return {
+          severity: "error",
+          message: "clicker_characterReserve is malformed JSON.",
+          fix: "Reset to [] (characters in reserve will be lost, team unaffected).",
+          apply(d) { d["clicker_characterReserve"] = "[]"; }
+        };
+      }
+    }
+  },
+  {
+    // Corrupt team state
+    check(data) {
+      const raw = data["clicker_teamState"];
+      if (!raw) return null;
+      try {
+        const t = JSON.parse(raw);
+        if (!t || typeof t !== "object") throw new Error("not object");
+        return null;
+      } catch {
+        return {
+          severity: "error",
+          message: "clicker_teamState is malformed JSON.",
+          fix: "Remove key — team will reset to default (Bob in slot 1).",
+          apply(d) { delete d["clicker_teamState"]; delete d["clicker_teamRoster"]; }
+        };
+      }
+    }
+  },
+  {
+    // Battle selection references UIDs not in inventory
+    check(data) {
+      const selRaw = data["clicker_battleSelection"];
+      const invRaw = data["clicker_inventory"];
+      if (!selRaw || !invRaw) return null;
+      try {
+        const sel = JSON.parse(selRaw);
+        const inv = JSON.parse(invRaw);
+        if (!Array.isArray(sel) || !Array.isArray(inv)) return null;
+        const uids  = new Set(inv.map(f => f.uid).filter(Boolean));
+        const stale = sel.filter(uid => uid && !uids.has(uid));
+        if (stale.length > 0) {
+          return {
+            severity: "warning",
+            message: `Battle selection has ${stale.length} UID(s) that no longer exist in inventory.`,
+            fix: "Clear battle selection (you can re-select fish in the Battle page).",
+            apply(d) { d["clicker_battleSelection"] = "[]"; }
+          };
+        }
+        return null;
+      } catch { return null; }
+    }
+  },
+  {
+    // Negative money
+    check(data) {
+      const m = Number(data["clicker_money"]);
+      if (Number.isFinite(m) && m < 0) {
+        return {
+          severity: "warning",
+          message: `Money is negative (${m.toLocaleString()}).`,
+          fix: "Set to 0.",
+          apply(d) { d["clicker_money"] = "0"; }
+        };
+      }
+      return null;
+    }
+  },
+  {
+    // Negative hooks
+    check(data) {
+      const h = Number(data["clicker_hooks"]);
+      if (Number.isFinite(h) && h < 0) {
+        return {
+          severity: "warning",
+          message: `Hooks is negative (${h.toLocaleString()}).`,
+          fix: "Set to 0.",
+          apply(d) { d["clicker_hooks"] = "0"; }
+        };
+      }
+      return null;
+    }
+  },
+];
+
+// ─── PARSE SAVE ──────────────────────────────────────────────────────────────
+
+function parseSave(raw) {
+  raw = (raw || "").trim();
+  if (!raw) return null;
+
+  // JSON object (from copy(JSON.stringify(localStorage)) or manual export)
+  if (raw.startsWith("{")) {
+    try {
+      const obj = JSON.parse(raw);
+      const result = {};
+      for (const [k, v] of Object.entries(obj)) {
+        result[k] = typeof v === "string" ? v : JSON.stringify(v);
+      }
+      if (Object.keys(result).length > 0) return result;
+    } catch {}
+  }
+
+  // key=value lines — supports multi-line JSON values
+  // Strategy: a new key starts when we see `word_chars=` at the beginning of a line
+  const result = {};
+  const lines = raw.split("\n");
+  let currentKey = null;
+  let bufferLines = [];
+
+  const flushBuffer = () => {
+    if (currentKey !== null) {
+      result[currentKey] = bufferLines.join("\n").trim();
+    }
+  };
+
+  for (const line of lines) {
+    // Detect a new key: must start with alphanumeric/underscore chars then =
+    const match = line.match(/^([A-Za-z0-9_]+)=([\s\S]*)$/);
+    if (match) {
+      flushBuffer();
+      currentKey = match[1];
+      bufferLines = [match[2]];
+    } else if (currentKey !== null) {
+      bufferLines.push(line);
+    }
+  }
+  flushBuffer();
+
+  if (Object.keys(result).length > 0) return result;
+  return null;
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+
+let parsedData = null;
+let fixedData  = null;
+let issues     = [];
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+function clearResults() {
+  document.getElementById("resultsStep").style.display = "none";
+  parsedData = null; fixedData = null; issues = [];
+}
+
+function loadCurrent() {
+  const obj = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    obj[k] = localStorage.getItem(k);
+  }
+  if (Object.keys(obj).length === 0) {
+    alert("LocalStorage is empty on this page.");
+    return;
+  }
+  document.getElementById("saveInput").value = JSON.stringify(obj, null, 2);
+}
+
+function truncate(str, n = 90) {
+  if (str == null) return "";
+  str = String(str);
+  return str.length > n ? str.slice(0, n) + "…" : str;
+}
+
+// ─── ANALYZE ─────────────────────────────────────────────────────────────────
+
+function analyzeSave() {
+  const raw = document.getElementById("saveInput").value;
+  parsedData = parseSave(raw);
+  if (!parsedData) {
+    alert("Could not parse the save. Make sure it's either key=value lines or a JSON object.");
+    return;
+  }
+
+  // Deep clone for applying fixes
+  fixedData = Object.assign({}, parsedData);
+
+  // Run all detectors
+  issues = [];
+  for (const detector of DETECTORS) {
+    const issue = detector.check(parsedData);
+    if (issue) {
+      issues.push(issue);
+      if (issue.apply) issue.apply(fixedData);
+    }
+  }
+
+  renderResults();
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+
+function renderResults() {
+  document.getElementById("resultsStep").style.display = "block";
+  document.getElementById("statusBar").style.display = "none";
+
+  // Issues panel
+  const issuesList = document.getElementById("issuesList");
+  if (issues.length === 0) {
+    issuesList.innerHTML = `<div class="issue-item ok"><div class="issue-icon">✅</div><div>No issues detected — save looks healthy.</div></div>`;
+  } else {
+    issuesList.innerHTML = issues.map(iss => `
+      <div class="issue-item ${iss.severity}">
+        <div class="issue-icon">${iss.severity === "error" ? "🔴" : "🟡"}</div>
+        <div>
+          <div>${iss.message}</div>
+          <div class="issue-fix">✔ Fix applied: ${iss.fix}</div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  // Summary pills
+  const get = k => fixedData[k] ?? parsedData[k] ?? "";
+  const money    = Number(get("clicker_money")) || 0;
+  const hooks    = Number(get("clicker_hooks")) || 0;
+  const caught   = Number(get("clicker_caughtCount")) || 0;
+  const epic     = Number(get("clicker_epicCaught")) || 0;
+  const legendary= Number(get("clicker_legendaryCaught")) || 0;
+  const tier     = Number(get("clicker_battleTier")) || 1;
+  const rodLevel = Number(get("clicker_rodTierLevel")) || 0;
+  let invCount   = 0;
+  try { invCount = JSON.parse(get("clicker_inventory") || "[]").length; } catch {}
+  let teamNames  = "None";
+  try {
+    const ts = JSON.parse(get("clicker_teamState") || "{}");
+    if (ts?.teamChars?.length) teamNames = ts.teamChars.map(c => c.name).join(", ");
+  } catch {}
+
+  document.getElementById("summaryGrid").innerHTML = [
+    ["💰 Money",       money.toLocaleString()],
+    ["🪝 Hooks",       hooks.toLocaleString()],
+    ["🐟 Fish caught", caught.toLocaleString()],
+    ["⭐ Epic caught",  epic.toLocaleString()],
+    ["🌟 Legendaries", legendary.toLocaleString()],
+    ["⚔️ Battle tier", tier.toLocaleString()],
+    ["🎣 Rod level",   rodLevel],
+    ["📦 Inventory",   invCount + " fish"],
+    ["👥 Team",        teamNames],
+  ].map(([l, v]) => `
+    <div class="summary-pill">
+      <div class="summary-pill-label">${l}</div>
+      <div class="summary-pill-value">${v}</div>
+    </div>
+  `).join("");
+
+  // Determine which keys changed
+  const changedKeys = new Set();
+  for (const k of Object.keys(parsedData)) {
+    if (parsedData[k] !== fixedData[k]) changedKeys.add(k);
+    if (!(k in fixedData)) changedKeys.add(k);
+  }
+
+  // Keys table
+  const allKeys = Array.from(new Set([...Object.keys(parsedData), ...Object.keys(fixedData)])).sort();
+  document.getElementById("keyCount").textContent = allKeys.length;
+  document.getElementById("keysBody").innerHTML = allKeys.map(k => {
+    const orig    = parsedData[k];
+    const fixed   = fixedData[k];
+    const removed = !(k in fixedData);
+    const changed = !removed && orig !== fixed;
+
+    let badgeHtml, valueHtml;
+    if (removed) {
+      badgeHtml = `<span class="badge badge-removed">REMOVED</span>`;
+      valueHtml = `<span style="color:#ff6f6f;text-decoration:line-through">${truncate(orig)}</span>`;
+    } else if (changed) {
+      badgeHtml = `<span class="badge badge-fixed">FIXED</span>`;
+      valueHtml = `<span style="color:#ffa040;text-decoration:line-through">${truncate(orig)}</span><br><span style="color:#7ee787">→ ${truncate(fixed)}</span>`;
+    } else {
+      badgeHtml = `<span class="badge badge-ok">OK</span>`;
+      valueHtml = truncate(fixed ?? orig);
+    }
+
+    return `<tr>
+      <td class="key-name">${k}</td>
+      <td class="key-value">${valueHtml}</td>
+      <td class="key-status">${badgeHtml}</td>
+    </tr>`;
+  }).join("");
+}
+
+// ─── APPLY ───────────────────────────────────────────────────────────────────
+
+function applySave(redirect) {
+  if (!fixedData) return;
+  try {
+    // Remove existing clicker_ keys
+    const toRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("clicker_")) toRemove.push(k);
+    }
+    toRemove.forEach(k => localStorage.removeItem(k));
+
+    // Write fixed save
+    for (const [k, v] of Object.entries(fixedData)) {
+      localStorage.setItem(k, v);
+    }
+
+    const bar = document.getElementById("statusBar");
+    bar.className = "status-bar ok";
+    bar.textContent = redirect
+      ? `✔ ${Object.keys(fixedData).length} keys written. Redirecting to game in 2 s…`
+      : `✔ ${Object.keys(fixedData).length} keys written to localStorage successfully.`;
+
+    if (redirect) setTimeout(() => { window.location.href = "../"; }, 2000);
+  } catch (e) {
+    const bar = document.getElementById("statusBar");
+    bar.className = "status-bar err";
+    bar.textContent = "Error writing save: " + e.message;
+  }
+}
+</script>
+</body>
+</html>
