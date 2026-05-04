@@ -1302,8 +1302,8 @@
     const reserveStackCursorByTemplate = {};
     let lastSavedSlotByInstanceId = {};
     const MAX_FUSION_LEVEL = 5;
-    const FUSION_PRIMARY_MULT = 1.08;
-    const FUSION_ADDITIVE_MULT = 1.1;
+    const FUSION_PRIMARY_MULT = 1.15;
+    const FUSION_ADDITIVE_MULT = 1.2;
     let currentModalCharId = null;
     let sellConfirmResolver = null;
 
@@ -1601,8 +1601,8 @@
         }
       }
 
-      const currentMoney = Math.max(0, Number(localStorage.getItem('clicker_money')) || 0);
-      localStorage.setItem('clicker_money', String(Math.floor(currentMoney + sellValue)));
+      const currentHooks = Math.max(0, Number(localStorage.getItem('clicker_hooks')) || 0);
+      localStorage.setItem('clicker_hooks', String(Math.floor(currentHooks + sellValue)));
 
       allCharacters.splice(index, 1);
       persistOwnedCharactersToReserveStorage();

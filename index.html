@@ -785,16 +785,31 @@
       overflow: hidden;
     }
 
+    .auto-sell-panel.is-collapsed {
+      width: 240px;
+      max-width: 240px;
+      padding-bottom: 12px;
+    }
+
+    .auto-sell-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
     .auto-sell-title {
       display: flex;
       align-items: center;
       gap: 8px;
       font-size: 17px;
       color: #e6f4ff;
-      margin-bottom: 10px;
+      margin-bottom: 0;
       font-weight: bold;
       cursor: move;
       user-select: none;
+      min-width: 0;
     }
 
     .auto-sell-title::before {
@@ -810,6 +825,46 @@
 
     .auto-sell-panel:hover .auto-sell-title::before {
       opacity: 0.72;
+    }
+
+    .auto-sell-collapse-btn {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      font-size: 16px;
+      line-height: 1;
+      border-radius: 999px;
+      background: #1b2a33;
+      border-color: #355063;
+      color: #cfe0ea;
+      box-shadow: none;
+      letter-spacing: 0;
+      white-space: nowrap;
+      font-family: inherit;
+      font-weight: bold;
+    }
+
+    .auto-sell-collapse-btn:hover {
+      background: #243541;
+      border-color: #4f7185;
+      color: #ffffff;
+    }
+
+    .auto-sell-collapse-btn:active {
+      transform: translateY(1px);
+    }
+
+    .auto-sell-body {
+      display: grid;
+      gap: 8px;
+    }
+
+    .auto-sell-panel.is-collapsed .auto-sell-body {
+      display: none;
     }
 
     .auto-sell-help {
@@ -1126,7 +1181,11 @@
     <div class="content-grid">
       <div class="main-column">
         <div class="auto-sell-panel">
-          <div class="auto-sell-title">Smart auto-sell</div>
+          <div class="auto-sell-panel-header">
+            <div class="auto-sell-title">Smart auto-sell</div>
+            <button id="autoSellTogglePanelBtn" class="btn auto-sell-collapse-btn" type="button" aria-label="Hide auto-sell panel">-</button>
+          </div>
+          <div class="auto-sell-body">
           <div class="auto-sell-row">
             <label>
               <span class="auto-sell-label">Status</span>
@@ -1157,6 +1216,7 @@
                 <option value="legendary">Legendary</option>
               </select>
             </label>
+          </div>
           </div>
         </div>
       </div>
@@ -1343,6 +1403,7 @@
       const autoSellMaxRaritySelect = document.getElementById("autoSellMaxRarity");
       const autoSellPanel = document.querySelector(".auto-sell-panel");
       const autoSellTitle = document.querySelector(".auto-sell-title");
+      const autoSellTogglePanelBtn = document.getElementById("autoSellTogglePanelBtn");
       const centerDragBlock = document.getElementById("centerDragBlock");
       const centerDragGrip = document.getElementById("centerDragGrip");
       const upgradesPanel = document.querySelector(".upgrades");
@@ -1400,6 +1461,7 @@
       let upgradesWidth = Number(localStorage.getItem("clicker_upgradesWidth")) || 420;
       let autoSellMaxPrice = Number(localStorage.getItem("clicker_autoSellMaxPrice"));
       let autoSellMaxRarity = localStorage.getItem("clicker_autoSellMaxRarity") || "common";
+      let autoSellPanelCollapsed = localStorage.getItem("clicker_autoSellPanelCollapsed") === "true";
 
       // FIX 1: Track when we left so auto-fisher catches up on return
       let lastAutoCatchMs = Number(localStorage.getItem("clicker_lastAutoCatchMs")) || Date.now();
@@ -1478,6 +1540,20 @@
         if (persist) {
           localStorage.setItem("clicker_autoSellPanelLeft", String(next.left));
           localStorage.setItem("clicker_autoSellPanelTop", String(next.top));
+        }
+      }
+
+      function setAutoSellPanelCollapsed(collapsed, persist) {
+        if (!autoSellPanel) return;
+        autoSellPanelCollapsed = !!collapsed;
+        autoSellPanel.classList.toggle("is-collapsed", autoSellPanelCollapsed);
+        if (autoSellTogglePanelBtn) {
+          autoSellTogglePanelBtn.textContent = autoSellPanelCollapsed ? "+" : "-";
+          autoSellTogglePanelBtn.setAttribute("aria-label", autoSellPanelCollapsed ? "Show auto-sell panel" : "Hide auto-sell panel");
+          autoSellTogglePanelBtn.setAttribute("aria-expanded", String(!autoSellPanelCollapsed));
+        }
+        if (persist) {
+          localStorage.setItem("clicker_autoSellPanelCollapsed", String(autoSellPanelCollapsed));
         }
       }
 
@@ -1567,6 +1643,7 @@
       }
 
       setAutoSellPosition(initialAutoSellPosition.left, initialAutoSellPosition.top, false);
+      setAutoSellPanelCollapsed(autoSellPanelCollapsed, false);
 
       const storedCenterBlockLeft = Number(localStorage.getItem("clicker_centerBlockLeft"));
       const storedCenterBlockTop = Number(localStorage.getItem("clicker_centerBlockTop"));
@@ -1595,6 +1672,14 @@
         let isDraggingAutoSell = false;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
+
+        if (autoSellTogglePanelBtn) {
+          autoSellTogglePanelBtn.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setAutoSellPanelCollapsed(!autoSellPanelCollapsed, true);
+          });
+        }
 
         autoSellPanel.addEventListener("mousedown", (event) => {
           if (isCompactLayout()) return;

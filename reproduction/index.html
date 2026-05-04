@@ -707,14 +707,14 @@
       const parentAUid = String(breedingTask.parentAUid || "");
       const parentBUid = String(breedingTask.parentBUid || "");
 
-      // 25% each: parent A dies, parent B dies, both die, none die.
+      // 60% none, 15% parent A dies, 15% parent B dies, 10% both die.
       const deathRoll = Math.random();
       let deathMode = "none";
-      if (deathRoll < 0.25) {
+      if (deathRoll < 0.15) {
         deathMode = "a";
-      } else if (deathRoll < 0.5) {
+      } else if (deathRoll < 0.3) {
         deathMode = "b";
-      } else if (deathRoll < 0.75) {
+      } else if (deathRoll < 0.4) {
         deathMode = "both";
       }
 
