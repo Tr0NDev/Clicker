@@ -59,6 +59,13 @@
     .action-button { width: 100%; padding: 16px; font-size: 18px; font-weight: bold; }
     .action-button:hover { background: #324555; }
     .action-button:disabled { background: #263541; border-color: #8ea3b1; opacity: .65; }
+    .auto-battle-toggle { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 10px; border: 1px solid #365563; border-radius: 10px; background: #0f1519; }
+    .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4a7a7a; transition: .3s; border-radius: 26px; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+    input:checked + .slider { background-color: #2d8a6d; }
+    input:checked + .slider:before { transform: translateX(24px); }
     .action-note { margin-top: 10px; color: #b8d4e3; font-size: 14px; line-height: 1.5; }
     .tier-hud { display: grid; gap: 8px; margin-top: 10px; padding: 10px; border: 1px solid #365563; border-radius: 12px; background: #0f1519; }
     .tier-hud-row { display: flex; justify-content: space-between; gap: 10px; align-items: center; font-size: 13px; }
@@ -75,7 +82,6 @@
     .selected-highlight { outline: 2px solid #5a8faa; box-shadow: 0 0 0 2px rgba(90,143,170,.15); }
     .status-line { margin-top: 14px; color: #f5db9b; font-size: 14px; min-height: 20px; }
     .right-panel-stack { display: grid; gap: 16px; position: sticky; top: 88px; }
-    /* Character team section */
     .character-team-section { border: 1px solid #2f4d5c; border-radius: 14px; background: #142028; padding: 14px; }
     .character-team-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
     .character-team-box { border: 1px solid #365563; border-radius: 12px; background: #0f1519; padding: 10px; display: grid; gap: 8px; align-content: start; min-height: 0; }
@@ -99,29 +105,9 @@
     .character-team-empty { color: #6b8796; font-style: italic; text-align: center; padding: 20px; }
     .character-team-card-clickable { cursor: pointer; transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease; }
     .character-team-card-clickable:hover { transform: translateY(-1px); border-color: #8dc4e0; box-shadow: 0 0 0 1px rgba(141, 196, 224, 0.18); }
-    .character-stats-modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 250;
-      background: rgba(0, 0, 0, 0.72);
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      box-sizing: border-box;
-    }
+    .character-stats-modal { display: none; position: fixed; inset: 0; z-index: 250; background: rgba(0, 0, 0, 0.72); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
     .character-stats-modal.visible { display: flex; }
-    .character-stats-modal-card {
-      width: min(820px, 100%);
-      max-height: 88vh;
-      overflow: auto;
-      background: linear-gradient(180deg, #18222a 0%, #12191f 100%);
-      border: 1px solid #3f6075;
-      border-radius: 16px;
-      padding: 16px;
-      box-sizing: border-box;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-    }
+    .character-stats-modal-card { width: min(820px, 100%); max-height: 88vh; overflow: auto; background: linear-gradient(180deg, #18222a 0%, #12191f 100%); border: 1px solid #3f6075; border-radius: 16px; padding: 16px; box-sizing: border-box; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45); }
     .character-stats-modal-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #2f4d5c; }
     .character-stats-modal-title { font-size: 24px; font-weight: bold; color: #8dc4e0; }
     .character-stats-modal-stars { font-size: 20px; color: #ffa657; letter-spacing: 3px; }
@@ -141,7 +127,6 @@
       .character-stats-modal-layout { grid-template-columns: 1fr; }
       .character-team-split { grid-template-columns: 1fr; }
     }
-    /* === BATTLE ARENA === */
     .battle-arena-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-bottom: 10px; }
     .battle-side { border: 1px solid #365563; border-radius: 12px; background: #0f1519; padding: 10px; display: grid; gap: 8px; }
     .battle-side-title { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #8dc4e0; font-weight: bold; }
@@ -154,7 +139,6 @@
     .hp-fill { height: 100%; background: linear-gradient(90deg,#ff6f6f 0%,#ffbe5e 45%,#7ee787 100%); width: 0%; transition: width .2s; }
     .hp-value { font-size: 11px; color: #e8f5ff; min-width: 52px; text-align: right; }
     .battle-result { margin-top: 4px; font-size: 20px; color: #f7e3a7; font-weight: bold; min-height: 28px; line-height: 1.35; text-align: left; }
-    /* Score panel */
     .battle-score-panel { display: none; margin: 8px 0; border: 1px solid #365563; border-radius: 10px; background: #0f1519; padding: 10px 14px; }
     .battle-score-panel.visible { display: block; }
     .score-title { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #8dc4e0; font-weight: bold; margin-bottom: 8px; }
@@ -180,8 +164,6 @@
     .hook-notification-title { font-weight: bold; color: #9ad9ff; margin-bottom: 4px; }
     @keyframes hookToastIn { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:translateX(0)} }
     @keyframes hookToastOut { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(18px)} }
-
-    /* === TEAM STATS HUD === */
     .team-stats-hud { border: 1px solid #2a4d5c; border-radius: 12px; background: #0c1a22; padding: 10px 14px; margin-bottom: 10px; }
     .team-stats-hud-title { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #5a8899; font-weight: bold; margin-bottom: 8px; }
     .team-stats-hud-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
@@ -192,13 +174,7 @@
     .team-stat-pill.initiative-winner { border-color: #4a9eff; background: #0a1e30; }
     .team-stat-pill.initiative-winner .team-stat-pill-value { color: #4a9eff; }
     .initiative-note { font-size: 11px; color: #5a7a8a; margin-top: 6px; text-align: center; font-style: italic; }
-
-    /* === DIFFICULTY BADGE === */
-    .difficulty-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: bold;
-      border: 1px solid; margin-bottom: 8px;
-    }
+    .difficulty-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: bold; border: 1px solid; margin-bottom: 8px; }
     .diff-very-easy  { background: #0e2213; border-color: #2d6b40; color: #7ee787; }
     .diff-easy       { background: #13220e; border-color: #5a8f30; color: #a8d86a; }
     .diff-normal     { background: #1a1e0d; border-color: #8f7d20; color: #e0c840; }
@@ -206,46 +182,18 @@
     .diff-very-hard  { background: #280e0e; border-color: #b03030; color: #ff6060; }
     .diff-extreme    { background: #1e0a28; border-color: #8a30b0; color: #d060ff; }
     .diff-nightmare  { background: #12040a; border-color: #c0106a; color: #ff50a0; }
-
-    /* === ENEMY TEAM TOOLTIP === */
-    .enemy-team-preview-wrap {
-      position: relative; display: inline-flex; align-items: center; gap: 6px;
-    }
-    .enemy-team-btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 22px; height: 22px; border-radius: 50%;
-      background: #1e3545; border: 1px solid #4a7a94; color: #8dc4e0;
-      font-size: 12px; font-weight: bold; cursor: pointer;
-      transition: background .15s, border-color .15s;
-      user-select: none; flex-shrink: 0;
-    }
+    .enemy-team-preview-wrap { position: relative; display: inline-flex; align-items: center; gap: 6px; }
+    .enemy-team-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #1e3545; border: 1px solid #4a7a94; color: #8dc4e0; font-size: 12px; font-weight: bold; cursor: pointer; transition: background .15s, border-color .15s; user-select: none; flex-shrink: 0; }
     .enemy-team-btn:hover { background: #2a4d63; border-color: #6aaece; }
-    .enemy-team-tooltip {
-      position: absolute; right: 0; top: 28px; z-index: 100;
-      background: #0c1a22; border: 1px solid #3a6070; border-radius: 12px;
-      padding: 10px; min-width: 230px; max-width: 290px;
-      box-shadow: 0 8px 30px rgba(0,0,0,.6);
-      display: none; text-align: left;
-    }
+    .enemy-team-tooltip { position: absolute; right: 0; top: 28px; z-index: 100; background: #0c1a22; border: 1px solid #3a6070; border-radius: 12px; padding: 10px; min-width: 230px; max-width: 290px; box-shadow: 0 8px 30px rgba(0,0,0,.6); display: none; text-align: left; }
     .enemy-team-tooltip.open { display: block; }
     .enemy-team-tooltip-title { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #5a8899; font-weight: bold; margin-bottom: 8px; }
-    .enemy-fish-row {
-      border: 1px solid #364a57; border-radius: 8px; background: #111e27;
-      padding: 8px; margin-bottom: 6px;
-    }
+    .enemy-fish-row { border: 1px solid #364a57; border-radius: 8px; background: #111e27; padding: 8px; margin-bottom: 6px; }
     .enemy-fish-row:last-child { margin-bottom: 0; }
     .enemy-fish-row-name { font-size: 13px; font-weight: bold; margin-bottom: 3px; }
     .enemy-fish-row-stats { font-size: 12px; color: #8db4c8; }
     .enemy-fish-row.boss-fish { background: #1a1020; border-color: #7a3080; }
-
-    /* === BOSS TIER INDICATOR === */
-    .boss-indicator {
-      display: flex; align-items: center; gap: 8px;
-      background: linear-gradient(135deg, #1a0820 0%, #2a1040 100%);
-      border: 1px solid #8a30c0; border-radius: 10px;
-      padding: 8px 12px; margin-bottom: 8px;
-      font-size: 13px; color: #d060ff; font-weight: bold;
-    }
+    .boss-indicator { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #1a0820 0%, #2a1040 100%); border: 1px solid #8a30c0; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; color: #d060ff; font-weight: bold; }
     .boss-indicator-icon { font-size: 16px; }
     .boss-indicator-text { line-height: 1.3; }
     .boss-indicator-sub { font-size: 11px; color: #a070cc; font-weight: normal; }
@@ -269,7 +217,6 @@
   <div class="shell">
     <div class="page-grid">
 
-      <!-- COLONNE GAUCHE - Collection & Lineup -->
       <div class="left-column" style="order:1;">
         <div class="section">
           <div class="section-header-row">
@@ -322,15 +269,11 @@
         </div>
       </div>
 
-      <!-- COLONNE CENTRE - Battle Arena & Scores -->
       <div class="center-column" style="order:2;">
         <div class="right-panel-stack">
-
-          <!-- ARENA EN HAUT -->
           <div class="section">
             <div class="section-title">Battle Arena</div>
 
-            <!-- TEAM STATS HUD -->
             <div class="team-stats-hud" id="teamStatsHud">
               <div class="team-stats-hud-title">Team bonuses active in battle</div>
               <div class="team-stats-hud-grid" id="teamStatsHudGrid">
@@ -342,7 +285,6 @@
               <div class="initiative-note" id="hudInitiativeNote">Higher fishing speed = your team goes first</div>
             </div>
 
-            <!-- ENEMY TEAM PREVIEW (boss indicator + tooltip btn) -->
             <div id="tierInfoBar" style="margin-bottom:8px;"></div>
 
             <div class="battle-arena-grid" id="battleGrid"></div>
@@ -364,25 +306,28 @@
 
             <div class="battle-log" id="battleLog"></div>
           </div>
-
         </div>
       </div>
 
-      <!-- COLONNE DROITE - Action & Summary -->
       <div class="right-column" style="order:3;">
         <div class="right-panel-stack">
 
-          <!-- ACTION -->
           <div class="section action-panel">
             <div class="section-title">Action</div>
             <button class="btn action-button" id="startBattleButton" type="button" disabled>Start Battle</button>
+            <div class="auto-battle-toggle">
+              <label class="switch">
+                <input type="checkbox" id="autoBattleToggle">
+                <span class="slider"></span>
+              </label>
+              <span style="color: #aac2d0; font-size: 14px;">Auto Battle</span>
+            </div>
             <div class="action-note" id="actionNote">Select 3 fish first. Bait slots are empty for now.</div>
             <div class="tier-hud">
               <div class="tier-hud-row"><span class="tier-hud-label">Current tier</span><span class="tier-hud-value" id="currentTierLabel">Tier 1</span></div>
               <div class="tier-hud-row"><span class="tier-hud-label">Next reward</span><span class="tier-hud-value" id="tierRewardLabel">+0 money</span></div>
               <div class="tier-hud-row"><span class="tier-hud-label">Capture tier</span><span class="tier-hud-value" id="captureTierLabel">Tier 10</span></div>
               <div class="tier-hud-row"><span class="tier-hud-label">Difficulty</span><span class="tier-hud-value" id="tierDifficultyLabel">Very easy</span></div>
-              <div class="tier-hud-row"><span class="tier-hud-label">Enemy power</span><span class="tier-hud-value" id="tierPowerLabel">×1.0</span></div>
             </div>
             <div class="speed-ticks">
               <span>Battle speed:</span>
@@ -393,7 +338,6 @@
             </div>
           </div>
 
-          <!-- SUMMARY -->
           <div class="section summary-panel">
             <div class="section-title">Battle Summary</div>
             <div class="summary-row">
@@ -415,7 +359,6 @@
             <div class="status-line" id="detailLine"></div>
           </div>
 
-          <!-- CHARACTER TEAMS -->
           <div class="section character-team-section" id="characterTeamSection" style="display:block;">
             <div class="section-title">Character Team</div>
             <div class="character-team-split">
@@ -483,46 +426,37 @@
 
     const RARITY_VALUE_MULTIPLIERS = { common:1, uncommon:1.35, rare:1.9, epic:2.8, legendary:4.2 };
 
-    // =============================================
-    // FISH SPECIES (real names from the game)
-    // =============================================
     const FISH_SPECIES = [
-      // common
       { type:"Common carp",    rarity:"common",    sizeMin:25,  sizeMax:55,  weightMin:0.8,  weightMax:2.8  },
       { type:"Swift roach",    rarity:"common",    sizeMin:15,  sizeMax:28,  weightMin:0.2,  weightMax:0.9  },
       { type:"Striped perch",  rarity:"common",    sizeMin:18,  sizeMax:35,  weightMin:0.3,  weightMax:1.4  },
       { type:"Lively bleak",   rarity:"common",    sizeMin:10,  sizeMax:18,  weightMin:0.05, weightMax:0.25 },
       { type:"Dark tench",     rarity:"common",    sizeMin:20,  sizeMax:42,  weightMin:0.5,  weightMax:2.2  },
       { type:"Silver bream",   rarity:"common",    sizeMin:22,  sizeMax:48,  weightMin:0.6,  weightMax:2.4  },
-      // uncommon
-      { type:"Silver trout",      rarity:"uncommon", sizeMin:28, sizeMax:58,  weightMin:0.7, weightMax:3.5  },
-      { type:"Rock bass",          rarity:"uncommon", sizeMin:22, sizeMax:44,  weightMin:0.8, weightMax:2.6  },
-      { type:"Noble salmon",       rarity:"uncommon", sizeMin:40, sizeMax:78,  weightMin:1.8, weightMax:5.6  },
-      { type:"River char",         rarity:"uncommon", sizeMin:24, sizeMax:52,  weightMin:0.9, weightMax:3.1  },
-      { type:"Stealth zander",     rarity:"uncommon", sizeMin:30, sizeMax:70,  weightMin:1.0, weightMax:4.8  },
-      { type:"Bright sea bream",   rarity:"uncommon", sizeMin:26, sizeMax:60,  weightMin:1.2, weightMax:4.2  },
-      // rare
-      { type:"Bluefin tuna",   rarity:"rare", sizeMin:60,  sizeMax:130, weightMin:8,  weightMax:35  },
-      { type:"Wild pike",      rarity:"rare", sizeMin:45,  sizeMax:110, weightMin:2.5,weightMax:15  },
-      { type:"Sunfish",        rarity:"rare", sizeMin:70,  sizeMax:180, weightMin:3,  weightMax:45  },
-      { type:"Giant bass",     rarity:"rare", sizeMin:50,  sizeMax:125, weightMin:3.5,weightMax:18  },
-      { type:"Marine turbot",  rarity:"rare", sizeMin:40,  sizeMax:100, weightMin:2.0,weightMax:12  },
-      { type:"Blue sturgeon",  rarity:"rare", sizeMin:65,  sizeMax:155, weightMin:7,  weightMax:40  },
-      // epic
-      { type:"Mahi-mahi",         rarity:"epic", sizeMin:70,  sizeMax:160, weightMin:5,  weightMax:25  },
-      { type:"Rainbow ray",        rarity:"epic", sizeMin:80,  sizeMax:220, weightMin:10, weightMax:80  },
-      { type:"Giant grouper",      rarity:"epic", sizeMin:90,  sizeMax:200, weightMin:15, weightMax:90  },
-      { type:"Prismatic eel",      rarity:"epic", sizeMin:60,  sizeMax:180, weightMin:4,  weightMax:30  },
-      { type:"Royal moray",        rarity:"epic", sizeMin:75,  sizeMax:190, weightMin:8,  weightMax:55  },
-      { type:"Chrome triggerfish", rarity:"epic", sizeMin:55,  sizeMax:145, weightMin:6,  weightMax:22  },
-      // legendary
-      { type:"Golden shark", rarity:"legendary", sizeMin:150, sizeMax:420, weightMin:40, weightMax:220 },
-      { type:"Sea dragon",   rarity:"legendary", sizeMin:120, sizeMax:300, weightMin:30, weightMax:180 },
+      { type:"Silver trout",   rarity:"uncommon",  sizeMin:28,  sizeMax:58,  weightMin:0.7,  weightMax:3.5  },
+      { type:"Rock bass",      rarity:"uncommon",  sizeMin:22,  sizeMax:44,  weightMin:0.8,  weightMax:2.6  },
+      { type:"Noble salmon",   rarity:"uncommon",  sizeMin:40,  sizeMax:78,  weightMin:1.8,  weightMax:5.6  },
+      { type:"River char",     rarity:"uncommon",  sizeMin:24,  sizeMax:52,  weightMin:0.9,  weightMax:3.1  },
+      { type:"Stealth zander", rarity:"uncommon",  sizeMin:30,  sizeMax:70,  weightMin:1.0,  weightMax:4.8  },
+      { type:"Bright sea bream",rarity:"uncommon", sizeMin:26,  sizeMax:60,  weightMin:1.2,  weightMax:4.2  },
+      { type:"Bluefin tuna",   rarity:"rare",      sizeMin:60,  sizeMax:130, weightMin:8,    weightMax:35   },
+      { type:"Wild pike",      rarity:"rare",      sizeMin:45,  sizeMax:110, weightMin:2.5,  weightMax:15   },
+      { type:"Sunfish",        rarity:"rare",      sizeMin:70,  sizeMax:180, weightMin:3,    weightMax:45   },
+      { type:"Giant bass",     rarity:"rare",      sizeMin:50,  sizeMax:125, weightMin:3.5,  weightMax:18   },
+      { type:"Marine turbot",  rarity:"rare",      sizeMin:40,  sizeMax:100, weightMin:2.0,  weightMax:12   },
+      { type:"Blue sturgeon",  rarity:"rare",      sizeMin:65,  sizeMax:155, weightMin:7,    weightMax:40   },
+      { type:"Mahi-mahi",      rarity:"epic",      sizeMin:70,  sizeMax:160, weightMin:5,    weightMax:25   },
+      { type:"Rainbow ray",    rarity:"epic",      sizeMin:80,  sizeMax:220, weightMin:10,   weightMax:80   },
+      { type:"Giant grouper",  rarity:"epic",      sizeMin:90,  sizeMax:200, weightMin:15,   weightMax:90   },
+      { type:"Prismatic eel",  rarity:"epic",      sizeMin:60,  sizeMax:180, weightMin:4,    weightMax:30   },
+      { type:"Royal moray",    rarity:"epic",      sizeMin:75,  sizeMax:190, weightMin:8,    weightMax:55   },
+      { type:"Chrome triggerfish", rarity:"epic",  sizeMin:55,  sizeMax:145, weightMin:6,    weightMax:22   },
+      { type:"Golden shark",   rarity:"legendary", sizeMin:150, sizeMax:420, weightMin:40,   weightMax:220  },
+      { type:"Sea dragon",     rarity:"legendary", sizeMin:120, sizeMax:300, weightMin:30,   weightMax:180  },
     ];
 
-    // Band: which species band to use for a given tier
-    // 1-4: common, 5-12: uncommon, 13-25: rare, 26-45: epic, 46+: legendary
     const RARITY_BANDS = ["common","uncommon","rare","epic","legendary"];
+
     function getRarityBandForTier(t) {
       if (t <=  4) return "common";
       if (t <= 12) return "uncommon";
@@ -531,68 +465,39 @@
       return "legendary";
     }
 
-    // =============================================
-    // DIFFICULTY SCALING — logarithmic (fast early, slow later)
-    // + boss spikes every 10 tiers
-    // =============================================
     function isBossTier(t) { return t > 0 && t % 10 === 0; }
 
-    /**
-     * Logarithmic scaling:
-     *   mult(t) = 1 + k * ln(t)
-     * k = 0.55 → at t=1 mult=1, t=5 ≈1.88, t=10 ≈2.27, t=20 ≈2.80, t=50 ≈3.68, t=100 ≈4.27
-     * This means early tiers feel a big jump, later tiers are harder but the gap per tier narrows.
-     * Boss tiers (×10) get a +35% HP / +40% ATK spike on top.
-     */
     function getTierScaling(t) {
       const tier = Math.max(1, Number(t) || 1);
-      const k = 0.35;
-      const logMult = 1 + k * Math.log(tier);
-      const bossSpikeHp  = isBossTier(tier) ? 1.2 : 1.0;
-      const bossSpikeAtk = isBossTier(tier) ? 1.25 : 1.0;
+      const logMult = 1 + (0.08 * tier) / (1 + 0.003 * tier);
+      const bossSpikeHp  = isBossTier(tier) ? 1.4 : 1.0;
+      const bossSpikeAtk = isBossTier(tier) ? 1.45 : 1.0;
       return {
         hp:  logMult * bossSpikeHp,
         atk: logMult * bossSpikeAtk
       };
     }
 
-    function getTierPowerMult(t) {
-      const s = getTierScaling(t);
-      return ((s.hp + s.atk) / 2).toFixed(2);
-    }
-
-    /**
-     * Pick 3 species from the correct rarity band for this tier.
-     * Within the band, cycle through deterministically using tier as offset.
-     */
     function getEnemyTemplatesForTier(tier) {
       const t = Math.max(1, Number(tier) || 1);
-      // Boss tiers: jump one rarity band higher (capped at legendary)
       let targetRarity = getRarityBandForTier(t);
       if (isBossTier(t)) {
         const idx = RARITY_BANDS.indexOf(targetRarity);
         targetRarity = RARITY_BANDS[Math.min(idx + 1, RARITY_BANDS.length - 1)];
       }
       const pool = FISH_SPECIES.filter(s => s.rarity === targetRarity);
-      // pick 3, rotating by tier
       return [0, 1, 2].map(i => pool[(t + i) % pool.length]);
     }
 
-    /**
-     * Given a template species, compute stats at this tier.
-     * We use the midpoint of the species size/weight range as the base,
-     * then scale by the tier multiplier. Boss tiers use max of range as base.
-     */
     function speciesStatsAtTier(species, tier) {
       const s = getTierScaling(tier);
       const isBoss = isBossTier(tier);
-      // Base: mid for normal tiers, near-max for boss tiers
       const sizeBase   = isBoss
-        ? species.sizeMin + (species.sizeMax - species.sizeMin) * 0.85
-        : (species.sizeMin + species.sizeMax) / 2;
+        ? species.sizeMin + (species.sizeMax - species.sizeMin) * 0.92
+        : species.sizeMin + (species.sizeMax - species.sizeMin) * 0.75;
       const weightBase = isBoss
-        ? species.weightMin + (species.weightMax - species.weightMin) * 0.85
-        : (species.weightMin + species.weightMax) / 2;
+        ? species.weightMin + (species.weightMax - species.weightMin) * 0.92
+        : species.weightMin + (species.weightMax - species.weightMin) * 0.75;
       const hp  = Math.max(1, Math.round(sizeBase   * s.hp));
       const atk = Math.max(1, Math.round(weightBase * s.atk));
       return { hp, atk };
@@ -601,8 +506,8 @@
     function createTierEnemyFromTemplate(species, index, tier) {
       const isBoss = isBossTier(tier);
       const base = speciesStatsAtTier(species, tier);
-      const jH = 0.93 + Math.random() * 0.14;
-      const jA = 0.93 + Math.random() * 0.14;
+      const jH = 0.85 + Math.random() * 0.30;
+      const jA = 0.85 + Math.random() * 0.30;
       const hp  = Math.max(1, Math.round(base.hp  * jH));
       const atk = Math.max(1, Math.round(base.atk * jA));
       return {
@@ -616,12 +521,32 @@
       };
     }
 
-    function createTierEnemyRoster(tier) {
-      const templates = getEnemyTemplatesForTier(tier);
-      return templates.map((tmpl, i) => createTierEnemyFromTemplate(tmpl, i, tier));
+    function calculateEnemyTeamBonuses(characterTeam) {
+      let sizeBonus = 0, weightBonus = 0;
+      if (Array.isArray(characterTeam)) {
+        characterTeam.forEach(char => {
+          sizeBonus += Number(char.sizeAdd || 0);
+          weightBonus += Number(char.weightAdd || 0);
+        });
+      }
+      return { sizeBonus, weightBonus };
     }
 
-    /** Deterministic preview for tooltip (no jitter) */
+    function createTierEnemyRoster(tier) {
+      const templates = getEnemyTemplatesForTier(tier);
+      const characterTeam = generateEnemyCharacterTeam(tier);
+      const bonuses = calculateEnemyTeamBonuses(characterTeam);
+      return templates.map((tmpl, i) => {
+        const enemy = createTierEnemyFromTemplate(tmpl, i, tier);
+        const hpMult = 1 + (bonuses.sizeBonus * 0.005);
+        const atkMult = 1 + (bonuses.weightBonus * 0.005);
+        enemy.maxHp = Math.max(1, Math.round(enemy.maxHp * hpMult));
+        enemy.hp = enemy.maxHp;
+        enemy.attack = Math.max(1, Math.round(enemy.attack * atkMult));
+        return enemy;
+      });
+    }
+
     function previewEnemyRoster(tier) {
       const t = Math.max(1, Number(tier) || 1);
       const templates = getEnemyTemplatesForTier(t);
@@ -636,9 +561,6 @@
       });
     }
 
-    // =============================================
-    // TEAM STATS LOADING
-    // =============================================
     function loadTeamStats() {
       try {
         const raw = localStorage.getItem(TEAM_STATE_KEY);
@@ -711,9 +633,6 @@
       return teamStats.fishingSpeed >= enemyFishingSpeed;
     }
 
-    // =============================================
-    // TIER INFO BAR (boss indicator + enemy preview tooltip)
-    // =============================================
     let tooltipOpen = false;
 
     function renderTierInfoBar() {
@@ -721,10 +640,8 @@
       if (!tierInfoBar) return;
       const t = battleTier;
       const boss = isBossTier(t);
-      const preview = previewEnemyRoster(t);
       const diffClass = getDifficultyClass(t);
       const diffLabel = getTierDifficultyLabel(t);
-      const powerMult = getTierPowerMult(t);
 
       let html = "";
 
@@ -752,7 +669,6 @@
       html += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
         <div class="difficulty-badge ${diffClass}">${diffLabel}</div>
         <div class="enemy-team-preview-wrap">
-          <span style="font-size:12px;color:#7a9baa;">Enemy Power: <strong style="color:#ffa657;">×${powerMult}</strong></span>
           <div class="enemy-team-btn" id="enemyTeamBtn" title="View your team">?</div>
           <div class="enemy-team-tooltip" id="enemyTeamTooltip">
             <div class="enemy-team-tooltip-title">Your Team</div>
@@ -776,18 +692,15 @@
 
     function getDifficultyClass(t) {
       const tier = Math.max(1, Number(t) || 1);
-      if (tier <= 3)  return "diff-very-easy";
-      if (tier <= 7)  return "diff-easy";
-      if (tier <= 12) return "diff-normal";
-      if (tier <= 20) return "diff-hard";
-      if (tier <= 35) return "diff-very-hard";
-      if (tier <= 60) return "diff-extreme";
+      if (tier <=  5)  return "diff-very-easy";
+      if (tier <= 15)  return "diff-easy";
+      if (tier <= 35)  return "diff-normal";
+      if (tier <= 75)  return "diff-hard";
+      if (tier <= 200) return "diff-very-hard";
+      if (tier <= 800) return "diff-extreme";
       return "diff-nightmare";
     }
 
-    // =============================================
-    // DOM refs
-    // =============================================
     const collectionList      = document.getElementById("collectionList");
     const selectedSlots       = document.getElementById("selectedSlots");
     const emptyState          = document.getElementById("emptyState");
@@ -821,7 +734,6 @@
     const tierRewardLabel     = document.getElementById("tierRewardLabel");
     const captureTierLabel    = document.getElementById("captureTierLabel");
     const tierDifficultyLabel = document.getElementById("tierDifficultyLabel");
-    const tierPowerLabel      = document.getElementById("tierPowerLabel");
     const hookNotificationLayer = document.getElementById("hookNotificationLayer");
 
     let inventory          = [];
@@ -834,6 +746,9 @@
     let importedBattle     = null;
     let battleSpeedMultiplier = 2;
     let battleTier = Math.max(1, Number(localStorage.getItem(BATTLE_TIER_KEY)) || 1);
+    let autoBattleActive = false;
+    let autoBattleMaxTier = 100;
+    const autoBattleToggle = document.getElementById("autoBattleToggle");
 
     function getRarityColor(r) { return RARITY_COLOR[r] || "#fff"; }
     function getBattleStepDelay() { return Math.max(80, Math.floor(BATTLE_STEP_MS / battleSpeedMultiplier)); }
@@ -858,19 +773,18 @@
 
     function getTierReward(t) {
       const s = Math.max(1, Number(t)||1);
-      // Reward also scales harder with difficulty
       const bossBonus = isBossTier(s) ? 3.0 : 1.0;
       return Math.max(100, Math.floor((180 + s * 150 + Math.pow(s, 1.55) * 30) * bossBonus));
     }
 
     function getTierDifficultyLabel(t) {
       const s = Math.max(1, Number(t)||1);
-      if (s <= 3)  return "Very easy";
-      if (s <= 7)  return "Easy";
-      if (s <= 12) return "Normal";
-      if (s <= 20) return "Hard";
-      if (s <= 35) return "Very hard";
-      if (s <= 60) return "Extreme";
+      if (s <=  5) return "Very easy";
+      if (s <= 15) return "Easy";
+      if (s <= 35) return "Normal";
+      if (s <= 75) return "Hard";
+      if (s <= 200) return "Very hard";
+      if (s <= 800) return "Extreme";
       return "Nightmare";
     }
 
@@ -1041,7 +955,6 @@
       currentTierLabel.textContent=tierLabel; tierRewardLabel.textContent=`+${reward} money`;
       captureTierLabel.textContent=battleTier%10===0?"Now":`Tier ${nextCap}`;
       tierDifficultyLabel.textContent=getTierDifficultyLabel(battleTier);
-      if (tierPowerLabel) tierPowerLabel.textContent="×" + getTierPowerMult(battleTier);
       if(!fish.length){
         averageRarity.textContent="-"; averageValue.textContent="0"; battleReady.textContent="No";
         statusText.textContent="Pick 3 fish to prepare battle."; startBattleButton.disabled=true;
@@ -1200,9 +1113,6 @@
       document.querySelectorAll(".sort-btn").forEach(btn=>btn.classList.toggle("active",btn.getAttribute("data-sort")===sortMode));
     }
 
-    // =============================================
-    // CHARACTER TEAM LOADING & RENDERING
-    // =============================================
     const CHARACTER_RESERVE_KEY = 'clicker_characterReserve';
     const allCharactersData = [
       {id: 1, name: "Bob", stars: 1}, {id: 2, name: "Ben", stars: 1}, {id: 3, name: "Liam", stars: 1}, {id: 4, name: "Noah", stars: 1}, {id: 5, name: "Owen", stars: 1},
@@ -1245,19 +1155,9 @@
       return groups;
     }, {});
 
-    function getCharacterFromPool(id) {
-      return CHARACTER_BY_ID.get(Number(id)) || null;
-    }
-
-    function getCharacterName(id) {
-      const char = getCharacterFromPool(id);
-      return char ? char.name : "Unknown";
-    }
-
-    function getCharacterStars(id) {
-      const char = getCharacterFromPool(id);
-      return char ? char.stars : 1;
-    }
+    function getCharacterFromPool(id) { return CHARACTER_BY_ID.get(Number(id)) || null; }
+    function getCharacterName(id) { const char = getCharacterFromPool(id); return char ? char.name : "Unknown"; }
+    function getCharacterStars(id) { const char = getCharacterFromPool(id); return char ? char.stars : 1; }
 
     function escapeHtml(value) {
       return String(value)
@@ -1269,9 +1169,7 @@
     }
 
     function getTalentDescriptionById(talentId) {
-      if (!talentId) {
-        return TALENT_DESCRIPTION_BY_ID['no-talent'];
-      }
+      if (!talentId) return TALENT_DESCRIPTION_BY_ID['no-talent'];
       return TALENT_DESCRIPTION_BY_ID[talentId] || 'No description available.';
     }
 
@@ -1318,7 +1216,7 @@
 
     function getEnemyStarsForTier(tier) {
       const currentTier = Math.max(1, Number(tier) || 1);
-      if (currentTier <= 4) return 1;
+      if (currentTier <=  4) return 1;
       if (currentTier <= 12) return 2;
       if (currentTier <= 25) return 3;
       if (currentTier <= 45) return 4;
@@ -1388,9 +1286,7 @@
     }
 
     function formatStatValue(value, suffix = "") {
-      if (typeof value === "number" && Number.isFinite(value)) {
-        return `${value}${suffix}`;
-      }
+      if (typeof value === "number" && Number.isFinite(value)) return `${value}${suffix}`;
       return value || "-";
     }
 
@@ -1407,7 +1303,6 @@
       const name = char.name || getCharacterName(char.templateId || char.id);
       const talentId = char.talentId || null;
       const talentName = char.talentName || "No Talent";
-      const talentDescription = getTalentDescriptionById(talentId);
       const incomeMultiplier = Number(char.incomeMultiplier || 1);
       const clickMultiplier = Number(char.clickMultiplier || 1);
       const fishingSpeed = Number(char.fishingSpeed || 1);
@@ -1460,14 +1355,10 @@
     if (characterStatsModal && characterStatsModalClose) {
       characterStatsModalClose.addEventListener("click", closeCharacterStatsModal);
       characterStatsModal.addEventListener("click", (event) => {
-        if (event.target === characterStatsModal) {
-          closeCharacterStatsModal();
-        }
+        if (event.target === characterStatsModal) closeCharacterStatsModal();
       });
       document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-          closeCharacterStatsModal();
-        }
+        if (event.key === "Escape") closeCharacterStatsModal();
       });
     }
 
@@ -1479,9 +1370,7 @@
         playerCharacterGrid.innerHTML = '<div class="character-team-empty">No characters in team</div>';
         return;
       }
-      team.forEach(char => {
-        playerCharacterGrid.appendChild(renderCharacterCard(char, false));
-      });
+      team.forEach(char => { playerCharacterGrid.appendChild(renderCharacterCard(char, false)); });
     }
 
     function renderEnemyCharacterTeam() {
@@ -1495,14 +1384,7 @@
         enemyCharacterGrid.innerHTML = '<div class="character-team-empty">Opponent has no character team</div>';
         return;
       }
-
-      enemyTeam.forEach(char => {
-        enemyCharacterGrid.appendChild(renderCharacterCard(char, true));
-      });
-    }
-
-    function setupCharacterTeamTabs() {
-      return;
+      enemyTeam.forEach(char => { enemyCharacterGrid.appendChild(renderCharacterCard(char, true)); });
     }
 
     function render() {
@@ -1517,7 +1399,6 @@
       if(lastBattleState) renderBattleState(lastBattleState); else { battleGrid.innerHTML=""; battleLog.innerHTML=""; }
     }
 
-    // Close tooltip when clicking outside
     document.addEventListener("click", () => {
       const tooltip = document.getElementById("enemyTeamTooltip");
       if (tooltip && tooltipOpen) { tooltip.classList.remove("open"); tooltipOpen = false; }
@@ -1631,7 +1512,7 @@
             inventory.push(captured); saveInventory();
           }
           battleTier=currentTier+1; saveBattleTier();
-          renderTierInfoBar(); // refresh after tier advance
+          renderTierInfoBar();
         }
         const bossStr = isBossTier(currentTier) ? " [BOSS CLEARED!]" : "";
         const resultText=result.playerWon
@@ -1656,8 +1537,45 @@
       btn.addEventListener("click",()=>{ sortMode=btn.getAttribute("data-sort")||"default"; render(); });
     });
 
-    // Initialize character team tabs
-    setupCharacterTeamTabs();
+    function startAutoBattle() {
+      autoBattleActive = true;
+      const runNextBattle = () => {
+        if (!autoBattleActive || !autoBattleToggle.checked) {
+          autoBattleActive = false;
+          autoBattleToggle.checked = false;
+          return;
+        }
+        if (battleTier > autoBattleMaxTier) {
+          autoBattleActive = false;
+          autoBattleToggle.checked = false;
+          showHookNotification("Auto Battle", `Reached tier ${autoBattleMaxTier}`);
+          return;
+        }
+        if (!isBattleAnimating && getSelectedFish().length === 3) {
+          startBattleButton.click();
+          const checkBattle = setInterval(() => {
+            if (!isBattleAnimating && autoBattleActive) {
+              clearInterval(checkBattle);
+              setTimeout(runNextBattle, 500);
+            }
+          }, 100);
+        }
+      };
+      runNextBattle();
+    }
+
+    autoBattleToggle.addEventListener("change", () => {
+      if (autoBattleToggle.checked) {
+        if (getSelectedFish().length !== 3) {
+          autoBattleToggle.checked = false;
+          detailLine.textContent = "Select 3 fish first";
+          return;
+        }
+        startAutoBattle();
+      } else {
+        autoBattleActive = false;
+      }
+    });
 
     if(localStorage.getItem("clicker_upgradesUnlocked")!=="true") document.body.classList.add("limited-nav-mode");
   </script>
