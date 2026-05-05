@@ -1456,7 +1456,17 @@
         fishButtonLabel.className   = "fish-title " + getRarityClass(fish.rarity);
         fishDescription.textContent = (!tutorialCompleted && caughtCount < 30) ? ""
           : `Rarity: ${formatRarityLabel(fish.rarity)} | Size: ${fish.size} cm | Weight: ${fish.weight} kg | Price: ${fish.price}`;
-        fishPrice.textContent = String(fish.price);
+        fishPrice.textContent = formatNumber(fish.price);
+      }
+
+      function formatNumber(n) {
+        const num = Number(n) || 0;
+        if (num < 1000) return String(Math.floor(num));
+        if (num < 1e6) return (num / 1e3).toFixed(1) + "K";
+        if (num < 1e9) return (num / 1e6).toFixed(1) + "M";
+        if (num < 1e12) return (num / 1e9).toFixed(1) + "B";
+        if (num < 1e15) return (num / 1e12).toFixed(1) + "T";
+        return (num / 1e15).toFixed(1) + "Q";
       }
 
       function render() {
@@ -1473,31 +1483,31 @@
         const inventoryTotalValue = inventory.reduce((s, f) => s + (Number(f.currentValue) || Number(f.basePrice) || Number(f.price) || 0), 0);
         const catchesPerSecond   = autoFisherLevel <= 0 ? 0 : Number((autoFisherLevel / (getAutoIntervalMs() / 1000)).toFixed(2));
 
-        moneyDisplay.textContent          = "Money: " + money;
-        hooksDisplay.textContent          = "🪝 Hooks: " + hooks;
-        tutorialFishCaughtCount.textContent = String(caughtCount);
+        moneyDisplay.textContent          = "Money: " + formatNumber(money);
+        hooksDisplay.textContent          = "🪝 Hooks: " + formatNumber(hooks);
+        tutorialFishCaughtCount.textContent = formatNumber(caughtCount);
         catchPerSecondDisplay.textContent = "Catches per second: " + catchesPerSecond;
-        caughtCountDisplay.textContent    = String(caughtCount);
-        inventoryCountDisplay.textContent = String(inventory.length);
-        inventoryTotalValueDisplay.textContent = String(inventoryTotalValue);
+        caughtCountDisplay.textContent    = formatNumber(caughtCount);
+        inventoryCountDisplay.textContent = formatNumber(inventory.length);
+        inventoryTotalValueDisplay.textContent = formatNumber(inventoryTotalValue);
 
         renderDisplay();
 
-        tripleHookUpgradeCount.textContent = String(tripleHookLevel);
-        rodUpgradeCount.textContent        = String(rodTierLevel);
-        fishPerClickLabel.textContent      = String(fishPerClick);
+        tripleHookUpgradeCount.textContent = formatNumber(tripleHookLevel);
+        rodUpgradeCount.textContent        = formatNumber(rodTierLevel);
+        fishPerClickLabel.textContent      = formatNumber(fishPerClick);
         rodTierLabel.textContent           = rodTier.name;
         rodUpgradeDesc.textContent         = rodTier.desc;
-        tripleHookUpgradeCost.textContent  = String(nextTripleHookCost);
-        rodUpgradeCost.textContent         = String(nextRodUpgradeCost);
-        sizeUpgradeCount.textContent       = String(sizeBoostLevel);
-        autoUpgradeCount.textContent       = String(autoFisherLevel);
-        weightUpgradeCount.textContent     = String(weightBoostLevel);
-        waitUpgradeCount.textContent       = String(autoWaitReductionLevel);
-        sizeUpgradeCost.textContent        = String(nextSizeCost);
-        autoUpgradeCost.textContent        = String(nextAutoCost);
-        weightUpgradeCost.textContent      = String(nextWeightCost);
-        waitUpgradeCost.textContent        = String(nextWaitCost);
+        tripleHookUpgradeCost.textContent  = formatNumber(nextTripleHookCost);
+        rodUpgradeCost.textContent         = formatNumber(nextRodUpgradeCost);
+        sizeUpgradeCount.textContent       = formatNumber(sizeBoostLevel);
+        autoUpgradeCount.textContent       = formatNumber(autoFisherLevel);
+        weightUpgradeCount.textContent     = formatNumber(weightBoostLevel);
+        waitUpgradeCount.textContent       = formatNumber(autoWaitReductionLevel);
+        sizeUpgradeCost.textContent        = formatNumber(nextSizeCost);
+        autoUpgradeCost.textContent        = formatNumber(nextAutoCost);
+        weightUpgradeCost.textContent      = formatNumber(nextWeightCost);
+        waitUpgradeCost.textContent        = formatNumber(nextWaitCost);
         autoDelayLabel.textContent         = autoDelaySeconds;
 
         tripleHookUpgrade.disabled = money < nextTripleHookCost;
@@ -1509,7 +1519,7 @@
 
         autoSellEnabledInput.checked       = autoSellEnabled;
         autoSellModeSelect.value           = autoSellMode;
-        autoSellMaxPriceInput.value        = String(autoSellMaxPrice);
+        autoSellMaxPriceInput.value        = formatNumber(autoSellMaxPrice);
         autoSellMaxRaritySelect.value      = autoSellMaxRarity;
         autoSellModeSelect.disabled        = !autoSellEnabled;
         const isPriceMode  = autoSellMode === "price";
@@ -1562,7 +1572,7 @@
 
       function checkTutorialProgress() {
         if (!tutorialCompleted && caughtCount >= 30) {
-          if (tutorialCaughtCount) tutorialCaughtCount.textContent = String(caughtCount);
+          if (tutorialCaughtCount) tutorialCaughtCount.textContent = formatNumber(caughtCount);
           tutorialDialog.classList.add("show");
           tutorialBackdrop.classList.add("show");
         }
