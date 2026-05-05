@@ -616,14 +616,51 @@
         return;
       }
 
-      allGuilds = (data || []).map(g => {
+      const guilds = data || [];
+      const emptyGuildIds = [];
+      const validGuilds = guilds.filter(g => {
+        const members = safeParseMembers(g.members);
+        if (!members.length) {
+          emptyGuildIds.push(g.id);
+          return false;
+        }
+        return true;
+      });
+
+      if (emptyGuildIds.length) {
+        await Promise.all(emptyGuildIds.map(id => db.from(GUILDS_TABLE).delete().eq("id", id)));
+      }
+
+      allGuilds = validGuilds.map(g => {
         const members = safeParseMembers(g.members);
         return { ...g, score: computeGuildTotalScore(members), guildPoints: getGuildPoints(g.id) };
       });
       allGuilds.sort((a,b) => b.score - a.score);
-      renderSidebar();
 
-      const m = getMembership();
+      let m = getMembership();
+      const pid = getPlayerId();
+      if (pid) {
+        if (!m) {
+          for (const guild of allGuilds) {
+            const members = safeParseMembers(guild.members);
+            const member = members.find(x => x.pid === pid);
+            if (member) {
+              m = { guildId: guild.id, guildName: guild.name, role: member.role, playerId: pid, joinedAt: member.joined };
+              saveMembership(m);
+              break;
+            }
+          }
+        } else {
+          const mine = allGuilds.find(g => g.id === m.guildId);
+          if (!mine) {
+            saveMembership(null);
+            m = null;
+          }
+        }
+      }
+
+      renderSidebar();
+      updateCreateSection();
       if (m) {
         const mine = allGuilds.find(g => g.id === m.guildId);
         if (mine) { selectedGuildId = mine.id; renderSidebar(); renderGuildView(mine, true).catch(console.error); }
@@ -717,13 +754,14 @@
       const charHtml = myChars.length > 0
         ? myChars.map(c => {
             const stars = Math.min(5, Math.max(1, c.stars || c.level || 1));
+            const starsStr = "★".repeat(stars) + "☆".repeat(5 - stars);
             const name = escHtml((c.name || "?").slice(0, 14));
             const color = starColors[stars];
             const borderColor = starBgs[stars];
             return `
             <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
               <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${name}</div>
-              <div style="font-size:11px;color:${color};font-weight:bold">★ ${stars}/5</div>
+              <div style="font-size:11px;color:${color};font-weight:bold">${starsStr}</div>
               ${(c.talents || []).length > 0 ? `<div style="font-size:10px;color:#e8c060;margin-top:4px">${(c.talents || []).slice(0,2).join(", ")}</div>` : ""}
             </div>`;
           }).join("")
@@ -820,13 +858,14 @@
       const charHtml = char_team.length > 0
         ? char_team.map(c => {
             const stars = Math.min(5, Math.max(1, c.stars || 1));
+            const starsStr = "★".repeat(stars) + "☆".repeat(5 - stars);
             const name = escHtml((c.name || "?").slice(0, 14));
             const color = starColors[stars];
             const borderColor = starBgs[stars];
             return `
             <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
               <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${name}</div>
-              <div style="font-size:11px;color:${color};font-weight:bold">★ ${stars}/5</div>
+              <div style="font-size:11px;color:${color};font-weight:bold">${starsStr}</div>
               ${(c.talents || []).length > 0 ? `<div style="font-size:10px;color:#e8c060;margin-top:4px">${(c.talents || []).slice(0,2).join(", ")}</div>` : ""}
             </div>`;
           }).join("")
@@ -1070,6 +1109,11 @@
       const statusEl = document.getElementById("actionStatus");
       if (!db) return;
       const pid = getPlayerId();
+      const currentMembership = getMembership();
+      if (currentMembership) {
+        setStatus(statusEl, "You are already in a guild. Leave it before joining another.", "err");
+        return;
+      }
       setStatus(statusEl, "Joining…", "");
 
       const { data: guild, error: fetchErr } = await db.from(GUILDS_TABLE).select("*").eq("id", guildId).single();
