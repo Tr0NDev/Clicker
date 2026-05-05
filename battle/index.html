@@ -831,7 +831,7 @@
       }
     }
 
-    function setImportedBattleFromQueue(opponentName, fishTeam, charTeam, teamStats) {
+    function setImportedBattleFromQueue(opponentName, fishTeam, charTeam, teamStats, opponentTier) {
       importedBattle = {
         lineup: (Array.isArray(fishTeam) ? fishTeam : []).map((f, i) => ({
           uid: `queue-${i}-${Date.now()}`,
@@ -845,12 +845,22 @@
         })),
         exportedTeamChars: Array.isArray(charTeam) ? charTeam : [],
         exportedTeamStats: teamStats || { fishingSpeed: 1 },
-        teamStats: teamStats || { fishingSpeed: 1 }
+        teamStats: teamStats || { fishingSpeed: 1 },
+        source: "queue",
+        opponentTier: Math.max(1, Number(opponentTier) || 1)
       };
       setQueueStatus(`Match found vs ${opponentName}. Start Battle!`);
+      setBattleSpeedLock(true);
       setQueueJoinedState(false);
       renderEnemyCharacterTeam();
       renderSummary();
+      if (!isBattleAnimating && getSelectedFish().length === 3) {
+        setTimeout(() => {
+          if (!isBattleAnimating) startBattleButton.click();
+        }, 180);
+      } else {
+        setDetailMessage("Match found, but auto-start failed (need 3 selected fish). Start manually.");
+      }
     }
 
     async function leaveQueue() {
@@ -869,6 +879,7 @@
         setQueueStatus(`Queue error: ${error.message}`);
         return;
       }
+      setBattleSpeedLock(false);
       setQueueJoinedState(false);
       setQueueStatus("Left queue.");
       await refreshQueueCount();
@@ -894,7 +905,7 @@
       if (myRow.status !== "matched" || !myRow.matched_with) return;
 
       const { data: oppRows, error: oppErr } = await db.from(BATTLE_QUEUE_TABLE)
-        .select("player_id, player_name, fish_team, char_team, team_stats")
+        .select("player_id, player_name, tier, fish_team, char_team, team_stats")
         .eq("player_id", myRow.matched_with)
         .limit(1);
       if (oppErr || !Array.isArray(oppRows) || !oppRows.length) return;
@@ -902,7 +913,7 @@
       const opp = oppRows[0];
       await db.from(BATTLE_QUEUE_TABLE).delete().eq("player_id", pid);
       stopQueuePolling();
-      setImportedBattleFromQueue(opp.player_name || "Opponent", opp.fish_team, opp.char_team, opp.team_stats);
+      setImportedBattleFromQueue(opp.player_name || "Opponent", opp.fish_team, opp.char_team, opp.team_stats, opp.tier);
       await refreshQueueCount();
     }
 
@@ -1001,7 +1012,7 @@
           matched_at: nowIso
         });
 
-        setImportedBattleFromQueue(opp.player_name || "Opponent", opp.fish_team, opp.char_team, opp.team_stats);
+        setImportedBattleFromQueue(opp.player_name || "Opponent", opp.fish_team, opp.char_team, opp.team_stats, opp.tier);
         await refreshQueueCount();
         return;
       }
@@ -1047,9 +1058,28 @@
     let autoBattleActive = false;
     let autoBattleMaxTier = 10000;
     const autoBattleToggle = document.getElementById("autoBattleToggle");
+    let speedLockedByQueue = false;
+    const battleSpeedInputs = Array.from(document.querySelectorAll('input[name="battleSpeed"]'));
 
     function getRarityColor(r) { return RARITY_COLOR[r] || "#fff"; }
     function getBattleStepDelay() { return Math.max(80, Math.floor(BATTLE_STEP_MS / battleSpeedMultiplier)); }
+
+    function setBattleSpeedLock(lock) {
+      speedLockedByQueue = Boolean(lock);
+      if (speedLockedByQueue) {
+        battleSpeedMultiplier = 1;
+      }
+      battleSpeedInputs.forEach(input => {
+        if (speedLockedByQueue && input.value === "1") input.checked = true;
+        input.disabled = speedLockedByQueue;
+      });
+    }
+
+    function getQueuePvpHooksReward() {
+      const base = 20;
+      const tierBonus = Math.floor(Math.max(1, Number(battleTier) || 1) / 20);
+      return Math.max(20, base + tierBonus);
+    }
 
     function showHookNotification(title, text) {
       if (!hookNotificationLayer) return;
@@ -1184,7 +1214,7 @@
       }));
       const exportedTeamStats = p.teamStats || null;
       const exportedTeamChars = Array.isArray(p.exportedTeamChars) ? p.exportedTeamChars : [];
-      return {...p, lineup, exportedTeamStats, exportedTeamChars};
+      return {...p, lineup, exportedTeamStats, exportedTeamChars, source: "text"};
     }
 
     function sortInventory(items) {
@@ -1631,6 +1661,7 @@
       const p=parseImportedBattleText(battleTextArea.value);
       if(!p){ setDetailMessage("Invalid battle text. Paste a valid exported text."); return; }
       importedBattle=p;
+      setBattleSpeedLock(false);
       const oppFs=p.exportedTeamStats?Number(p.exportedTeamStats.fishingSpeed).toFixed(2):"?";
       setDetailMessage(`Battle imported (opponent Fishing Speed: ${oppFs}x). Press Start Battle.`);
       updateTeamHud(); renderSummary(); renderEnemyCharacterTeam();
@@ -1643,10 +1674,15 @@
       setDetailMessage("Battle text exported. Share it with another player.");
     });
 
-    clearBattleBtn.addEventListener("click",()=>{ importedBattle=null; battleTextArea.value=""; setDetailMessage("Imported battle cleared."); renderSummary(); renderEnemyCharacterTeam(); });
+    clearBattleBtn.addEventListener("click",()=>{ importedBattle=null; battleTextArea.value=""; setBattleSpeedLock(false); setDetailMessage("Imported battle cleared."); renderSummary(); renderEnemyCharacterTeam(); });
 
     document.querySelectorAll('input[name="battleSpeed"]').forEach(input=>{
       input.addEventListener("change",()=>{
+        if (speedLockedByQueue) {
+          input.checked = input.value === "1";
+          battleSpeedMultiplier = 1;
+          return;
+        }
         battleSpeedMultiplier=Math.max(1,Math.min(5,Number(input.value)||1));
         if(isBattleAnimating&&typeof battleTickRescheduler==="function") battleTickRescheduler();
       });
@@ -1659,7 +1695,7 @@
       if(battleTimerId){ clearTimeout(battleTimerId); battleTimerId=null; }
       battleScorePanel.classList.remove("visible");
 
-      const isCustom=Boolean(importedBattle), currentTier=battleTier, reward=getTierReward(currentTier);
+      const isCustom=Boolean(importedBattle), isQueueBattle=Boolean(importedBattle&&importedBattle.source==="queue"), currentTier=battleTier, reward=getTierReward(currentTier);
       const allies=fish.map((f,i)=>createBattleantFromFish(f,"ally",i,true));
 
       let enemies;
@@ -1720,6 +1756,9 @@
             isBossTier(currentTier)?`Tier ${currentTier} clear + boss bonus`:`Tier ${currentTier} clear`);
           battleTier=currentTier+1; saveBattleTier();
           renderTierInfoBar();
+        } else if (result.playerWon && isQueueBattle) {
+          const pvpHooks = getQueuePvpHooksReward();
+          addHooks(pvpHooks, "PVP Victory", `Queue battle won at tier ${currentTier}`);
         }
 
         const bossStr=isBossTier(currentTier)?" [BOSS CLEARED!]":"";
@@ -1733,6 +1772,7 @@
           playerWon:result.playerWon,allyWins:result.allyWins,resultText,final:true };
         renderBattleState(lastBattleState);
         isBattleAnimating=false;
+        if (isQueueBattle) setBattleSpeedLock(false);
         setDetailMessage(result.playerWon
           ?(isCustom?"You won the Custom Battle.":`Tier ${currentTier} cleared: +${reward} money. Now Tier ${battleTier}.`)
           :(isCustom?"You lost this battle.":"Try again to clear this tier."));
@@ -1797,8 +1837,10 @@
             })),
             exportedTeamChars: Array.isArray(charTeam) ? charTeam : [],
             exportedTeamStats: teamStats || { fishingSpeed: defaultFishingSpeed },
-            teamStats: teamStats || { fishingSpeed: defaultFishingSpeed }
+            teamStats: teamStats || { fishingSpeed: defaultFishingSpeed },
+            source: "pvp"
           };
+          setBattleSpeedLock(false);
 
           // Update UI to show PVP mode
           document.querySelector('.section-title').textContent = `PVP Battle vs ${opponentName}`;
