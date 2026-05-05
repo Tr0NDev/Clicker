@@ -321,6 +321,44 @@
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .anim-in { animation: fadeIn .18s ease forwards; }
+
+    /* ── MODAL STYLES ── */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,.7); z-index: 1000; display: flex;
+      align-items: center; justify-content: center;
+    }
+    .modal-content {
+      background: #0f1519; border: 1px solid #365563; border-radius: 12px;
+      max-width: 400px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,.5);
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid #365563;
+    }
+    .modal-header h3 { color: #e9f6ff; font-size: 18px; margin: 0; }
+    .modal-close {
+      background: none; border: none; color: #6a8a9a; font-size: 24px;
+      cursor: pointer; padding: 0; width: 24px; height: 24px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-close:hover { color: #e9f6ff; }
+    .modal-body { padding: 20px; }
+    .modal-actions {
+      display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;
+    }
+    .btn-secondary {
+      background: #31414d; color: #eef5f9; border: 1px solid #667a86;
+      padding: 10px 16px; border-radius: 8px; cursor: pointer;
+      transition: background-color .15s, border-color .15s;
+    }
+    .btn-secondary:hover { background: #3a4c59; border-color: #7f95a3; }
+    .btn-primary {
+      background: #4a9eff; color: #fff; border: 1px solid #4a9eff;
+      padding: 10px 16px; border-radius: 8px; cursor: pointer;
+      transition: background-color .15s, border-color .15s;
+    }
+    .btn-primary:hover { background: #5ab0ff; border-color: #5ab0ff; }
   </style>
 </head>
 <body>
@@ -413,9 +451,11 @@
 
     let allGuilds = [];
     let selectedGuildId = null;
+    let currentRenameGuildId = null;
     let currentMemberSort = "score";
     let playerProfile = null;
     let viewingProfileId = null; // Track whose profile we're viewing
+    let viewingProfileData = null; // Store current profile data for PVP
 
     async function getMemberDisplayNames(memberIds) {
       if (!db || !Array.isArray(memberIds) || memberIds.length === 0) return {};
@@ -803,25 +843,24 @@
         return;
       }
 
-      const { data: profile, error: profileError } = await db.from("profiles").select("*").eq("player_id", memberId).single();
-      let displayName = profile?.display_name || "Player";
-      let profileData = profile;
+      // First, get the player's name from profiles or accounts
+      let displayName = "Player";
+      const { data: profile, error: profileError } = await db.from("profiles").select("player_id, display_name, fish_team, char_team").eq("player_id", memberId).single();
 
-      if ((profileError || !profileData) && db) {
+      if (profile && !profileError) {
+        displayName = profile.display_name || "Player";
+      } else {
+        // Try to get name from accounts table
         const { data: account, error: accountError } = await db.from("accounts").select("username").eq("user_id", memberId).single();
-        if (!accountError && account) {
-          displayName = account.username || displayName;
+        if (account && !accountError) {
+          displayName = account.username || "Player";
         }
       }
 
-      if (!profileData) {
-        document.getElementById("rightCol").innerHTML = `<div class="section"><div class="empty-state">${escHtml(displayName)}<br><br>No profile saved</div></div>`;
-        return;
-      }
-
       viewingProfileId = memberId;
-      const fish_team = profile.fish_team || [];
-      const char_team = profile.char_team || [];
+      viewingProfileData = profile; // Store for PVP function
+      const fish_team = (profile && profile.fish_team) || [];
+      const char_team = (profile && profile.char_team) || [];
 
       // Calculate score using saved team data
       let score = 0;
@@ -871,10 +910,13 @@
           }).join("")
         : '<div style="padding:16px;text-align:center;color:#6a8a9a">No characters</div>';
 
+      const isOwnProfile = memberId === getPlayerId();
+      const displayNameWithBadge = isOwnProfile ? `${escHtml(displayName)} (You)` : escHtml(displayName);
+
       const profileHtml = `
         <div class="section anim-in">
           <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #1e3040">
-            <div style="font-size:16px;font-weight:bold;color:#e8c060">${escHtml(memberName)}</div>
+            <div style="font-size:16px;font-weight:bold;color:#e8c060">${displayNameWithBadge}</div>
             <div style="font-size:12px;color:#6a8a9a;margin-top:6px">ID: ${escHtml(memberId.slice(-8))}</div>
           </div>
 
@@ -890,13 +932,34 @@
 
           <div style="text-align:center;padding-top:12px;border-top:1px solid #1e3040">
             <div style="font-size:12px;color:#8dc4e0;margin-bottom:12px">Score: <b style="color:#e8c060;font-size:16px">${fmtNum(score)}</b></div>
-            <button class="btn btn-cyan" onclick="renderPlayerProfile()" style="width:100%;padding:10px;font-size:13px;font-weight:bold">
+            ${!isOwnProfile ? `<div style="display:flex;gap:8px;margin-bottom:12px">
+              <button class="btn btn-danger" onclick="startPVP('${memberId}', '${escHtml(displayName)}')" style="flex:1;padding:10px;font-size:13px;font-weight:bold">
+                ⚔️ PVP Battle
+              </button>
+            </div>` : ''}
+            ${!isOwnProfile ? `<button class="btn btn-cyan" onclick="renderPlayerProfile()" style="width:100%;padding:10px;font-size:13px;font-weight:bold">
               Back to Your Profile
-            </button>
+            </button>` : ''}
           </div>
         </div>`;
 
       document.getElementById("rightCol").innerHTML = profileHtml;
+    }
+
+    function startPVP(opponentId, opponentName) {
+      // Get current profile data for the opponent we're viewing
+      const fishTeam = (viewingProfileData && viewingProfileData.fish_team) || [];
+      const charTeam = (viewingProfileData && viewingProfileData.char_team) || [];
+
+      // Encode the opponent data as URL parameters
+      const params = new URLSearchParams({
+        pvp: 'true',
+        opponentId: opponentId,
+        opponentName: opponentName,
+        fishTeam: JSON.stringify(fishTeam),
+        charTeam: JSON.stringify(charTeam)
+      });
+      window.location.href = '../battle/?' + params.toString();
     }
 
     function filterGuilds() { renderSidebar(); }
@@ -968,7 +1031,10 @@
       const canJoin = !m && db;
 
       const actionBtn = isMine
-        ? `<button class="btn btn-danger btn-sm" onclick="leaveGuild()">Leave Guild</button>`
+        ? m.role === "owner"
+          ? `<button class="btn btn-gold btn-sm" onclick="renameGuild('${guild.id}')">Rename Guild</button>
+             <button class="btn btn-danger btn-sm" onclick="leaveGuild()">Leave Guild</button>`
+          : `<button class="btn btn-danger btn-sm" onclick="leaveGuild()">Leave Guild</button>`
         : canJoin
           ? `<button class="btn btn-cyan btn-sm" onclick="joinGuild('${guild.id}','${escHtml(guild.name)}')">+ Join</button>`
           : m
@@ -1199,6 +1265,50 @@
       await loadGuilds();
     }
 
+    // ── RENAME GUILD ───────────────────────────────────────────────────────────
+    async function renameGuild(guildId) {
+      if (!db) return;
+      const m = getMembership();
+      if (!m || m.role !== "owner") {
+        alert("Only the guild leader can rename the guild.");
+        return;
+      }
+
+      currentRenameGuildId = guildId;
+      document.getElementById("guildNameInput").value = "";
+      document.getElementById("renameModal").style.display = "flex";
+      document.getElementById("guildNameInput").focus();
+    }
+
+    function closeRenameModal() {
+      document.getElementById("renameModal").style.display = "none";
+      currentRenameGuildId = null;
+    }
+
+    async function confirmRename() {
+      const newName = document.getElementById("guildNameInput").value.trim();
+      if (!newName) {
+        alert("Please enter a guild name.");
+        return;
+      }
+      if (newName.length < 3 || newName.length > 40) {
+        alert("Guild name must be between 3 and 40 characters.");
+        return;
+      }
+
+      const { error } = await db.from(GUILDS_TABLE).update({ name: newName }).eq("id", currentRenameGuildId);
+      if (error) {
+        alert("Error renaming guild: " + error.message);
+        return;
+      }
+
+      // Update local membership
+      const m = getMembership();
+      saveMembership({ ...m, guildName: newName });
+      await loadGuilds();
+      closeRenameModal();
+    }
+
     // ── SAVE PLAYER TEAM TO SUPABASE ──────────────────────────────────────────
     async function savePlayerTeamToSupabase() {
       const statusEl = document.getElementById("saveProfileStatus");
@@ -1241,5 +1351,23 @@
     }
     loadGuilds();
   </script>
+
+  <!-- Rename Guild Modal -->
+  <div id="renameModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Rename Guild</h3>
+        <button class="modal-close" onclick="closeRenameModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label for="guildNameInput" class="field-label">New Guild Name</label>
+        <input type="text" id="guildNameInput" class="field-input" placeholder="Enter new guild name (3-40 characters)" maxlength="40" onkeydown="if(event.key==='Enter') confirmRename();">
+        <div class="modal-actions">
+          <button class="btn btn-secondary" onclick="closeRenameModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="confirmRename()">Rename</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

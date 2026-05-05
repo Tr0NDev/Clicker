@@ -213,6 +213,7 @@
       <button class="nav-button locked-nav-button active-nav-button" onclick="window.location.href='./'">Battle</button>
       <button class="nav-button locked-nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
       <button class="nav-button locked-nav-button" onclick="window.location.href='../missions/'">Missions</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../guild/'">Guild</button>
       <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
     </div>
   </div>
@@ -1509,6 +1510,45 @@
         startAutoBattle();
       } else { autoBattleActive=false; }
     });
+
+    // ── PVP BATTLE DETECTION ──────────────────────────────────────────────────
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('pvp') === 'true') {
+      const opponentId = urlParams.get('opponentId');
+      const opponentName = urlParams.get('opponentName');
+      const fishTeamStr = urlParams.get('fishTeam');
+      const charTeamStr = urlParams.get('charTeam');
+
+      if (opponentId && opponentName && fishTeamStr && charTeamStr) {
+        try {
+          const fishTeam = JSON.parse(fishTeamStr);
+          const charTeam = JSON.parse(charTeamStr);
+
+          // Create imported battle data for PVP
+          importedBattle = {
+            lineup: fishTeam.map((f, i) => ({
+              uid: `pvp-${i}-${Date.now()}`,
+              type: f.type || `Enemy Fish ${i+1}`,
+              rarity: f.rarity || "common",
+              size: Math.max(1, Math.round(Number(f.size) || 1)),
+              weight: Math.max(1, Math.round(Number(f.weight) || 1)),
+              currentValue: 0, basePrice: 0, price: 0
+            })),
+            exportedTeamChars: charTeam,
+            teamStats: { fishingSpeed: 1 } // Default speed for opponent
+          };
+
+          // Update UI to show PVP mode
+          document.querySelector('.section-title').textContent = `PVP Battle vs ${opponentName}`;
+          detailLine.textContent = `PVP Battle against ${opponentName}. Select your 3 fish to fight!`;
+          battlePanel.style.display = 'none'; // Hide custom battle panel
+
+        } catch (error) {
+          console.error('Error parsing PVP data:', error);
+          detailLine.textContent = "Error loading PVP battle data.";
+        }
+      }
+    }
 
     if(localStorage.getItem("clicker_upgradesUnlocked")!=="true") document.body.classList.add("limited-nav-mode");
   </script>
