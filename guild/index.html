@@ -335,6 +335,7 @@
       <button class="nav-button locked-nav-button" onclick="location.href='../missions/'">Missions</button>
       <button class="nav-button locked-nav-button active-nav-button">Guild</button>
       <button class="nav-button settings-nav-button" onclick="location.href='../settings/'">Settings</button>
+      <button class="nav-button btn-danger" onclick="logOff()">Log off</button>
     </div>
   </div>
 
@@ -453,6 +454,12 @@
         return null;
       }
       return userId;
+    }
+
+    function logOff() {
+      localStorage.removeItem('clicker_userId');
+      localStorage.removeItem('clicker_username');
+      window.location.href = '../guild/';
     }
 
     function getMembership() {
@@ -953,9 +960,9 @@
             : '<span class="team-slot-empty">No chars</span>';
 
         const selfName = isMe
-          ? (playerProfile?.display_name || localStorage.getItem("clicker_username") || memberNames[pid] || "You")
+          ? (localStorage.getItem("clicker_username") || playerProfile?.display_name || memberNames[pid] || "You")
           : (memberNames[mem.pid] || "Player");
-        const displayName = isMe ? `${selfName} (You)` : selfName;
+        const displayName = selfName;
         return `<div class="member-row ${isMe?"is-me":""}" onclick="viewMemberProfile('${mem.pid}')" style="${!isMe || true ? "cursor:pointer;" : ""}">
           <div class="member-rank-num">${rankIcon}</div>
           <div class="member-body">
