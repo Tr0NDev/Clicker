@@ -488,31 +488,28 @@
       return [0, 1, 2].map(i => pool[(t + i) % pool.length]);
     }
 
-    /**
-     * speciesStatsAtTier — calibrated so total enemy HP at tier 10000 ≈ 80 000.
-     *
-     * S1  t ∈ [1,  100] : gentle polynomial (unchanged feel early game)
-     * S2  t ∈ [101,200] : steeper polynomial
-     * S3  t ∈ [201,∞]   : linear ramp, slope tuned so legendary×3 = 80 000 at t=10 000
-     *
-     * Boss tiers: +20% HP / +30% ATK on top.
-     */
     function speciesStatsAtTier(species, tier) {
       const boss      = isBossTier(tier);
-      const BASE_HP   = 33;
-      const ATK_RATIO = 0.40;
-      const BOSS_HP   = 1.20;
-      const BOSS_ATK  = 1.30;
+      const ATK_RATIO = 0.55;          // was 0.40
+      const BOSS_HP   = 1.25;          // was 1.20
+      const BOSS_ATK  = 1.25;          // was 1.30
 
+      // Segments calibrés pour HP total ×3 :
+      //   t=100→500  t=200→2000  t=300→10000  t=500→50000  t=700→80000  t=1000→130000
       const S1_END = 100, S2_END = 200;
-      const S1_SLOPE = 2.5,  S1_POW = 0.95;
-      const S2_SLOPE = 1.5,  S2_POW = 1.35;
-      // S3 slope calibrated: base(10000) = (80000/3)/1.80 ≈ 14815
-      // hp_at_s2 ≈ 981.5  =>  slope = (14815 - 981.5) / (10000 - 200) ≈ 1.4116
-      const S3_SLOPE = 1.4116;
+      const BASE_HP   = 5;
+      const S1_SLOPE  = 0.47,  S1_POW = 1.10;
+      const S2_SLOPE  = 0.80,  S2_POW = 1.60;
 
+      // Valeurs aux charnières (par poisson individuel, avant mult rareté)
       const hp_at_s1 = BASE_HP + S1_SLOPE * Math.pow(S1_END - 1, S1_POW);
       const hp_at_s2 = hp_at_s1 + S2_SLOPE * Math.pow(S2_END - S1_END, S2_POW);
+
+      // Pente S3 : cible t=1000 → 130 000 HP total / 3 poissons = 43 333 par poisson
+      // (avant mult rareté moyenne ≈ 1.0 pour calcul de référence "uncommon")
+      // S3_SLOPE = (43333 - hp_at_s2) / (1000 - 200)
+      const TARGET_1000_PER_FISH = 130000 / 3;
+      const S3_SLOPE = (TARGET_1000_PER_FISH - hp_at_s2) / (1000 - S2_END);
 
       let base;
       if (tier <= S1_END) {
@@ -523,7 +520,7 @@
         base = hp_at_s2 + S3_SLOPE * (tier - S2_END);
       }
 
-      const rarityMult = { common:0.85, uncommon:1.0, rare:1.2, epic:1.45, legendary:1.80 };
+      const rarityMult = { common: 0.85, uncommon: 1.0, rare: 1.2, epic: 1.45, legendary: 1.80 };
       const mult = rarityMult[species.rarity] || 1.0;
 
       const hp  = Math.max(1, Math.round(base * mult * (boss ? BOSS_HP  : 1)));
@@ -555,8 +552,9 @@
       let sizeBonus = 0, weightBonus = 0;
       if (Array.isArray(characterTeam)) {
         characterTeam.forEach(char => {
-          sizeBonus += Number(char.sizeAdd || 0);
-          weightBonus += Number(char.weightAdd || 0);
+          const starsMult = 1 + (Number(char.stars || 1) - 1) * 0.07; // +7% par étoile au-dessus de 1
+          sizeBonus   += Number(char.sizeAdd   || 0) * starsMult;
+          weightBonus += Number(char.weightAdd || 0) * starsMult;
         });
       }
       return { sizeBonus, weightBonus };
@@ -568,11 +566,12 @@
       const bonuses = calculateEnemyTeamBonuses(characterTeam);
       return templates.map((tmpl, i) => {
         const enemy = createTierEnemyFromTemplate(tmpl, i, tier);
-        const hpMult  = 1 + (bonuses.sizeBonus   * 0.005);
-        const atkMult = 1 + (bonuses.weightBonus  * 0.005);
-        enemy.maxHp  = Math.max(1, Math.round(enemy.maxHp  * hpMult));
+        // +12% HP de base via characters, + rampe par étoile (+7%/étoile)
+        const hpBonus  = 0.12 + (bonuses.sizeBonus   * 0.005);
+        const atkBonus = 0.12 + (bonuses.weightBonus  * 0.005);
+        enemy.maxHp  = Math.max(1, Math.round(enemy.maxHp  * (1 + hpBonus)));
         enemy.hp     = enemy.maxHp;
-        enemy.attack = Math.max(1, Math.round(enemy.attack * atkMult));
+        enemy.attack = Math.max(1, Math.round(enemy.attack * (1 + atkBonus)));
         return enemy;
       });
     }
