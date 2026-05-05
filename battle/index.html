@@ -515,14 +515,14 @@
     function speciesStatsAtTier(species, tier) {
       const boss = isBossTier(tier);
 
-      const BASE_HP    = 33;
-      const ATK_RATIO  = 0.40;
-      const BOSS_HP    = 1.20;
-      const BOSS_ATK   = 1.30;
+      const BASE_HP   = 33;
+      const ATK_RATIO = 0.40;
+      const BOSS_HP   = 1.20;
+      const BOSS_ATK  = 1.30;
 
-      const S1_END = 100, S1_SLOPE = 3,  S1_POW = 0.95;
-      const S2_END = 200, S2_SLOPE = 4,  S2_POW = 1.20;
-      const               S3_SLOPE = 3,  S3_POW = 1.40;
+      const S1_END = 100, S1_SLOPE = 2.5, S1_POW = 0.95;
+      const S2_END = 200, S2_SLOPE = 1.5, S2_POW = 1.35;
+      const               S3_SLOPE = 3.0, S3_POW = 1.40;
 
       const hp_at_s1 = BASE_HP + S1_SLOPE * Math.pow(S1_END - 1, S1_POW);
       const hp_at_s2 = hp_at_s1 + S2_SLOPE * Math.pow(S2_END - S1_END, S2_POW);
@@ -536,7 +536,6 @@
         base = hp_at_s2 + S3_SLOPE * Math.pow(tier - S2_END, S3_POW);
       }
 
-      // Variation légère par espèce selon sa rareté
       const rarityMult = { common:0.85, uncommon:1.0, rare:1.2, epic:1.45, legendary:1.80 };
       const mult = rarityMult[species.rarity] || 1.0;
 
@@ -544,6 +543,10 @@
       const atk = Math.max(1, Math.round(base * mult * ATK_RATIO * (boss ? BOSS_ATK : 1)));
 
       return { hp, atk };
+    }
+
+    function getTierScaling(t) {
+      return { hp: 1, atk: 1 };
     }
 
     function createTierEnemyFromTemplate(species, index, tier) {
