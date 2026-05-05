@@ -482,6 +482,23 @@
       return map;
     }
 
+    async function getMemberProfiles(memberIds) {
+      if (!db || !Array.isArray(memberIds) || memberIds.length === 0) return {};
+      const uniqueIds = Array.from(new Set(memberIds.filter(id => !!id)));
+      if (!uniqueIds.length) return {};
+
+      const { data: profiles } = await db.from("profiles").select("player_id, display_name, fish_team, char_team").in("player_id", uniqueIds);
+      const map = {};
+      if (Array.isArray(profiles)) {
+        profiles.forEach(profile => {
+          if (profile && profile.player_id) {
+            map[profile.player_id] = profile;
+          }
+        });
+      }
+      return map;
+    }
+
     // ── LOCAL DATA HELPERS ────────────────────────────────────────────────────
     function getHooks()  { return Math.max(0, Number(localStorage.getItem(HOOKS_KEY)) || 0); }
     function setHooks(v) { localStorage.setItem(HOOKS_KEY, String(Math.max(0, Math.floor(v)))); }
@@ -1004,6 +1021,7 @@
       const m = getMembership();
       const members = safeParseMembers(guild.members);
       const memberNames = await getMemberDisplayNames(members.map(mem => mem.pid));
+      const memberProfiles = await getMemberProfiles(members.map(mem => mem.pid));
       const totalScore = guild.score || computeGuildTotalScore(members);
       const guildPoints = guild.guildPoints || 0;
       const created = guild.created_at
@@ -1016,9 +1034,14 @@
 
       const membersData = members.map((mem, rawIdx) => {
         const isMe = mem.pid === pid;
-        const fish  = isMe ? myFish  : [];
-        const chars = isMe ? myChars : [];
-        const s = isMe ? myScore : computeMemberFallbackScore(mem.pid, rawIdx);
+        const profile = memberProfiles[mem.pid] || null;
+        const fish  = isMe ? myFish : (profile?.fish_team || []);
+        const chars = isMe ? myChars : (profile?.char_team || []);
+        const s = isMe
+          ? myScore
+          : profile
+            ? computePlayerScore(fish, chars)
+            : computeMemberFallbackScore(mem.pid, rawIdx);
         return { ...mem, fish, chars, score: s, rawIdx, guildRank: getGuildRankLabel(mem.role, rawIdx), memberPoints: 0 };
       });
 
