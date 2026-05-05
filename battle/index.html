@@ -1280,13 +1280,11 @@
       const currentTier = Math.max(1, Number(tier) || 1);
       const pool = getEnemyCharacterPoolForTier(currentTier);
       const stars = getEnemyStarsForTier(currentTier);
-      // Progression ralentie : stats augmentent beaucoup moins vite
       const progressionMult = 1 + Math.log1p(currentTier) * 0.10;
 
       return pool.map((character, index) => {
-        // Niveau variable autour du palier (±2)
         const baseLevel = Math.max(1, Math.floor(currentTier / 5) + index);
-        const level = Math.max(1, baseLevel + Math.floor(Math.random() * 5) - 2);
+        const level = Math.min(5, Math.max(1, baseLevel + Math.floor(Math.random() * 5) - 2)); // ← clamp 1–5
         return {
           id: `enemy-char-${currentTier}-${character.id}-${index}`,
           templateId: character.id,
@@ -1295,14 +1293,10 @@
           level,
           incomeMultiplier: 1,
           clickMultiplier: 1,
-          sizeAdd: 0,
-          sizeMult: 1,
-          weightAdd: 0,
-          weightMult: 1,
-          chanceAdd: 0,
-          chanceMult: 1,
-          resaleAdd: 0,
-          resaleMult: 1,
+          sizeAdd: 0, sizeMult: 1,
+          weightAdd: 0, weightMult: 1,
+          chanceAdd: 0, chanceMult: 1,
+          resaleAdd: 0, resaleMult: 1,
           fishingSpeed: Number((1 + progressionMult + index * 0.04).toFixed(2)),
           maxHp: Math.round(60 + currentTier * 3 + stars * 10 + index * 4),
           attack: Math.round(10 + currentTier * 1.2 + stars * 4 + index * 2),
