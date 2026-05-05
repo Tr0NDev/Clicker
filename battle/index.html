@@ -469,12 +469,14 @@
 
     function getTierScaling(t) {
       const tier = Math.max(1, Number(t) || 1);
-      const logMult = 1 + (0.08 * tier) / (1 + 0.003 * tier);
-      const bossSpikeHp  = isBossTier(tier) ? 1.4 : 1.0;
-      const bossSpikeAtk = isBossTier(tier) ? 1.45 : 1.0;
+      // Progression ultra douce : division par 20
+      const logMult = 1 + (0.08 * tier) / (1 + 0.003 * tier) / 20;
+      // Bonus boss très faible
+      const bossSpikeHp  = isBossTier(tier) ? 1.03 : 1.0;
+      const bossSpikeAtk = isBossTier(tier) ? 1.04 : 1.0;
       return {
         hp:  logMult * bossSpikeHp,
-        atk: logMult * bossSpikeAtk
+        atk: (logMult * bossSpikeAtk) * 0.45 // ATK ennemie très réduite
       };
     }
 
@@ -499,7 +501,8 @@
         ? species.weightMin + (species.weightMax - species.weightMin) * 0.92
         : species.weightMin + (species.weightMax - species.weightMin) * 0.75;
       const hp  = Math.max(1, Math.round(sizeBase   * s.hp));
-      const atk = Math.max(1, Math.round(weightBase * s.atk));
+      // ATK ennemie très réduite (poids divisé par 2)
+      const atk = Math.max(1, Math.round((weightBase * s.atk) * 0.5));
       return { hp, atk };
     }
 
@@ -1217,9 +1220,9 @@
     function getEnemyStarsForTier(tier) {
       const currentTier = Math.max(1, Number(tier) || 1);
       if (currentTier <=  4) return 1;
-      if (currentTier <= 12) return 2;
-      if (currentTier <= 25) return 3;
-      if (currentTier <= 45) return 4;
+      if (currentTier <= 49) return 2;
+      if (currentTier <= 99) return 3;
+      if (currentTier <= 149) return 4;
       return 5;
     }
 
@@ -1234,29 +1237,35 @@
       const currentTier = Math.max(1, Number(tier) || 1);
       const pool = getEnemyCharacterPoolForTier(currentTier);
       const stars = getEnemyStarsForTier(currentTier);
-      const progressionMult = 1 + Math.log1p(currentTier) * 0.28;
+      // Progression ralentie : stats augmentent beaucoup moins vite
+      const progressionMult = 1 + Math.log1p(currentTier) * 0.10;
 
-      return pool.map((character, index) => ({
-        id: `enemy-char-${currentTier}-${character.id}-${index}`,
-        templateId: character.id,
-        name: character.name,
-        stars,
-        level: Math.max(1, Math.floor(currentTier / 2) + index),
-        incomeMultiplier: 1,
-        clickMultiplier: 1,
-        sizeAdd: 0,
-        sizeMult: 1,
-        weightAdd: 0,
-        weightMult: 1,
-        chanceAdd: 0,
-        chanceMult: 1,
-        resaleAdd: 0,
-        resaleMult: 1,
-        fishingSpeed: Number((1 + progressionMult + index * 0.12).toFixed(2)),
-        maxHp: Math.round(80 + currentTier * 12 + stars * 18 + index * 10),
-        attack: Math.round(18 + currentTier * 4 + stars * 8 + index * 4),
-        teamSlot: index
-      }));
+      return pool.map((character, index) => {
+        // Niveau variable autour du palier (±2)
+        const baseLevel = Math.max(1, Math.floor(currentTier / 5) + index);
+        const level = Math.max(1, baseLevel + Math.floor(Math.random() * 5) - 2);
+        return {
+          id: `enemy-char-${currentTier}-${character.id}-${index}`,
+          templateId: character.id,
+          name: character.name,
+          stars,
+          level,
+          incomeMultiplier: 1,
+          clickMultiplier: 1,
+          sizeAdd: 0,
+          sizeMult: 1,
+          weightAdd: 0,
+          weightMult: 1,
+          chanceAdd: 0,
+          chanceMult: 1,
+          resaleAdd: 0,
+          resaleMult: 1,
+          fishingSpeed: Number((1 + progressionMult + index * 0.04).toFixed(2)),
+          maxHp: Math.round(60 + currentTier * 3 + stars * 10 + index * 4),
+          attack: Math.round(10 + currentTier * 1.2 + stars * 4 + index * 2),
+          teamSlot: index
+        };
+      });
     }
 
     function renderCharacterCard(char, isEnemy = false) {
