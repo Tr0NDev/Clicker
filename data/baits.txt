@@ -1,4 +1,4 @@
-const allBaits = [
+window.allBaits = [
   // ===== 1 STAR (10 baits) - Small bonuses, simple builds =====
   {id: 1, name: "Worm Niblet", stars: 1, kind: "attack", attack: 2, defense: 0, combo: "none"},
   {id: 2, name: "Tiny Shrimp", stars: 1, kind: "defense", attack: 0, defense: 2, combo: "none"},

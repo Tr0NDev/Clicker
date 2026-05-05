@@ -210,6 +210,7 @@
       <button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
       <button class="nav-button locked-nav-button" onclick="window.location.href='../team/'">Team</button>
       <button class="nav-button locked-nav-button" onclick="window.location.href='../shop/'">Shop</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../bestiary/'">Bestiary</button>
       <button class="nav-button locked-nav-button active-nav-button" onclick="window.location.href='./'">Battle</button>
       <button class="nav-button locked-nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
       <button class="nav-button locked-nav-button" onclick="window.location.href='../missions/'">Missions</button>
@@ -1340,8 +1341,14 @@
 
     function renderEnemyCharacterTeam() {
       if(!enemyCharacterGrid) return;
-      const enemyTeam=(importedBattle&&Array.isArray(importedBattle.exportedTeamChars)&&importedBattle.exportedTeamChars.length>0)
-        ?importedBattle.exportedTeamChars:generateEnemyCharacterTeam(battleTier);
+      let enemyTeam = (importedBattle&&Array.isArray(importedBattle.exportedTeamChars)&&importedBattle.exportedTeamChars.length>0)
+        ? importedBattle.exportedTeamChars.slice()
+        : generateEnemyCharacterTeam(battleTier);
+      enemyTeam.sort((a,b) => {
+        const aSlot = Number.isFinite(Number(a.teamSlot)) ? Number(a.teamSlot) : 999;
+        const bSlot = Number.isFinite(Number(b.teamSlot)) ? Number(b.teamSlot) : 999;
+        return aSlot - bSlot;
+      });
       enemyCharacterGrid.innerHTML="";
       if(!enemyTeam.length){ enemyCharacterGrid.innerHTML='<div class="character-team-empty">Opponent has no character team</div>'; return; }
       enemyTeam.forEach(c=>{ enemyCharacterGrid.appendChild(renderCharacterCard(c,true)); });
@@ -1413,13 +1420,15 @@
 
       let enemies;
       if(importedBattle){
+        const enemyStats = importedBattle.teamStats || importedBattle.exportedTeamStats || { sizeBonus: 0, weightBonus: 0, incomeMultiplier: 1, fishingSpeed: 1 };
+        const enemyIncomeMult = Number(enemyStats.incomeMultiplier || 1);
         enemies=importedBattle.lineup.map((f,i)=>({
           id:`enemy-import-${i}-${Date.now()}`,
           name:f.type||`Enemy ${i+1}`,
           rarity:f.rarity||"common",
-          maxHp:Math.max(1,Math.round(Number(f.size)||1)),
-          hp:Math.max(1,Math.round(Number(f.size)||1)),
-          attack:Math.max(1,Math.round(Number(f.weight)||1)),
+          maxHp: Math.max(1, Math.round((Number(f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) * 0.005) * enemyIncomeMult)),
+          hp:    Math.max(1, Math.round((Number(f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) * 0.005) * enemyIncomeMult)),
+          attack: Math.max(1, Math.round((Number(f.weight)||1) * (1 + Number(enemyStats.weightBonus||0) * 0.005) * enemyIncomeMult)),
           alive:true,
           descriptor:fishDescriptors(f)
         }));
@@ -1518,13 +1527,21 @@
       const opponentName = urlParams.get('opponentName');
       const fishTeamStr = urlParams.get('fishTeam');
       const charTeamStr = urlParams.get('charTeam');
+      const teamStatsStr = urlParams.get('teamStats');
 
       if (opponentId && opponentName && fishTeamStr && charTeamStr) {
         try {
           const fishTeam = JSON.parse(fishTeamStr);
           const charTeam = JSON.parse(charTeamStr);
+          const teamStats = (teamStatsStr && JSON.parse(teamStatsStr)) || null;
 
           // Create imported battle data for PVP
+          const defaultFishingSpeed = (() => {
+            if (!Array.isArray(charTeam) || charTeam.length === 0) return 1;
+            const speeds = charTeam.map(c => Number(c.fishingSpeed || 1)).filter(v => Number.isFinite(v) && v > 0);
+            return speeds.length ? speeds.reduce((sum, v) => sum + v, 0) / speeds.length : 1;
+          })();
+
           importedBattle = {
             lineup: fishTeam.map((f, i) => ({
               uid: `pvp-${i}-${Date.now()}`,
@@ -1534,8 +1551,9 @@
               weight: Math.max(1, Math.round(Number(f.weight) || 1)),
               currentValue: 0, basePrice: 0, price: 0
             })),
-            exportedTeamChars: charTeam,
-            teamStats: { fishingSpeed: 1 } // Default speed for opponent
+            exportedTeamChars: Array.isArray(charTeam) ? charTeam : [],
+            exportedTeamStats: teamStats || { fishingSpeed: defaultFishingSpeed },
+            teamStats: teamStats || { fishingSpeed: defaultFishingSpeed }
           };
 
           // Update UI to show PVP mode

@@ -95,6 +95,7 @@
       <button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
       <button class="nav-button locked-nav-button" onclick="window.location.href='../team/'">Team</button>
       <button class="nav-button locked-nav-button active-nav-button" onclick="window.location.href='./'">Shop</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../bestiary/'">Bestiary</button>
       <button class="nav-button locked-nav-button" onclick="window.location.href='../battle/'">Battle</button>
       <button class="nav-button locked-nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
       <button class="nav-button locked-nav-button" onclick="window.location.href='../missions/'">Missions</button>
@@ -230,6 +231,15 @@
       5: { label: "Legendary (★★★★★)", className: "rarity-legendary" }
     };
 
+    // Load data from files
+    loadDataFiles().then(() => {
+      // Initialize the shop after data is loaded
+      updateMoneyDisplay();
+      updateReserveDisplay();
+      updatePityDisplay();
+      updateDrawButtons();
+    });
+
     function getPity() { return Math.max(0, Math.min(PITY_MAX, Number(localStorage.getItem(PITY_KEY)) || 0)); }
     function setPity(v) { localStorage.setItem(PITY_KEY, String(Math.max(0, Math.min(PITY_MAX, Math.floor(v))))); }
 
@@ -317,70 +327,33 @@
       "anti-synergie":      "Risk/reward: own income x1.35 and own chance -12%."
     };
 
-    const characterPool = [
-      { id: 2,  name: "Ben",      stars: 1 },
-      { id: 3,  name: "Liam",     stars: 1 },
-      { id: 4,  name: "Noah",     stars: 1 },
-      { id: 5,  name: "Owen",     stars: 1 },
-      { id: 6,  name: "Ryan",     stars: 1 },
-      { id: 7,  name: "Leo",      stars: 1 },
-      { id: 8,  name: "Evan",     stars: 1 },
-      { id: 9,  name: "Cole",     stars: 1 },
-      { id: 10, name: "Mason",    stars: 1 },
-      { id: 11, name: "Logan",    stars: 1 },
-      { id: 12, name: "Carter",   stars: 1 },
-      { id: 13, name: "Geoffrey", stars: 1 },
-      { id: 14, name: "Jace",     stars: 1 },
-      { id: 15, name: "Xander",   stars: 1 },
-      { id: 16, name: "Ryder",    stars: 2 },
-      { id: 17, name: "Knox",     stars: 2 },
-      { id: 18, name: "Dante",    stars: 2 },
-      { id: 19, name: "Victor",   stars: 2 },
-      { id: 20, name: "Adrian",   stars: 2 },
-      { id: 21, name: "Orion",    stars: 2 },
-      { id: 22, name: "Phoenix",  stars: 2 },
-      { id: 23, name: "Sterling", stars: 2 },
-      { id: 24, name: "Maverick", stars: 2 },
-      { id: 25, name: "Tristan",  stars: 2 },
-      { id: 26, name: "Roman",    stars: 3 },
-      { id: 27, name: "Apollo",   stars: 3 },
-      { id: 28, name: "Atlas",    stars: 3 },
-      { id: 29, name: "Soren",    stars: 3 },
-      { id: 30, name: "Cyrus",    stars: 3 },
-      { id: 31, name: "Lucian",   stars: 3 },
-      { id: 32, name: "Dany",     stars: 4 },
-      { id: 33, name: "Magnus",   stars: 4 },
-      { id: 34, name: "Zayne",    stars: 4 },
-      { id: 35, name: "Ares",     stars: 5 },
-      { id: 36, name: "Draco",    stars: 5 }
-    ];
+    // Load data from files
+    let baitPool = [];
+    let characterPool = [];
 
-    const baitPool = [
-      { id: 1,  name: "Worm Niblet",   stars: 1, kind: "attack",  attack: 2,  defense: 0,  combo: "none" },
-      { id: 2,  name: "Tiny Shrimp",   stars: 1, kind: "defense", attack: 0,  defense: 2,  combo: "none" },
-      { id: 3,  name: "Soft Algae",    stars: 1, kind: "mixed",   attack: 1,  defense: 0,  combo: "none" },
-      { id: 4,  name: "Bread Crumb",   stars: 1, kind: "mixed",   attack: 1,  defense: 1,  combo: "none" },
-      { id: 5,  name: "Silver Minnow", stars: 1, kind: "attack",  attack: 3,  defense: 0,  combo: "same-species" },
-      { id: 6,  name: "Coral Dust",    stars: 1, kind: "defense", attack: 0,  defense: 3,  combo: "same-rarity" },
-      { id: 7,  name: "Light Foam",    stars: 1, kind: "mixed",   attack: 0,  defense: 1,  combo: "different-species" },
-      { id: 8,  name: "Salt Grain",    stars: 1, kind: "mixed",   attack: 1,  defense: 0,  combo: "same-species" },
-      { id: 9,  name: "Moss Thread",   stars: 1, kind: "defense", attack: 0,  defense: 4,  combo: "heavy-fish" },
-      { id: 10, name: "Bubble Seed",   stars: 1, kind: "attack",  attack: 4,  defense: 0,  combo: "full-line" },
-      { id: 11, name: "River Worm",    stars: 2, kind: "attack",  attack: 5,  defense: 0,  combo: "none" },
-      { id: 12, name: "Blue Shrimp",   stars: 2, kind: "defense", attack: 0,  defense: 5,  combo: "none" },
-      { id: 13, name: "Spark Reed",    stars: 2, kind: "mixed",   attack: 1,  defense: 2,  combo: "none" },
-      { id: 14, name: "Foam Pellet",   stars: 2, kind: "mixed",   attack: 2,  defense: 2,  combo: "same-rarity" },
-      { id: 15, name: "Moon Minnow",   stars: 2, kind: "attack",  attack: 6,  defense: 0,  combo: "same-species" },
-      { id: 16, name: "Shell Powder",  stars: 2, kind: "defense", attack: 0,  defense: 6,  combo: "heavy-fish" },
-      { id: 17, name: "Tide Needle",   stars: 2, kind: "mixed",   attack: 0,  defense: 3,  combo: "different-species" },
-      { id: 18, name: "Storm Grain",   stars: 2, kind: "mixed",   attack: 3,  defense: 1,  combo: "full-line" },
-      { id: 19, name: "Rock Algae",    stars: 2, kind: "defense", attack: 0,  defense: 7,  combo: "same-rarity" },
-      { id: 20, name: "Flash Bait",    stars: 2, kind: "attack",  attack: 7,  defense: 0,  combo: "different-species" },
-      { id: 21, name: "Predator Call", stars: 3, kind: "attack",  attack: 10, defense: 0,  combo: "heavy-fish" },
-      { id: 22, name: "Armor Paste",   stars: 3, kind: "defense", attack: 0,  defense: 10, combo: "same-rarity" },
-      { id: 23, name: "Current Spark", stars: 3, kind: "mixed",   attack: 2,  defense: 4,  combo: "different-species" },
-      { id: 24, name: "Twin Shell",    stars: 3, kind: "mixed",   attack: 4,  defense: 4,  combo: "same-species" }
-    ];
+    async function loadDataFiles() {
+      return new Promise((resolve, reject) => {
+        // Load baits
+        const baitScript = document.createElement('script');
+        baitScript.src = '../data/baits.txt';
+        baitScript.onload = () => {
+          baitPool = window.allBaits;
+
+          // Load characters
+          const charScript = document.createElement('script');
+          charScript.src = '../data/characters.txt';
+          charScript.onload = () => {
+            const allChars = window.allCharacters;
+            characterPool = allChars.map(c => ({ id: c.id, name: c.name, stars: c.stars }));
+            resolve();
+          };
+          charScript.onerror = reject;
+          document.head.appendChild(charScript);
+        };
+        baitScript.onerror = reject;
+        document.head.appendChild(baitScript);
+      });
+    }
 
     const openGachaBtn     = document.getElementById("openGachaBtn");
     const openBaitBtn      = document.getElementById("openBaitBtn");

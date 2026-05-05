@@ -368,6 +368,7 @@
       <button class="nav-button" onclick="location.href='../inventory/'">Inventory</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../team/'">Team</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../shop/'">Shop</button>
+      <button class="nav-button locked-nav-button" onclick="location.href='../bestiary/'">Bestiary</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../battle/'">Battle</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../reproduction/'">Reproduction</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../missions/'">Missions</button>
@@ -456,6 +457,7 @@
     let playerProfile = null;
     let viewingProfileId = null; // Track whose profile we're viewing
     let viewingProfileData = null; // Store current profile data for PVP
+    let memberProfilesCache = {}; // Cache loaded member profiles for fallback
 
     async function getMemberDisplayNames(memberIds) {
       if (!db || !Array.isArray(memberIds) || memberIds.length === 0) return {};
@@ -482,6 +484,19 @@
       return map;
     }
 
+    function normalizeTeamArray(value) {
+      try {
+        if (!value) return [];
+        if (typeof value === "string") {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed) ? parsed : [];
+        }
+        return Array.isArray(value) ? value : [];
+      } catch {
+        return [];
+      }
+    }
+
     async function getMemberProfiles(memberIds) {
       if (!db || !Array.isArray(memberIds) || memberIds.length === 0) return {};
       const uniqueIds = Array.from(new Set(memberIds.filter(id => !!id)));
@@ -492,7 +507,11 @@
       if (Array.isArray(profiles)) {
         profiles.forEach(profile => {
           if (profile && profile.player_id) {
-            map[profile.player_id] = profile;
+            map[profile.player_id] = {
+              ...profile,
+              fish_team: normalizeTeamArray(profile.fish_team),
+              char_team: normalizeTeamArray(profile.char_team)
+            };
           }
         });
       }
@@ -552,6 +571,18 @@
       } catch { return []; }
     }
 
+    function getPlayerTeamStats() {
+      try {
+        const stateRaw = localStorage.getItem(TEAM_STATE_KEY);
+        if (!stateRaw) return null;
+        const state = JSON.parse(stateRaw);
+        if (state && state.totals) {
+          return state.totals;
+        }
+      } catch {}
+      return null;
+    }
+
     // ── SCORE / RANK ─────────────────────────────────────────────────────────
     const RARITY_RANK = { common:1, uncommon:2, rare:3, epic:4, legendary:5 };
 
@@ -568,12 +599,9 @@
       return Math.round(score);
     }
 
-    // Score total de la guilde = somme des scores membres + bonus de taille de guilde
+    // Score total de la guilde = somme des scores de tous les membres
     function computeGuildTotalScore(members) {
-      const memberCount = members.length || 1;
-      // Bonus de base : plus la guilde est grande, plus le bonus est important
-      const sizeBonus = memberCount * 1200;
-      // Somme des scores des membres (fallback déterministe)
+      // Fallback local: utilise le score joueur local, sinon fallback déterministe
       const pid = getPlayerId();
       let membersScore = 0;
       members.forEach((mem, idx) => {
@@ -584,7 +612,7 @@
           membersScore += computeMemberFallbackScore(mem.pid, idx);
         }
       });
-      return Math.round(membersScore + sizeBonus);
+      return Math.round(membersScore);
     }
 
     // Points de guilde : toujours 0 (système à implémenter / progression en jeu)
@@ -688,9 +716,25 @@
         await Promise.all(emptyGuildIds.map(id => db.from(GUILDS_TABLE).delete().eq("id", id)));
       }
 
+      const allMemberIds = Array.from(new Set(validGuilds.flatMap(g => safeParseMembers(g.members).map(mem => mem.pid).filter(Boolean))));
+      const profilesById = await getMemberProfiles(allMemberIds);
+      const currentPlayerId = getPlayerId();
+      const localFish = getPlayerFishTeam();
+      const localChars = getPlayerCharTeam();
+
       allGuilds = validGuilds.map(g => {
         const members = safeParseMembers(g.members);
-        return { ...g, score: computeGuildTotalScore(members), guildPoints: getGuildPoints(g.id) };
+        const score = members.reduce((sum, mem, idx) => {
+          const profile = profilesById[mem.pid] || null;
+          if (profile) {
+            return sum + computePlayerScore(profile.fish_team || [], profile.char_team || []);
+          }
+          if (mem.pid === currentPlayerId) {
+            return sum + computePlayerScore(localFish, localChars);
+          }
+          return sum + computeMemberFallbackScore(mem.pid, idx);
+        }, 0);
+        return { ...g, score: Math.round(score), guildPoints: getGuildPoints(g.id) };
       });
       allGuilds.sort((a,b) => b.score - a.score);
 
@@ -875,9 +919,17 @@
       }
 
       viewingProfileId = memberId;
-      viewingProfileData = profile; // Store for PVP function
-      const fish_team = (profile && profile.fish_team) || [];
-      const char_team = (profile && profile.char_team) || [];
+      const cachedProfile = memberProfilesCache[memberId] || null;
+      const normalizedProfile = profile && profile.player_id
+        ? {
+            ...profile,
+            fish_team: normalizeTeamArray(profile.fish_team),
+            char_team: normalizeTeamArray(profile.char_team)
+          }
+        : cachedProfile;
+      viewingProfileData = normalizedProfile; // Store for PVP function
+      const fish_team = (normalizedProfile && normalizedProfile.fish_team) || [];
+      const char_team = (normalizedProfile && normalizedProfile.char_team) || [];
 
       // Calculate score using saved team data
       let score = 0;
@@ -1022,6 +1074,7 @@
       const members = safeParseMembers(guild.members);
       const memberNames = await getMemberDisplayNames(members.map(mem => mem.pid));
       const memberProfiles = await getMemberProfiles(members.map(mem => mem.pid));
+      memberProfilesCache = memberProfiles;
       const totalScore = guild.score || computeGuildTotalScore(members);
       const guildPoints = guild.guildPoints || 0;
       const created = guild.created_at
@@ -1140,7 +1193,7 @@
             <div class="score-banner-card score-card">
               <div class="sbc-label">Guild Score</div>
               <div class="sbc-value gold">${fmtNum(totalScore)}</div>
-              <div class="sbc-sub">Sum of members + size bonus</div>
+              <div class="sbc-sub">Sum of all member scores</div>
             </div>
             <div class="score-banner-card points-card">
               <div class="sbc-label">Guild Points</div>
@@ -1343,7 +1396,29 @@
 
       const teamData = {
         fish_team: myFish.map(f => ({ uid: f.uid, type: f.type, rarity: f.rarity, size: f.size, weight: f.weight })),
-        char_team: myChars.map(c => ({ id: c.id, name: c.name, stars: c.stars, templateId: c.templateId, talents: c.talents })),
+        char_team: myChars.map(c => ({
+          id: c.id,
+          templateId: c.templateId || c.id,
+          instanceId: c.instanceId || null,
+          name: c.name,
+          stars: c.stars,
+          level: c.level || 1,
+          teamSlot: Number.isInteger(c.teamSlot) ? c.teamSlot : null,
+          talentId: c.talentId || null,
+          talentName: c.talentName || null,
+          talents: Array.isArray(c.talents) ? c.talents : [],
+          incomeMultiplier: Number(c.incomeMultiplier) || 1,
+          clickMultiplier: Number(c.clickMultiplier) || 1,
+          sizeAdd: Number(c.sizeAdd) || 0,
+          sizeMult: Number(c.sizeMult) || 1,
+          weightAdd: Number(c.weightAdd) || 0,
+          weightMult: Number(c.weightMult) || 1,
+          chanceAdd: Number(c.chanceAdd) || 0,
+          chanceMult: Number(c.chanceMult) || 1,
+          resaleAdd: Number(c.resaleAdd) || 0,
+          resaleMult: Number(c.resaleMult) || 1,
+          fishingSpeed: Number(c.fishingSpeed) || 1
+        })),
         updated_at: new Date().toISOString()
       };
 
