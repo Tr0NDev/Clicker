@@ -248,6 +248,20 @@
 
   <div class="panel">
     <h1>Settings</h1>
+    
+    <!-- ACCOUNT SECTION -->
+    <section class="params-panel" style="border: 1px solid #e8c060; background: rgba(232, 192, 96, 0.05); margin-bottom: 20px;">
+      <h2 style="color: #e8c060;">Account</h2>
+      <div id="accountInfo" style="margin: 12px 0; padding: 12px; background: #0c1217; border-radius: 8px; border: 1px solid #2f4d5c;">
+        <div style="font-size: 14px; color: #8dc4e0; margin-bottom: 8px;">
+          <strong>Username:</strong> <span id="usernameDisplay" style="color: #e8c060;">Loading...</span>
+        </div>
+        <button onclick="handleLogout()" style="padding: 8px 16px; background: #4a2730; border: 1px solid #9a5a68; color: #ff9999; border-radius: 8px; cursor: pointer; font-weight: bold;">
+          Logout
+        </button>
+      </div>
+    </section>
+
     <div class="cheater-flag">Cheater: <strong id="cheaterFlag">No</strong></div>
 
     <section class="params-panel">
@@ -658,6 +672,27 @@
     if (!upgradesUnlocked) {
       document.body.classList.add("limited-nav-mode");
     }
+
+    // Display username
+    function initAccountSection() {
+      const username = localStorage.getItem('clicker_username');
+      if (username) {
+        document.getElementById('usernameDisplay').textContent = username;
+      }
+    }
+
+    // Handle logout
+    function handleLogout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('clicker_userId');
+        localStorage.removeItem('clicker_username');
+        alert('Logged out successfully!');
+        window.location.href = '../login/';
+      }
+    }
+
+    // Init on page load
+    initAccountSection();
   </script>
 </body>
 </html>

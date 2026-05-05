@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Clicker</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #111;
+      color: white;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-container {
+      background: #18222a;
+      border: 1px solid #2f4d5c;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
+    }
+
+    .login-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #e8c060;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      color: #8dc4e0;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #667a86;
+      border-radius: 8px;
+      background: #0c1217;
+      color: #eef5f9;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #8dc4e0;
+      background: #142028;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-top: 8px;
+    }
+
+    .btn-primary {
+      background: #2a607a;
+      color: #fff;
+      border: 1px solid #8ec4df;
+    }
+
+    .btn-primary:hover {
+      background: #335a7a;
+    }
+
+    .btn-secondary {
+      background: #263541;
+      color: #fff;
+      border: 1px solid #667a86;
+    }
+
+    .btn-secondary:hover {
+      background: #324555;
+    }
+
+    .error-msg {
+      color: #ff6b6b;
+      font-size: 13px;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .success-msg {
+      color: #7ee787;
+      font-size: 13px;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .toggle-mode {
+      margin-top: 16px;
+      color: #8dc4e0;
+      font-size: 13px;
+    }
+
+    .toggle-mode a {
+      color: #e8c060;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .loading {
+      display: none;
+      color: #8dc4e0;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-title" id="titleText">Login</div>
+
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input type="text" id="usernameInput" class="form-input" placeholder="Enter username" autocomplete="off">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" id="passwordInput" class="form-input" placeholder="Enter password">
+    </div>
+
+    <div class="form-group" id="confirmPassGroup" style="display: none;">
+      <label class="form-label">Confirm Password</label>
+      <input type="password" id="confirmPassInput" class="form-input" placeholder="Confirm password">
+    </div>
+
+    <button class="btn btn-primary" id="submitBtn" onclick="handleLogin()">Login</button>
+    <button class="btn btn-secondary" id="switchBtn" onclick="switchMode()" style="margin-top: 8px;">Create Account</button>
+
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="success-msg" id="successMsg"></div>
+    <div class="loading" id="loadingMsg">Loading...</div>
+
+    <div class="toggle-mode">
+      <span id="toggleText">Don't have an account? <a onclick="switchMode()">Register</a></span>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://vrozpjdyqerpcrwlcdfo.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_moV-dfu5sVohSbQOR6z0zw_BSpcVCHg';
+
+    let db = null;
+    let isLoginMode = true;
+
+    function switchMode() {
+      isLoginMode = !isLoginMode;
+      const titleText = document.getElementById('titleText');
+      const submitBtn = document.getElementById('submitBtn');
+      const switchBtn = document.getElementById('switchBtn');
+      const toggleText = document.getElementById('toggleText');
+      const confirmPassGroup = document.getElementById('confirmPassGroup');
+
+      if (isLoginMode) {
+        titleText.textContent = 'Login';
+        submitBtn.textContent = 'Login';
+        switchBtn.textContent = 'Create Account';
+        toggleText.innerHTML = `Don't have an account? <a onclick="switchMode()">Register</a>`;
+        confirmPassGroup.style.display = 'none';
+      } else {
+        titleText.textContent = 'Register';
+        submitBtn.textContent = 'Create Account';
+        switchBtn.textContent = 'Login';
+        toggleText.innerHTML = `Already have an account? <a onclick="switchMode()">Login</a>`;
+        confirmPassGroup.style.display = 'block';
+      }
+
+      clearMessages();
+      document.getElementById('usernameInput').value = '';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('confirmPassInput').value = '';
+    }
+
+    function showError(msg) {
+      const errorDiv = document.getElementById('errorMsg');
+      errorDiv.textContent = msg;
+      errorDiv.style.display = 'block';
+      document.getElementById('successMsg').style.display = 'none';
+    }
+
+    function showSuccess(msg) {
+      const successDiv = document.getElementById('successMsg');
+      successDiv.textContent = msg;
+      successDiv.style.display = 'block';
+      document.getElementById('errorMsg').style.display = 'none';
+    }
+
+    function clearMessages() {
+      document.getElementById('errorMsg').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'none';
+    }
+
+    function setLoading(isLoading) {
+      document.getElementById('loadingMsg').style.display = isLoading ? 'block' : 'none';
+    }
+
+    function normalizeUsername(username) {
+      return username.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+    }
+
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function handleLogin() {
+      const rawUsername = document.getElementById('usernameInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+      const username = normalizeUsername(rawUsername);
+
+      if (!rawUsername || !password) {
+        showError('Please fill all fields');
+        return;
+      }
+
+      if (username.length < 3) {
+        showError('Username must be at least 3 characters');
+        return;
+      }
+
+      if (password.length < 4) {
+        showError('Password must be at least 4 characters');
+        return;
+      }
+
+      if (!isLoginMode) {
+        const confirmPass = document.getElementById('confirmPassInput').value;
+        if (password !== confirmPass) {
+          showError('Passwords do not match');
+          return;
+        }
+      }
+
+      setLoading(true);
+      clearMessages();
+
+      try {
+        const passwordHash = await hashPassword(password);
+
+        if (isLoginMode) {
+          const { data, error } = await db
+            .from('accounts')
+            .select('user_id, username')
+            .eq('username', username)
+            .eq('password_hash', passwordHash)
+            .single();
+
+          if (error || !data) {
+            showError('Invalid username or password');
+            setLoading(false);
+            return;
+          }
+
+          localStorage.setItem('clicker_userId', data.user_id);
+          localStorage.setItem('clicker_username', data.username);
+
+          showSuccess('Login successful! Redirecting...');
+          setTimeout(() => {
+            window.location.href = '../';
+          }, 1300);
+        } else {
+          const { data: existing, error: existingError } = await db
+            .from('accounts')
+            .select('username')
+            .eq('username', username)
+            .single();
+
+          if (existingError && existingError.code !== 'PGRST116') {
+            showError('Registration failed: ' + existingError.message);
+            setLoading(false);
+            return;
+          }
+
+          if (existing) {
+            showError('Username already taken');
+            setLoading(false);
+            return;
+          }
+
+          const userId = 'user_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+          const { error: insertError } = await db.from('accounts').insert({
+            user_id: userId,
+            username: username,
+            password_hash: passwordHash,
+            created_at: new Date().toISOString()
+          });
+
+          if (insertError) {
+            showError('Registration failed: ' + insertError.message);
+            setLoading(false);
+            return;
+          }
+
+          localStorage.setItem('clicker_userId', userId);
+          localStorage.setItem('clicker_username', username);
+
+          showSuccess('Account created! Redirecting...');
+          setTimeout(() => {
+            window.location.href = '../';
+          }, 1300);
+        }
+      } catch (err) {
+        showError('Error: ' + err.message);
+      }
+
+      setLoading(false);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.supabase || !window.supabase.createClient) {
+        showError('Supabase failed to load. Reload the page.');
+        return;
+      }
+
+      db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleLogin();
+      });
+      document.getElementById('usernameInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleLogin();
+      });
+    });
+  </script>
+</body>
+</html>

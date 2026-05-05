@@ -416,17 +416,43 @@
     let playerProfile = null;
     let viewingProfileId = null; // Track whose profile we're viewing
 
+    async function getMemberDisplayNames(memberIds) {
+      if (!db || !Array.isArray(memberIds) || memberIds.length === 0) return {};
+      const uniqueIds = Array.from(new Set(memberIds.filter(id => !!id)));
+      if (!uniqueIds.length) return {};
+
+      const { data: profileRows } = await db.from("profiles").select("player_id, display_name").in("player_id", uniqueIds);
+      const { data: accountRows } = await db.from("accounts").select("user_id, username").in("user_id", uniqueIds);
+      const map = {};
+
+      if (Array.isArray(profileRows)) {
+        profileRows.forEach(row => {
+          map[row.player_id] = row.display_name || "Player";
+        });
+      }
+      if (Array.isArray(accountRows)) {
+        accountRows.forEach(row => {
+          if (!map[row.user_id]) {
+            map[row.user_id] = row.username || "Player";
+          }
+        });
+      }
+
+      return map;
+    }
+
     // ── LOCAL DATA HELPERS ────────────────────────────────────────────────────
     function getHooks()  { return Math.max(0, Number(localStorage.getItem(HOOKS_KEY)) || 0); }
     function setHooks(v) { localStorage.setItem(HOOKS_KEY, String(Math.max(0, Math.floor(v)))); }
 
     function getPlayerId() {
-      let id = localStorage.getItem(GUILD_PLAYER_ID_KEY);
-      if (!id) {
-        id = "p-" + Date.now() + "-" + Math.random().toString(36).slice(2,10);
-        localStorage.setItem(GUILD_PLAYER_ID_KEY, id);
+      // Check if user is logged in
+      const userId = localStorage.getItem('clicker_userId');
+      if (!userId) {
+        window.location.href = '../login/';
+        return null;
       }
-      return id;
+      return userId;
     }
 
     function getMembership() {
@@ -593,7 +619,7 @@
       const m = getMembership();
       if (m) {
         const mine = allGuilds.find(g => g.id === m.guildId);
-        if (mine) { selectedGuildId = mine.id; renderSidebar(); renderGuildView(mine, true); }
+        if (mine) { selectedGuildId = mine.id; renderSidebar(); renderGuildView(mine, true).catch(console.error); }
       }
     }
 
@@ -637,9 +663,10 @@
         playerProfile = data;
       } else {
         // Create profile if doesn't exist
+        const defaultName = localStorage.getItem("clicker_username") || "Player";
         const { data: newProfile } = await db.from("profiles").insert({
           player_id: pid,
-          display_name: "Player",
+          display_name: defaultName,
           fish_team: [],
           char_team: []
         }).select("*").single();
@@ -725,17 +752,25 @@
     }
 
     // ── VIEW OTHER MEMBER PROFILE ─────────────────────────────────────────────
-    async function viewMemberProfile(memberId, memberName) {
+    async function viewMemberProfile(memberId) {
       if (!db) {
         renderPlayerProfile();
         return;
       }
 
-      const { data: profile, error } = await db.from("profiles").select("*").eq("player_id", memberId).single();
-      
-      if (error || !profile) {
-        // Member not found, show placeholder
-        document.getElementById("rightCol").innerHTML = `<div class="section"><div class="empty-state">${escHtml(memberName)}<br><br>No profile saved</div></div>`;
+      const { data: profile, error: profileError } = await db.from("profiles").select("*").eq("player_id", memberId).single();
+      let displayName = profile?.display_name || "Player";
+      let profileData = profile;
+
+      if ((profileError || !profileData) && db) {
+        const { data: account, error: accountError } = await db.from("accounts").select("username").eq("user_id", memberId).single();
+        if (!accountError && account) {
+          displayName = account.username || displayName;
+        }
+      }
+
+      if (!profileData) {
+        document.getElementById("rightCol").innerHTML = `<div class="section"><div class="empty-state">${escHtml(displayName)}<br><br>No profile saved</div></div>`;
         return;
       }
 
@@ -846,19 +881,20 @@
       const guild = allGuilds.find(g => g.id === id);
       if (!guild) return;
       const m = getMembership();
-      renderGuildView(guild, m?.guildId === id);
+      renderGuildView(guild, m?.guildId === id).catch(console.error);
     }
 
     function setSortMode(mode) {
       currentMemberSort = mode;
       const guild = allGuilds.find(g => g.id === selectedGuildId);
-      if (guild) renderGuildView(guild, getMembership()?.guildId === guild.id);
+      if (guild) renderGuildView(guild, getMembership()?.guildId === guild.id).catch(console.error);
     }
 
-    function renderGuildView(guild, isMine) {
+    async function renderGuildView(guild, isMine) {
       const pid = getPlayerId();
       const m = getMembership();
       const members = safeParseMembers(guild.members);
+      const memberNames = await getMemberDisplayNames(members.map(mem => mem.pid));
       const totalScore = guild.score || computeGuildTotalScore(members);
       const guildPoints = guild.guildPoints || 0;
       const created = guild.created_at
@@ -916,11 +952,15 @@
             ? '<span class="team-slot-empty">Set up in Battle</span>'
             : '<span class="team-slot-empty">No chars</span>';
 
-        return `<div class="member-row ${isMe?"is-me":""}" onclick="viewMemberProfile('${mem.pid}', '${isMe ? "You" : "Player"}')" style="${!isMe || true ? "cursor:pointer;" : ""}">
+        const selfName = isMe
+          ? (playerProfile?.display_name || localStorage.getItem("clicker_username") || memberNames[pid] || "You")
+          : (memberNames[mem.pid] || "Player");
+        const displayName = isMe ? `${selfName} (You)` : selfName;
+        return `<div class="member-row ${isMe?"is-me":""}" onclick="viewMemberProfile('${mem.pid}')" style="${!isMe || true ? "cursor:pointer;" : ""}">
           <div class="member-rank-num">${rankIcon}</div>
           <div class="member-body">
             <div class="member-top">
-              <span class="member-name">${isMe ? "You" : "Player"}</span>
+              <span class="member-name">${escHtml(displayName)}</span>
               ${isMe ? '<span class="me-tag">Me</span>' : ""}
               ${mem.role === "owner" ? '<span class="owner-tag">⚜ Master</span>' : ""}
               <span class="member-guild-rank" style="margin-left:4px;font-size:11px;color:#6a8a9a">${mem.guildRank}</span>
@@ -1142,6 +1182,9 @@
     }
 
     // ── BOOT ──────────────────────────────────────────────────────────────────
+    if (!localStorage.getItem('clicker_userId')) {
+      window.location.href = '../login/';
+    }
     if (localStorage.getItem("clicker_upgradesUnlocked") !== "true") {
       document.body.classList.add("limited-nav-mode");
     }
