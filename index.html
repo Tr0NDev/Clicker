@@ -2,14 +2,11 @@
 <html>
 <head>
   <title>Clicker</title>
-  <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
   j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
   })(window,document,'script','dataLayer','GTM-WRX7NXVH');</script>
-  <!-- End Google Tag Manager -->
-  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-KTGZQBWB6R"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -268,7 +265,6 @@
       font-weight: bold;
     }
 
-    /* FIX 4: Hooks display in header */
     .hooks-display {
       margin: 4px 0 0;
       text-align: center;
@@ -312,89 +308,19 @@
       min-width: 0;
     }
 
-    .team-reminder-slot.active {
-      border-color: #8dc4e0;
-      background: rgba(141, 196, 224, 0.12);
-    }
+    .team-reminder-slot.active { border-color: #8dc4e0; background: rgba(141, 196, 224, 0.12); }
+    .team-reminder-slot.active.rarity-common { border-color: #d9d9d9; background: rgba(217, 217, 217, 0.12); }
+    .team-reminder-slot.active.rarity-uncommon { border-color: #7ee787; background: rgba(126, 231, 135, 0.12); }
+    .team-reminder-slot.active.rarity-rare { border-color: #58a6ff; background: rgba(88, 166, 255, 0.14); }
+    .team-reminder-slot.active.rarity-epic { border-color: #d2a8ff; background: rgba(210, 168, 255, 0.14); }
+    .team-reminder-slot.active.rarity-legendary { border-color: #ffa657; background: rgba(255, 166, 87, 0.16); }
 
-    .team-reminder-slot.active.rarity-common {
-      border-color: #d9d9d9;
-      background: rgba(217, 217, 217, 0.12);
-    }
-
-    .team-reminder-slot.active.rarity-uncommon {
-      border-color: #7ee787;
-      background: rgba(126, 231, 135, 0.12);
-    }
-
-    .team-reminder-slot.active.rarity-rare {
-      border-color: #58a6ff;
-      background: rgba(88, 166, 255, 0.14);
-    }
-
-    .team-reminder-slot.active.rarity-epic {
-      border-color: #d2a8ff;
-      background: rgba(210, 168, 255, 0.14);
-    }
-
-    .team-reminder-slot.active.rarity-legendary {
-      border-color: #ffa657;
-      background: rgba(255, 166, 87, 0.16);
-    }
-
-    .team-reminder-slot-title {
-      font-size: 11px;
-      color: #8dc4e0;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 4px;
-      font-weight: bold;
-    }
-
-    .team-reminder-slot-name {
-      font-size: 13px;
-      color: #f7f0c4;
-      font-weight: bold;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .team-reminder-slot-stats {
-      font-size: 11px;
-      color: #9fb3c1;
-      margin-top: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .team-reminder-title {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #8dc4e0;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
-
-    .team-reminder-body {
-      font-size: 13px;
-      color: #d9ecf8;
-      line-height: 1.4;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .team-reminder-sub {
-      margin-top: 4px;
-      font-size: 12px;
-      color: #9fb3c1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .team-reminder-slot-title { font-size: 11px; color: #8dc4e0; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; font-weight: bold; }
+    .team-reminder-slot-name { font-size: 13px; color: #f7f0c4; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .team-reminder-slot-stats { font-size: 11px; color: #9fb3c1; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .team-reminder-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #8dc4e0; margin-bottom: 6px; font-weight: bold; }
+    .team-reminder-body { font-size: 13px; color: #d9ecf8; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .team-reminder-sub { margin-top: 4px; font-size: 12px; color: #9fb3c1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .center-drag-block {
       width: min(760px, calc(100vw - var(--sidebar-width) - 44px));
@@ -422,285 +348,50 @@
       opacity: 0.45;
     }
 
-    /* Tutorial Styles */
-    body.tutorial-mode {
-      padding: 24px 20px 36px 16px;
-    }
+    body.tutorial-mode { padding: 24px 20px 36px 16px; }
+    body.tutorial-mode .top-bar { display: none; }
+    body.tutorial-mode .team-reminder { display: none; }
+    body.tutorial-mode .upgrades { display: none; }
+    body.tutorial-mode .stats { display: none; }
+    body.tutorial-mode .money-header { display: none; }
+    body.tutorial-mode .center-drag-block { position: static; width: 100%; margin: 0 auto; max-width: 400px; display: flex; flex-direction: column; align-items: center; border: none; background: transparent; box-shadow: none; padding: 0; }
+    body.tutorial-mode .center-drag-grip { display: none; }
+    body.tutorial-mode .fish-panel { max-width: 400px; margin: 40px auto 0; }
+    body.tutorial-mode .content-grid { display: none; }
 
-    body.tutorial-mode .top-bar {
-      display: none;
-    }
+    .tutorial-fish-caught { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: bold; color: #8dc4e0; z-index: 100; text-align: center; display: none; }
+    body.tutorial-mode .tutorial-fish-caught { display: block; }
 
-    body.tutorial-mode .team-reminder {
-      display: none;
-    }
+    .tutorial-initial-dialog { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; background: linear-gradient(135deg, #1a2a35 0%, #0f1519 100%); border: 2px solid #8dc4e0; border-radius: 16px; padding: 32px 28px; max-width: 500px; width: 90%; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); display: none; flex-direction: column; gap: 20px; text-align: center; }
+    body.tutorial-mode .tutorial-initial-dialog { display: flex; }
+    body.tutorial-mode .tutorial-initial-dialog.dismissed { display: none; }
+    .tutorial-initial-dialog-title { font-size: 28px; font-weight: bold; color: #8dc4e0; margin: 0; }
+    .tutorial-initial-dialog-text { font-size: 16px; color: #d9ecf8; line-height: 1.6; margin: 0; }
+    .tutorial-initial-dialog-button { padding: 14px 28px; border: 2px solid #8dc4e0; background: rgba(141, 196, 224, 0.15); color: #8dc4e0; font-weight: bold; font-size: 16px; cursor: pointer; border-radius: 10px; transition: all 0.2s ease; }
+    .tutorial-initial-dialog-button:hover { background: rgba(141, 196, 224, 0.3); box-shadow: 0 0 15px rgba(141, 196, 224, 0.4); }
 
-    body.tutorial-mode .upgrades {
-      display: none;
-    }
+    .tutorial-dialog { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; background: linear-gradient(135deg, #1a2a35 0%, #0f1519 100%); border: 2px solid #8dc4e0; border-radius: 16px; padding: 32px 28px; max-width: 500px; width: 90%; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); display: none; flex-direction: column; gap: 20px; text-align: center; }
+    .tutorial-dialog.show { display: flex; }
+    .tutorial-dialog-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); z-index: 199; display: none; }
+    .tutorial-dialog-backdrop.show { display: block; }
+    .tutorial-dialog-title { font-size: 28px; font-weight: bold; color: #8dc4e0; margin: 0; }
+    .tutorial-dialog-text { font-size: 16px; color: #d9ecf8; line-height: 1.6; margin: 0; }
+    .tutorial-dialog-button { padding: 14px 28px; border: 2px solid #8dc4e0; background: rgba(141, 196, 224, 0.15); color: #8dc4e0; font-weight: bold; font-size: 16px; cursor: pointer; border-radius: 10px; transition: all 0.2s ease; }
+    .tutorial-dialog-button:hover { background: rgba(141, 196, 224, 0.3); box-shadow: 0 0 15px rgba(141, 196, 224, 0.4); }
 
-    body.tutorial-mode .stats {
-      display: none;
-    }
+    .upgrades-unlock-dialog { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; background: linear-gradient(135deg, #1a2a35 0%, #0f1519 100%); border: 2px solid #8dc4e0; border-radius: 16px; padding: 32px 28px; max-width: 500px; width: 90%; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); display: none; flex-direction: column; gap: 20px; text-align: center; }
+    .upgrades-unlock-dialog.show { display: flex; }
+    .upgrades-unlock-dialog-title { font-size: 28px; font-weight: bold; color: #8dc4e0; margin: 0; }
+    .upgrades-unlock-dialog-text { font-size: 16px; color: #d9ecf8; line-height: 1.6; margin: 0; }
+    .upgrades-unlock-dialog-button { padding: 14px 28px; border: 2px solid #8dc4e0; background: rgba(141, 196, 224, 0.15); color: #8dc4e0; font-weight: bold; font-size: 16px; cursor: pointer; border-radius: 10px; transition: all 0.2s ease; }
+    .upgrades-unlock-dialog-button:hover { background: rgba(141, 196, 224, 0.3); box-shadow: 0 0 15px rgba(141, 196, 224, 0.4); }
 
-    body.tutorial-mode .money-header {
-      display: none;
-    }
+    .tutorial-progress { text-align: center; font-size: 18px; color: #8dc4e0; font-weight: bold; margin-top: 20px; }
+    .center-drag-block:hover .center-drag-grip { opacity: 0.72; }
+    .center-drag-block .team-reminder, .center-drag-block .stats, .center-drag-block .fish-panel { max-width: none; margin: 0 0 12px; }
+    .center-drag-block .fish-panel { margin-bottom: 0; }
 
-    body.tutorial-mode .center-drag-block {
-      position: static;
-      width: 100%;
-      margin: 0 auto;
-      max-width: 400px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      border: none;
-      background: transparent;
-      box-shadow: none;
-      padding: 0;
-    }
-
-    body.tutorial-mode .center-drag-grip {
-      display: none;
-    }
-
-    body.tutorial-mode .fish-panel {
-      max-width: 400px;
-      margin: 40px auto 0;
-    }
-
-    body.tutorial-mode .content-grid {
-      display: none;
-    }
-
-    .tutorial-fish-caught {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 48px;
-      font-weight: bold;
-      color: #8dc4e0;
-      z-index: 100;
-      text-align: center;
-      display: none;
-    }
-
-    body.tutorial-mode .tutorial-fish-caught {
-      display: block;
-    }
-
-    .tutorial-initial-dialog {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 200;
-      background: linear-gradient(135deg, #1a2a35 0%, #0f1519 100%);
-      border: 2px solid #8dc4e0;
-      border-radius: 16px;
-      padding: 32px 28px;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
-      display: none;
-      flex-direction: column;
-      gap: 20px;
-      text-align: center;
-    }
-
-    body.tutorial-mode .tutorial-initial-dialog {
-      display: flex;
-    }
-
-    body.tutorial-mode .tutorial-initial-dialog.dismissed {
-      display: none;
-    }
-
-    .tutorial-initial-dialog-title {
-      font-size: 28px;
-      font-weight: bold;
-      color: #8dc4e0;
-      margin: 0;
-    }
-
-    .tutorial-initial-dialog-text {
-      font-size: 16px;
-      color: #d9ecf8;
-      line-height: 1.6;
-      margin: 0;
-    }
-
-    .tutorial-initial-dialog-button {
-      padding: 14px 28px;
-      border: 2px solid #8dc4e0;
-      background: rgba(141, 196, 224, 0.15);
-      color: #8dc4e0;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 10px;
-      transition: all 0.2s ease;
-    }
-
-    .tutorial-initial-dialog-button:hover {
-      background: rgba(141, 196, 224, 0.3);
-      box-shadow: 0 0 15px rgba(141, 196, 224, 0.4);
-    }
-
-    .tutorial-dialog {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 200;
-      background: linear-gradient(135deg, #1a2a35 0%, #0f1519 100%);
-      border: 2px solid #8dc4e0;
-      border-radius: 16px;
-      padding: 32px 28px;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
-      display: none;
-      flex-direction: column;
-      gap: 20px;
-      text-align: center;
-    }
-
-    .tutorial-dialog.show {
-      display: flex;
-    }
-
-    .tutorial-dialog-backdrop {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      z-index: 199;
-      display: none;
-    }
-
-    .tutorial-dialog-backdrop.show {
-      display: block;
-    }
-
-    .tutorial-dialog-title {
-      font-size: 28px;
-      font-weight: bold;
-      color: #8dc4e0;
-      margin: 0;
-    }
-
-    .tutorial-dialog-text {
-      font-size: 16px;
-      color: #d9ecf8;
-      line-height: 1.6;
-      margin: 0;
-    }
-
-    .tutorial-dialog-button {
-      padding: 14px 28px;
-      border: 2px solid #8dc4e0;
-      background: rgba(141, 196, 224, 0.15);
-      color: #8dc4e0;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 10px;
-      transition: all 0.2s ease;
-    }
-
-    .tutorial-dialog-button:hover {
-      background: rgba(141, 196, 224, 0.3);
-      box-shadow: 0 0 15px rgba(141, 196, 224, 0.4);
-    }
-
-    /* Upgrades Unlock Dialog Styles */
-    .upgrades-unlock-dialog {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 200;
-      background: linear-gradient(135deg, #1a2a35 0%, #0f1519 100%);
-      border: 2px solid #8dc4e0;
-      border-radius: 16px;
-      padding: 32px 28px;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
-      display: none;
-      flex-direction: column;
-      gap: 20px;
-      text-align: center;
-    }
-
-    .upgrades-unlock-dialog.show {
-      display: flex;
-    }
-
-    .upgrades-unlock-dialog-title {
-      font-size: 28px;
-      font-weight: bold;
-      color: #8dc4e0;
-      margin: 0;
-    }
-
-    .upgrades-unlock-dialog-text {
-      font-size: 16px;
-      color: #d9ecf8;
-      line-height: 1.6;
-      margin: 0;
-    }
-
-    .upgrades-unlock-dialog-button {
-      padding: 14px 28px;
-      border: 2px solid #8dc4e0;
-      background: rgba(141, 196, 224, 0.15);
-      color: #8dc4e0;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 10px;
-      transition: all 0.2s ease;
-    }
-
-    .upgrades-unlock-dialog-button:hover {
-      background: rgba(141, 196, 224, 0.3);
-      box-shadow: 0 0 15px rgba(141, 196, 224, 0.4);
-    }
-
-    .tutorial-progress {
-      text-align: center;
-      font-size: 18px;
-      color: #8dc4e0;
-      font-weight: bold;
-      margin-top: 20px;
-    }
-
-    .center-drag-block:hover .center-drag-grip {
-      opacity: 0.72;
-    }
-
-    .center-drag-block .team-reminder,
-    .center-drag-block .stats,
-    .center-drag-block .fish-panel {
-      max-width: none;
-      margin: 0 0 12px;
-    }
-
-    .center-drag-block .fish-panel {
-      margin-bottom: 0;
-    }
-
-    #money {
-      font-size: 44px;
-      margin: 0;
-      text-align: center;
-    }
+    #money { font-size: 44px; margin: 0; text-align: center; }
 
     .fish-button {
       width: 100%;
@@ -721,52 +412,15 @@
       box-shadow: 0 0 0 2px rgba(141, 196, 224, 0.15);
       transition: transform 0.08s ease, filter 0.14s ease;
     }
+    .fish-button:hover { filter: brightness(1.08); }
+    .fish-button:active { transform: translateY(1px) scale(0.995); }
 
-    .fish-button:hover {
-      filter: brightness(1.08);
-    }
+    .fish-info { flex: 1; min-width: 0; }
+    .fish-title { font-size: 24px; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fish-subtitle { font-size: 14px; color: #d7e8f2; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fish-price { min-width: 96px; text-align: right; font-size: 28px; font-weight: bold; color: #f7f0c4; }
 
-    .fish-button:active {
-      transform: translateY(1px) scale(0.995);
-    }
-
-    .fish-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .fish-title {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 6px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .fish-subtitle {
-      font-size: 14px;
-      color: #d7e8f2;
-      line-height: 1.4;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .fish-price {
-      min-width: 96px;
-      text-align: right;
-      font-size: 28px;
-      font-weight: bold;
-      color: #f7f0c4;
-    }
-
-    .legend {
-      max-width: 720px;
-      margin: 14px auto 0;
-      color: #aab8c0;
-      font-size: 14px;
-    }
+    .legend { max-width: 720px; margin: 14px auto 0; color: #aab8c0; font-size: 14px; }
 
     .auto-sell-panel {
       width: min(460px, calc(100vw - var(--sidebar-width) - 40px));
@@ -784,183 +438,29 @@
       box-sizing: border-box;
       overflow: hidden;
     }
-
-    .auto-sell-panel.is-collapsed {
-      width: 240px;
-      max-width: 240px;
-      padding-bottom: 12px;
-    }
-
-    .auto-sell-panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .auto-sell-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 17px;
-      color: #e6f4ff;
-      margin-bottom: 0;
-      font-weight: bold;
-      cursor: move;
-      user-select: none;
-      min-width: 0;
-    }
-
-    .auto-sell-title::before {
-      content: "";
-      width: 12px;
-      height: 16px;
-      border-radius: 4px;
-      background-image: radial-gradient(circle, #8fb1c3 1.2px, transparent 1.2px);
-      background-size: 4px 4px;
-      opacity: 0.45;
-      flex: 0 0 auto;
-    }
-
-    .auto-sell-panel:hover .auto-sell-title::before {
-      opacity: 0.72;
-    }
-
-    .auto-sell-collapse-btn {
-      flex: 0 0 auto;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      padding: 0;
-      font-size: 16px;
-      line-height: 1;
-      border-radius: 999px;
-      background: #1b2a33;
-      border-color: #355063;
-      color: #cfe0ea;
-      box-shadow: none;
-      letter-spacing: 0;
-      white-space: nowrap;
-      font-family: inherit;
-      font-weight: bold;
-    }
-
-    .auto-sell-collapse-btn:hover {
-      background: #243541;
-      border-color: #4f7185;
-      color: #ffffff;
-    }
-
-    .auto-sell-collapse-btn:active {
-      transform: translateY(1px);
-    }
-
-    .auto-sell-body {
-      display: grid;
-      gap: 8px;
-    }
-
-    .auto-sell-panel.is-collapsed .auto-sell-body {
-      display: none;
-    }
-
-    .auto-sell-help {
-      font-size: 13px;
-      color: #a9c2d3;
-      margin-bottom: 10px;
-      line-height: 1.4;
-    }
-
-    .auto-sell-label {
-      display: block;
-      font-size: 12px;
-      color: #bdd5e4;
-      margin-bottom: 4px;
-      font-weight: bold;
-    }
-
-    .auto-sell-toggle {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #d9ecf8;
-      font-size: 14px;
-      padding-top: 2px;
-    }
-
-    .auto-sell-row {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
-      align-items: start;
-    }
-
-    .auto-sell-dynamic {
-      grid-column: auto;
-    }
-
-    .auto-sell-row > label {
-      min-width: 0;
-    }
-
-    .auto-sell-hidden {
-      display: none;
-    }
-
-    .auto-sell-row input,
-    .auto-sell-row select {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #4f6978;
-      background: #0f1519;
-      color: #fff;
-    }
-
-    .auto-sell-row input:disabled,
-    .auto-sell-row select:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .auto-sell-toggle input[type="checkbox"] {
-      appearance: none;
-      width: 46px;
-      height: 24px;
-      margin: 0;
-      border-radius: 999px;
-      border: 1px solid #5f7f91;
-      background: #24343f;
-      cursor: pointer;
-      position: relative;
-      transition: background 0.18s ease, border-color 0.18s ease;
-    }
-
-    .auto-sell-toggle input[type="checkbox"]::before {
-      content: "";
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #d9eaf5;
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      transition: transform 0.18s ease, background 0.18s ease;
-    }
-
-    .auto-sell-toggle input[type="checkbox"]:checked {
-      background: #2f9f6a;
-      border-color: #52c58d;
-    }
-
-    .auto-sell-toggle input[type="checkbox"]:checked::before {
-      transform: translateX(22px);
-      background: #ffffff;
-    }
+    .auto-sell-panel.is-collapsed { width: 240px; max-width: 240px; padding-bottom: 12px; }
+    .auto-sell-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+    .auto-sell-title { display: flex; align-items: center; gap: 8px; font-size: 17px; color: #e6f4ff; margin-bottom: 0; font-weight: bold; cursor: move; user-select: none; min-width: 0; }
+    .auto-sell-title::before { content: ""; width: 12px; height: 16px; border-radius: 4px; background-image: radial-gradient(circle, #8fb1c3 1.2px, transparent 1.2px); background-size: 4px 4px; opacity: 0.45; flex: 0 0 auto; }
+    .auto-sell-panel:hover .auto-sell-title::before { opacity: 0.72; }
+    .auto-sell-collapse-btn { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; font-size: 16px; line-height: 1; border-radius: 999px; background: #1b2a33; border-color: #355063; color: #cfe0ea; box-shadow: none; letter-spacing: 0; white-space: nowrap; font-family: inherit; font-weight: bold; }
+    .auto-sell-collapse-btn:hover { background: #243541; border-color: #4f7185; color: #ffffff; }
+    .auto-sell-collapse-btn:active { transform: translateY(1px); }
+    .auto-sell-body { display: grid; gap: 8px; }
+    .auto-sell-panel.is-collapsed .auto-sell-body { display: none; }
+    .auto-sell-help { font-size: 13px; color: #a9c2d3; margin-bottom: 10px; line-height: 1.4; }
+    .auto-sell-label { display: block; font-size: 12px; color: #bdd5e4; margin-bottom: 4px; font-weight: bold; }
+    .auto-sell-toggle { display: flex; align-items: center; gap: 8px; color: #d9ecf8; font-size: 14px; padding-top: 2px; }
+    .auto-sell-row { display: grid; grid-template-columns: 1fr; gap: 8px; align-items: start; }
+    .auto-sell-dynamic { grid-column: auto; }
+    .auto-sell-row > label { min-width: 0; }
+    .auto-sell-hidden { display: none; }
+    .auto-sell-row input, .auto-sell-row select { width: 100%; box-sizing: border-box; padding: 8px; border-radius: 8px; border: 1px solid #4f6978; background: #0f1519; color: #fff; }
+    .auto-sell-row input:disabled, .auto-sell-row select:disabled { opacity: 0.55; cursor: not-allowed; }
+    .auto-sell-toggle input[type="checkbox"] { appearance: none; width: 46px; height: 24px; margin: 0; border-radius: 999px; border: 1px solid #5f7f91; background: #24343f; cursor: pointer; position: relative; transition: background 0.18s ease, border-color 0.18s ease; }
+    .auto-sell-toggle input[type="checkbox"]::before { content: ""; width: 18px; height: 18px; border-radius: 50%; background: #d9eaf5; position: absolute; top: 2px; left: 2px; transition: transform 0.18s ease, background 0.18s ease; }
+    .auto-sell-toggle input[type="checkbox"]:checked { background: #2f9f6a; border-color: #52c58d; }
+    .auto-sell-toggle input[type="checkbox"]:checked::before { transform: translateX(22px); background: #ffffff; }
 
     .rarity-common { color: #d9d9d9; }
     .rarity-uncommon { color: #7ee787; }
@@ -969,160 +469,34 @@
     .rarity-legendary { color: #ffa657; }
 
     @media (max-width: 980px) {
-      body {
-        overflow: hidden;
-        padding: 24px 16px 36px;
-      }
-
-      .shell {
-        min-height: auto;
-      }
-
-      .content-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .fish-panel,
-      .auto-sell-panel {
-        margin: 0 auto;
-      }
-
-      .auto-sell-panel {
-        position: static;
-        left: auto;
-        right: auto;
-        top: auto;
-        z-index: auto;
-        width: 100%;
-        max-width: none;
-      }
-
-      .upgrades {
-        width: 100%;
-        max-width: 720px;
-        margin: 0 auto;
-        position: static;
-        height: auto;
-        max-height: none;
-        overflow-y: auto;
-        padding: 0;
-        background: transparent;
-        border-left: 0;
-      }
-
-      .upgrades-resizer {
-        display: none;
-      }
-
-      .center-drag-block {
-        position: static;
-        left: auto;
-        top: auto;
-        z-index: auto;
-        width: 100%;
-        max-width: 720px;
-        margin: 12px auto 0;
-      }
-
-      .center-drag-grip {
-        display: none;
-      }
+      body { overflow: hidden; padding: 24px 16px 36px; }
+      .shell { min-height: auto; }
+      .content-grid { grid-template-columns: 1fr; }
+      .fish-panel, .auto-sell-panel { margin: 0 auto; }
+      .auto-sell-panel { position: static; left: auto; right: auto; top: auto; z-index: auto; width: 100%; max-width: none; }
+      .upgrades { width: 100%; max-width: 720px; margin: 0 auto; position: static; height: auto; max-height: none; overflow-y: auto; padding: 0; background: transparent; border-left: 0; }
+      .upgrades-resizer { display: none; }
+      .center-drag-block { position: static; left: auto; top: auto; z-index: auto; width: 100%; max-width: 720px; margin: 12px auto 0; }
+      .center-drag-grip { display: none; }
     }
 
-    .nav-button {
-      position: relative;
-      z-index: 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      background: #31414d;
-      color: #eef5f9;
-      border: 1px solid #667a86;
-      padding: 12px 16px;
-      margin: 0;
-      margin-right: 8px;
-      font-size: 15px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-    }
+    .nav-button { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #31414d; color: #eef5f9; border: 1px solid #667a86; padding: 12px 16px; margin: 0; margin-right: 8px; font-size: 15px; border-radius: 12px; cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
+    .nav-button:hover { background: #3a4c59; border-color: #7f95a3; }
+    .nav-button.active-nav-button { background: #dbe3e8; color: #1d2a33; border-color: #dbe3e8; font-weight: bold; z-index: 3; }
+    .settings-nav-button { margin-left: auto; margin-right: 16px; }
+    body.limited-nav-mode .locked-nav-button { display: none; }
 
-    .nav-button:hover {
-      background: #3a4c59;
-      border-color: #7f95a3;
-    }
-
-    .nav-button.active-nav-button {
-      background: #dbe3e8;
-      color: #1d2a33;
-      border-color: #dbe3e8;
-      font-weight: bold;
-      z-index: 3;
-    }
-
-    .settings-nav-button {
-      margin-left: auto;
-      margin-right: 16px;
-    }
-
-    /* Limited navigation mode (after 30 fish, before 10k money) */
-    body.limited-nav-mode .locked-nav-button {
-      display: none;
-    }
-
-    .hook-notification-layer {
-      position: fixed;
-      right: 14px;
-      top: 90px;
-      z-index: 260;
-      display: grid;
-      gap: 8px;
-      pointer-events: none;
-      max-width: min(92vw, 420px);
-    }
-
-    .hook-notification {
-      border: 1px solid #4f89a8;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #123244 0%, #0d2431 100%);
-      color: #dcf3ff;
-      font-size: 13px;
-      line-height: 1.4;
-      padding: 10px 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      opacity: 0;
-      transform: translateX(12px);
-      animation: hookToastIn 0.18s ease forwards;
-    }
-
-    .hook-notification.fade-out {
-      animation: hookToastOut 0.25s ease forwards;
-    }
-
-    .hook-notification-title {
-      font-weight: bold;
-      color: #9ad9ff;
-      margin-bottom: 4px;
-    }
-
-    @keyframes hookToastIn {
-      from { opacity: 0; transform: translateX(12px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-
-    @keyframes hookToastOut {
-      from { opacity: 1; transform: translateX(0); }
-      to { opacity: 0; transform: translateX(18px); }
-    }
+    .hook-notification-layer { position: fixed; right: 14px; top: 90px; z-index: 260; display: grid; gap: 8px; pointer-events: none; max-width: min(92vw, 420px); }
+    .hook-notification { border: 1px solid #4f89a8; border-radius: 10px; background: linear-gradient(135deg, #123244 0%, #0d2431 100%); color: #dcf3ff; font-size: 13px; line-height: 1.4; padding: 10px 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); opacity: 0; transform: translateX(12px); animation: hookToastIn 0.18s ease forwards; }
+    .hook-notification.fade-out { animation: hookToastOut 0.25s ease forwards; }
+    .hook-notification-title { font-weight: bold; color: #9ad9ff; margin-bottom: 4px; }
+    @keyframes hookToastIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes hookToastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(18px); } }
   </style>
 </head>
 
 <body>
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WRX7NXVH"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WRX7NXVH" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   <div class="top-bar">
     <div class="top-nav">
@@ -1141,7 +515,6 @@
   <div class="shell">
     <div class="money-header">
       <h2 id="money">Money: 0</h2>
-      <!-- FIX 4: Hooks display -->
       <div class="hooks-display" id="hooksDisplay">🪝 Hooks: 0</div>
       <div class="money-rate" id="catchPerSecond">Catches per second: 0</div>
     </div>
@@ -1313,234 +686,177 @@
 
     <script>
       const FISH_SPECIES = [
-        { type: "Common carp", rarity: "common", sizeMin: 25, sizeMax: 55, weightMin: 0.8, weightMax: 2.8 },
-        { type: "Swift roach", rarity: "common", sizeMin: 15, sizeMax: 28, weightMin: 0.2, weightMax: 0.9 },
-        { type: "Striped perch", rarity: "common", sizeMin: 18, sizeMax: 35, weightMin: 0.3, weightMax: 1.4 },
-        { type: "Lively bleak", rarity: "common", sizeMin: 10, sizeMax: 18, weightMin: 0.05, weightMax: 0.25 },
-        { type: "Dark tench", rarity: "common", sizeMin: 20, sizeMax: 42, weightMin: 0.5, weightMax: 2.2 },
-        { type: "Silver bream", rarity: "common", sizeMin: 22, sizeMax: 48, weightMin: 0.6, weightMax: 2.4 },
-        { type: "Silver trout", rarity: "uncommon", sizeMin: 28, sizeMax: 58, weightMin: 0.7, weightMax: 3.5 },
-        { type: "Rock bass", rarity: "uncommon", sizeMin: 22, sizeMax: 44, weightMin: 0.8, weightMax: 2.6 },
-        { type: "Noble salmon", rarity: "uncommon", sizeMin: 40, sizeMax: 78, weightMin: 1.8, weightMax: 5.6 },
-        { type: "River char", rarity: "uncommon", sizeMin: 24, sizeMax: 52, weightMin: 0.9, weightMax: 3.1 },
-        { type: "Stealth zander", rarity: "uncommon", sizeMin: 30, sizeMax: 70, weightMin: 1.0, weightMax: 4.8 },
-        { type: "Bright sea bream", rarity: "uncommon", sizeMin: 26, sizeMax: 60, weightMin: 1.2, weightMax: 4.2 },
-        { type: "Bluefin tuna", rarity: "rare", sizeMin: 60, sizeMax: 130, weightMin: 8, weightMax: 35 },
-        { type: "Wild pike", rarity: "rare", sizeMin: 45, sizeMax: 110, weightMin: 2.5, weightMax: 15 },
-        { type: "Sunfish", rarity: "rare", sizeMin: 70, sizeMax: 180, weightMin: 3, weightMax: 45 },
-        { type: "Giant bass", rarity: "rare", sizeMin: 50, sizeMax: 125, weightMin: 3.5, weightMax: 18 },
-        { type: "Marine turbot", rarity: "rare", sizeMin: 40, sizeMax: 100, weightMin: 2.0, weightMax: 12 },
-        { type: "Blue sturgeon", rarity: "rare", sizeMin: 65, sizeMax: 155, weightMin: 7, weightMax: 40 },
-        { type: "Mahi-mahi", rarity: "epic", sizeMin: 70, sizeMax: 160, weightMin: 5, weightMax: 25 },
-        { type: "Rainbow ray", rarity: "epic", sizeMin: 80, sizeMax: 220, weightMin: 10, weightMax: 80 },
-        { type: "Giant grouper", rarity: "epic", sizeMin: 90, sizeMax: 200, weightMin: 15, weightMax: 90 },
-        { type: "Prismatic eel", rarity: "epic", sizeMin: 60, sizeMax: 180, weightMin: 4, weightMax: 30 },
-        { type: "Royal moray", rarity: "epic", sizeMin: 75, sizeMax: 190, weightMin: 8, weightMax: 55 },
-        { type: "Chrome triggerfish", rarity: "epic", sizeMin: 55, sizeMax: 145, weightMin: 6, weightMax: 22 },
-        { type: "Golden shark", rarity: "legendary", sizeMin: 150, sizeMax: 420, weightMin: 40, weightMax: 220 },
-        { type: "Sea dragon", rarity: "legendary", sizeMin: 120, sizeMax: 300, weightMin: 30, weightMax: 180 }
+        { type: "Common carp",       rarity: "common",    sizeMin: 25,  sizeMax: 55,  weightMin: 0.8,  weightMax: 2.8  },
+        { type: "Swift roach",       rarity: "common",    sizeMin: 15,  sizeMax: 28,  weightMin: 0.2,  weightMax: 0.9  },
+        { type: "Striped perch",     rarity: "common",    sizeMin: 18,  sizeMax: 35,  weightMin: 0.3,  weightMax: 1.4  },
+        { type: "Lively bleak",      rarity: "common",    sizeMin: 10,  sizeMax: 18,  weightMin: 0.05, weightMax: 0.25 },
+        { type: "Dark tench",        rarity: "common",    sizeMin: 20,  sizeMax: 42,  weightMin: 0.5,  weightMax: 2.2  },
+        { type: "Silver bream",      rarity: "common",    sizeMin: 22,  sizeMax: 48,  weightMin: 0.6,  weightMax: 2.4  },
+        { type: "Silver trout",      rarity: "uncommon",  sizeMin: 28,  sizeMax: 58,  weightMin: 0.7,  weightMax: 3.5  },
+        { type: "Rock bass",         rarity: "uncommon",  sizeMin: 22,  sizeMax: 44,  weightMin: 0.8,  weightMax: 2.6  },
+        { type: "Noble salmon",      rarity: "uncommon",  sizeMin: 40,  sizeMax: 78,  weightMin: 1.8,  weightMax: 5.6  },
+        { type: "River char",        rarity: "uncommon",  sizeMin: 24,  sizeMax: 52,  weightMin: 0.9,  weightMax: 3.1  },
+        { type: "Stealth zander",    rarity: "uncommon",  sizeMin: 30,  sizeMax: 70,  weightMin: 1.0,  weightMax: 4.8  },
+        { type: "Bright sea bream",  rarity: "uncommon",  sizeMin: 26,  sizeMax: 60,  weightMin: 1.2,  weightMax: 4.2  },
+        { type: "Bluefin tuna",      rarity: "rare",      sizeMin: 60,  sizeMax: 130, weightMin: 8,    weightMax: 35   },
+        { type: "Wild pike",         rarity: "rare",      sizeMin: 45,  sizeMax: 110, weightMin: 2.5,  weightMax: 15   },
+        { type: "Sunfish",           rarity: "rare",      sizeMin: 70,  sizeMax: 180, weightMin: 3,    weightMax: 45   },
+        { type: "Giant bass",        rarity: "rare",      sizeMin: 50,  sizeMax: 125, weightMin: 3.5,  weightMax: 18   },
+        { type: "Marine turbot",     rarity: "rare",      sizeMin: 40,  sizeMax: 100, weightMin: 2.0,  weightMax: 12   },
+        { type: "Blue sturgeon",     rarity: "rare",      sizeMin: 65,  sizeMax: 155, weightMin: 7,    weightMax: 40   },
+        { type: "Mahi-mahi",         rarity: "epic",      sizeMin: 70,  sizeMax: 160, weightMin: 5,    weightMax: 25   },
+        { type: "Rainbow ray",       rarity: "epic",      sizeMin: 80,  sizeMax: 220, weightMin: 10,   weightMax: 80   },
+        { type: "Giant grouper",     rarity: "epic",      sizeMin: 90,  sizeMax: 200, weightMin: 15,   weightMax: 90   },
+        { type: "Prismatic eel",     rarity: "epic",      sizeMin: 60,  sizeMax: 180, weightMin: 4,    weightMax: 30   },
+        { type: "Royal moray",       rarity: "epic",      sizeMin: 75,  sizeMax: 190, weightMin: 8,    weightMax: 55   },
+        { type: "Chrome triggerfish",rarity: "epic",      sizeMin: 55,  sizeMax: 145, weightMin: 6,    weightMax: 22   },
+        { type: "Golden shark",      rarity: "legendary", sizeMin: 150, sizeMax: 420, weightMin: 40,   weightMax: 220  },
+        { type: "Sea dragon",        rarity: "legendary", sizeMin: 120, sizeMax: 300, weightMin: 30,   weightMax: 180  }
       ];
 
       const RARITY_WEIGHTS = [
-        { rarity: "common", weight: 92.6 },
-        { rarity: "uncommon", weight: 6 },
-        { rarity: "rare", weight: 1.2 },
-        { rarity: "epic", weight: 0.18 },
+        { rarity: "common",    weight: 92.6 },
+        { rarity: "uncommon",  weight: 6    },
+        { rarity: "rare",      weight: 1.2  },
+        { rarity: "epic",      weight: 0.18 },
         { rarity: "legendary", weight: 0.02 }
       ];
 
       const ROD_TIERS = [
-        {
-          name: "Classic",
-          desc: "Classic rod: mostly common fish.",
-          multipliers: { common: 1, uncommon: 1, rare: 1, epic: 1, legendary: 1 }
-        },
-        {
-          name: "Amateur",
-          desc: "Slightly boosts rare fish and lowers common fish.",
-          multipliers: { common: 0.78, uncommon: 1.25, rare: 1.8, epic: 2.4, legendary: 3.5 }
-        },
-        {
-          name: "Pro",
-          desc: "Strongly improves rare fish odds.",
-          multipliers: { common: 0.55, uncommon: 1.35, rare: 2.6, epic: 4, legendary: 6.5 }
-        },
-        {
-          name: "Ultimate",
-          desc: "Ultimate rod: much better catch quality.",
-          multipliers: { common: 0.35, uncommon: 1.25, rare: 3.5, epic: 6.5, legendary: 10 }
-        }
+        { name: "Classic",  desc: "Classic rod: mostly common fish.",                         multipliers: { common: 1,    uncommon: 1,    rare: 1,   epic: 1,   legendary: 1   } },
+        { name: "Amateur",  desc: "Slightly boosts rare fish and lowers common fish.",         multipliers: { common: 0.78, uncommon: 1.25, rare: 1.8, epic: 2.4, legendary: 3.5 } },
+        { name: "Pro",      desc: "Strongly improves rare fish odds.",                         multipliers: { common: 0.55, uncommon: 1.35, rare: 2.6, epic: 4,   legendary: 6.5 } },
+        { name: "Ultimate", desc: "Ultimate rod: much better catch quality.",                  multipliers: { common: 0.35, uncommon: 1.25, rare: 3.5, epic: 6.5, legendary: 10  } }
       ];
 
-      const RARITY_MULTIPLIERS = {
-        common: 1,
-        uncommon: 1.35,
-        rare: 1.9,
-        epic: 2.8,
-        legendary: 4.2
-      };
-
+      const RARITY_MULTIPLIERS = { common: 1, uncommon: 1.35, rare: 1.9, epic: 2.8, legendary: 4.2 };
       const RARITY_ORDER = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5 };
 
-      const moneyDisplay = document.getElementById("money");
-      const hooksDisplay = document.getElementById("hooksDisplay");
+      const moneyDisplay          = document.getElementById("money");
+      const hooksDisplay          = document.getElementById("hooksDisplay");
       const catchPerSecondDisplay = document.getElementById("catchPerSecond");
-      const caughtCountDisplay = document.getElementById("caughtCount");
+      const caughtCountDisplay    = document.getElementById("caughtCount");
       const inventoryCountDisplay = document.getElementById("inventoryCount");
       const inventoryTotalValueDisplay = document.getElementById("inventoryTotalValue");
-      const clicker = document.getElementById("clicker");
-      const fishButtonLabel = document.getElementById("fishButtonLabel");
-      const fishDescription = document.getElementById("fishDescription");
-      const fishPrice = document.getElementById("fishPrice");
-      const teamReminderBody = document.getElementById("teamReminderBody");
-      const teamReminderSub = document.getElementById("teamReminderSub");
-      const teamReminderSlots = document.getElementById("teamReminderSlots");
-      const autoSellEnabledInput = document.getElementById("autoSellEnabled");
-      const autoSellModeSelect = document.getElementById("autoSellMode");
-      const autoSellPriceGroup = document.getElementById("autoSellPriceGroup");
-      const autoSellRarityGroup = document.getElementById("autoSellRarityGroup");
+      const clicker               = document.getElementById("clicker");
+      const fishButtonLabel       = document.getElementById("fishButtonLabel");
+      const fishDescription       = document.getElementById("fishDescription");
+      const fishPrice             = document.getElementById("fishPrice");
+      const teamReminderBody      = document.getElementById("teamReminderBody");
+      const teamReminderSub       = document.getElementById("teamReminderSub");
+      const teamReminderSlots     = document.getElementById("teamReminderSlots");
+      const autoSellEnabledInput  = document.getElementById("autoSellEnabled");
+      const autoSellModeSelect    = document.getElementById("autoSellMode");
+      const autoSellPriceGroup    = document.getElementById("autoSellPriceGroup");
+      const autoSellRarityGroup   = document.getElementById("autoSellRarityGroup");
       const autoSellMaxPriceInput = document.getElementById("autoSellMaxPrice");
       const autoSellMaxRaritySelect = document.getElementById("autoSellMaxRarity");
-      const autoSellPanel = document.querySelector(".auto-sell-panel");
-      const autoSellTitle = document.querySelector(".auto-sell-title");
+      const autoSellPanel         = document.querySelector(".auto-sell-panel");
+      const autoSellTitle         = document.querySelector(".auto-sell-title");
       const autoSellTogglePanelBtn = document.getElementById("autoSellTogglePanelBtn");
-      const centerDragBlock = document.getElementById("centerDragBlock");
-      const centerDragGrip = document.getElementById("centerDragGrip");
-      const upgradesPanel = document.querySelector(".upgrades");
-      const upgradesResizer = document.querySelector(".upgrades-resizer");
-      const tripleHookUpgrade = document.getElementById("tripleHookUpgrade");
-      const rodUpgrade = document.getElementById("rodUpgrade");
-      const sizeUpgrade = document.getElementById("sizeUpgrade");
-      const autoUpgrade = document.getElementById("autoUpgrade");
-      const weightUpgrade = document.getElementById("weightUpgrade");
-      const waitUpgrade = document.getElementById("waitUpgrade");
+      const centerDragBlock       = document.getElementById("centerDragBlock");
+      const centerDragGrip        = document.getElementById("centerDragGrip");
+      const upgradesPanel         = document.querySelector(".upgrades");
+      const upgradesResizer       = document.querySelector(".upgrades-resizer");
+      const tripleHookUpgrade     = document.getElementById("tripleHookUpgrade");
+      const rodUpgrade            = document.getElementById("rodUpgrade");
+      const sizeUpgrade           = document.getElementById("sizeUpgrade");
+      const autoUpgrade           = document.getElementById("autoUpgrade");
+      const weightUpgrade         = document.getElementById("weightUpgrade");
+      const waitUpgrade           = document.getElementById("waitUpgrade");
       const tripleHookUpgradeCount = document.getElementById("tripleHookUpgradeCount");
-      const rodUpgradeCount = document.getElementById("rodUpgradeCount");
-      const sizeUpgradeCount = document.getElementById("sizeUpgradeCount");
-      const autoUpgradeCount = document.getElementById("autoUpgradeCount");
-      const weightUpgradeCount = document.getElementById("weightUpgradeCount");
-      const waitUpgradeCount = document.getElementById("waitUpgradeCount");
+      const rodUpgradeCount       = document.getElementById("rodUpgradeCount");
+      const sizeUpgradeCount      = document.getElementById("sizeUpgradeCount");
+      const autoUpgradeCount      = document.getElementById("autoUpgradeCount");
+      const weightUpgradeCount    = document.getElementById("weightUpgradeCount");
+      const waitUpgradeCount      = document.getElementById("waitUpgradeCount");
       const tripleHookUpgradeCost = document.getElementById("tripleHookUpgradeCost");
-      const rodUpgradeCost = document.getElementById("rodUpgradeCost");
-      const fishPerClickLabel = document.getElementById("fishPerClickLabel");
-      const rodTierLabel = document.getElementById("rodTierLabel");
-      const rodUpgradeDesc = document.getElementById("rodUpgradeDesc");
-      const sizeUpgradeCost = document.getElementById("sizeUpgradeCost");
-      const autoUpgradeCost = document.getElementById("autoUpgradeCost");
-      const weightUpgradeCost = document.getElementById("weightUpgradeCost");
-      const waitUpgradeCost = document.getElementById("waitUpgradeCost");
-      const autoDelayLabel = document.getElementById("autoDelayLabel");
-      const tutorialDialog = document.getElementById("tutorialDialog");
-      const tutorialBackdrop = document.getElementById("tutorialBackdrop");
+      const rodUpgradeCost        = document.getElementById("rodUpgradeCost");
+      const fishPerClickLabel     = document.getElementById("fishPerClickLabel");
+      const rodTierLabel          = document.getElementById("rodTierLabel");
+      const rodUpgradeDesc        = document.getElementById("rodUpgradeDesc");
+      const sizeUpgradeCost       = document.getElementById("sizeUpgradeCost");
+      const autoUpgradeCost       = document.getElementById("autoUpgradeCost");
+      const weightUpgradeCost     = document.getElementById("weightUpgradeCost");
+      const waitUpgradeCost       = document.getElementById("waitUpgradeCost");
+      const autoDelayLabel        = document.getElementById("autoDelayLabel");
+      const tutorialDialog        = document.getElementById("tutorialDialog");
+      const tutorialBackdrop      = document.getElementById("tutorialBackdrop");
       const tutorialInitialDialog = document.getElementById("tutorialInitialDialog");
-      const tutorialConfirmBtn = document.getElementById("tutorialConfirmBtn");
+      const tutorialConfirmBtn    = document.getElementById("tutorialConfirmBtn");
       const tutorialInitialConfirmBtn = document.getElementById("tutorialInitialConfirmBtn");
-      const tutorialCaughtCount = document.getElementById("tutorialCaughtCount");
-      const tutorialFishCaught = document.getElementById("tutorialFishCaught");
+      const tutorialCaughtCount   = document.getElementById("tutorialCaughtCount");
+      const tutorialFishCaught    = document.getElementById("tutorialFishCaught");
       const tutorialFishCaughtCount = document.getElementById("tutorialFishCaughtCount");
-      const upgradesUnlockDialog = document.getElementById("upgradesUnlockDialog");
+      const upgradesUnlockDialog  = document.getElementById("upgradesUnlockDialog");
       const upgradesUnlockConfirmBtn = document.getElementById("upgradesUnlockConfirmBtn");
       const hookNotificationLayer = document.getElementById("hookNotificationLayer");
 
-      let money = Number(localStorage.getItem("clicker_money")) || 0;
-      let hooks = Number(localStorage.getItem("clicker_hooks")) || 0;
-      let caughtCount = Number(localStorage.getItem("clicker_caughtCount")) || 0;
-      let epicCaughtCount = Number(localStorage.getItem("clicker_epicCaught")) || 0;
-      let legendaryCaughtCount = Number(localStorage.getItem("clicker_legendaryCaught")) || 0;
-      let tutorialCompleted = localStorage.getItem("clicker_tutorialCompleted") === "true";
-      let upgradesUnlocked = localStorage.getItem("clicker_upgradesUnlocked") === "true";
-      let sizeBoostLevel = Number(localStorage.getItem("clicker_sizeBoostLevel")) || 0;
-      let autoFisherLevel = Number(localStorage.getItem("clicker_autoFisherLevel")) || 0;
-      let weightBoostLevel = Number(localStorage.getItem("clicker_weightBoostLevel")) || 0;
+      let money               = Number(localStorage.getItem("clicker_money"))               || 0;
+      let hooks               = Number(localStorage.getItem("clicker_hooks"))               || 0;
+      let caughtCount         = Number(localStorage.getItem("clicker_caughtCount"))         || 0;
+      let epicCaughtCount     = Number(localStorage.getItem("clicker_epicCaught"))          || 0;
+      let legendaryCaughtCount= Number(localStorage.getItem("clicker_legendaryCaught"))     || 0;
+      let tutorialCompleted   = localStorage.getItem("clicker_tutorialCompleted")  === "true";
+      let upgradesUnlocked    = localStorage.getItem("clicker_upgradesUnlocked")   === "true";
+      let sizeBoostLevel      = Number(localStorage.getItem("clicker_sizeBoostLevel"))      || 0;
+      let autoFisherLevel     = Number(localStorage.getItem("clicker_autoFisherLevel"))     || 0;
+      let weightBoostLevel    = Number(localStorage.getItem("clicker_weightBoostLevel"))    || 0;
       let autoWaitReductionLevel = Number(localStorage.getItem("clicker_autoWaitReductionLevel")) || 0;
-      let tripleHookLevel = Number(localStorage.getItem("clicker_tripleHookLevel")) || 0;
-      let rodTierLevel = Number(localStorage.getItem("clicker_rodTierLevel")) || 0;
-      let inventory = [];
-      let autoSellEnabled = localStorage.getItem("clicker_autoSellEnabled") === "true";
-      let autoSellMode = localStorage.getItem("clicker_autoSellMode") || "price";
-      let upgradesWidth = Number(localStorage.getItem("clicker_upgradesWidth")) || 420;
-      let autoSellMaxPrice = Number(localStorage.getItem("clicker_autoSellMaxPrice"));
-      let autoSellMaxRarity = localStorage.getItem("clicker_autoSellMaxRarity") || "common";
+      let tripleHookLevel     = Number(localStorage.getItem("clicker_tripleHookLevel"))     || 0;
+      let rodTierLevel        = Number(localStorage.getItem("clicker_rodTierLevel"))        || 0;
+      let inventory           = [];
+      let autoSellEnabled     = localStorage.getItem("clicker_autoSellEnabled") === "true";
+      let autoSellMode        = localStorage.getItem("clicker_autoSellMode") || "price";
+      let upgradesWidth       = Number(localStorage.getItem("clicker_upgradesWidth"))       || 420;
+      let autoSellMaxPrice    = Number(localStorage.getItem("clicker_autoSellMaxPrice"));
+      let autoSellMaxRarity   = localStorage.getItem("clicker_autoSellMaxRarity") || "common";
       let autoSellPanelCollapsed = localStorage.getItem("clicker_autoSellPanelCollapsed") === "true";
+      let lastAutoCatchMs     = Number(localStorage.getItem("clicker_lastAutoCatchMs"))     || Date.now();
+      let lastManualCatchMs   = 0;
+      let inventoryTurn       = Number(localStorage.getItem("clicker_inventoryTurn"))       || 0;
+      let scheduledCatches    = [];
 
-      // FIX 1: Track when we left so auto-fisher catches up on return
-      let lastAutoCatchMs = Number(localStorage.getItem("clicker_lastAutoCatchMs")) || Date.now();
-      let lastManualCatchMs = 0;
-      let inventoryTurn = Number(localStorage.getItem("clicker_inventoryTurn")) || 0;
-
-      // FIX 3: Scheduled catch times for smooth spam distribution
-      let scheduledCatches = [];
-
-      const TEAM_STATE_STORAGE_KEY = "clicker_teamState";
-      const TEAM_ROSTER_STORAGE_KEY = "clicker_teamRoster";
+      const TEAM_STATE_STORAGE_KEY        = "clicker_teamState";
+      const TEAM_ROSTER_STORAGE_KEY       = "clicker_teamRoster";
       const AUTO_SELL_PANEL_POS_VERSION_KEY = "clicker_autoSellPanelPosVersion";
-      const CENTER_BLOCK_POS_VERSION_KEY = "clicker_centerBlockPosVersion";
+      const CENTER_BLOCK_POS_VERSION_KEY  = "clicker_centerBlockPosVersion";
       const FLOATING_LAYER_MIN = 24;
       const FLOATING_LAYER_MAX = 55;
       const floatingPanels = [centerDragBlock, autoSellPanel, upgradesPanel].filter(Boolean);
       let nextFloatingLayer = 31;
 
-      const defaultTeamBonuses = {
-        incomeMultiplier: 1,
-        clickMultiplier: 1,
-        sizeBonus: 0,
-        weightBonus: 0,
-        chanceBonus: 0,
-        resaleBonus: 0,
-        fishingSpeed: 1
-      };
-
+      const defaultTeamBonuses = { incomeMultiplier: 1, clickMultiplier: 1, sizeBonus: 0, weightBonus: 0, chanceBonus: 0, resaleBonus: 0, fishingSpeed: 1 };
       let teamBonuses = loadTeamBonuses();
 
-      if (Number.isNaN(autoSellMaxPrice)) {
-        autoSellMaxPrice = 25;
-      }
-
-      if (autoSellMode !== "price" && autoSellMode !== "rarity" && autoSellMode !== "all") {
-        autoSellMode = "price";
-      }
+      if (Number.isNaN(autoSellMaxPrice)) autoSellMaxPrice = 25;
+      if (autoSellMode !== "price" && autoSellMode !== "rarity" && autoSellMode !== "all") autoSellMode = "price";
 
       function clampUpgradesWidth(value) {
         const maxWidth = Math.max(320, Math.floor(window.innerWidth * 0.58));
         return Math.min(maxWidth, Math.max(320, Math.floor(value)));
       }
 
-      function isCompactLayout() {
-        return window.matchMedia("(max-width: 980px)").matches;
-      }
+      function isCompactLayout() { return window.matchMedia("(max-width: 980px)").matches; }
 
       function clampAutoSellPosition(left, top) {
-        if (!autoSellPanel) {
-          return { left: 12, top: 84 };
-        }
+        if (!autoSellPanel) return { left: 12, top: 84 };
         const panelWidth = autoSellPanel.offsetWidth || 460;
         const panelHeight = autoSellPanel.offsetHeight || 220;
-        const minLeft = 8;
-        const minTop = 56;
+        const minLeft = 8, minTop = 56;
         const maxLeft = Math.max(minLeft, window.innerWidth - panelWidth - 8);
-        const maxTop = Math.max(minTop, window.innerHeight - panelHeight - 8);
-        return {
-          left: Math.min(maxLeft, Math.max(minLeft, Math.floor(left))),
-          top: Math.min(maxTop, Math.max(minTop, Math.floor(top)))
-        };
+        const maxTop  = Math.max(minTop,  window.innerHeight - panelHeight - 8);
+        return { left: Math.min(maxLeft, Math.max(minLeft, Math.floor(left))), top: Math.min(maxTop, Math.max(minTop, Math.floor(top))) };
       }
 
       function setAutoSellPosition(left, top, persist) {
         if (!autoSellPanel) return;
-        if (isCompactLayout()) {
-          autoSellPanel.style.left = "";
-          autoSellPanel.style.right = "";
-          autoSellPanel.style.top = "";
-          return;
-        }
+        if (isCompactLayout()) { autoSellPanel.style.left = ""; autoSellPanel.style.right = ""; autoSellPanel.style.top = ""; return; }
         const next = clampAutoSellPosition(left, top);
         autoSellPanel.style.right = "auto";
         autoSellPanel.style.left = `${next.left}px`;
-        autoSellPanel.style.top = `${next.top}px`;
-        if (persist) {
-          localStorage.setItem("clicker_autoSellPanelLeft", String(next.left));
-          localStorage.setItem("clicker_autoSellPanelTop", String(next.top));
-        }
+        autoSellPanel.style.top  = `${next.top}px`;
+        if (persist) { localStorage.setItem("clicker_autoSellPanelLeft", String(next.left)); localStorage.setItem("clicker_autoSellPanelTop", String(next.top)); }
       }
 
       function setAutoSellPanelCollapsed(collapsed, persist) {
@@ -1552,59 +868,40 @@
           autoSellTogglePanelBtn.setAttribute("aria-label", autoSellPanelCollapsed ? "Show auto-sell panel" : "Hide auto-sell panel");
           autoSellTogglePanelBtn.setAttribute("aria-expanded", String(!autoSellPanelCollapsed));
         }
-        if (persist) {
-          localStorage.setItem("clicker_autoSellPanelCollapsed", String(autoSellPanelCollapsed));
-        }
+        if (persist) localStorage.setItem("clicker_autoSellPanelCollapsed", String(autoSellPanelCollapsed));
       }
 
       function clampCenterBlockPosition(left, top) {
         if (!centerDragBlock) return { left: 16, top: 150 };
         const blockWidth = centerDragBlock.offsetWidth || 760;
         const blockHeight = centerDragBlock.offsetHeight || 360;
-        const minLeft = 8;
-        const minTop = 56;
+        const minLeft = 8, minTop = 56;
         const maxLeft = Math.max(minLeft, window.innerWidth - blockWidth - 8);
-        const maxTop = Math.max(minTop, window.innerHeight - blockHeight - 8);
-        return {
-          left: Math.min(maxLeft, Math.max(minLeft, Math.floor(left))),
-          top: Math.min(maxTop, Math.max(minTop, Math.floor(top)))
-        };
+        const maxTop  = Math.max(minTop,  window.innerHeight - blockHeight - 8);
+        return { left: Math.min(maxLeft, Math.max(minLeft, Math.floor(left))), top: Math.min(maxTop, Math.max(minTop, Math.floor(top))) };
       }
 
       function setCenterBlockPosition(left, top, persist) {
         if (!centerDragBlock) return;
-        if (isCompactLayout()) {
-          centerDragBlock.style.left = "";
-          centerDragBlock.style.top = "";
-          return;
-        }
+        if (isCompactLayout()) { centerDragBlock.style.left = ""; centerDragBlock.style.top = ""; return; }
         const next = clampCenterBlockPosition(left, top);
         centerDragBlock.style.left = `${next.left}px`;
-        centerDragBlock.style.top = `${next.top}px`;
-        if (persist) {
-          localStorage.setItem("clicker_centerBlockLeft", String(next.left));
-          localStorage.setItem("clicker_centerBlockTop", String(next.top));
-        }
+        centerDragBlock.style.top  = `${next.top}px`;
+        if (persist) { localStorage.setItem("clicker_centerBlockLeft", String(next.left)); localStorage.setItem("clicker_centerBlockTop", String(next.top)); }
       }
 
       function setUpgradesWidth(value, persist) {
         upgradesWidth = clampUpgradesWidth(value);
         document.documentElement.style.setProperty("--sidebar-width", upgradesWidth + "px");
-        if (persist) {
-          localStorage.setItem("clicker_upgradesWidth", String(upgradesWidth));
-        }
+        if (persist) localStorage.setItem("clicker_upgradesWidth", String(upgradesWidth));
       }
 
       function bringFloatingPanelToFront(panel) {
         if (!panel || isCompactLayout()) return;
         nextFloatingLayer += 1;
         if (nextFloatingLayer > FLOATING_LAYER_MAX) {
-          floatingPanels
-            .slice()
-            .sort((left, right) => (Number(left.style.zIndex) || FLOATING_LAYER_MIN) - (Number(right.style.zIndex) || FLOATING_LAYER_MIN))
-            .forEach((entry, index) => {
-              entry.style.zIndex = String(FLOATING_LAYER_MIN + index);
-            });
+          floatingPanels.slice().sort((a, b) => (Number(a.style.zIndex) || FLOATING_LAYER_MIN) - (Number(b.style.zIndex) || FLOATING_LAYER_MIN))
+            .forEach((entry, index) => { entry.style.zIndex = String(FLOATING_LAYER_MIN + index); });
           nextFloatingLayer = FLOATING_LAYER_MIN + floatingPanels.length;
         }
         panel.style.zIndex = String(nextFloatingLayer);
@@ -1615,8 +912,7 @@
       function getDefaultAutoSellPosition() {
         if (!autoSellPanel) return { left: 12, top: 84 };
         const panelWidth = autoSellPanel.offsetWidth || 460;
-        const rightReserved = upgradesWidth + 20;
-        const left = Math.max(8, Math.floor(window.innerWidth - rightReserved - panelWidth - 12));
+        const left = Math.max(8, Math.floor(window.innerWidth - (upgradesWidth + 20) - panelWidth - 12));
         return { left, top: 84 };
       }
 
@@ -1628,191 +924,110 @@
       }
 
       const storedAutoSellLeft = Number(localStorage.getItem("clicker_autoSellPanelLeft"));
-      const storedAutoSellTop = Number(localStorage.getItem("clicker_autoSellPanelTop"));
-      const panelPosVersion = Number(localStorage.getItem(AUTO_SELL_PANEL_POS_VERSION_KEY)) || 0;
+      const storedAutoSellTop  = Number(localStorage.getItem("clicker_autoSellPanelTop"));
+      const panelPosVersion    = Number(localStorage.getItem(AUTO_SELL_PANEL_POS_VERSION_KEY)) || 0;
       let initialAutoSellPosition = {
         left: Number.isFinite(storedAutoSellLeft) ? storedAutoSellLeft : getDefaultAutoSellPosition().left,
-        top: Number.isFinite(storedAutoSellTop) ? storedAutoSellTop : 84
+        top:  Number.isFinite(storedAutoSellTop)  ? storedAutoSellTop  : 84
       };
-
       if (panelPosVersion < 2) {
         initialAutoSellPosition = getDefaultAutoSellPosition();
         localStorage.setItem(AUTO_SELL_PANEL_POS_VERSION_KEY, "2");
         localStorage.setItem("clicker_autoSellPanelLeft", String(initialAutoSellPosition.left));
-        localStorage.setItem("clicker_autoSellPanelTop", String(initialAutoSellPosition.top));
+        localStorage.setItem("clicker_autoSellPanelTop",  String(initialAutoSellPosition.top));
       }
-
       setAutoSellPosition(initialAutoSellPosition.left, initialAutoSellPosition.top, false);
       setAutoSellPanelCollapsed(autoSellPanelCollapsed, false);
 
       const storedCenterBlockLeft = Number(localStorage.getItem("clicker_centerBlockLeft"));
-      const storedCenterBlockTop = Number(localStorage.getItem("clicker_centerBlockTop"));
+      const storedCenterBlockTop  = Number(localStorage.getItem("clicker_centerBlockTop"));
       const centerBlockPosVersion = Number(localStorage.getItem(CENTER_BLOCK_POS_VERSION_KEY)) || 0;
       let initialCenterBlockPosition = {
         left: Number.isFinite(storedCenterBlockLeft) ? storedCenterBlockLeft : getDefaultCenterBlockPosition().left,
-        top: Number.isFinite(storedCenterBlockTop) ? storedCenterBlockTop : 150
+        top:  Number.isFinite(storedCenterBlockTop)  ? storedCenterBlockTop  : 150
       };
-
       if (centerBlockPosVersion < 1) {
         initialCenterBlockPosition = getDefaultCenterBlockPosition();
         localStorage.setItem(CENTER_BLOCK_POS_VERSION_KEY, "1");
         localStorage.setItem("clicker_centerBlockLeft", String(initialCenterBlockPosition.left));
-        localStorage.setItem("clicker_centerBlockTop", String(initialCenterBlockPosition.top));
+        localStorage.setItem("clicker_centerBlockTop",  String(initialCenterBlockPosition.top));
       }
-
       setCenterBlockPosition(initialCenterBlockPosition.left, initialCenterBlockPosition.top, false);
 
       if (!isCompactLayout()) {
         if (centerDragBlock) centerDragBlock.style.zIndex = "24";
-        if (autoSellPanel) autoSellPanel.style.zIndex = "25";
-        if (upgradesPanel) upgradesPanel.style.zIndex = "30";
+        if (autoSellPanel)   autoSellPanel.style.zIndex   = "25";
+        if (upgradesPanel)   upgradesPanel.style.zIndex   = "30";
       }
 
       if (autoSellPanel && autoSellTitle) {
-        let isDraggingAutoSell = false;
-        let dragOffsetX = 0;
-        let dragOffsetY = 0;
-
+        let isDraggingAutoSell = false, dragOffsetX = 0, dragOffsetY = 0;
         if (autoSellTogglePanelBtn) {
-          autoSellTogglePanelBtn.addEventListener("click", (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            setAutoSellPanelCollapsed(!autoSellPanelCollapsed, true);
-          });
+          autoSellTogglePanelBtn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); setAutoSellPanelCollapsed(!autoSellPanelCollapsed, true); });
         }
-
-        autoSellPanel.addEventListener("mousedown", (event) => {
+        autoSellPanel.addEventListener("mousedown", (e) => {
           if (isCompactLayout()) return;
           bringFloatingPanelToFront(autoSellPanel);
-          const interactiveTarget = event.target.closest("input, select, option, button, a, label");
-          if (interactiveTarget) return;
-          event.preventDefault();
+          if (e.target.closest("input, select, option, button, a, label")) return;
+          e.preventDefault();
           const rect = autoSellPanel.getBoundingClientRect();
-          dragOffsetX = event.clientX - rect.left;
-          dragOffsetY = event.clientY - rect.top;
-          isDraggingAutoSell = true;
-          document.body.style.userSelect = "none";
-          document.body.style.cursor = "move";
+          dragOffsetX = e.clientX - rect.left; dragOffsetY = e.clientY - rect.top;
+          isDraggingAutoSell = true; document.body.style.userSelect = "none"; document.body.style.cursor = "move";
         });
-
-        window.addEventListener("mousemove", (event) => {
-          if (!isDraggingAutoSell) return;
-          setAutoSellPosition(event.clientX - dragOffsetX, event.clientY - dragOffsetY, false);
-        });
-
+        window.addEventListener("mousemove", (e) => { if (!isDraggingAutoSell) return; setAutoSellPosition(e.clientX - dragOffsetX, e.clientY - dragOffsetY, false); });
         window.addEventListener("mouseup", () => {
           if (!isDraggingAutoSell) return;
-          isDraggingAutoSell = false;
-          document.body.style.userSelect = "";
-          document.body.style.cursor = "";
-          const finalLeft = Number.parseInt(autoSellPanel.style.left || "8", 10);
-          const finalTop = Number.parseInt(autoSellPanel.style.top || "84", 10);
-          setAutoSellPosition(finalLeft, finalTop, true);
+          isDraggingAutoSell = false; document.body.style.userSelect = ""; document.body.style.cursor = "";
+          setAutoSellPosition(Number.parseInt(autoSellPanel.style.left || "8", 10), Number.parseInt(autoSellPanel.style.top || "84", 10), true);
         });
       }
 
       if (centerDragBlock && centerDragGrip) {
-        let isDraggingCenterBlock = false;
-        let centerOffsetX = 0;
-        let centerOffsetY = 0;
-
-        centerDragBlock.addEventListener("mousedown", (event) => {
+        let isDraggingCenterBlock = false, centerOffsetX = 0, centerOffsetY = 0;
+        centerDragBlock.addEventListener("mousedown", (e) => {
           if (isCompactLayout()) return;
           bringFloatingPanelToFront(centerDragBlock);
-          const interactiveTarget = event.target.closest("input, select, option, button, a, label");
-          if (interactiveTarget && !event.target.closest("#centerDragGrip")) return;
-          event.preventDefault();
+          if (e.target.closest("input, select, option, button, a, label") && !e.target.closest("#centerDragGrip")) return;
+          e.preventDefault();
           const rect = centerDragBlock.getBoundingClientRect();
-          centerOffsetX = event.clientX - rect.left;
-          centerOffsetY = event.clientY - rect.top;
-          isDraggingCenterBlock = true;
-          document.body.style.userSelect = "none";
-          document.body.style.cursor = "move";
+          centerOffsetX = e.clientX - rect.left; centerOffsetY = e.clientY - rect.top;
+          isDraggingCenterBlock = true; document.body.style.userSelect = "none"; document.body.style.cursor = "move";
         });
-
-        window.addEventListener("mousemove", (event) => {
-          if (!isDraggingCenterBlock) return;
-          setCenterBlockPosition(event.clientX - centerOffsetX, event.clientY - centerOffsetY, false);
-        });
-
+        window.addEventListener("mousemove", (e) => { if (!isDraggingCenterBlock) return; setCenterBlockPosition(e.clientX - centerOffsetX, e.clientY - centerOffsetY, false); });
         window.addEventListener("mouseup", () => {
           if (!isDraggingCenterBlock) return;
-          isDraggingCenterBlock = false;
-          document.body.style.userSelect = "";
-          document.body.style.cursor = "";
-          const finalLeft = Number.parseInt(centerDragBlock.style.left || "16", 10);
-          const finalTop = Number.parseInt(centerDragBlock.style.top || "150", 10);
-          setCenterBlockPosition(finalLeft, finalTop, true);
+          isDraggingCenterBlock = false; document.body.style.userSelect = ""; document.body.style.cursor = "";
+          setCenterBlockPosition(Number.parseInt(centerDragBlock.style.left || "16", 10), Number.parseInt(centerDragBlock.style.top || "150", 10), true);
         });
       }
 
       window.addEventListener("resize", () => {
-        const currentLeft = Number.parseInt((autoSellPanel && autoSellPanel.style.left) || "8", 10);
-        const currentTop = Number.parseInt((autoSellPanel && autoSellPanel.style.top) || "84", 10);
-        setAutoSellPosition(currentLeft, currentTop, false);
-        const currentCenterLeft = Number.parseInt((centerDragBlock && centerDragBlock.style.left) || "16", 10);
-        const currentCenterTop = Number.parseInt((centerDragBlock && centerDragBlock.style.top) || "150", 10);
-        setCenterBlockPosition(currentCenterLeft, currentCenterTop, false);
+        setAutoSellPosition(Number.parseInt((autoSellPanel && autoSellPanel.style.left) || "8", 10), Number.parseInt((autoSellPanel && autoSellPanel.style.top) || "84", 10), false);
+        setCenterBlockPosition(Number.parseInt((centerDragBlock && centerDragBlock.style.left) || "16", 10), Number.parseInt((centerDragBlock && centerDragBlock.style.top) || "150", 10), false);
       });
 
       if (upgradesResizer && upgradesPanel) {
         let isResizing = false;
-
-        upgradesPanel.addEventListener("mousedown", () => {
-          bringFloatingPanelToFront(upgradesPanel);
-        });
-
-        upgradesResizer.addEventListener("mousedown", (event) => {
-          event.preventDefault();
-          bringFloatingPanelToFront(upgradesPanel);
-          isResizing = true;
-          document.body.style.cursor = "col-resize";
-          document.body.style.userSelect = "none";
-        });
-
-        window.addEventListener("mousemove", (event) => {
-          if (!isResizing) return;
-          const nextWidth = window.innerWidth - event.clientX;
-          setUpgradesWidth(nextWidth, false);
-        });
-
-        window.addEventListener("mouseup", () => {
-          if (!isResizing) return;
-          isResizing = false;
-          document.body.style.cursor = "";
-          document.body.style.userSelect = "";
-          setUpgradesWidth(upgradesWidth, true);
-        });
-
-        window.addEventListener("resize", () => {
-          setUpgradesWidth(upgradesWidth, false);
-        });
+        upgradesPanel.addEventListener("mousedown", () => { bringFloatingPanelToFront(upgradesPanel); });
+        upgradesResizer.addEventListener("mousedown", (e) => { e.preventDefault(); bringFloatingPanelToFront(upgradesPanel); isResizing = true; document.body.style.cursor = "col-resize"; document.body.style.userSelect = "none"; });
+        window.addEventListener("mousemove", (e) => { if (!isResizing) return; setUpgradesWidth(window.innerWidth - e.clientX, false); });
+        window.addEventListener("mouseup", () => { if (!isResizing) return; isResizing = false; document.body.style.cursor = ""; document.body.style.userSelect = ""; setUpgradesWidth(upgradesWidth, true); });
+        window.addEventListener("resize", () => { setUpgradesWidth(upgradesWidth, false); });
       }
 
       try {
         const storedInventory = localStorage.getItem("clicker_inventory");
         inventory = storedInventory ? JSON.parse(storedInventory) : [];
         if (!Array.isArray(inventory)) inventory = [];
-      } catch (error) {
-        inventory = [];
-      }
+      } catch (e) { inventory = []; }
 
-      // Listen for inventory changes from other pages
-      window.addEventListener("storage", (event) => {
-        if (event.key === "clicker_inventory") {
-          try {
-            inventory = event.newValue ? JSON.parse(event.newValue) : [];
-            if (!Array.isArray(inventory)) inventory = [];
-          } catch (error) {
-            inventory = [];
-          }
+      window.addEventListener("storage", (e) => {
+        if (e.key === "clicker_inventory") {
+          try { inventory = e.newValue ? JSON.parse(e.newValue) : []; if (!Array.isArray(inventory)) inventory = []; } catch { inventory = []; }
         }
-        if (event.key === TEAM_STATE_STORAGE_KEY || event.key === TEAM_ROSTER_STORAGE_KEY) {
-          refreshTeamBonuses();
-        }
+        if (e.key === TEAM_STATE_STORAGE_KEY || e.key === TEAM_ROSTER_STORAGE_KEY) refreshTeamBonuses();
       });
 
-      // FIX 1: Reload inventory + compute missed auto-catches when page becomes visible
       document.addEventListener("visibilitychange", () => {
         if (!document.hidden) {
           try {
@@ -1821,35 +1036,23 @@
             if (!Array.isArray(inventory)) inventory = [];
             money = Number(localStorage.getItem("clicker_money")) || 0;
             hooks = Number(localStorage.getItem("clicker_hooks")) || 0;
-            // Restore lastAutoCatchMs from storage so we can compute the gap
             const storedLastAuto = Number(localStorage.getItem("clicker_lastAutoCatchMs"));
-            if (storedLastAuto && Number.isFinite(storedLastAuto)) {
-              lastAutoCatchMs = storedLastAuto;
-            }
+            if (storedLastAuto && Number.isFinite(storedLastAuto)) lastAutoCatchMs = storedLastAuto;
             refreshTeamBonuses();
-            // Immediately process any missed catches
             processAutoFisher();
-          } catch (error) {
-            inventory = [];
-          }
+          } catch { inventory = []; }
         } else {
-          // Page hidden: persist lastAutoCatchMs so we can catch up later
           localStorage.setItem("clicker_lastAutoCatchMs", String(lastAutoCatchMs));
           saveGameState();
         }
       });
 
-      function getSizeUpgradeCost(level) {
-        return Math.floor(700 * Math.pow(2.05, level));
-      }
-
-      function getTripleHookCost(level) {
-        return Math.floor(7800 * Math.pow(2.3, level));
-      }
-
-      function getRodUpgradeCost(level) {
-        return Math.floor(5200 * Math.pow(2.28, level));
-      }
+      function getSizeUpgradeCost(level)   { return Math.floor(700  * Math.pow(2.05, level)); }
+      function getTripleHookCost(level)    { return Math.floor(7800 * Math.pow(2.3,  level)); }
+      function getRodUpgradeCost(level)    { return Math.floor(5200 * Math.pow(2.28, level)); }
+      function getAutoUpgradeCost(level)   { return Math.floor(1300 * Math.pow(2.15, level)); }
+      function getWeightUpgradeCost(level) { return Math.floor(900  * Math.pow(1.98, level)); }
+      function getWaitUpgradeCost(level)   { return Math.floor(1700 * Math.pow(2.2,  level)); }
 
       function getRodTierInfo(level) {
         const baseTierIndex = Math.min(level, ROD_TIERS.length - 1);
@@ -1861,91 +1064,53 @@
           name: `Ultimate+${extraLevels}`,
           desc: `Ultimate mastery improves rare catches (+${Math.round(extraLevels * 8)}%).`,
           multipliers: {
-            common: Math.max(0.2, baseTier.multipliers.common * (1 - (extraLevels * 0.02))),
-            uncommon: baseTier.multipliers.uncommon * (1 + (extraLevels * 0.03)),
-            rare: baseTier.multipliers.rare * masteryBoost,
-            epic: baseTier.multipliers.epic * masteryBoost,
+            common:    Math.max(0.2, baseTier.multipliers.common * (1 - extraLevels * 0.02)),
+            uncommon:  baseTier.multipliers.uncommon * (1 + extraLevels * 0.03),
+            rare:      baseTier.multipliers.rare      * masteryBoost,
+            epic:      baseTier.multipliers.epic      * masteryBoost,
             legendary: baseTier.multipliers.legendary * masteryBoost
           }
         };
       }
 
-      function getAutoUpgradeCost(level) {
-        return Math.floor(1300 * Math.pow(2.15, level));
-      }
-
-      function getWeightUpgradeCost(level) {
-        return Math.floor(900 * Math.pow(1.98, level));
-      }
-
-      function getWaitUpgradeCost(level) {
-        return Math.floor(1700 * Math.pow(2.2, level));
-      }
-
       function getAutoIntervalMs() {
-        const baseInterval = Math.max(2000, 10000 - (autoWaitReductionLevel * 500));
+        const baseInterval = Math.max(2000, 10000 - autoWaitReductionLevel * 500);
         return Math.max(400, Math.floor(baseInterval / Math.max(1, teamBonuses.fishingSpeed)));
       }
 
-      function randomBetween(min, max, decimals) {
-        const value = min + Math.random() * (max - min);
-        return Number(value.toFixed(decimals));
-      }
+      function randomBetween(min, max, decimals) { return Number((min + Math.random() * (max - min)).toFixed(decimals)); }
 
       function applyFishPriceReduction(fish) {
         if (!fish || typeof fish !== "object") return fish;
-        const migrationVersion = Number(fish.priceReductionVersion) || 0;
-        if (migrationVersion >= 1) return fish;
-        const scale = 2 / 3;
-        const scaleValue = (value) => {
-          const numeric = Number(value);
-          return Number.isFinite(numeric) ? Math.max(1, Math.round(numeric * scale)) : value;
-        };
-        if (Number.isFinite(Number(fish.price))) fish.price = scaleValue(fish.price);
-        if (Number.isFinite(Number(fish.basePrice))) fish.basePrice = scaleValue(fish.basePrice);
-        if (Number.isFinite(Number(fish.currentValue))) fish.currentValue = scaleValue(fish.currentValue);
-        if (Number.isFinite(Number(fish.spoiledValue))) fish.spoiledValue = scaleValue(fish.spoiledValue);
-        if (Number.isFinite(Number(fish.outStartValue))) fish.outStartValue = scaleValue(fish.outStartValue);
-        if (Number.isFinite(Number(fish.outTargetValue))) fish.outTargetValue = scaleValue(fish.outTargetValue);
+        if ((Number(fish.priceReductionVersion) || 0) >= 1) return fish;
+        const scale = v => { const n = Number(v); return Number.isFinite(n) ? Math.max(1, Math.round(n * 2 / 3)) : v; };
+        if (Number.isFinite(Number(fish.price)))         fish.price         = scale(fish.price);
+        if (Number.isFinite(Number(fish.basePrice)))     fish.basePrice     = scale(fish.basePrice);
+        if (Number.isFinite(Number(fish.currentValue)))  fish.currentValue  = scale(fish.currentValue);
+        if (Number.isFinite(Number(fish.spoiledValue)))  fish.spoiledValue  = scale(fish.spoiledValue);
+        if (Number.isFinite(Number(fish.outStartValue))) fish.outStartValue = scale(fish.outStartValue);
+        if (Number.isFinite(Number(fish.outTargetValue)))fish.outTargetValue= scale(fish.outTargetValue);
         fish.priceReductionVersion = 1;
         return fish;
       }
 
       function pickWeighted(items) {
-        const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
-        let roll = Math.random() * totalWeight;
-        for (const item of items) {
-          roll -= item.weight;
-          if (roll <= 0) return item.rarity;
-        }
+        const total = items.reduce((s, i) => s + i.weight, 0);
+        let roll = Math.random() * total;
+        for (const item of items) { roll -= item.weight; if (roll <= 0) return item.rarity; }
         return items[0].rarity;
       }
 
-      function pickRandom(list) {
-        return list[Math.floor(Math.random() * list.length)];
-      }
+      function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]; }
 
-      function pickTernaryProfile() {
-        const roll = Math.random();
-        if (roll < (1 / 3)) return "low";
-        if (roll < (2 / 3)) return "mid";
-        return "high";
-      }
+      function pickTernaryProfile() { const r = Math.random(); return r < 1/3 ? "low" : r < 2/3 ? "mid" : "high"; }
 
       function pickSegmentValue(min, max, decimals, profile) {
         const span = max - min;
         if (span <= 0) return Number(min.toFixed(decimals));
         const third = span / 3;
-        let rangeMin = min;
-        let rangeMax = max;
-        if (profile === "low") {
-          rangeMax = min + third;
-        } else if (profile === "mid") {
-          rangeMin = min + third;
-          rangeMax = min + (2 * third);
-        } else {
-          rangeMin = min + (2 * third);
-        }
+        const rangeMin = profile === "low" ? min : profile === "mid" ? min + third : min + 2 * third;
+        const rangeMax = profile === "low" ? min + third : profile === "mid" ? min + 2 * third : max;
         return randomBetween(rangeMin, rangeMax, decimals);
       }
 
@@ -1954,206 +1119,156 @@
         if (span <= 0) return "mid";
         const third = span / 3;
         if (value <= min + third) return "low";
-        if (value <= min + (2 * third)) return "mid";
+        if (value <= min + 2 * third) return "mid";
         return "high";
       }
 
-      function getSpeciesByType(type) {
-        return FISH_SPECIES.find((fish) => fish.type === type) || null;
-      }
+      function getSpeciesByType(type) { return FISH_SPECIES.find(f => f.type === type) || null; }
 
       function normalizeFishProfiles(fish) {
         if (fish.sizeProfile && fish.weightProfile) return fish;
         const species = getSpeciesByType(fish.type);
-        if (!species) {
-          return {
-            ...fish,
-            sizeProfile: fish.sizeProfile || "mid",
-            weightProfile: fish.weightProfile || "mid"
-          };
-        }
+        if (!species) return { ...fish, sizeProfile: fish.sizeProfile || "mid", weightProfile: fish.weightProfile || "mid" };
         return {
           ...fish,
-          sizeProfile: fish.sizeProfile || deriveProfileFromValue(fish.size, species.sizeMin, species.sizeMax),
+          sizeProfile:   fish.sizeProfile   || deriveProfileFromValue(fish.size,   species.sizeMin,   species.sizeMax),
           weightProfile: fish.weightProfile || deriveProfileFromValue(fish.weight, species.weightMin, species.weightMax)
         };
       }
 
-      function normalizeTeamBonuses(rawTotals) {
+      function normalizeTeamBonuses(raw) {
         return {
-          incomeMultiplier: Number(rawTotals?.incomeMultiplier) || 1,
-          clickMultiplier: Number(rawTotals?.clickMultiplier) || 1,
-          sizeBonus: Number(rawTotals?.sizeBonus) || 0,
-          weightBonus: Number(rawTotals?.weightBonus) || 0,
-          chanceBonus: Number(rawTotals?.chanceBonus) || 0,
-          resaleBonus: Number(rawTotals?.resaleBonus) || 0,
-          fishingSpeed: Number(rawTotals?.fishingSpeed) || 1
+          incomeMultiplier: Number(raw?.incomeMultiplier) || 1,
+          clickMultiplier:  Number(raw?.clickMultiplier)  || 1,
+          sizeBonus:        Number(raw?.sizeBonus)        || 0,
+          weightBonus:      Number(raw?.weightBonus)      || 0,
+          chanceBonus:      Number(raw?.chanceBonus)      || 0,
+          resaleBonus:      Number(raw?.resaleBonus)      || 0,
+          fishingSpeed:     Number(raw?.fishingSpeed)     || 1
         };
       }
 
       function computeTeamBonusesFromChars(teamChars) {
-        let incomeMultiplier = 1;
-        let clickMultiplier = 1;
-        let sizeBonus = 0;
-        let weightBonus = 0;
-        let chanceBonus = 0;
-        let resaleBonus = 0;
-        let fishingSpeed = 1;
-        teamChars.forEach((char) => {
-          incomeMultiplier *= Number(char.incomeMultiplier) || 1;
-          clickMultiplier *= Number(char.clickMultiplier) || 1;
-          sizeBonus = (sizeBonus + (Number(char.sizeAdd) || 0)) * (Number(char.sizeMult) || 1);
-          weightBonus = (weightBonus + (Number(char.weightAdd) || 0)) * (Number(char.weightMult) || 1);
-          chanceBonus = (chanceBonus + (Number(char.chanceAdd) || 0)) * (Number(char.chanceMult) || 1);
-          resaleBonus = (resaleBonus + (Number(char.resaleAdd) || 0)) * (Number(char.resaleMult) || 1);
-          fishingSpeed *= Number(char.fishingSpeed) || 1;
+        let im=1, cm=1, sb=0, wb=0, cb=0, rb=0, fs=1;
+        teamChars.forEach(c => {
+          im *= Number(c.incomeMultiplier) || 1;
+          cm *= Number(c.clickMultiplier)  || 1;
+          sb  = (sb + (Number(c.sizeAdd)   || 0)) * (Number(c.sizeMult)   || 1);
+          wb  = (wb + (Number(c.weightAdd) || 0)) * (Number(c.weightMult) || 1);
+          cb  = (cb + (Number(c.chanceAdd) || 0)) * (Number(c.chanceMult) || 1);
+          rb  = (rb + (Number(c.resaleAdd) || 0)) * (Number(c.resaleMult) || 1);
+          fs *= Number(c.fishingSpeed) || 1;
         });
-        return normalizeTeamBonuses({ incomeMultiplier, clickMultiplier, sizeBonus, weightBonus, chanceBonus, resaleBonus, fishingSpeed });
+        return normalizeTeamBonuses({ incomeMultiplier:im, clickMultiplier:cm, sizeBonus:sb, weightBonus:wb, chanceBonus:cb, resaleBonus:rb, fishingSpeed:fs });
       }
 
       function loadTeamBonuses() {
         try {
-          const storedState = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
-          const storedRoster = localStorage.getItem(TEAM_ROSTER_STORAGE_KEY);
-          const parsedState = storedState ? JSON.parse(storedState) : null;
-          const parsedRoster = storedRoster ? JSON.parse(storedRoster) : null;
-          if (parsedState?.totals) return normalizeTeamBonuses(parsedState.totals);
-          if (parsedRoster?.totals) return normalizeTeamBonuses(parsedRoster.totals);
-          if (Array.isArray(parsedState?.teamChars)) return computeTeamBonusesFromChars(parsedState.teamChars);
-        } catch (error) {
-          return { ...defaultTeamBonuses };
-        }
+          const ps = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
+          const pr = localStorage.getItem(TEAM_ROSTER_STORAGE_KEY);
+          const s  = ps ? JSON.parse(ps) : null;
+          const r  = pr ? JSON.parse(pr) : null;
+          if (s?.totals) return normalizeTeamBonuses(s.totals);
+          if (r?.totals) return normalizeTeamBonuses(r.totals);
+          if (Array.isArray(s?.teamChars)) return computeTeamBonusesFromChars(s.teamChars);
+        } catch { return { ...defaultTeamBonuses }; }
         return { ...defaultTeamBonuses };
       }
 
       function loadTeamReminder() {
         try {
-          const storedState = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
-          const storedRoster = localStorage.getItem(TEAM_ROSTER_STORAGE_KEY);
-          if (!storedState && !storedRoster) return { teamChars: [], totals: { ...defaultTeamBonuses } };
-          const parsedState = storedState ? JSON.parse(storedState) : null;
-          const parsedRoster = storedRoster ? JSON.parse(storedRoster) : null;
-          const stateUpdatedAt = Number(parsedState?.updatedAt) || 0;
-          const rosterUpdatedAt = Number(parsedRoster?.updatedAt) || 0;
-          const preferredTotals = stateUpdatedAt >= rosterUpdatedAt ? parsedState?.totals : parsedRoster?.totals;
-          const teamChars = Array.isArray(parsedState?.teamChars)
-            ? parsedState.teamChars
-            : (Array.isArray(parsedRoster?.slots)
-              ? parsedRoster.slots.slice().sort((left, right) => Number(left.slot) - Number(right.slot)).map((entry) => ({
-                  id: entry.id,
-                  name: entry.name,
-                  stars: entry.stars,
-                  incomeMultiplier: 1,
-                  clickMultiplier: 1,
-                  sizeAdd: 0, sizeMult: 1,
-                  weightAdd: 0, weightMult: 1,
-                  chanceAdd: 0, chanceMult: 1,
-                  resaleAdd: 0, resaleMult: 1,
-                  fishingSpeed: 1,
-                  teamSlot: Number(entry.slot)
-                }))
-              : []);
-          const totals = preferredTotals
-            ? normalizeTeamBonuses(preferredTotals)
-            : (parsedState?.totals
-              ? normalizeTeamBonuses(parsedState.totals)
-              : (parsedRoster?.totals ? normalizeTeamBonuses(parsedRoster.totals) : computeTeamBonusesFromChars(teamChars)));
+          const ps = localStorage.getItem(TEAM_STATE_STORAGE_KEY);
+          const pr = localStorage.getItem(TEAM_ROSTER_STORAGE_KEY);
+          if (!ps && !pr) return { teamChars: [], totals: { ...defaultTeamBonuses } };
+          const s = ps ? JSON.parse(ps) : null;
+          const r = pr ? JSON.parse(pr) : null;
+          const stateAt  = Number(s?.updatedAt) || 0;
+          const rosterAt = Number(r?.updatedAt) || 0;
+          const preferredTotals = stateAt >= rosterAt ? s?.totals : r?.totals;
+          const teamChars = Array.isArray(s?.teamChars) ? s.teamChars
+            : Array.isArray(r?.slots) ? r.slots.slice().sort((a,b) => Number(a.slot)-Number(b.slot)).map(e => ({
+                id:e.id, name:e.name, stars:e.stars,
+                incomeMultiplier:1, clickMultiplier:1,
+                sizeAdd:0, sizeMult:1, weightAdd:0, weightMult:1,
+                chanceAdd:0, chanceMult:1, resaleAdd:0, resaleMult:1,
+                fishingSpeed:1, teamSlot:Number(e.slot)
+              }))
+            : [];
+          const totals = preferredTotals ? normalizeTeamBonuses(preferredTotals)
+            : s?.totals ? normalizeTeamBonuses(s.totals)
+            : r?.totals ? normalizeTeamBonuses(r.totals)
+            : computeTeamBonusesFromChars(teamChars);
           return { teamChars, totals };
-        } catch (error) {
-          return { teamChars: [], totals: { ...defaultTeamBonuses } };
-        }
+        } catch { return { teamChars: [], totals: { ...defaultTeamBonuses } }; }
       }
 
       function getCharacterRarityFromStars(stars) {
-        const starCount = Number(stars) || 1;
-        if (starCount >= 5) return "legendary";
-        if (starCount === 4) return "epic";
-        if (starCount === 3) return "rare";
-        if (starCount === 2) return "uncommon";
+        const s = Number(stars) || 1;
+        if (s >= 5) return "legendary";
+        if (s === 4) return "epic";
+        if (s === 3) return "rare";
+        if (s === 2) return "uncommon";
         return "common";
       }
 
       function formatTeamReminder(teamChars, totals) {
         if (!teamChars.length) {
           teamReminderBody.textContent = "No team selected.";
-          teamReminderSub.textContent = "Open the Team menu to change your lineup.";
-          teamReminderSlots.innerHTML = "";
+          teamReminderSub.textContent  = "Open the Team menu to change your lineup.";
+          teamReminderSlots.innerHTML  = "";
           return;
         }
-        const names = teamChars.map((char) => `${char.name} (${char.stars}★)`).join(" • ");
-        teamReminderBody.textContent = names;
-        teamReminderSub.textContent = `Income x${totals.incomeMultiplier.toFixed(1)} | Click x${totals.clickMultiplier.toFixed(1)} | Size +${totals.sizeBonus.toFixed(1)}% | Weight +${totals.weightBonus.toFixed(1)}% | Chance +${totals.chanceBonus.toFixed(1)}% | Resale +${totals.resaleBonus.toFixed(1)}% | Speed x${totals.fishingSpeed.toFixed(1)}`;
-        teamReminderSlots.innerHTML = [0, 1, 2].map((slotIndex) => {
-          const char = teamChars.find((entry) => Number(entry.teamSlot) === slotIndex);
-          if (!char) {
-            return `<div class="team-reminder-slot"><div class="team-reminder-slot-name">Empty</div><div class="team-reminder-slot-stats">No character</div></div>`;
-          }
-          const rarityClass = `rarity-${getCharacterRarityFromStars(char.stars)}`;
-          return `<div class="team-reminder-slot active ${rarityClass}"><div class="team-reminder-slot-name">${char.name} ${"★".repeat(char.stars)}</div><div class="team-reminder-slot-stats">${char.incomeMultiplier.toFixed(1)}x income | ${char.fishingSpeed.toFixed(1)}x speed</div></div>`;
+        teamReminderBody.textContent = teamChars.map(c => `${c.name} (${c.stars}★)`).join(" • ");
+        teamReminderSub.textContent  = `Income x${totals.incomeMultiplier.toFixed(1)} | Click x${totals.clickMultiplier.toFixed(1)} | Size +${totals.sizeBonus.toFixed(1)}% | Weight +${totals.weightBonus.toFixed(1)}% | Chance +${totals.chanceBonus.toFixed(1)}% | Resale +${totals.resaleBonus.toFixed(1)}% | Speed x${totals.fishingSpeed.toFixed(1)}`;
+        teamReminderSlots.innerHTML  = [0, 1, 2].map(slotIndex => {
+          const char = teamChars.find(e => Number(e.teamSlot) === slotIndex);
+          if (!char) return `<div class="team-reminder-slot"><div class="team-reminder-slot-name">Empty</div><div class="team-reminder-slot-stats">No character</div></div>`;
+          return `<div class="team-reminder-slot active rarity-${getCharacterRarityFromStars(char.stars)}"><div class="team-reminder-slot-name">${char.name} ${"★".repeat(char.stars)}</div><div class="team-reminder-slot-stats">${char.incomeMultiplier.toFixed(1)}x income | ${char.fishingSpeed.toFixed(1)}x speed</div></div>`;
         }).join("");
       }
 
       function refreshTeamBonuses() {
-        const reminderState = loadTeamReminder();
-        teamBonuses = reminderState.totals;
-        formatTeamReminder(reminderState.teamChars, reminderState.totals);
+        const state = loadTeamReminder();
+        teamBonuses = state.totals;
+        formatTeamReminder(state.teamChars, state.totals);
         applyTeamBonusesToCurrentFish();
       }
 
       function applyTeamBonusesToCurrentFish() {
         if (!currentFish) return;
-        const baseSize = Number(currentFish.baseSize) || Number(currentFish.size) || 0;
-        const baseWeight = Number(currentFish.baseWeight) || Number(currentFish.weight) || 0;
-        const basePrice = Number(currentFish.basePrice) || Number(currentFish.price) || 0;
-        const sizeMultiplier = (1 + (sizeBoostLevel * 0.01)) * (1 + (teamBonuses.sizeBonus * 0.01));
-        const weightMultiplier = (1 + (weightBoostLevel * 0.01)) * (1 + (teamBonuses.weightBonus * 0.01));
-        const valueMultiplier = Math.max(0.1, teamBonuses.incomeMultiplier * (1 + (teamBonuses.resaleBonus * 0.01)));
+        const baseSize    = Number(currentFish.baseSize)   || Number(currentFish.size)   || 0;
+        const baseWeight  = Number(currentFish.baseWeight) || Number(currentFish.weight) || 0;
+        const basePrice   = Number(currentFish.basePrice)  || Number(currentFish.price)  || 0;
+        const sizeMult    = (1 + sizeBoostLevel   * 0.01) * (1 + teamBonuses.sizeBonus   * 0.01);
+        const weightMult  = (1 + weightBoostLevel * 0.01) * (1 + teamBonuses.weightBonus * 0.01);
+        const valueMult   = Math.max(0.1, teamBonuses.incomeMultiplier * (1 + teamBonuses.resaleBonus * 0.01));
         currentFish = {
-          ...currentFish,
-          baseSize,
-          baseWeight,
-          basePrice,
-          size: Number((baseSize * sizeMultiplier).toFixed(1)),
-          weight: Number((baseWeight * weightMultiplier).toFixed(2)),
-          price: Math.max(1, Math.round(basePrice * valueMultiplier)),
-          currentValue: Math.max(1, Math.round(basePrice * valueMultiplier))
+          ...currentFish, baseSize, baseWeight, basePrice,
+          size:         Number((baseSize   * sizeMult).toFixed(1)),
+          weight:       Number((baseWeight * weightMult).toFixed(2)),
+          price:        Math.max(1, Math.round(basePrice * valueMult)),
+          currentValue: Math.max(1, Math.round(basePrice * valueMult))
         };
       }
 
-      function formatRarityLabel(rarity) {
-        const labels = { common: "Common", uncommon: "Uncommon", rare: "Rare", epic: "Epic", legendary: "Legendary" };
-        return labels[rarity] || rarity;
-      }
-
-      function rarityRank(rarity) {
-        const ranks = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5 };
-        return ranks[rarity] || 1;
-      }
-
-      function getRarityClass(rarity) {
-        const classes = { common: "rarity-common", uncommon: "rarity-uncommon", rare: "rarity-rare", epic: "rarity-epic", legendary: "rarity-legendary" };
-        return classes[rarity] || "rarity-common";
-      }
+      function formatRarityLabel(r) { return { common:"Common", uncommon:"Uncommon", rare:"Rare", epic:"Epic", legendary:"Legendary" }[r] || r; }
+      function rarityRank(r) { return { common:1, uncommon:2, rare:3, epic:4, legendary:5 }[r] || 1; }
+      function getRarityClass(r) { return { common:"rarity-common", uncommon:"rarity-uncommon", rare:"rarity-rare", epic:"rarity-epic", legendary:"rarity-legendary" }[r] || "rarity-common"; }
 
       function getAdjustedRarityWeights() {
         const tier = getRodTierInfo(rodTierLevel);
-        return RARITY_WEIGHTS.map((entry) => {
-          const multiplier = tier.multipliers[entry.rarity] || 1;
-          const rank = rarityRank(entry.rarity);
-          const chanceBoost = 1 + ((rank - 1) * (teamBonuses.chanceBonus * 0.0125));
-          return { rarity: entry.rarity, weight: entry.weight * multiplier * chanceBoost };
+        return RARITY_WEIGHTS.map(entry => {
+          const mult       = tier.multipliers[entry.rarity] || 1;
+          const chanceBoost = 1 + (rarityRank(entry.rarity) - 1) * teamBonuses.chanceBonus * 0.0125;
+          return { rarity: entry.rarity, weight: entry.weight * mult * chanceBoost };
         });
       }
 
       function getFishDescriptors(fish) {
-        const normalizedFish = normalizeFishProfiles(fish);
-        const tags = [];
-        if (normalizedFish.sizeProfile === "high") tags.push("big");
-        else if (normalizedFish.sizeProfile === "low") tags.push("small");
-        if (normalizedFish.weightProfile === "high") tags.push("heavy");
-        else if (normalizedFish.weightProfile === "low") tags.push("light");
-        if (tags.length === 0) return "(average)";
-        return "(" + tags.join(", ") + ")";
+        const f = normalizeFishProfiles(fish), tags = [];
+        if (f.sizeProfile   === "high") tags.push("big");    else if (f.sizeProfile   === "low") tags.push("small");
+        if (f.weightProfile === "high") tags.push("heavy");  else if (f.weightProfile === "low") tags.push("light");
+        return tags.length ? `(${tags.join(", ")})` : "(average)";
       }
 
       function shouldAutoSell(fish) {
@@ -2164,34 +1279,19 @@
       }
 
       function createFish() {
-        const rarity = pickWeighted(getAdjustedRarityWeights());
-        const pool = FISH_SPECIES.filter((fish) => fish.rarity === rarity);
-        const species = pickRandom(pool);
-        const sizeProfile = pickTernaryProfile();
-        const weightProfile = pickTernaryProfile();
-        const baseSize = pickSegmentValue(species.sizeMin, species.sizeMax, 1, sizeProfile);
-        const baseWeight = pickSegmentValue(species.weightMin, species.weightMax, 2, weightProfile);
-        const sizeMultiplier = (1 + (sizeBoostLevel * 0.01)) * (1 + (teamBonuses.sizeBonus * 0.01));
-        const weightMultiplier = (1 + (weightBoostLevel * 0.01)) * (1 + (teamBonuses.weightBonus * 0.01));
-        const size = Number((baseSize * sizeMultiplier).toFixed(1));
-        const weight = Number((baseWeight * weightMultiplier).toFixed(2));
-        const basePrice = Math.max(1, Math.round((size * 0.315 + weight * 9) * RARITY_MULTIPLIERS[rarity]));
-        const reducedBasePrice = Math.max(1, Math.round(basePrice * (2 / 3)));
-        const price = Math.max(1, Math.round(reducedBasePrice * teamBonuses.incomeMultiplier * (1 + (teamBonuses.resaleBonus * 0.01))));
-        return {
-          type: species.type,
-          rarity,
-          size,
-          weight,
-          price,
-          baseSize,
-          baseWeight,
-          basePrice: reducedBasePrice,
-          currentValue: price,
-          priceReductionVersion: 1,
-          sizeProfile,
-          weightProfile
-        };
+        const rarity   = pickWeighted(getAdjustedRarityWeights());
+        const species  = pickRandom(FISH_SPECIES.filter(f => f.rarity === rarity));
+        const sp       = pickTernaryProfile(), wp = pickTernaryProfile();
+        const baseSize   = pickSegmentValue(species.sizeMin,   species.sizeMax,   1, sp);
+        const baseWeight = pickSegmentValue(species.weightMin, species.weightMax, 2, wp);
+        const sizeMult   = (1 + sizeBoostLevel   * 0.01) * (1 + teamBonuses.sizeBonus   * 0.01);
+        const weightMult = (1 + weightBoostLevel * 0.01) * (1 + teamBonuses.weightBonus * 0.01);
+        const size   = Number((baseSize   * sizeMult).toFixed(1));
+        const weight = Number((baseWeight * weightMult).toFixed(2));
+        const basePrice   = Math.max(1, Math.round((size * 0.315 + weight * 9) * RARITY_MULTIPLIERS[rarity]));
+        const reducedBase = Math.max(1, Math.round(basePrice * 2 / 3));
+        const price       = Math.max(1, Math.round(reducedBase * teamBonuses.incomeMultiplier * (1 + teamBonuses.resaleBonus * 0.01)));
+        return { type: species.type, rarity, size, weight, price, baseSize, baseWeight, basePrice: reducedBase, currentValue: price, priceReductionVersion: 1, sizeProfile: sp, weightProfile: wp };
       }
 
       function loadCurrentFish() {
@@ -2201,38 +1301,34 @@
           const parsed = JSON.parse(stored);
           if (!parsed || typeof parsed.type !== "string") return createFish();
           return applyFishPriceReduction(normalizeFishProfiles(parsed));
-        } catch (error) {
-          return createFish();
-        }
+        } catch { return createFish(); }
       }
 
       let currentFish = loadCurrentFish();
-
-      // FIX 2: Track the best fish caught in this "batch" to show on button
       let bestCaughtFishDisplay = null;
       let bestCaughtDisplayTimer = null;
 
       function saveGameState() {
-        localStorage.setItem("clicker_money", String(money));
-        localStorage.setItem("clicker_hooks", String(hooks));
-        localStorage.setItem("clicker_caughtCount", String(caughtCount));
-        localStorage.setItem("clicker_epicCaught", String(epicCaughtCount));
-        localStorage.setItem("clicker_legendaryCaught", String(legendaryCaughtCount));
-        localStorage.setItem("clicker_currentFish", JSON.stringify(currentFish));
-        localStorage.setItem("clicker_inventory", JSON.stringify(inventory));
-        localStorage.setItem("clicker_inventoryTurn", String(inventoryTurn));
-        localStorage.setItem("clicker_tripleHookLevel", String(tripleHookLevel));
-        localStorage.setItem("clicker_rodTierLevel", String(rodTierLevel));
-        localStorage.setItem("clicker_sizeBoostLevel", String(sizeBoostLevel));
-        localStorage.setItem("clicker_autoFisherLevel", String(autoFisherLevel));
-        localStorage.setItem("clicker_weightBoostLevel", String(weightBoostLevel));
-        localStorage.setItem("clicker_autoWaitReductionLevel", String(autoWaitReductionLevel));
-        localStorage.setItem("clicker_autoSellEnabled", String(autoSellEnabled));
-        localStorage.setItem("clicker_autoSellMode", autoSellMode);
-        localStorage.setItem("clicker_autoSellMaxPrice", String(autoSellMaxPrice));
-        localStorage.setItem("clicker_autoSellMaxRarity", autoSellMaxRarity);
-        localStorage.setItem("clicker_tutorialCompleted", String(tutorialCompleted));
-        localStorage.setItem("clicker_lastAutoCatchMs", String(lastAutoCatchMs));
+        localStorage.setItem("clicker_money",                 String(money));
+        localStorage.setItem("clicker_hooks",                 String(hooks));
+        localStorage.setItem("clicker_caughtCount",           String(caughtCount));
+        localStorage.setItem("clicker_epicCaught",            String(epicCaughtCount));
+        localStorage.setItem("clicker_legendaryCaught",       String(legendaryCaughtCount));
+        localStorage.setItem("clicker_currentFish",           JSON.stringify(currentFish));
+        localStorage.setItem("clicker_inventory",             JSON.stringify(inventory));
+        localStorage.setItem("clicker_inventoryTurn",         String(inventoryTurn));
+        localStorage.setItem("clicker_tripleHookLevel",       String(tripleHookLevel));
+        localStorage.setItem("clicker_rodTierLevel",          String(rodTierLevel));
+        localStorage.setItem("clicker_sizeBoostLevel",        String(sizeBoostLevel));
+        localStorage.setItem("clicker_autoFisherLevel",       String(autoFisherLevel));
+        localStorage.setItem("clicker_weightBoostLevel",      String(weightBoostLevel));
+        localStorage.setItem("clicker_autoWaitReductionLevel",String(autoWaitReductionLevel));
+        localStorage.setItem("clicker_autoSellEnabled",       String(autoSellEnabled));
+        localStorage.setItem("clicker_autoSellMode",          autoSellMode);
+        localStorage.setItem("clicker_autoSellMaxPrice",      String(autoSellMaxPrice));
+        localStorage.setItem("clicker_autoSellMaxRarity",     autoSellMaxRarity);
+        localStorage.setItem("clicker_tutorialCompleted",     String(tutorialCompleted));
+        localStorage.setItem("clicker_lastAutoCatchMs",       String(lastAutoCatchMs));
       }
 
       function showHookNotification(title, text) {
@@ -2241,182 +1337,97 @@
         toast.className = "hook-notification";
         toast.innerHTML = `<div class="hook-notification-title">${title}</div><div>${text}</div>`;
         hookNotificationLayer.appendChild(toast);
-        setTimeout(() => {
-          toast.classList.add("fade-out");
-          setTimeout(() => { toast.remove(); }, 260);
-        }, 2300);
+        setTimeout(() => { toast.classList.add("fade-out"); setTimeout(() => toast.remove(), 260); }, 2300);
       }
 
-      function addHooks(amount, reasonTitle, reasonText) {
-        const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
-        if (safeAmount <= 0) return;
-        hooks += safeAmount;
+      function addHooks(amount, title, text) {
+        const n = Math.max(0, Math.floor(Number(amount) || 0));
+        if (!n) return;
+        hooks += n;
         localStorage.setItem("clicker_hooks", String(hooks));
-        showHookNotification(reasonTitle, `${reasonText} (+${safeAmount} Hooks)`);
+        showHookNotification(title, `${text} (+${n} Hooks)`);
       }
 
-      // FIX 2: catchCurrentFish returns the fish caught so we can compare
       function catchCurrentFish(source) {
-        const fishToStore = {
-          type: currentFish.type,
-          rarity: currentFish.rarity,
-          size: currentFish.size,
-          weight: currentFish.weight,
-          price: Math.max(1, Math.round(currentFish.price)),
-          basePrice: Math.max(1, Math.round(currentFish.basePrice || currentFish.price)),
+        const fish = {
+          type: currentFish.type, rarity: currentFish.rarity,
+          size: currentFish.size, weight: currentFish.weight,
+          price:        Math.max(1, Math.round(currentFish.price)),
+          basePrice:    Math.max(1, Math.round(currentFish.basePrice    || currentFish.price)),
           currentValue: Math.max(1, Math.round(currentFish.currentValue || currentFish.price)),
-          sizeProfile: currentFish.sizeProfile,
-          weightProfile: currentFish.weightProfile,
-          priceReductionVersion: 1,
-          caughtAt: new Date().toISOString()
+          sizeProfile: currentFish.sizeProfile, weightProfile: currentFish.weightProfile,
+          priceReductionVersion: 1, caughtAt: new Date().toISOString()
         };
-
-        if (shouldAutoSell(fishToStore)) {
-          money += fishToStore.price;
-        } else {
-          inventory.push(fishToStore);
-        }
-
-        if (fishToStore.rarity === "epic") {
-          epicCaughtCount += 1;
-        } else if (fishToStore.rarity === "legendary") {
-          legendaryCaughtCount += 1;
-        }
-
+        if (shouldAutoSell(fish)) { money += fish.price; } else { inventory.push(fish); }
+        if (fish.rarity === "epic")      epicCaughtCount++;
+        else if (fish.rarity === "legendary") legendaryCaughtCount++;
         caughtCount++;
         currentFish = createFish();
-        return fishToStore;
+        return fish;
       }
 
-      // FIX 2: Pick the best fish from a batch to display on the button
-      function pickBestFish(fishList) {
-        if (!fishList || fishList.length === 0) return null;
-        return fishList.reduce((best, fish) => {
-          const bestRank = rarityRank(best.rarity);
-          const fishRank = rarityRank(fish.rarity);
-          if (fishRank > bestRank) return fish;
-          if (fishRank === bestRank && fish.price > best.price) return fish;
+      function pickBestFish(list) {
+        if (!list || !list.length) return null;
+        return list.reduce((best, fish) => {
+          const br = rarityRank(best.rarity), fr = rarityRank(fish.rarity);
+          if (fr > br) return fish;
+          if (fr === br && fish.price > best.price) return fish;
           return best;
         });
       }
 
-      // FIX 3: Schedule distributed auto catches over the interval instead of all at once
       function scheduleDistributedCatches(count, intervalMs) {
         const now = Date.now();
-        for (let i = 0; i < count; i++) {
-          // Spread catches randomly across the next interval
-          const delay = Math.random() * intervalMs;
-          scheduledCatches.push(now + delay);
-        }
+        for (let i = 0; i < count; i++) scheduledCatches.push(now + Math.random() * intervalMs);
         scheduledCatches.sort((a, b) => a - b);
       }
 
+      // ── processAutoFisher ──────────────────────────────────────────────────
+      // FIX: offline catch-up now calls catchCurrentFish() for every fish,
+      // so shouldAutoSell() is respected for ALL rarities — nothing bypasses it.
       function processAutoFisher() {
-        if (autoFisherLevel <= 0) {
-          lastAutoCatchMs = Date.now();
-          return;
-        }
+        if (autoFisherLevel <= 0) { lastAutoCatchMs = Date.now(); return; }
 
         const interval = getAutoIntervalMs();
-        const now = Date.now();
-        const elapsed = now - lastAutoCatchMs;
+        const now      = Date.now();
+        const elapsed  = now - lastAutoCatchMs;
 
-        // Si on revient après une longue absence : estimation offline
         const OFFLINE_THRESHOLD_MS = 5000;
         if (elapsed > OFFLINE_THRESHOLD_MS) {
           const missedIntervals = Math.floor(elapsed / interval);
           if (missedIntervals > 0) {
-            const totalMissedFish = missedIntervals * autoFisherLevel;
+            // Cap to avoid freezing the browser on very long absences.
+            const MAX_OFFLINE_FISH = 2000;
+            const totalMissed = Math.min(missedIntervals * autoFisherLevel, MAX_OFFLINE_FISH);
 
-            // Calcul des probabilités ajustées
-            const weights = getAdjustedRarityWeights();
-            const totalWeight = weights.reduce((s, w) => s + w.weight, 0);
-            const prob = {};
-            weights.forEach(w => { prob[w.rarity] = w.weight / totalWeight; });
-
-            // Estimation : on calcule combien d'epic/legendary on aurait eu
-            const expectedLegendary = Math.floor(totalMissedFish * prob.legendary);
-            const expectedEpic      = Math.floor(totalMissedFish * prob.epic);
-            // Argent pour les raretés inférieures (estimation directe sans créer les objets)
-            const expectedRare      = Math.floor(totalMissedFish * prob.rare);
-            const expectedUncommon  = Math.floor(totalMissedFish * prob.uncommon);
-            const expectedCommon    = totalMissedFish - expectedLegendary - expectedEpic - expectedRare - expectedUncommon;
-
-            // Valeur moyenne estimée par rareté (prix moyen d'une espèce au hasard)
-            function avgPriceForRarity(rarity) {
-              const pool = FISH_SPECIES.filter(s => s.rarity === rarity);
-              if (!pool.length) return 0;
-              const avgSize   = pool.reduce((s, sp) => s + (sp.sizeMin   + sp.sizeMax)   / 2, 0) / pool.length;
-              const avgWeight = pool.reduce((s, sp) => s + (sp.weightMin + sp.weightMax) / 2, 0) / pool.length;
-              const basePrice = Math.max(1, Math.round((avgSize * 0.315 + avgWeight * 9) * RARITY_MULTIPLIERS[rarity]));
-              const reduced   = Math.max(1, Math.round(basePrice * (2 / 3)));
-              return Math.max(1, Math.round(reduced * teamBonuses.incomeMultiplier * (1 + teamBonuses.resaleBonus * 0.01)));
+            const caughtBatch = [];
+            for (let i = 0; i < totalMissed; i++) {
+              // catchCurrentFish applies shouldAutoSell internally — no bypass.
+              caughtBatch.push(catchCurrentFish("auto-offline"));
             }
 
-            // Argent offline (tout auto-vendu sauf epic/legendary qui vont en inventaire)
-            const offlineMoney =
-              expectedCommon   * avgPriceForRarity("common")   +
-              expectedUncommon * avgPriceForRarity("uncommon") +
-              expectedRare     * avgPriceForRarity("rare");
-
-            money += offlineMoney;
-
-            // Génère uniquement les epic et legendary comme vrais objets
-            const rareFish = [];
-            for (let i = 0; i < expectedLegendary; i++) {
-              const pool = FISH_SPECIES.filter(s => s.rarity === "legendary");
-              const species = pickRandom(pool);
-              const f = catchCurrentFish("auto-offline");
-              // on vient de pop un poisson aléatoire, on le remplace par un legendary
-              inventory.pop();
-              const size   = randomBetween(species.sizeMin,   species.sizeMax,   1);
-              const weight = randomBetween(species.weightMin, species.weightMax, 2);
-              const bp     = Math.max(1, Math.round((size * 0.315 + weight * 9) * RARITY_MULTIPLIERS["legendary"]));
-              const reduced= Math.max(1, Math.round(bp * (2/3)));
-              const price  = Math.max(1, Math.round(reduced * teamBonuses.incomeMultiplier));
-              const fish   = { type: species.type, rarity: "legendary", size, weight, price, basePrice: reduced, currentValue: price, priceReductionVersion: 1, caughtAt: new Date().toISOString() };
-              inventory.push(fish);
-              rareFish.push(fish);
-            }
-            for (let i = 0; i < expectedEpic; i++) {
-              const pool = FISH_SPECIES.filter(s => s.rarity === "epic");
-              const species = pickRandom(pool);
-              const size   = randomBetween(species.sizeMin,   species.sizeMax,   1);
-              const weight = randomBetween(species.weightMin, species.weightMax, 2);
-              const bp     = Math.max(1, Math.round((size * 0.315 + weight * 9) * RARITY_MULTIPLIERS["epic"]));
-              const reduced= Math.max(1, Math.round(bp * (2/3)));
-              const price  = Math.max(1, Math.round(reduced * teamBonuses.incomeMultiplier));
-              const fish   = { type: species.type, rarity: "epic", size, weight, price, basePrice: reduced, currentValue: price, priceReductionVersion: 1, caughtAt: new Date().toISOString() };
-              inventory.push(fish);
-              rareFish.push(fish);
-            }
-
-            caughtCount += totalMissedFish;
             lastAutoCatchMs = now;
             scheduledCatches = [];
 
-            if (rareFish.length > 0) {
-              const best = pickBestFish(rareFish);
+            const rareCaught = caughtBatch.filter(f => rarityRank(f.rarity) >= 4);
+            const best       = pickBestFish(caughtBatch);
+            if (best) {
               bestCaughtFishDisplay = best;
               if (bestCaughtDisplayTimer) clearTimeout(bestCaughtDisplayTimer);
               bestCaughtDisplayTimer = setTimeout(() => { bestCaughtFishDisplay = null; renderDisplay(); }, 4000);
-              showHookNotification(
-                "Offline catch-up",
-                `${totalMissedFish} fish caught while away. Found ${rareFish.length} rare catch${rareFish.length > 1 ? "es" : ""}!`
-              );
+            }
+
+            if (rareCaught.length > 0) {
+              showHookNotification("Offline catch-up", `${totalMissed} fish caught while away. Found ${rareCaught.length} epic/legendary!`);
             } else {
-              showHookNotification(
-                "Offline catch-up",
-                `${totalMissedFish} fish caught while away (+${offlineMoney} money).`
-              );
+              showHookNotification("Offline catch-up", `${totalMissed} fish caught while away.`);
             }
           }
           lastAutoCatchMs = now;
           return;
         }
 
-        // Mode normal (en temps réel)
-        let catchesDone = 0;
+        // Normal real-time mode
         while (now - lastAutoCatchMs >= interval) {
           scheduleDistributedCatches(autoFisherLevel, interval);
           lastAutoCatchMs += interval;
@@ -2426,10 +1437,9 @@
         while (scheduledCatches.length > 0 && scheduledCatches[0] <= now) {
           scheduledCatches.shift();
           caughtBatch.push(catchCurrentFish("auto"));
-          catchesDone++;
         }
 
-        if (catchesDone > 0 && caughtBatch.length > 0) {
+        if (caughtBatch.length > 0) {
           const best = pickBestFish(caughtBatch);
           if (best) {
             bestCaughtFishDisplay = best;
@@ -2441,86 +1451,73 @@
       }
 
       function renderDisplay() {
-        // Lightweight re-render just for the fish button display
-        const fishToShow = bestCaughtFishDisplay || currentFish;
-        const rarityClass = getRarityClass(fishToShow.rarity);
-        const fishDescriptors = getFishDescriptors(fishToShow);
-        const hideFishCharacteristics = !tutorialCompleted && caughtCount < 30;
-
-        fishButtonLabel.textContent = fishToShow.type + " " + fishDescriptors;
-        fishButtonLabel.className = "fish-title " + rarityClass;
-        fishDescription.textContent = hideFishCharacteristics
-          ? ""
-          : "Rarity: " + formatRarityLabel(fishToShow.rarity) + " | Size: " + fishToShow.size + " cm | Weight: " + fishToShow.weight + " kg | Price: " + fishToShow.price;
-        fishPrice.textContent = String(fishToShow.price);
+        const fish = bestCaughtFishDisplay || currentFish;
+        fishButtonLabel.textContent = fish.type + " " + getFishDescriptors(fish);
+        fishButtonLabel.className   = "fish-title " + getRarityClass(fish.rarity);
+        fishDescription.textContent = (!tutorialCompleted && caughtCount < 30) ? ""
+          : `Rarity: ${formatRarityLabel(fish.rarity)} | Size: ${fish.size} cm | Weight: ${fish.weight} kg | Price: ${fish.price}`;
+        fishPrice.textContent = String(fish.price);
       }
 
       function render() {
         refreshTeamBonuses();
         const nextTripleHookCost = getTripleHookCost(tripleHookLevel);
         const nextRodUpgradeCost = getRodUpgradeCost(rodTierLevel);
-        const nextSizeCost = getSizeUpgradeCost(sizeBoostLevel);
-        const nextAutoCost = getAutoUpgradeCost(autoFisherLevel);
-        const nextWeightCost = getWeightUpgradeCost(weightBoostLevel);
-        const nextWaitCost = getWaitUpgradeCost(autoWaitReductionLevel);
-        const autoDelaySeconds = (getAutoIntervalMs() / 1000).toFixed(1);
-        const fishPerClick = 1 + tripleHookLevel;
-        const rodTier = getRodTierInfo(rodTierLevel);
-        const inventoryTotalValue = inventory.reduce((sum, fish) => {
-          const fishValue = Number(fish.currentValue) || Number(fish.basePrice) || Number(fish.price) || 0;
-          return sum + fishValue;
-        }, 0);
+        const nextSizeCost       = getSizeUpgradeCost(sizeBoostLevel);
+        const nextAutoCost       = getAutoUpgradeCost(autoFisherLevel);
+        const nextWeightCost     = getWeightUpgradeCost(weightBoostLevel);
+        const nextWaitCost       = getWaitUpgradeCost(autoWaitReductionLevel);
+        const autoDelaySeconds   = (getAutoIntervalMs() / 1000).toFixed(1);
+        const fishPerClick       = 1 + tripleHookLevel;
+        const rodTier            = getRodTierInfo(rodTierLevel);
+        const inventoryTotalValue = inventory.reduce((s, f) => s + (Number(f.currentValue) || Number(f.basePrice) || Number(f.price) || 0), 0);
+        const catchesPerSecond   = autoFisherLevel <= 0 ? 0 : Number((autoFisherLevel / (getAutoIntervalMs() / 1000)).toFixed(2));
 
-        // FIX 3: Smooth catches per second — based on scheduled catches density
-        const catchesPerSecond = autoFisherLevel <= 0 ? 0 : Number((autoFisherLevel / (getAutoIntervalMs() / 1000)).toFixed(2));
-
-        moneyDisplay.textContent = "Money: " + money;
-        // FIX 4: Show hooks
-        hooksDisplay.textContent = "🪝 Hooks: " + hooks;
+        moneyDisplay.textContent          = "Money: " + money;
+        hooksDisplay.textContent          = "🪝 Hooks: " + hooks;
         tutorialFishCaughtCount.textContent = String(caughtCount);
         catchPerSecondDisplay.textContent = "Catches per second: " + catchesPerSecond;
-        caughtCountDisplay.textContent = String(caughtCount);
+        caughtCountDisplay.textContent    = String(caughtCount);
         inventoryCountDisplay.textContent = String(inventory.length);
         inventoryTotalValueDisplay.textContent = String(inventoryTotalValue);
 
-        // FIX 2: Show best recently caught fish if available, otherwise current fish
         renderDisplay();
 
         tripleHookUpgradeCount.textContent = String(tripleHookLevel);
-        rodUpgradeCount.textContent = String(rodTierLevel);
-        fishPerClickLabel.textContent = String(fishPerClick);
-        rodTierLabel.textContent = rodTier.name;
-        rodUpgradeDesc.textContent = rodTier.desc;
-        tripleHookUpgradeCost.textContent = String(nextTripleHookCost);
-        rodUpgradeCost.textContent = String(nextRodUpgradeCost);
-        sizeUpgradeCount.textContent = String(sizeBoostLevel);
-        autoUpgradeCount.textContent = String(autoFisherLevel);
-        weightUpgradeCount.textContent = String(weightBoostLevel);
-        waitUpgradeCount.textContent = String(autoWaitReductionLevel);
-        sizeUpgradeCost.textContent = String(nextSizeCost);
-        autoUpgradeCost.textContent = String(nextAutoCost);
-        weightUpgradeCost.textContent = String(nextWeightCost);
-        waitUpgradeCost.textContent = String(nextWaitCost);
-        autoDelayLabel.textContent = autoDelaySeconds;
+        rodUpgradeCount.textContent        = String(rodTierLevel);
+        fishPerClickLabel.textContent      = String(fishPerClick);
+        rodTierLabel.textContent           = rodTier.name;
+        rodUpgradeDesc.textContent         = rodTier.desc;
+        tripleHookUpgradeCost.textContent  = String(nextTripleHookCost);
+        rodUpgradeCost.textContent         = String(nextRodUpgradeCost);
+        sizeUpgradeCount.textContent       = String(sizeBoostLevel);
+        autoUpgradeCount.textContent       = String(autoFisherLevel);
+        weightUpgradeCount.textContent     = String(weightBoostLevel);
+        waitUpgradeCount.textContent       = String(autoWaitReductionLevel);
+        sizeUpgradeCost.textContent        = String(nextSizeCost);
+        autoUpgradeCost.textContent        = String(nextAutoCost);
+        weightUpgradeCost.textContent      = String(nextWeightCost);
+        waitUpgradeCost.textContent        = String(nextWaitCost);
+        autoDelayLabel.textContent         = autoDelaySeconds;
 
         tripleHookUpgrade.disabled = money < nextTripleHookCost;
-        rodUpgrade.disabled = money < nextRodUpgradeCost;
-        sizeUpgrade.disabled = money < nextSizeCost;
-        autoUpgrade.disabled = money < nextAutoCost;
-        weightUpgrade.disabled = money < nextWeightCost;
-        waitUpgrade.disabled = money < nextWaitCost;
+        rodUpgrade.disabled        = money < nextRodUpgradeCost;
+        sizeUpgrade.disabled       = money < nextSizeCost;
+        autoUpgrade.disabled       = money < nextAutoCost;
+        weightUpgrade.disabled     = money < nextWeightCost;
+        waitUpgrade.disabled       = money < nextWaitCost;
 
-        autoSellEnabledInput.checked = autoSellEnabled;
-        autoSellModeSelect.value = autoSellMode;
-        autoSellMaxPriceInput.value = String(autoSellMaxPrice);
-        autoSellMaxRaritySelect.value = autoSellMaxRarity;
-        autoSellModeSelect.disabled = !autoSellEnabled;
-        const isPriceMode = autoSellMode === "price";
+        autoSellEnabledInput.checked       = autoSellEnabled;
+        autoSellModeSelect.value           = autoSellMode;
+        autoSellMaxPriceInput.value        = String(autoSellMaxPrice);
+        autoSellMaxRaritySelect.value      = autoSellMaxRarity;
+        autoSellModeSelect.disabled        = !autoSellEnabled;
+        const isPriceMode  = autoSellMode === "price";
         const isRarityMode = autoSellMode === "rarity";
         autoSellPriceGroup.classList.toggle("auto-sell-hidden", !isPriceMode);
         autoSellRarityGroup.classList.toggle("auto-sell-hidden", !isRarityMode);
-        autoSellMaxPriceInput.disabled = !autoSellEnabled || !isPriceMode;
-        autoSellMaxRaritySelect.disabled = !autoSellEnabled || !isRarityMode;
+        autoSellMaxPriceInput.disabled    = !autoSellEnabled || !isPriceMode;
+        autoSellMaxRaritySelect.disabled  = !autoSellEnabled || !isRarityMode;
         saveGameState();
       }
 
@@ -2529,104 +1526,46 @@
         if (now - lastManualCatchMs < 200) return;
         lastManualCatchMs = now;
         const fishPerClick = Math.max(1, Math.round((1 + tripleHookLevel) * Math.max(1, teamBonuses.clickMultiplier)));
-        const caughtBatch = [];
-        for (let i = 0; i < fishPerClick; i++) {
-          caughtBatch.push(catchCurrentFish("manual"));
-        }
-        // FIX 2: Show best fish from click batch
-        if (caughtBatch.length > 1) {
-          const best = pickBestFish(caughtBatch);
+        const batch = [];
+        for (let i = 0; i < fishPerClick; i++) batch.push(catchCurrentFish("manual"));
+        if (batch.length > 1) {
+          const best = pickBestFish(batch);
           if (best) {
             bestCaughtFishDisplay = best;
             if (bestCaughtDisplayTimer) clearTimeout(bestCaughtDisplayTimer);
-            bestCaughtDisplayTimer = setTimeout(() => {
-              bestCaughtFishDisplay = null;
-              renderDisplay();
-            }, 3000);
+            bestCaughtDisplayTimer = setTimeout(() => { bestCaughtFishDisplay = null; renderDisplay(); }, 3000);
           }
         }
         render();
       });
 
-      tripleHookUpgrade.addEventListener("click", () => {
-        const cost = getTripleHookCost(tripleHookLevel);
-        if (money >= cost) { money -= cost; tripleHookLevel++; render(); }
-      });
+      tripleHookUpgrade.addEventListener("click", () => { const c = getTripleHookCost(tripleHookLevel);    if (money >= c) { money -= c; tripleHookLevel++;         render(); } });
+      rodUpgrade.addEventListener("click",        () => { const c = getRodUpgradeCost(rodTierLevel);       if (money >= c) { money -= c; rodTierLevel++;             render(); } });
+      sizeUpgrade.addEventListener("click",       () => { const c = getSizeUpgradeCost(sizeBoostLevel);    if (money >= c) { money -= c; sizeBoostLevel++;           render(); } });
+      autoUpgrade.addEventListener("click",       () => { const c = getAutoUpgradeCost(autoFisherLevel);   if (money >= c) { money -= c; autoFisherLevel++;          render(); } });
+      weightUpgrade.addEventListener("click",     () => { const c = getWeightUpgradeCost(weightBoostLevel);if (money >= c) { money -= c; weightBoostLevel++;         render(); } });
+      waitUpgrade.addEventListener("click",       () => { const c = getWaitUpgradeCost(autoWaitReductionLevel); if (money >= c) { money -= c; autoWaitReductionLevel++; render(); } });
 
-      rodUpgrade.addEventListener("click", () => {
-        const cost = getRodUpgradeCost(rodTierLevel);
-        if (money >= cost) { money -= cost; rodTierLevel++; render(); }
-      });
+      autoSellEnabledInput.addEventListener("change",  () => { autoSellEnabled = autoSellEnabledInput.checked; render(); });
+      autoSellModeSelect.addEventListener("change",    () => { const v = autoSellModeSelect.value; autoSellMode = (v === "rarity" || v === "all") ? v : "price"; render(); });
+      autoSellMaxPriceInput.addEventListener("input",  () => { const v = Number(autoSellMaxPriceInput.value); autoSellMaxPrice = Number.isNaN(v) ? 0 : Math.max(0, Math.floor(v)); render(); });
+      autoSellMaxRaritySelect.addEventListener("change", () => { autoSellMaxRarity = autoSellMaxRaritySelect.value; render(); });
 
-      sizeUpgrade.addEventListener("click", () => {
-        const cost = getSizeUpgradeCost(sizeBoostLevel);
-        if (money >= cost) { money -= cost; sizeBoostLevel++; render(); }
-      });
-
-      autoUpgrade.addEventListener("click", () => {
-        const cost = getAutoUpgradeCost(autoFisherLevel);
-        if (money >= cost) { money -= cost; autoFisherLevel++; render(); }
-      });
-
-      weightUpgrade.addEventListener("click", () => {
-        const cost = getWeightUpgradeCost(weightBoostLevel);
-        if (money >= cost) { money -= cost; weightBoostLevel++; render(); }
-      });
-
-      waitUpgrade.addEventListener("click", () => {
-        const cost = getWaitUpgradeCost(autoWaitReductionLevel);
-        if (money >= cost) { money -= cost; autoWaitReductionLevel++; render(); }
-      });
-
-      autoSellEnabledInput.addEventListener("change", () => {
-        autoSellEnabled = autoSellEnabledInput.checked;
-        render();
-      });
-
-      autoSellModeSelect.addEventListener("change", () => {
-        const nextMode = autoSellModeSelect.value;
-        autoSellMode = (nextMode === "rarity" || nextMode === "all") ? nextMode : "price";
-        render();
-      });
-
-      autoSellMaxPriceInput.addEventListener("input", () => {
-        const value = Number(autoSellMaxPriceInput.value);
-        autoSellMaxPrice = Number.isNaN(value) ? 0 : Math.max(0, Math.floor(value));
-        render();
-      });
-
-      autoSellMaxRaritySelect.addEventListener("change", () => {
-        autoSellMaxRarity = autoSellMaxRaritySelect.value;
-        render();
-      });
-
-      // FIX 1 + FIX 3: Main game loop — runs every 250ms for smooth distribution
-      setInterval(() => {
-        processAutoFisher();
-        render();
-      }, 250);
+      setInterval(() => { processAutoFisher(); render(); }, 250);
 
       render();
 
-      // Tutorial System
       function initializeTutorial() {
-        if (!tutorialCompleted) {
-          document.body.classList.add("tutorial-mode");
-        } else {
-          document.body.classList.remove("tutorial-mode");
-        }
+        if (!tutorialCompleted) document.body.classList.add("tutorial-mode");
+        else document.body.classList.remove("tutorial-mode");
       }
 
       function checkTutorialProgress() {
         if (!tutorialCompleted && caughtCount >= 30) {
-          showTutorialDialog();
+          if (tutorialCaughtCount) tutorialCaughtCount.textContent = String(caughtCount);
+          tutorialDialog.classList.add("show");
+          tutorialBackdrop.classList.add("show");
         }
-      }
-
-      function showTutorialDialog() {
-        if (tutorialCaughtCount) tutorialCaughtCount.textContent = String(caughtCount);
-        tutorialDialog.classList.add("show");
-        tutorialBackdrop.classList.add("show");
       }
 
       function completeTutorial() {
@@ -2649,15 +1588,11 @@
       }
 
       tutorialConfirmBtn.addEventListener("click", completeTutorial);
-      tutorialInitialConfirmBtn.addEventListener("click", () => {
-        tutorialInitialDialog.classList.add("dismissed");
-      });
+      tutorialInitialConfirmBtn.addEventListener("click", () => { tutorialInitialDialog.classList.add("dismissed"); });
       upgradesUnlockConfirmBtn.addEventListener("click", unlockUpgrades);
 
       initializeTutorial();
-      if (tutorialCompleted && !upgradesUnlocked) {
-        document.body.classList.add("limited-nav-mode");
-      }
+      if (tutorialCompleted && !upgradesUnlocked) document.body.classList.add("limited-nav-mode");
 
       setInterval(() => {
         if (!tutorialCompleted && caughtCount >= 30) checkTutorialProgress();
