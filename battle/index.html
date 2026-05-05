@@ -178,6 +178,11 @@
     .diff-very-hard { background: #280e0e; border-color: #b03030; color: #ff6060; }
     .diff-extreme { background: #1e0a28; border-color: #8a30b0; color: #d060ff; }
     .diff-nightmare { background: #12040a; border-color: #c0106a; color: #ff50a0; }
+    /* NEW: ultra-hard tiers 300+ */
+    .diff-abyssal { background: #0a0010; border-color: #6000ff; color: #bf80ff; animation: abyssal-pulse 2s ease-in-out infinite; }
+    .diff-oblivion { background: #050005; border-color: #ff0055; color: #ff4488; animation: oblivion-pulse 1.4s ease-in-out infinite; }
+    @keyframes abyssal-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(96,0,255,0)} 50%{box-shadow:0 0 8px 2px rgba(96,0,255,0.4)} }
+    @keyframes oblivion-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,0,85,0)} 50%{box-shadow:0 0 12px 3px rgba(255,0,85,0.5)} }
     .enemy-team-preview-wrap { position: relative; display: inline-flex; align-items: center; gap: 6px; }
     .enemy-team-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #1e3545; border: 1px solid #4a7a94; color: #8dc4e0; font-size: 12px; font-weight: bold; cursor: pointer; transition: background .15s, border-color .15s; user-select: none; flex-shrink: 0; }
     .enemy-team-btn:hover { background: #2a4d63; border-color: #6aaece; }
@@ -193,6 +198,9 @@
     .boss-indicator-icon { font-size: 16px; }
     .boss-indicator-text { line-height: 1.3; }
     .boss-indicator-sub { font-size: 11px; color: #a070cc; font-weight: normal; }
+    /* NEW: abyssal / oblivion boss indicator */
+    .abyssal-indicator { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg,#08001a 0%,#150030 100%); border: 1px solid #6000ff; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; color: #bf80ff; font-weight: bold; animation: abyssal-pulse 2s ease-in-out infinite; }
+    .oblivion-indicator { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg,#0f0008 0%,#1a000f 100%); border: 1px solid #ff0055; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; color: #ff4488; font-weight: bold; animation: oblivion-pulse 1.4s ease-in-out infinite; }
   </style>
 </head>
 <body>
@@ -463,6 +471,12 @@
 
     function isBossTier(t) { return t > 0 && t % 10 === 0; }
 
+    // ─── DIFFICULTY ZONES ──────────────────────────────────────────────────────
+    // Tier 1–299   : normal curve (unchanged)
+    // Tier 300–499 : "Abyssal" — brutal exponential spike
+    // Tier 500+    : "Oblivion" — near-impossible, fully exponential
+    // ───────────────────────────────────────────────────────────────────────────
+
     function getEnemyTemplatesForTier(tier) {
       const t = Math.max(1, Number(tier) || 1);
       let targetRarity = getRarityBandForTier(t);
@@ -474,23 +488,70 @@
       return [0, 1, 2].map(i => pool[(t + i) % pool.length]);
     }
 
+    /**
+     * speciesStatsAtTier — main scaling function.
+     *
+     * Zones:
+     *  S1  t ∈ [1,  100]  : gentle polynomial
+     *  S2  t ∈ [101,200]  : steeper polynomial
+     *  S3  t ∈ [201,299]  : moderate acceleration (original S3)
+     *  S4  t ∈ [300,499]  : ABYSSAL — aggressive exponential ramp
+     *  S5  t ∈ [500,∞]    : OBLIVION — brutal compound exponential
+     *
+     * Boss tiers keep their +20% HP / +30% ATK on top of whatever zone they're in.
+     */
     function speciesStatsAtTier(species, tier) {
-      const boss = isBossTier(tier);
-      const BASE_HP   = 33;
+      const boss    = isBossTier(tier);
+      const BASE_HP = 33;
       const ATK_RATIO = 0.40;
-      const BOSS_HP   = 1.20;
-      const BOSS_ATK  = 1.30;
-      const S1_END = 100, S1_SLOPE = 2.5, S1_POW = 0.95;
-      const S2_END = 200, S2_SLOPE = 1.5, S2_POW = 1.35;
-      const               S3_SLOPE = 3.0, S3_POW = 0.95;
+
+      // Boss multipliers (unchanged)
+      const BOSS_HP  = 1.20;
+      const BOSS_ATK = 1.30;
+
+      // Segment endpoints
+      const S1_END = 100, S2_END = 200, S3_END = 299;
+      const S4_END = 499; // Oblivion starts at 500
+
+      // Slopes / exponents per segment
+      const S1_SLOPE = 2.5,  S1_POW = 0.95;
+      const S2_SLOPE = 1.5,  S2_POW = 1.35;
+      const S3_SLOPE = 3.0,  S3_POW = 0.95;
+
+      // Abyssal (300-499): exponential base applied on top of S3 end value
+      const S4_EXP_BASE  = 1.038; // per tier above 299 — each tier is ~3.8% harder
+      const S4_FLAT_MULT = 4.0;   // initial amplifier for the abyssal zone
+
+      // Oblivion (500+): compound — starts from S4 end, then spirals
+      const S5_EXP_BASE  = 1.055; // ~5.5% per tier above 499
+      const S5_FLAT_MULT = 1.5;   // extra multiplier layered on top of S4 end
+
+      // ── Build hp_at_s1, hp_at_s2, hp_at_s3 (continuous anchors) ──
       const hp_at_s1 = BASE_HP + S1_SLOPE * Math.pow(S1_END - 1, S1_POW);
       const hp_at_s2 = hp_at_s1 + S2_SLOPE * Math.pow(S2_END - S1_END, S2_POW);
+      const hp_at_s3 = hp_at_s2 + S3_SLOPE * Math.pow(S3_END - S2_END, S3_POW);
+
       let base;
-      if (tier <= S1_END) { base = BASE_HP + S1_SLOPE * Math.pow(tier - 1, S1_POW); }
-      else if (tier <= S2_END) { base = hp_at_s1 + S2_SLOPE * Math.pow(tier - S1_END, S2_POW); }
-      else { base = hp_at_s2 + S3_SLOPE * Math.pow(tier - S2_END, S3_POW); }
+      if (tier <= S1_END) {
+        base = BASE_HP + S1_SLOPE * Math.pow(Math.max(0, tier - 1), S1_POW);
+      } else if (tier <= S2_END) {
+        base = hp_at_s1 + S2_SLOPE * Math.pow(tier - S1_END, S2_POW);
+      } else if (tier <= S3_END) {
+        base = hp_at_s2 + S3_SLOPE * Math.pow(tier - S2_END, S3_POW);
+      } else if (tier <= S4_END) {
+        // ABYSSAL: exponential ramp from S3 anchor
+        const stepsIntoAbyssal = tier - S3_END;
+        base = hp_at_s3 * S4_FLAT_MULT * Math.pow(S4_EXP_BASE, stepsIntoAbyssal);
+      } else {
+        // OBLIVION: chain S4 end value, then apply a second exponential
+        const hp_at_s4_end = hp_at_s3 * S4_FLAT_MULT * Math.pow(S4_EXP_BASE, S4_END - S3_END);
+        const stepsIntoOblivion = tier - S4_END;
+        base = hp_at_s4_end * S5_FLAT_MULT * Math.pow(S5_EXP_BASE, stepsIntoOblivion);
+      }
+
       const rarityMult = { common:0.85, uncommon:1.0, rare:1.2, epic:1.45, legendary:1.80 };
       const mult = rarityMult[species.rarity] || 1.0;
+
       const hp  = Math.max(1, Math.round(base * mult * (boss ? BOSS_HP  : 1)));
       const atk = Math.max(1, Math.round(base * mult * ATK_RATIO * (boss ? BOSS_ATK : 1)));
       return { hp, atk };
@@ -585,7 +646,7 @@
       if (incEl)    incEl.textContent    = teamStats.incomeMultiplier.toFixed(2) + "x";
       const opponentFishing = (importedBattle && importedBattle.exportedTeamStats)
         ? Number(importedBattle.exportedTeamStats.fishingSpeed) || 1
-        : (ENEMY_FISHING_SPEED_BASE + (battleTier - 1) * 0.01);
+        : getEnemyFishingSpeed(battleTier);
       const playerGoesFirst = teamStats.fishingSpeed >= opponentFishing;
       if (fishEl) {
         if (importedBattle && importedBattle.exportedTeamStats) {
@@ -614,9 +675,28 @@
       return { hp: boostedHp, atk: boostedAtk };
     }
 
+    /**
+     * Enemy fishing speed scaling:
+     * - Tier 1–299  : +0.01 per tier (original)
+     * - Tier 300–499: +0.03 per tier above 299 (Abyssal)
+     * - Tier 500+   : +0.06 per tier above 499 (Oblivion)
+     */
+    function getEnemyFishingSpeed(tier) {
+      const t = Math.max(1, Number(tier) || 1);
+      const S3_END = 299, S4_END = 499;
+      if (t <= S3_END) {
+        return ENEMY_FISHING_SPEED_BASE + (t - 1) * 0.01;
+      } else if (t <= S4_END) {
+        const base = ENEMY_FISHING_SPEED_BASE + (S3_END - 1) * 0.01;
+        return base + (t - S3_END) * 0.03;
+      } else {
+        const base = ENEMY_FISHING_SPEED_BASE + (S3_END - 1) * 0.01 + (S4_END - S3_END) * 0.03;
+        return base + (t - S4_END) * 0.06;
+      }
+    }
+
     function playerStartsFirst() {
-      const enemyFishingSpeed = ENEMY_FISHING_SPEED_BASE + (battleTier - 1) * 0.01;
-      return teamStats.fishingSpeed >= enemyFishingSpeed;
+      return teamStats.fishingSpeed >= getEnemyFishingSpeed(battleTier);
     }
 
     let tooltipOpen = false;
@@ -629,7 +709,25 @@
       const diffClass = getDifficultyClass(t);
       const diffLabel = getTierDifficultyLabel(t);
       let html = "";
-      if (boss) {
+
+      // Special zone indicators
+      if (t >= 500) {
+        html += `<div class="oblivion-indicator">
+          <span style="font-size:18px;">💀</span>
+          <div>
+            OBLIVION — TIER ${t}
+            <div style="font-size:11px; color:#cc2255; font-weight:normal; margin-top:2px;">Stats scale exponentially. Enemy fishing speed is brutally high. Good luck.</div>
+          </div>
+        </div>`;
+      } else if (t >= 300) {
+        html += `<div class="abyssal-indicator">
+          <span style="font-size:18px;">🌑</span>
+          <div>
+            ABYSSAL — TIER ${t}
+            <div style="font-size:11px; color:#8855cc; font-weight:normal; margin-top:2px;">Beyond the wall. Enemy stats now scale exponentially each tier.</div>
+          </div>
+        </div>`;
+      } else if (boss) {
         html += `<div class="boss-indicator">
           <span class="boss-indicator-icon">👹</span>
           <div class="boss-indicator-text">
@@ -638,6 +736,7 @@
           </div>
         </div>`;
       }
+
       const selectedFish = getSelectedFish();
       const teamHtml = selectedFish.length > 0 ? selectedFish.map((f, i) => {
         const boosted = applyTeamBoostsToFishStats(f.size, f.weight);
@@ -646,6 +745,7 @@
           <div class="enemy-fish-row-stats">Size: ${f.size} → HP: ${boosted.hp} &nbsp;|&nbsp; Weight: ${f.weight} → ATK: ${boosted.atk} &nbsp;|&nbsp; ${rarityLabel(f.rarity)}</div>
         </div>`;
       }).join("") : '<div style="color:#8db4c8; font-size:12px;">Select 3 fish above to see your team</div>';
+
       html += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
         <div class="difficulty-badge ${diffClass}">${diffLabel}</div>
         <div class="enemy-team-preview-wrap">
@@ -670,13 +770,28 @@
 
     function getDifficultyClass(t) {
       const tier = Math.max(1, Number(t) || 1);
-      if (tier <=  5)  return "diff-very-easy";
-      if (tier <= 15)  return "diff-easy";
-      if (tier <= 35)  return "diff-normal";
-      if (tier <= 75)  return "diff-hard";
-      if (tier <= 200) return "diff-very-hard";
-      if (tier <= 800) return "diff-extreme";
+      if (tier >=  500) return "diff-oblivion";
+      if (tier >=  300) return "diff-abyssal";
+      if (tier <=    5) return "diff-very-easy";
+      if (tier <=   15) return "diff-easy";
+      if (tier <=   35) return "diff-normal";
+      if (tier <=   75) return "diff-hard";
+      if (tier <=  200) return "diff-very-hard";
+      if (tier <=  800) return "diff-extreme";
       return "diff-nightmare";
+    }
+
+    function getTierDifficultyLabel(t) {
+      const s = Math.max(1, Number(t)||1);
+      if (s >= 500) return "☠ OBLIVION";
+      if (s >= 300) return "🌑 Abyssal";
+      if (s <=   5) return "Very easy";
+      if (s <=  15) return "Easy";
+      if (s <=  35) return "Normal";
+      if (s <=  75) return "Hard";
+      if (s <= 200) return "Very hard";
+      if (s <= 800) return "Extreme";
+      return "Nightmare";
     }
 
     const collectionList      = document.getElementById("collectionList");
@@ -752,18 +867,11 @@
     function getTierReward(t) {
       const s = Math.max(1, Number(t)||1);
       const bossBonus = isBossTier(s) ? 3.0 : 1.0;
-      return Math.max(100, Math.floor((180 + s * 150 + Math.pow(s, 1.55) * 30) * bossBonus));
-    }
-
-    function getTierDifficultyLabel(t) {
-      const s = Math.max(1, Number(t)||1);
-      if (s <=  5) return "Very easy";
-      if (s <= 15) return "Easy";
-      if (s <= 35) return "Normal";
-      if (s <= 75) return "Hard";
-      if (s <= 200) return "Very hard";
-      if (s <= 800) return "Extreme";
-      return "Nightmare";
+      // Extra reward for abyssal/oblivion tiers to compensate difficulty
+      let zoneBonus = 1.0;
+      if (s >= 500) zoneBonus = 15.0;
+      else if (s >= 300) zoneBonus = 5.0;
+      return Math.max(100, Math.floor((180 + s * 150 + Math.pow(s, 1.55) * 30) * bossBonus * zoneBonus));
     }
 
     function createFishUid() { return `fish-${Date.now()}-${Math.random().toString(36).slice(2,10)}`; }
@@ -1388,19 +1496,21 @@
         battleTickRescheduler=null;
 
         if(result.playerWon&&!isCustom){
-          // Give money reward
           localStorage.setItem(MONEY_KEY, String(Math.max(0,Number(localStorage.getItem(MONEY_KEY))||0)+reward));
-          // Give hooks — boss tiers give bonus hooks but NO fish drop
-          const hooks=10+(isBossTier(currentTier)?30:0);
-          addHooks(hooks,"Battle Hooks",isBossTier(currentTier)?`Tier ${currentTier} clear + boss bonus`:`Tier ${currentTier} clear`);
+          const hooks=10+(isBossTier(currentTier)?30:0)+(currentTier>=500?50:currentTier>=300?20:0);
+          addHooks(hooks,"Battle Hooks",
+            currentTier>=500?`Tier ${currentTier} — OBLIVION CLEARED! Massive reward.`:
+            currentTier>=300?`Tier ${currentTier} — Abyssal cleared!`:
+            isBossTier(currentTier)?`Tier ${currentTier} clear + boss bonus`:`Tier ${currentTier} clear`);
           battleTier=currentTier+1; saveBattleTier();
           renderTierInfoBar();
         }
 
         const bossStr=isBossTier(currentTier)?" [BOSS CLEARED!]":"";
+        const zoneStr=currentTier>=500?" [☠ OBLIVION CLEARED!]":currentTier>=300?" [🌑 ABYSSAL CLEARED!]":"";
         const resultText=result.playerWon
           ?(isCustom?`Victory! Enemies defeated: ${result.allyWins}/3.`
-            :`Victory!${bossStr} Tier ${currentTier} cleared. +${reward} money. Next: Tier ${battleTier}.`)
+            :`Victory!${bossStr}${zoneStr} Tier ${currentTier} cleared. +${reward} money. Next: Tier ${battleTier}.`)
           :`Defeat. Enemies defeated: ${result.allyWins}/3.`;
 
         lastBattleState={ allies:result.allies,enemies:result.enemies,log:[...displayedLog],
