@@ -41,6 +41,30 @@
     .settings-nav-button { margin-left: auto; margin-right: 16px; }
     body.limited-nav-mode .locked-nav-button { display: none; }
 
+    .guild-online-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 8px;
+      padding: 1px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(34, 122, 62, 0.5);
+      background: rgba(28, 88, 48, 0.2);
+      color: #2f8f4e;
+      font-size: 12px;
+      font-weight: bold;
+      line-height: 1.2;
+    }
+    .guild-online-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2fd468;
+      box-shadow: 0 0 8px rgba(47, 212, 104, 0.6);
+      flex: 0 0 auto;
+    }
+    .guild-online-indicator.hidden { display: none; }
+
     /* ── LAYOUT ── */
     .shell { max-width: 1600px; margin: 0 auto; padding: 16px; flex: 1; }
     .page-grid {
@@ -372,7 +396,12 @@
       <button class="nav-button locked-nav-button" onclick="location.href='../battle/'">Battle</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../reproduction/'">Reproduction</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../missions/'">Missions</button>
-      <button class="nav-button locked-nav-button active-nav-button">Guild</button>
+      <button class="nav-button locked-nav-button active-nav-button">Guild
+        <span class="guild-online-indicator hidden" id="guildOnlineIndicator">
+          <span class="guild-online-dot"></span>
+          <span id="guildOnlineCount">0</span>
+        </span>
+      </button>
       <button class="nav-button settings-nav-button" onclick="location.href='../settings/'">Settings</button>
       <button class="nav-button btn-danger" onclick="logOff()">Log off</button>
     </div>
@@ -458,6 +487,8 @@
     let viewingProfileId = null; // Track whose profile we're viewing
     let viewingProfileData = null; // Store current profile data for PVP
     let memberProfilesCache = {}; // Cache loaded member profiles for fallback
+    let presenceIntervalId = null;
+    const ONLINE_WINDOW_MS = 3 * 60 * 1000;
 
     async function getMemberDisplayNames(memberIds) {
       if (!db || !Array.isArray(memberIds) || memberIds.length === 0) return {};
@@ -502,7 +533,7 @@
       const uniqueIds = Array.from(new Set(memberIds.filter(id => !!id)));
       if (!uniqueIds.length) return {};
 
-      const { data: profiles } = await db.from("profiles").select("player_id, display_name, fish_team, char_team").in("player_id", uniqueIds);
+      const { data: profiles } = await db.from("profiles").select("player_id, display_name, fish_team, char_team, updated_at").in("player_id", uniqueIds);
       const map = {};
       if (Array.isArray(profiles)) {
         profiles.forEach(profile => {
@@ -766,6 +797,60 @@
         const mine = allGuilds.find(g => g.id === m.guildId);
         if (mine) { selectedGuildId = mine.id; renderSidebar(); renderGuildView(mine, true).catch(console.error); }
       }
+
+      updateGuildOnlineIndicator().catch(() => {});
+    }
+
+    async function updateGuildOnlineIndicator() {
+      const indicator = document.getElementById("guildOnlineIndicator");
+      const countEl = document.getElementById("guildOnlineCount");
+      if (!indicator || !countEl) return;
+
+      const membership = getMembership();
+      if (!db || !membership || !membership.guildId) {
+        indicator.classList.add("hidden");
+        return;
+      }
+
+      const guild = allGuilds.find(g => g.id === membership.guildId);
+      if (!guild) {
+        indicator.classList.add("hidden");
+        return;
+      }
+
+      const members = safeParseMembers(guild.members);
+      const memberIds = members.map(mem => mem.pid).filter(Boolean);
+      if (!memberIds.length) {
+        indicator.classList.add("hidden");
+        return;
+      }
+
+      const { data: profiles, error } = await db
+        .from("profiles")
+        .select("player_id, updated_at")
+        .in("player_id", memberIds);
+
+      if (error || !Array.isArray(profiles)) {
+        indicator.classList.add("hidden");
+        return;
+      }
+
+      const now = Date.now();
+      const onlineCount = profiles.reduce((count, p) => {
+        const t = p && p.updated_at ? Date.parse(p.updated_at) : NaN;
+        if (!Number.isFinite(t)) return count;
+        return now - t <= ONLINE_WINDOW_MS ? count + 1 : count;
+      }, 0);
+
+      countEl.textContent = String(onlineCount);
+      indicator.classList.remove("hidden");
+    }
+
+    async function updateMyPresence() {
+      if (!db) return;
+      const pid = getPlayerId();
+      if (!pid) return;
+      await db.from("profiles").update({ updated_at: new Date().toISOString() }).eq("player_id", pid);
     }
 
     function renderSidebar() {
@@ -1447,6 +1532,11 @@
     if (localStorage.getItem("clicker_upgradesUnlocked") !== "true") {
       document.body.classList.add("limited-nav-mode");
     }
+    updateMyPresence().catch(() => {});
+    if (presenceIntervalId) clearInterval(presenceIntervalId);
+    presenceIntervalId = setInterval(() => {
+      updateMyPresence().then(() => updateGuildOnlineIndicator()).catch(() => {});
+    }, 60000);
     loadGuilds();
   </script>
 

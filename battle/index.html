@@ -1,1923 +1,251 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Battle - Clicker</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { font-family: Arial, sans-serif; text-align: center; background: #111; color: #fff; margin: 0; padding: 24px 0; }
-    .top-bar { position: sticky; top: 0; z-index: 20; background: #0c1217; border-bottom: 1px solid #22313b; box-shadow: 0 10px 20px rgba(0,0,0,.35); margin: -24px 0 18px; padding: 10px 0; }
-    .top-nav { display: flex; justify-content: flex-start; gap: 10px; flex-wrap: wrap; width: 100%; padding: 0 16px; }
-    .nav-button { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #31414d; color: #eef5f9; border: 1px solid #667a86; padding: 12px 16px; margin-right: 8px; font-size: 15px; cursor: pointer; border-radius: 10px; transition: background-color .15s,border-color .15s,color .15s; }
-    .nav-button:hover { background: #3a4c59; border-color: #7f95a3; }
-    .nav-button.active-nav-button { background: #dbe3e8; color: #1d2a33; border-color: #dbe3e8; font-weight: bold; }
-    .settings-nav-button { margin-left: auto; margin-right: 16px; }
-    .shell { max-width: 1440px; margin: 0 auto; padding: 0 16px; box-sizing: border-box; }
-    .page-grid { display: grid; grid-template-columns: minmax(380px,1.1fr) minmax(0,1.48fr) minmax(320px,.78fr); gap: 16px; margin-top: 16px; text-align: left; align-items: start; }
-    .section { border: 1px solid #2f4d5c; border-radius: 14px; background: #142028; padding: 14px; }
-    .section-title { font-size: 18px; font-weight: bold; color: #8dc4e0; margin-bottom: 10px; }
-    .section-header-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
-    .section-header-row .section-title { margin-bottom: 0; }
-    .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .battle-panel { margin-top: 10px; border: 1px solid #365563; border-radius: 12px; background: #0f1519; padding: 10px; display: grid; gap: 8px; }
-    .battle-help { font-size: 12px; color: #b8d4e3; line-height: 1.4; }
-    .battle-textarea { width: 100%; min-height: 86px; box-sizing: border-box; border: 1px solid #4f7185; border-radius: 10px; background: #101920; color: #e9f6ff; padding: 10px; font-family: Consolas,monospace; font-size: 12px; resize: vertical; }
-    .battle-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .left-column, .center-column, .right-column { display: grid; gap: 16px; align-content: start; }
-    .selection-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
-    .slot-card, .bait-card { border: 1px solid #365563; border-radius: 12px; background: #0f1519; padding: 12px; }
-    .slot-card.rarity-common,.fish-card.rarity-common { background: #17191c; border-color: #5a5a5a; }
-    .slot-card.rarity-uncommon,.fish-card.rarity-uncommon { background: #132019; border-color: #3f7b4b; }
-    .slot-card.rarity-rare,.fish-card.rarity-rare { background: #13202e; border-color: #335f94; }
-    .slot-card.rarity-epic,.fish-card.rarity-epic { background: #1b1428; border-color: #7a5bb3; }
-    .slot-card.rarity-legendary,.fish-card.rarity-legendary { background: #2a1d0f; border-color: #c57a2a; }
-    .slot-label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #88a8b9; margin-bottom: 4px; }
-    .slot-name { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
-    .slot-meta { font-size: 13px; color: #cfe0ea; line-height: 1.4; }
-    .slot-empty { color: #8da3b0; font-size: 14px; }
-    .slot-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #8ea3b1; background: #263541; color: #fff; border-radius: 10px; padding: 10px 14px; cursor: pointer; font-size: 14px; text-decoration: none; }
-    .btn:hover { background: #324555; }
-    .btn:disabled { opacity: .65; cursor: not-allowed; }
-    .btn-secondary { background: #1d2a33; border-color: #49687b; }
-    .btn-secondary:hover { background: #243541; }
-    .btn-danger { background: #4a2730; border-color: #9a5a68; }
-    .btn-danger:hover { background: #5b3140; }
-    .sort-panel { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-    .collection-scroll { max-height: 520px; overflow: auto; padding-right: 4px; }
-    .sort-label { color: #cfe0ea; font-size: 14px; font-weight: bold; display: flex; align-items: center; margin-right: 4px; }
-    .sort-btn.active { background: #3a5f7a; border-color: #5a8faa; }
-    .fish-collection { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
-    .bait-strip { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
-    .bait-scroll { max-height: 160px; overflow: auto; padding-right: 4px; }
-    .fish-card { border: 1px solid #365563; border-radius: 12px; background: #0f1519; padding: 12px; display: grid; gap: 10px; }
-    .fish-header { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
-    .fish-name { font-size: 16px; font-weight: bold; }
-    .fish-meta { font-size: 13px; color: #bed1dd; line-height: 1.5; }
-    .fish-status { font-size: 12px; color: #f5db9b; }
-    .count-pill { background: #1b2a33; color: #cfe0ea; border: 1px solid #355063; border-radius: 999px; padding: 4px 10px; font-size: 12px; white-space: nowrap; height: fit-content; }
-    .empty-state { border: 1px dashed #4b6878; border-radius: 12px; padding: 16px; color: #93aab8; background: rgba(15,21,25,.8); }
-    .action-button { width: 100%; padding: 16px; font-size: 18px; font-weight: bold; }
-    .action-button:hover { background: #324555; }
-    .action-button:disabled { background: #263541; border-color: #8ea3b1; opacity: .65; }
-    .auto-battle-toggle { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 10px; border: 1px solid #365563; border-radius: 10px; background: #0f1519; }
-    .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4a7a7a; transition: .3s; border-radius: 26px; }
-    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
-    input:checked + .slider { background-color: #2d8a6d; }
-    input:checked + .slider:before { transform: translateX(24px); }
-    .action-note { margin-top: 10px; color: #b8d4e3; font-size: 14px; line-height: 1.5; }
-    .action-tools { display: grid; gap: 8px; margin-top: 10px; }
-    .queue-panel { margin-top: 10px; border: 1px solid #365563; border-radius: 10px; background: #0f1519; padding: 10px; display: grid; gap: 8px; }
-    .queue-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .queue-status { color: #b8d4e3; font-size: 13px; line-height: 1.4; min-height: 20px; }
-    .tier-hud { display: grid; gap: 8px; margin-top: 10px; padding: 10px; border: 1px solid #365563; border-radius: 12px; background: #0f1519; }
-    .tier-hud-row { display: flex; justify-content: space-between; gap: 10px; align-items: center; font-size: 13px; }
-    .tier-hud-label { color: #aac2d0; }
-    .tier-hud-value { color: #fff; font-weight: bold; text-align: right; }
-    .bait-note { color: #9eb0bc; font-size: 14px; line-height: 1.5; }
-    .selected-highlight { outline: 2px solid #5a8faa; box-shadow: 0 0 0 2px rgba(90,143,170,.15); }
-    .status-line { margin-top: 14px; color: #f5db9b; font-size: 14px; min-height: 20px; }
-    .right-panel-stack { display: grid; gap: 16px; position: sticky; top: 88px; }
-    .character-team-section { border: 1px solid #2f4d5c; border-radius: 14px; background: #142028; padding: 14px; }
-    .character-team-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
-    .character-team-box { border: 1px solid #365563; border-radius: 12px; background: #0f1519; padding: 10px; display: grid; gap: 8px; align-content: start; min-height: 0; }
-    .character-team-box-title { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #8dc4e0; font-weight: bold; }
-    .character-team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; align-items: stretch; }
-    .character-team-card { border: 1px solid #2f4d5c; border-radius: 12px; background: #0f1519; padding: 12px; text-align: center; font-size: 13px; display: flex; flex-direction: column; justify-content: center; gap: 5px; min-height: 96px; box-sizing: border-box; }
-    .character-team-card.stars-2 { background: rgba(0,212,170,0.15); border-color: #00d4aa; }
-    .character-team-card.stars-3 { background: rgba(74,158,255,0.15); border-color: #4a9eff; }
-    .character-team-card.stars-4 { background: rgba(179,102,255,0.15); border-color: #b366ff; }
-    .character-team-card.stars-5 { background: rgba(255,215,0,0.2); border-color: #ffd700; }
-    .character-team-card-name { font-weight: bold; color: #8dc4e0; margin-bottom: 6px; }
-    .character-team-card-stars { font-size: 11px; color: #ffa657; letter-spacing: 2px; margin-bottom: 6px; }
-    .character-team-card-level { font-size: 12px; color: #a9c2d3; }
-    .talent-badge { display: inline-flex; align-items: center; gap: 6px; justify-content: center; padding: 4px 8px; border-radius: 999px; border: 1px solid #4b6878; background: #142029; color: #d9ecf8; font-size: 11px; letter-spacing: 0.03em; margin: 0 auto; max-width: 100%; }
-    .talent-inline { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
-    .talent-name-text { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .talent-help { position: relative; width: 16px; height: 16px; border-radius: 999px; border: 1px solid #84a9be; color: #d9ecf8; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; background: #203240; cursor: help; flex: 0 0 auto; line-height: 1; }
-    .talent-help::after { content: attr(data-tooltip); position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%) translateY(4px); background: #0f1519; color: #d9ecf8; border: 1px solid #4b6878; border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.35; min-width: 220px; max-width: 320px; white-space: normal; box-shadow: 0 10px 24px rgba(0,0,0,0.45); pointer-events: none; opacity: 0; visibility: hidden; z-index: 90; transition: opacity 0.06s ease, transform 0.06s ease, visibility 0.06s ease; }
-    .talent-help:hover::after, .talent-help:focus-visible::after { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
-    .character-team-empty { color: #6b8796; font-style: italic; text-align: center; padding: 20px; }
-    .character-team-card-clickable { cursor: pointer; transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease; }
-    .character-team-card-clickable:hover { transform: translateY(-1px); border-color: #8dc4e0; box-shadow: 0 0 0 1px rgba(141,196,224,0.18); }
-    .character-stats-modal { display: none; position: fixed; inset: 0; z-index: 250; background: rgba(0,0,0,0.72); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
-    .character-stats-modal.visible { display: flex; }
-    .character-stats-modal-card { width: min(820px, 100%); max-height: 88vh; overflow: auto; background: linear-gradient(180deg, #18222a 0%, #12191f 100%); border: 1px solid #3f6075; border-radius: 16px; padding: 16px; box-sizing: border-box; box-shadow: 0 18px 40px rgba(0,0,0,0.45); }
-    .character-stats-modal-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #2f4d5c; }
-    .character-stats-modal-title { font-size: 24px; font-weight: bold; color: #8dc4e0; }
-    .character-stats-modal-stars { font-size: 20px; color: #ffa657; letter-spacing: 3px; }
-    .character-stats-modal-close { background: none; border: none; color: #8dc4e0; font-size: 28px; cursor: pointer; padding: 0; width: 30px; height: 30px; }
-    .character-stats-modal-close:hover { color: #d9ecf8; }
-    .character-stats-modal-layout { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(260px,1fr); gap: 14px; align-items: start; }
-    .character-stats-modal-stats { display: grid; gap: 10px; }
-    .character-stat-item { background: #0f1519; border-radius: 10px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .character-stat-label { color: #a6c3d5; text-transform: uppercase; font-size: 12px; letter-spacing: 0.04em; }
-    .character-stat-value { color: #f7f0c4; font-weight: bold; font-size: 15px; text-align: right; }
-    .character-stats-modal-side { display: grid; gap: 10px; align-content: start; }
-    .character-stats-modal-image { border: 1px dashed #4b6878; border-radius: 12px; min-height: 170px; background: linear-gradient(180deg, rgba(20,32,41,0.65) 0%, rgba(15,22,28,0.75) 100%); color: #8aa6b8; font-size: 13px; display: flex; align-items: center; justify-content: center; text-transform: uppercase; letter-spacing: 0.05em; text-align: center; padding: 10px; box-sizing: border-box; }
-    .character-stats-modal-box { border: 1px solid #365563; border-radius: 12px; background: #0f1519; padding: 12px; display: grid; gap: 8px; }
-    .character-stats-modal-box-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #8dc4e0; font-weight: bold; }
-    .character-stats-modal-note { color: #cde3ef; font-size: 13px; line-height: 1.45; }
-    @media (max-width: 900px) { .character-stats-modal-layout { grid-template-columns: 1fr; } .character-team-split { grid-template-columns: 1fr; } }
-    .battle-arena-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-bottom: 10px; }
-    .battle-side { border: 1px solid #365563; border-radius: 12px; background: #0f1519; padding: 10px; display: grid; gap: 8px; }
-    .battle-side-title { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #8dc4e0; font-weight: bold; }
-    .battle-fish-card { border: 1px solid #3b5a6d; border-radius: 10px; background: #15222b; padding: 8px; display: grid; gap: 5px; }
-    .battle-fish-card.enemy { background: #2a1818; border-color: #734646; }
-    .battle-fish-name { font-size: 13px; font-weight: bold; }
-    .battle-fish-stats { font-size: 12px; color: #cde3ef; display: flex; gap: 10px; flex-wrap: wrap; }
-    .hp-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
-    .hp-bar { height: 10px; border-radius: 999px; background: #2f3f4b; overflow: hidden; border: 1px solid #476171; }
-    .hp-fill { height: 100%; background: linear-gradient(90deg,#ff6f6f 0%,#ffbe5e 45%,#7ee787 100%); width: 0%; transition: width .2s; }
-    .hp-value { font-size: 11px; color: #e8f5ff; min-width: 52px; text-align: right; }
-    .battle-result { margin-top: 4px; font-size: 20px; color: #f7e3a7; font-weight: bold; min-height: 28px; line-height: 1.35; text-align: left; }
-    .battle-score-panel { display: none; margin: 8px 0; border: 1px solid #365563; border-radius: 10px; background: #0f1519; padding: 10px 14px; }
-    .battle-score-panel.visible { display: block; }
-    .score-title { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #8dc4e0; font-weight: bold; margin-bottom: 8px; }
-    .score-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-    .score-label { font-size: 13px; color: #aac2d0; min-width: 78px; }
-    .score-bar-bg { flex: 1; height: 8px; border-radius: 999px; background: #1e2e39; overflow: hidden; }
-    .score-bar-fill { height: 100%; border-radius: 999px; transition: width .5s ease; }
-    .score-bar-fill.ally { background: linear-gradient(90deg,#3da46e,#7ee787); }
-    .score-bar-fill.enemy { background: linear-gradient(90deg,#cc5a3c,#ffa657); }
-    .score-number { font-size: 13px; font-weight: bold; min-width: 46px; text-align: right; }
-    .score-number.ally { color: #7ee787; }
-    .score-number.enemy { color: #ffa657; }
-    .score-verdict { text-align: center; font-size: 13px; color: #cfe0ea; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(104,132,149,.2); }
-    .battle-log { max-height: 220px; overflow: auto; border: 1px solid #365563; border-radius: 10px; background: #0f1519; padding: 10px; display: grid; gap: 6px; }
-    .battle-log-entry { font-size: 14px; color: #d6e8f2; line-height: 1.4; text-align: left; }
-    .speed-ticks { margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: #b8d4e3; font-size: 13px; }
-    .speed-tick { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
-    .speed-tick input { cursor: pointer; accent-color: #8dc4e0; }
-    body.limited-nav-mode .locked-nav-button { display: none; }
-    .hook-notification-layer { position: fixed; right: 14px; top: 86px; z-index: 260; display: grid; gap: 8px; pointer-events: none; max-width: min(92vw,420px); }
-    .hook-notification { border: 1px solid #4f89a8; border-radius: 10px; background: linear-gradient(135deg,#123244 0%,#0d2431 100%); color: #dcf3ff; font-size: 13px; line-height: 1.4; padding: 10px 12px; box-shadow: 0 10px 25px rgba(0,0,0,.4); opacity: 0; transform: translateX(12px); animation: hookToastIn .18s ease forwards; }
-    .hook-notification.fade-out { animation: hookToastOut .25s ease forwards; }
-    .hook-notification-title { font-weight: bold; color: #9ad9ff; margin-bottom: 4px; }
-    @keyframes hookToastIn { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:translateX(0)} }
-    @keyframes hookToastOut { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(18px)} }
-    .team-stats-hud { border: 1px solid #2a4d5c; border-radius: 12px; background: #0c1a22; padding: 10px 14px; margin-bottom: 10px; }
-    .team-stats-hud-title { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #5a8899; font-weight: bold; margin-bottom: 8px; }
-    .team-stats-hud-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 6px; }
-    .team-stat-pill { display: flex; justify-content: space-between; align-items: center; background: #0f1d25; border: 1px solid #1e3a47; border-radius: 8px; padding: 5px 8px; font-size: 12px; }
-    .team-stat-pill-label { color: #7eaabf; }
-    .team-stat-pill-value { color: #e0f0ff; font-weight: bold; }
-    .team-stat-pill.highlighted .team-stat-pill-value { color: #7ee787; }
-    .team-stat-pill.initiative-winner { border-color: #4a9eff; background: #0a1e30; }
-    .team-stat-pill.initiative-winner .team-stat-pill-value { color: #4a9eff; }
-    .initiative-note { font-size: 11px; color: #5a7a8a; margin-top: 6px; text-align: center; font-style: italic; }
-    .difficulty-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: bold; border: 1px solid; margin-bottom: 8px; }
-    .diff-very-easy { background: #0e2213; border-color: #2d6b40; color: #7ee787; }
-    .diff-easy { background: #13220e; border-color: #5a8f30; color: #a8d86a; }
-    .diff-normal { background: #1a1e0d; border-color: #8f7d20; color: #e0c840; }
-    .diff-hard { background: #241409; border-color: #b05a20; color: #ffa040; }
-    .diff-very-hard { background: #280e0e; border-color: #b03030; color: #ff6060; }
-    .diff-extreme { background: #1e0a28; border-color: #8a30b0; color: #d060ff; }
-    .diff-nightmare { background: #12040a; border-color: #c0106a; color: #ff50a0; }
-    /* NEW: ultra-hard tiers 300+ */
-    .diff-abyssal { background: #0a0010; border-color: #6000ff; color: #bf80ff; animation: abyssal-pulse 2s ease-in-out infinite; }
-    .diff-oblivion { background: #050005; border-color: #ff0055; color: #ff4488; animation: oblivion-pulse 1.4s ease-in-out infinite; }
-    @keyframes abyssal-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(96,0,255,0)} 50%{box-shadow:0 0 8px 2px rgba(96,0,255,0.4)} }
-    @keyframes oblivion-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,0,85,0)} 50%{box-shadow:0 0 12px 3px rgba(255,0,85,0.5)} }
-    .enemy-team-preview-wrap { position: relative; display: inline-flex; align-items: center; gap: 6px; }
-    .enemy-team-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #1e3545; border: 1px solid #4a7a94; color: #8dc4e0; font-size: 12px; font-weight: bold; cursor: pointer; transition: background .15s, border-color .15s; user-select: none; flex-shrink: 0; }
-    .enemy-team-btn:hover { background: #2a4d63; border-color: #6aaece; }
-    .enemy-team-tooltip { position: absolute; right: 0; top: 28px; z-index: 100; background: #0c1a22; border: 1px solid #3a6070; border-radius: 12px; padding: 10px; min-width: 230px; max-width: 290px; box-shadow: 0 8px 30px rgba(0,0,0,.6); display: none; text-align: left; }
-    .enemy-team-tooltip.open { display: block; }
-    .enemy-team-tooltip-title { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #5a8899; font-weight: bold; margin-bottom: 8px; }
-    .enemy-fish-row { border: 1px solid #364a57; border-radius: 8px; background: #111e27; padding: 8px; margin-bottom: 6px; }
-    .enemy-fish-row:last-child { margin-bottom: 0; }
-    .enemy-fish-row-name { font-size: 13px; font-weight: bold; margin-bottom: 3px; }
-    .enemy-fish-row-stats { font-size: 12px; color: #8db4c8; }
-    .enemy-fish-row.boss-fish { background: #1a1020; border-color: #7a3080; }
-    .boss-indicator { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg,#1a0820 0%,#2a1040 100%); border: 1px solid #8a30c0; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; color: #d060ff; font-weight: bold; }
-    .boss-indicator-icon { font-size: 16px; }
-    .boss-indicator-text { line-height: 1.3; }
-    .boss-indicator-sub { font-size: 11px; color: #a070cc; font-weight: normal; }
-    /* NEW: abyssal / oblivion boss indicator */
-    .abyssal-indicator { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg,#08001a 0%,#150030 100%); border: 1px solid #6000ff; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; color: #bf80ff; font-weight: bold; animation: abyssal-pulse 2s ease-in-out infinite; }
-    .oblivion-indicator { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg,#0f0008 0%,#1a000f 100%); border: 1px solid #ff0055; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; color: #ff4488; font-weight: bold; animation: oblivion-pulse 1.4s ease-in-out infinite; }
-  </style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Battle - Clicker</title>
+	<style>
+		:root {
+			--line: #2f4d5c;
+			--text: #eef5f9;
+			--muted: #cde0eb;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			font-family: Arial, sans-serif;
+			color: #fff;
+			background: #111;
+			display: grid;
+			grid-template-rows: auto 1fr;
+			padding: 24px 16px 36px;
+			overflow-x: hidden;
+		}
+
+		.top-bar {
+			position: sticky;
+			top: 0;
+			z-index: 20;
+			background: #0c1217;
+			border-bottom: 1px solid #22313b;
+			box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+			margin: -24px -16px 18px;
+			padding: 10px 0;
+		}
+
+		.top-nav {
+			display: flex;
+			justify-content: flex-start;
+			gap: 8px;
+			flex-wrap: wrap;
+			width: 100%;
+			max-width: none;
+			margin: 0;
+			padding: 0 0 0 16px;
+		}
+
+		.nav-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			text-decoration: none;
+			border: 1px solid #667a86;
+			background: #31414d;
+			color: #eef5f9;
+			border-radius: 10px;
+			padding: 12px 16px;
+			cursor: pointer;
+			font-size: 14px;
+			margin-right: 8px;
+			transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+		}
+
+		.nav-button:hover {
+			background: #3a4c59;
+			border-color: #7f95a3;
+		}
+
+		.nav-button.active-nav-button {
+			background: #dbe3e8;
+			color: #1a2433;
+			border-color: #dbe3e8;
+			font-weight: 700;
+		}
+
+		.settings-nav-button {
+			margin-left: auto;
+		}
+
+		main {
+			width: min(1000px, calc(100% - 32px));
+			margin: 0 auto;
+		}
+
+		.hero {
+			border: 1px solid var(--line);
+			background: linear-gradient(180deg, #18222a 0%, #12191f 100%);
+			border-radius: 16px;
+			padding: 20px;
+			margin-bottom: 16px;
+			box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
+		}
+
+		.hero h1 {
+			margin: 0 0 8px;
+			font-size: clamp(24px, 4vw, 34px);
+		}
+
+		.hero p {
+			margin: 0;
+			color: #bed1dd;
+			line-height: 1.5;
+		}
+
+		.mode-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 14px;
+		}
+
+		.mode-card {
+			border: 1px solid var(--line);
+			border-radius: 14px;
+			padding: 18px;
+			background: #142028;
+			display: grid;
+			gap: 10px;
+		}
+
+		.mode-card h2 {
+			margin: 0;
+			font-size: 20px;
+		}
+
+		.mode-card p {
+			margin: 0;
+			color: #bed1dd;
+			line-height: 1.45;
+			min-height: 44px;
+		}
+
+		.mode-btn {
+			border: 1px solid #8ea3b1;
+			background: #263541;
+			color: #fff;
+			border-radius: 10px;
+			padding: 11px 14px;
+			font-size: 15px;
+			cursor: pointer;
+			width: 100%;
+			font-weight: 700;
+		}
+
+		.mode-btn:hover {
+			background: #324555;
+		}
+
+		.mode-btn.raid {
+			border-color: #49687b;
+			background: #1d2a33;
+		}
+
+		.mode-btn.raid:hover {
+			background: #243541;
+		}
+
+		.connected {
+			font-size: 13px;
+			color: #7ee787;
+			font-weight: 700;
+		}
+
+		.disconnected {
+			font-size: 13px;
+			color: #ffa657;
+			font-weight: 700;
+		}
+
+		@media (max-width: 760px) {
+			.mode-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.settings-nav-button {
+				margin-left: 0;
+			}
+		}
+	</style>
 </head>
 <body>
-  <div class="top-bar">
-    <div class="top-nav">
-      <button class="nav-button" onclick="window.location.href='../'">Game</button>
-      <button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
-      <button class="nav-button locked-nav-button" onclick="window.location.href='../team/'">Team</button>
-      <button class="nav-button locked-nav-button" onclick="window.location.href='../shop/'">Shop</button>
-      <button class="nav-button locked-nav-button" onclick="window.location.href='../bestiary/'">Bestiary</button>
-      <button class="nav-button locked-nav-button active-nav-button" onclick="window.location.href='./'">Battle</button>
-      <button class="nav-button locked-nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
-      <button class="nav-button locked-nav-button" onclick="window.location.href='../missions/'">Missions</button>
-      <button class="nav-button locked-nav-button" onclick="window.location.href='../guild/'">Guild</button>
-      <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
-    </div>
-  </div>
-  <div class="hook-notification-layer" id="hookNotificationLayer"></div>
-
-  <div class="shell">
-    <div class="page-grid">
-
-      <div class="left-column" style="order:1;">
-        <div class="section">
-          <div class="section-header-row">
-            <div class="section-title">Your Battle Lineup</div>
-          </div>
-          <div class="selection-grid" id="selectedSlots"></div>
-          <div class="battle-panel" id="battlePanel" style="display:none;">
-            <div class="battle-help">Share the generated text with another player. They can import it to fight your lineup asynchronously.</div>
-            <textarea id="battleTextArea" class="battle-textarea" placeholder="Battle text appears here when generated, or paste a text to import..."></textarea>
-            <div class="battle-row">
-              <button class="btn" id="importBattleBtn" type="button">Import Battle Text</button>
-              <button class="btn btn-secondary" id="exportBattleBtn" type="button">Export Battle Text</button>
-              <button class="btn btn-secondary" id="clearBattleBtn" type="button">Clear Imported Battle</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Collection</div>
-          <div class="sort-panel">
-            <span class="sort-label">Sort:</span>
-            <button class="btn btn-secondary sort-btn active" data-sort="default" type="button">Default</button>
-            <button class="btn btn-secondary sort-btn" data-sort="rarity"  type="button">Rarity</button>
-            <button class="btn btn-secondary sort-btn" data-sort="price"   type="button">Price</button>
-            <button class="btn btn-secondary sort-btn" data-sort="size"    type="button">Size</button>
-            <button class="btn btn-secondary sort-btn" data-sort="weight"  type="button">Weight</button>
-            <button class="btn btn-secondary sort-btn" data-sort="name"    type="button">Name</button>
-          </div>
-          <div class="collection-scroll">
-            <div id="collectionList" class="fish-collection"></div>
-            <div id="emptyState" class="empty-state" style="display:none;">You do not have any fish in your collection.</div>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Bait Slots</div>
-          <div class="bait-strip">
-            <div class="bait-card"><div class="slot-label">Bait 1</div><div class="slot-empty">No bait available yet.</div></div>
-            <div class="bait-card"><div class="slot-label">Bait 2</div><div class="slot-empty">No bait available yet.</div></div>
-          </div>
-          <div class="bait-note" style="margin-top:10px;">Bait will be added later. For now, only fish selection is active.</div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Bait Filter</div>
-          <div class="bait-scroll"><div class="empty-state">No bait available yet.</div></div>
-        </div>
-      </div>
-
-      <div class="center-column" style="order:2;">
-        <div class="right-panel-stack">
-          <div class="section">
-            <div class="section-title">Battle Arena</div>
-
-            <div class="team-stats-hud" id="teamStatsHud">
-              <div class="team-stats-hud-title">Team bonuses active in battle</div>
-              <div class="team-stats-hud-grid" id="teamStatsHudGrid">
-                <div class="team-stat-pill"><span class="team-stat-pill-label">Size Bonus</span><span class="team-stat-pill-value" id="hudSizeBonus">+0%</span></div>
-                <div class="team-stat-pill"><span class="team-stat-pill-label">Weight Bonus</span><span class="team-stat-pill-value" id="hudWeightBonus">+0%</span></div>
-                <div class="team-stat-pill highlighted"><span class="team-stat-pill-label">Income Mult</span><span class="team-stat-pill-value" id="hudIncomeMult">1.0x</span></div>
-                <div class="team-stat-pill initiative-winner" id="hudInitiativePill"><span class="team-stat-pill-label">Initiative</span><span class="team-stat-pill-value" id="hudFishingSpeed">1.0x</span></div>
-              </div>
-              <div class="initiative-note" id="hudInitiativeNote">Higher fishing speed = your team goes first</div>
-            </div>
-
-            <div id="tierInfoBar" style="margin-bottom:8px;"></div>
-
-            <div class="battle-arena-grid" id="battleGrid"></div>
-            <div class="battle-result" id="battleResult">Start battle to see turn-by-turn results.</div>
-            <div class="battle-score-panel" id="battleScorePanel" style="display:none;">
-              <div class="score-title">Combat Score</div>
-              <div class="score-row">
-                <span class="score-label">Your team</span>
-                <div class="score-bar-bg"><div class="score-bar-fill ally" id="scoreBarAlly" style="width:0%"></div></div>
-                <span class="score-number ally" id="scoreNumAlly">0</span>
-              </div>
-              <div class="score-row">
-                <span class="score-label">Enemy team</span>
-                <div class="score-bar-bg"><div class="score-bar-fill enemy" id="scoreBarEnemy" style="width:0%"></div></div>
-                <span class="score-number enemy" id="scoreNumEnemy">0</span>
-              </div>
-              <div class="score-verdict" id="scoreVerdict"></div>
-            </div>
-
-            <div class="battle-log" id="battleLog"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="right-column" style="order:3;">
-        <div class="right-panel-stack">
-
-          <div class="section action-panel">
-            <div class="section-title">Action</div>
-            <button class="btn action-button" id="startBattleButton" type="button" disabled>Start Battle</button>
-            <div class="action-tools">
-              <button class="btn btn-secondary" id="customBattleBtn" type="button">Custom Battle</button>
-            </div>
-            <div class="auto-battle-toggle">
-              <label class="switch">
-                <input type="checkbox" id="autoBattleToggle">
-                <span class="slider"></span>
-              </label>
-              <span style="color: #aac2d0; font-size: 14px;">Auto Battle</span>
-            </div>
-            <div class="action-note" id="actionNote">Select 3 fish first. Bait slots are empty for now.</div>
-            <div class="tier-hud">
-              <div class="tier-hud-row"><span class="tier-hud-label">Current tier</span><span class="tier-hud-value" id="currentTierLabel">Tier 1</span></div>
-              <div class="tier-hud-row"><span class="tier-hud-label">Next reward</span><span class="tier-hud-value" id="tierRewardLabel">+0 money</span></div>
-              <div class="tier-hud-row"><span class="tier-hud-label">Capture tier</span><span class="tier-hud-value" id="captureTierLabel">Tier 10</span></div>
-              <div class="tier-hud-row"><span class="tier-hud-label">Difficulty</span><span class="tier-hud-value" id="tierDifficultyLabel">Very easy</span></div>
-            </div>
-            <div class="speed-ticks">
-              <span>Battle speed:</span>
-              <label class="speed-tick"><input type="radio" name="battleSpeed" value="1"> x1</label>
-              <label class="speed-tick"><input type="radio" name="battleSpeed" value="2" checked> x2</label>
-              <label class="speed-tick"><input type="radio" name="battleSpeed" value="3"> x3</label>
-              <label class="speed-tick"><input type="radio" name="battleSpeed" value="5"> x5</label>
-            </div>
-            <div class="queue-panel">
-              <div class="section-title" style="font-size:14px;margin:0">PVP Queue</div>
-              <div class="queue-row">
-                <button class="btn btn-secondary" id="toggleQueueBtn" type="button">Join Queue</button>
-                <span class="count-pill" id="queueCountPill">Queue: 0</span>
-              </div>
-              <div class="queue-status" id="queueStatus">Queue inactive.</div>
-            </div>
-          </div>
-
-          <div class="section character-team-section" id="characterTeamSection" style="display:block;">
-            <div class="section-title">Character Team</div>
-            <div class="character-team-split">
-              <div class="character-team-box">
-                <div class="character-team-box-title">Your Characters</div>
-                <div class="character-team-grid" id="playerCharacterGrid"></div>
-              </div>
-              <div class="character-team-box">
-                <div class="character-team-box-title">Enemy Characters</div>
-                <div class="character-team-grid" id="enemyCharacterGrid"></div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="characterStatsModal" class="character-stats-modal" aria-hidden="true">
-    <div class="character-stats-modal-card" role="dialog" aria-modal="true" aria-labelledby="characterStatsModalTitle">
-      <div class="character-stats-modal-header">
-        <div>
-          <div class="character-stats-modal-title" id="characterStatsModalTitle">Character</div>
-          <div class="character-stats-modal-stars" id="characterStatsModalStars">★</div>
-        </div>
-        <button class="character-stats-modal-close" id="characterStatsModalClose" type="button">&times;</button>
-      </div>
-      <div class="character-stats-modal-layout">
-        <div class="character-stats-modal-stats" id="characterStatsModalStats"></div>
-        <div class="character-stats-modal-side">
-          <div class="character-stats-modal-image">Image Slot</div>
-          <div class="character-stats-modal-box">
-            <div class="character-stats-modal-box-title">Talent</div>
-            <div class="character-stats-modal-note" id="characterStatsModalTalent">No talent</div>
-          </div>
-          <div class="character-stats-modal-box">
-            <div class="character-stats-modal-box-title">Battle Notes</div>
-            <div class="character-stats-modal-note" id="characterStatsModalNotes">Click a character card to inspect stats.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const INVENTORY_KEY        = "clicker_inventory";
-    const BATTLE_SELECTION_KEY = "clicker_battleSelection";
-    const MONEY_KEY            = "clicker_money";
-    const HOOKS_KEY            = "clicker_hooks";
-    const BATTLE_TIER_KEY      = "clicker_battleTier";
-    const TEAM_STATE_KEY       = "clicker_teamState";
-    const BATTLE_STEP_MS       = 500;
-    const BATTLE_PREFIX        = "CLICKER_BATTLE_V1:";
-    const SUPABASE_URL         = "https://vrozpjdyqerpcrwlcdfo.supabase.co";
-    const SUPABASE_ANON_KEY    = "sb_publishable_moV-dfu5sVohSbQOR6z0zw_BSpcVCHg";
-    const BATTLE_QUEUE_TABLE   = "battle_queue";
-
-    const ENEMY_FISHING_SPEED_BASE = 1.0;
-
-    const RARITY_COLOR = {
-      common:    "#d9d9d9",
-      uncommon:  "#7ee787",
-      rare:      "#58a6ff",
-      epic:      "#d2a8ff",
-      legendary: "#ffa657"
-    };
-
-    const RARITY_VALUE_MULTIPLIERS = { common:1, uncommon:1.35, rare:1.9, epic:2.8, legendary:4.2 };
-
-    const FISH_SPECIES = [
-      { type:"Common carp",    rarity:"common",    sizeMin:25,  sizeMax:55,  weightMin:0.8,  weightMax:2.8  },
-      { type:"Swift roach",    rarity:"common",    sizeMin:15,  sizeMax:28,  weightMin:0.2,  weightMax:0.9  },
-      { type:"Striped perch",  rarity:"common",    sizeMin:18,  sizeMax:35,  weightMin:0.3,  weightMax:1.4  },
-      { type:"Lively bleak",   rarity:"common",    sizeMin:10,  sizeMax:18,  weightMin:0.05, weightMax:0.25 },
-      { type:"Dark tench",     rarity:"common",    sizeMin:20,  sizeMax:42,  weightMin:0.5,  weightMax:2.2  },
-      { type:"Silver bream",   rarity:"common",    sizeMin:22,  sizeMax:48,  weightMin:0.6,  weightMax:2.4  },
-      { type:"Silver trout",   rarity:"uncommon",  sizeMin:28,  sizeMax:58,  weightMin:0.7,  weightMax:3.5  },
-      { type:"Rock bass",      rarity:"uncommon",  sizeMin:22,  sizeMax:44,  weightMin:0.8,  weightMax:2.6  },
-      { type:"Noble salmon",   rarity:"uncommon",  sizeMin:40,  sizeMax:78,  weightMin:1.8,  weightMax:5.6  },
-      { type:"River char",     rarity:"uncommon",  sizeMin:24,  sizeMax:52,  weightMin:0.9,  weightMax:3.1  },
-      { type:"Stealth zander", rarity:"uncommon",  sizeMin:30,  sizeMax:70,  weightMin:1.0,  weightMax:4.8  },
-      { type:"Bright sea bream",rarity:"uncommon", sizeMin:26,  sizeMax:60,  weightMin:1.2,  weightMax:4.2  },
-      { type:"Bluefin tuna",   rarity:"rare",      sizeMin:60,  sizeMax:130, weightMin:8,    weightMax:35   },
-      { type:"Wild pike",      rarity:"rare",      sizeMin:45,  sizeMax:110, weightMin:2.5,  weightMax:15   },
-      { type:"Sunfish",        rarity:"rare",      sizeMin:70,  sizeMax:180, weightMin:3,    weightMax:45   },
-      { type:"Giant bass",     rarity:"rare",      sizeMin:50,  sizeMax:125, weightMin:3.5,  weightMax:18   },
-      { type:"Marine turbot",  rarity:"rare",      sizeMin:40,  sizeMax:100, weightMin:2.0,  weightMax:12   },
-      { type:"Blue sturgeon",  rarity:"rare",      sizeMin:65,  sizeMax:155, weightMin:7,    weightMax:40   },
-      { type:"Mahi-mahi",      rarity:"epic",      sizeMin:70,  sizeMax:160, weightMin:5,    weightMax:25   },
-      { type:"Rainbow ray",    rarity:"epic",      sizeMin:80,  sizeMax:220, weightMin:10,   weightMax:80   },
-      { type:"Giant grouper",  rarity:"epic",      sizeMin:90,  sizeMax:200, weightMin:15,   weightMax:90   },
-      { type:"Prismatic eel",  rarity:"epic",      sizeMin:60,  sizeMax:180, weightMin:4,    weightMax:30   },
-      { type:"Royal moray",    rarity:"epic",      sizeMin:75,  sizeMax:190, weightMin:8,    weightMax:55   },
-      { type:"Chrome triggerfish", rarity:"epic",  sizeMin:55,  sizeMax:145, weightMin:6,    weightMax:22   },
-      { type:"Golden shark",   rarity:"legendary", sizeMin:150, sizeMax:420, weightMin:40,   weightMax:220  },
-      { type:"Sea dragon",     rarity:"legendary", sizeMin:120, sizeMax:300, weightMin:30,   weightMax:180  },
-    ];
-
-    const RARITY_BANDS = ["common","uncommon","rare","epic","legendary"];
-
-    function getRarityBandForTier(t) {
-      if (t <=  4) return "common";
-      if (t <= 12) return "uncommon";
-      if (t <= 25) return "rare";
-      if (t <= 45) return "epic";
-      return "legendary";
-    }
-
-    function isBossTier(t) { return t > 0 && t % 10 === 0; }
-
-    // ─── DIFFICULTY ZONES ──────────────────────────────────────────────────────
-    // Tier 1–299   : normal curve (unchanged)
-    // Tier 300–499 : "Abyssal" — brutal exponential spike
-    // Tier 500+    : "Oblivion" — near-impossible, fully exponential
-    // ───────────────────────────────────────────────────────────────────────────
-
-    function getEnemyTemplatesForTier(tier) {
-      const t = Math.max(1, Number(tier) || 1);
-      let targetRarity = getRarityBandForTier(t);
-      if (isBossTier(t)) {
-        const idx = RARITY_BANDS.indexOf(targetRarity);
-        targetRarity = RARITY_BANDS[Math.min(idx + 1, RARITY_BANDS.length - 1)];
-      }
-      const pool = FISH_SPECIES.filter(s => s.rarity === targetRarity);
-      return [0, 1, 2].map(i => pool[(t + i) % pool.length]);
-    }
-
-    function speciesStatsAtTier(species, tier) {
-      const boss      = isBossTier(tier);
-      const ATK_RATIO = 0.55;          // was 0.40
-      const BOSS_HP   = 1.25;          // was 1.20
-      const BOSS_ATK  = 1.25;          // was 1.30
-
-      // Segments calibrés pour HP total ×3 :
-      //   t=100→500  t=200→2000  t=300→10000  t=500→50000  t=700→80000  t=1000→130000
-      const S1_END = 100, S2_END = 200;
-      const BASE_HP   = 5;
-      const S1_SLOPE  = 0.47,  S1_POW = 1.10;
-      const S2_SLOPE  = 0.80,  S2_POW = 1.60;
-
-      // Valeurs aux charnières (par poisson individuel, avant mult rareté)
-      const hp_at_s1 = BASE_HP + S1_SLOPE * Math.pow(S1_END - 1, S1_POW);
-      const hp_at_s2 = hp_at_s1 + S2_SLOPE * Math.pow(S2_END - S1_END, S2_POW);
-
-      // Pente S3 : cible t=1000 → 130 000 HP total / 3 poissons = 43 333 par poisson
-      // (avant mult rareté moyenne ≈ 1.0 pour calcul de référence "uncommon")
-      // S3_SLOPE = (43333 - hp_at_s2) / (1000 - 200)
-      const TARGET_1000_PER_FISH = 130000 / 3;
-      const S3_SLOPE = (TARGET_1000_PER_FISH - hp_at_s2) / (1000 - S2_END);
-
-      let base;
-      if (tier <= S1_END) {
-        base = BASE_HP + S1_SLOPE * Math.pow(Math.max(0, tier - 1), S1_POW);
-      } else if (tier <= S2_END) {
-        base = hp_at_s1 + S2_SLOPE * Math.pow(tier - S1_END, S2_POW);
-      } else {
-        base = hp_at_s2 + S3_SLOPE * (tier - S2_END);
-      }
-
-      const rarityMult = { common: 0.85, uncommon: 1.0, rare: 1.2, epic: 1.45, legendary: 1.80 };
-      const mult = rarityMult[species.rarity] || 1.0;
-
-      const hp  = Math.max(1, Math.round(base * mult * (boss ? BOSS_HP  : 1)));
-      const atk = Math.max(1, Math.round(base * mult * ATK_RATIO * (boss ? BOSS_ATK : 1)));
-      return { hp, atk };
-    }
-
-    function getTierScaling(t) { return { hp: 1, atk: 1 }; }
-
-    function createTierEnemyFromTemplate(species, index, tier) {
-      const isBoss = isBossTier(tier);
-      const base = speciesStatsAtTier(species, tier);
-      const jH = 0.85 + Math.random() * 0.30;
-      const jA = 0.85 + Math.random() * 0.30;
-      const hp  = Math.max(1, Math.round(base.hp  * jH));
-      const atk = Math.max(1, Math.round(base.atk * jA));
-      return {
-        id: `enemy-tier-${tier}-${index}-${Date.now()}`,
-        name: species.type,
-        rarity: species.rarity,
-        maxHp: hp, hp, attack: atk,
-        alive: true,
-        descriptor: `(tier ${tier}${isBoss ? " BOSS" : ""})`,
-        isBoss
-      };
-    }
-
-    function calculateEnemyTeamBonuses(characterTeam) {
-      let sizeBonus = 0, weightBonus = 0;
-      if (Array.isArray(characterTeam)) {
-        characterTeam.forEach(char => {
-          const starsMult = 1 + (Number(char.stars || 1) - 1) * 0.07; // +7% par étoile au-dessus de 1
-          sizeBonus   += Number(char.sizeAdd   || 0) * starsMult;
-          weightBonus += Number(char.weightAdd || 0) * starsMult;
-        });
-      }
-      return { sizeBonus, weightBonus };
-    }
-
-    function createTierEnemyRoster(tier) {
-      const templates = getEnemyTemplatesForTier(tier);
-      const characterTeam = generateEnemyCharacterTeam(tier);
-      const bonuses = calculateEnemyTeamBonuses(characterTeam);
-      return templates.map((tmpl, i) => {
-        const enemy = createTierEnemyFromTemplate(tmpl, i, tier);
-        // +12% HP de base via characters, + rampe par étoile (+7%/étoile)
-        const hpBonus  = 0.12 + (bonuses.sizeBonus   * 0.005);
-        const atkBonus = 0.12 + (bonuses.weightBonus  * 0.005);
-        enemy.maxHp  = Math.max(1, Math.round(enemy.maxHp  * (1 + hpBonus)));
-        enemy.hp     = enemy.maxHp;
-        enemy.attack = Math.max(1, Math.round(enemy.attack * (1 + atkBonus)));
-        return enemy;
-      });
-    }
-
-    function previewEnemyRoster(tier) {
-      const t = Math.max(1, Number(tier) || 1);
-      const templates = getEnemyTemplatesForTier(t);
-      return templates.map((species) => {
-        const stats = speciesStatsAtTier(species, t);
-        return { name: species.type, rarity: species.rarity, hp: stats.hp, atk: stats.atk, isBoss: isBossTier(t) };
-      });
-    }
-
-    function loadTeamStats() {
-      try {
-        const raw = localStorage.getItem(TEAM_STATE_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        if (!parsed || !parsed.totals) return null;
-        return {
-          incomeMultiplier: Number(parsed.totals.incomeMultiplier) || 1,
-          clickMultiplier:  Number(parsed.totals.clickMultiplier)  || 1,
-          sizeBonus:        Number(parsed.totals.sizeBonus)        || 0,
-          weightBonus:      Number(parsed.totals.weightBonus)      || 0,
-          chanceBonus:      Number(parsed.totals.chanceBonus)      || 0,
-          resaleBonus:      Number(parsed.totals.resaleBonus)      || 0,
-          fishingSpeed:     Number(parsed.totals.fishingSpeed)     || 1
-        };
-      } catch(e) { return null; }
-    }
-
-    let teamStats = loadTeamStats() || {
-      incomeMultiplier: 1, clickMultiplier: 1,
-      sizeBonus: 0, weightBonus: 0, chanceBonus: 0, resaleBonus: 0, fishingSpeed: 1
-    };
-
-    function updateTeamHud() {
-      const sizeEl   = document.getElementById("hudSizeBonus");
-      const weightEl = document.getElementById("hudWeightBonus");
-      const incEl    = document.getElementById("hudIncomeMult");
-      const fishEl   = document.getElementById("hudFishingSpeed");
-      const noteEl   = document.getElementById("hudInitiativeNote");
-      if (sizeEl)   sizeEl.textContent   = "+" + teamStats.sizeBonus.toFixed(1) + "%";
-      if (weightEl) weightEl.textContent = "+" + teamStats.weightBonus.toFixed(1) + "%";
-      if (incEl)    incEl.textContent    = teamStats.incomeMultiplier.toFixed(2) + "x";
-      const opponentFishing = getOpponentFishingSpeed();
-      const playerGoesFirst = shouldPlayerStartFirst(teamStats.fishingSpeed, opponentFishing);
-      if (fishEl) {
-        if (importedBattle) {
-          fishEl.textContent = teamStats.fishingSpeed.toFixed(2) + "x vs " + opponentFishing.toFixed(2) + "x";
-        } else {
-          fishEl.textContent = teamStats.fishingSpeed.toFixed(2) + "x";
-        }
-      }
-      if (noteEl) noteEl.textContent = playerGoesFirst
-        ? "Your team is faster — you go first!"
-        : (importedBattle ? "Opponent is faster — they go first." : "Enemy is faster — they go first.");
-      const pill = document.getElementById("hudInitiativePill");
-      if (pill) {
-        pill.style.borderColor = playerGoesFirst ? "#4a9eff" : "#9a5a68";
-        const val = pill.querySelector(".team-stat-pill-value");
-        if (val) val.style.color = playerGoesFirst ? "#4a9eff" : "#ffa657";
-      }
-    }
-
-    function applyTeamBoostsToFishStats(size, weight) {
-      const hpMult  = 1 + (teamStats.sizeBonus   * 0.005);
-      const atkMult = 1 + (teamStats.weightBonus  * 0.005);
-      const incMult = teamStats.incomeMultiplier;
-      const boostedHp  = Math.max(1, Math.round(size   * hpMult  * incMult));
-      const boostedAtk = Math.max(1, Math.round(weight * atkMult * incMult));
-      return { hp: boostedHp, atk: boostedAtk };
-    }
-
-    /**
-     * Enemy fishing speed — log10-based, smooth and bounded.
-     * t=1 → 1.00x  |  t=100 → 2.00x  |  t=1000 → 2.50x  |  t=10000 → 3.00x
-     */
-    function getEnemyFishingSpeed(tier) {
-      const t = Math.max(1, Number(tier) || 1);
-      return 1.0 + Math.log10(t) * 0.5;
-    }
-
-    function parseTeamStatsObject(raw) {
-      try {
-        if (!raw) return null;
-        if (typeof raw === "string") {
-          const parsed = JSON.parse(raw);
-          return parsed && typeof parsed === "object" ? parsed : null;
-        }
-        return typeof raw === "object" ? raw : null;
-      } catch {
-        return null;
-      }
-    }
-
-    function extractFishingSpeed(rawStats) {
-      const stats = parseTeamStatsObject(rawStats);
-      const speed = Number(stats && stats.fishingSpeed);
-      return Number.isFinite(speed) && speed > 0 ? speed : null;
-    }
-
-    function getOpponentFishingSpeed() {
-      if (importedBattle) {
-        const fromExported = extractFishingSpeed(importedBattle.exportedTeamStats);
-        if (fromExported) return fromExported;
-
-        const fromTeamStats = extractFishingSpeed(importedBattle.teamStats);
-        if (fromTeamStats) return fromTeamStats;
-
-        const chars = Array.isArray(importedBattle.exportedTeamChars) ? importedBattle.exportedTeamChars : [];
-        const speeds = chars
-          .map(c => Number(c && c.fishingSpeed))
-          .filter(v => Number.isFinite(v) && v > 0);
-        if (speeds.length) {
-          return speeds.reduce((sum, v) => sum + v, 0) / speeds.length;
-        }
-
-        return 1;
-      }
-      return getEnemyFishingSpeed(battleTier);
-    }
-
-    function shouldPlayerStartFirst(playerSpeed, opponentSpeed) {
-      const p = Number(playerSpeed) || 1;
-      const o = Number(opponentSpeed) || 1;
-      return p >= o;
-    }
-
-    function playerStartsFirst() {
-      return shouldPlayerStartFirst(teamStats.fishingSpeed, getOpponentFishingSpeed());
-    }
-
-    let tooltipOpen = false;
-
-    function renderTierInfoBar() {
-      const tierInfoBar = document.getElementById("tierInfoBar");
-      if (!tierInfoBar) return;
-      const t = battleTier;
-      const boss = isBossTier(t);
-      const diffClass = getDifficultyClass(t);
-      const diffLabel = getTierDifficultyLabel(t);
-      let html = "";
-
-      // Special zone indicators
-      if (t >= 500) {
-        html += `<div class="oblivion-indicator">
-          <span style="font-size:18px;">💀</span>
-          <div>
-            OBLIVION — TIER ${t}
-            <div style="font-size:11px; color:#cc2255; font-weight:normal; margin-top:2px;">Stats scale exponentially. Enemy fishing speed is brutally high. Good luck.</div>
-          </div>
-        </div>`;
-      } else if (t >= 300) {
-        html += `<div class="abyssal-indicator">
-          <span style="font-size:18px;">🌑</span>
-          <div>
-            ABYSSAL — TIER ${t}
-            <div style="font-size:11px; color:#8855cc; font-weight:normal; margin-top:2px;">Beyond the wall. Enemy stats now scale exponentially each tier.</div>
-          </div>
-        </div>`;
-      } else if (boss) {
-        html += `<div class="boss-indicator">
-          <span class="boss-indicator-icon">👹</span>
-          <div class="boss-indicator-text">
-            BOSS TIER ${t}
-            <div class="boss-indicator-sub">Enemies are greatly empowered — +50% HP, +60% ATK + cumulative bonus</div>
-          </div>
-        </div>`;
-      }
-
-      const selectedFish = getSelectedFish();
-      const teamHtml = selectedFish.length > 0 ? selectedFish.map((f, i) => {
-        const boosted = applyTeamBoostsToFishStats(f.size, f.weight);
-        return `<div class="enemy-fish-row">
-          <div class="enemy-fish-row-name" style="color:${RARITY_COLOR[f.rarity]||"#fff"}">Slot ${i+1}: ${f.type}</div>
-          <div class="enemy-fish-row-stats">Size: ${f.size} → HP: ${boosted.hp} &nbsp;|&nbsp; Weight: ${f.weight} → ATK: ${boosted.atk} &nbsp;|&nbsp; ${rarityLabel(f.rarity)}</div>
-        </div>`;
-      }).join("") : '<div style="color:#8db4c8; font-size:12px;">Select 3 fish above to see your team</div>';
-
-      html += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-        <div class="difficulty-badge ${diffClass}">${diffLabel}</div>
-        <div class="enemy-team-preview-wrap">
-          <div class="enemy-team-btn" id="enemyTeamBtn" title="View your team">?</div>
-          <div class="enemy-team-tooltip" id="enemyTeamTooltip">
-            <div class="enemy-team-tooltip-title">Your Team</div>
-            ${teamHtml}
-          </div>
-        </div>
-      </div>`;
-      tierInfoBar.innerHTML = html;
-      const btn = document.getElementById("enemyTeamBtn");
-      const tooltip = document.getElementById("enemyTeamTooltip");
-      if (btn && tooltip) {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          tooltipOpen = !tooltipOpen;
-          tooltip.classList.toggle("open", tooltipOpen);
-        });
-      }
-    }
-
-    function getDifficultyClass(t) {
-      const tier = Math.max(1, Number(t) || 1);
-      if (tier >=  500) return "diff-oblivion";
-      if (tier >=  300) return "diff-abyssal";
-      if (tier <=    5) return "diff-very-easy";
-      if (tier <=   15) return "diff-easy";
-      if (tier <=   35) return "diff-normal";
-      if (tier <=   75) return "diff-hard";
-      if (tier <=  200) return "diff-very-hard";
-      if (tier <=  800) return "diff-extreme";
-      return "diff-nightmare";
-    }
-
-    function getTierDifficultyLabel(t) {
-      const s = Math.max(1, Number(t)||1);
-      if (s >= 500) return "☠ OBLIVION";
-      if (s >= 300) return "🌑 Abyssal";
-      if (s <=   5) return "Very easy";
-      if (s <=  15) return "Easy";
-      if (s <=  35) return "Normal";
-      if (s <=  75) return "Hard";
-      if (s <= 200) return "Very hard";
-      if (s <= 800) return "Extreme";
-      return "Nightmare";
-    }
-
-    const collectionList      = document.getElementById("collectionList");
-    const selectedSlots       = document.getElementById("selectedSlots");
-    const emptyState          = document.getElementById("emptyState");
-    const startBattleButton   = document.getElementById("startBattleButton");
-    const actionNote          = document.getElementById("actionNote");
-    const battleGrid          = document.getElementById("battleGrid");
-    const battleResult        = document.getElementById("battleResult");
-    const battleLog           = document.getElementById("battleLog");
-    const battleScorePanel    = document.getElementById("battleScorePanel");
-    const scoreBarAlly        = document.getElementById("scoreBarAlly");
-    const scoreBarEnemy       = document.getElementById("scoreBarEnemy");
-    const scoreNumAlly        = document.getElementById("scoreNumAlly");
-    const scoreNumEnemy       = document.getElementById("scoreNumEnemy");
-    const scoreVerdict        = document.getElementById("scoreVerdict");
-    const characterTeamSection = document.getElementById("characterTeamSection");
-    const playerCharacterGrid = document.getElementById("playerCharacterGrid");
-    const enemyCharacterGrid  = document.getElementById("enemyCharacterGrid");
-    const customBattleBtn     = document.getElementById("customBattleBtn");
-    const toggleQueueBtn      = document.getElementById("toggleQueueBtn");
-    const queueCountPill      = document.getElementById("queueCountPill");
-    const queueStatusEl       = document.getElementById("queueStatus");
-    const battlePanel         = document.getElementById("battlePanel");
-    const battleTextArea      = document.getElementById("battleTextArea");
-    const importBattleBtn     = document.getElementById("importBattleBtn");
-    const exportBattleBtn     = document.getElementById("exportBattleBtn");
-    const clearBattleBtn      = document.getElementById("clearBattleBtn");
-    const currentTierLabel    = document.getElementById("currentTierLabel");
-    const tierRewardLabel     = document.getElementById("tierRewardLabel");
-    const captureTierLabel    = document.getElementById("captureTierLabel");
-    const tierDifficultyLabel = document.getElementById("tierDifficultyLabel");
-    const hookNotificationLayer = document.getElementById("hookNotificationLayer");
-
-    let db = null;
-    let queuePoller = null;
-    let queueJoined = false;
-
-    if (window.supabase && SUPABASE_URL !== "YOUR_SUPABASE_URL") {
-      db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-
-    function getPlayerIdOrNull() {
-      return localStorage.getItem("clicker_userId") || null;
-    }
-
-    function getPlayerNameOrDefault() {
-      return localStorage.getItem("clicker_username") || "Player";
-    }
-
-    function setQueueStatus(message) {
-      if (queueStatusEl) queueStatusEl.textContent = message;
-    }
-
-    function normalizeTeamArray(value) {
-      try {
-        if (!value) return [];
-        if (typeof value === "string") {
-          const parsed = JSON.parse(value);
-          return Array.isArray(parsed) ? parsed : [];
-        }
-        return Array.isArray(value) ? value : [];
-      } catch {
-        return [];
-      }
-    }
-
-    function setQueueJoinedState(inQueue) {
-      queueJoined = Boolean(inQueue);
-      if (!toggleQueueBtn) return;
-      if (queueJoined) {
-        toggleQueueBtn.textContent = "Leave Queue";
-        toggleQueueBtn.classList.remove("btn-secondary");
-        toggleQueueBtn.classList.add("btn-danger");
-      } else {
-        toggleQueueBtn.textContent = "Join Queue";
-        toggleQueueBtn.classList.remove("btn-danger");
-        toggleQueueBtn.classList.add("btn-secondary");
-      }
-    }
-
-    async function refreshQueueCount() {
-      if (!queueCountPill) return;
-      if (!db) {
-        queueCountPill.textContent = "Queue: -";
-        return;
-      }
-      const { count } = await db.from(BATTLE_QUEUE_TABLE)
-        .select("player_id", { count: "exact", head: true })
-        .eq("status", "searching");
-      queueCountPill.textContent = `Queue: ${Number(count) || 0}`;
-    }
-
-    function stopQueuePolling() {
-      if (queuePoller) {
-        clearInterval(queuePoller);
-        queuePoller = null;
-      }
-    }
-
-    function setImportedBattleFromQueue(opponentName, fishTeam, charTeam, teamStats, opponentTier) {
-      const normalizedFishTeam = normalizeTeamArray(fishTeam);
-      const normalizedCharTeam = normalizeTeamArray(charTeam);
-      importedBattle = {
-        lineup: normalizedFishTeam.map((f, i) => ({
-          uid: `queue-${i}-${Date.now()}`,
-          type: f.type || f.name || `Enemy Fish ${i+1}`,
-          rarity: f.rarity || "common",
-          size: Math.max(1, Math.round(Number(f.size) || 1)),
-          weight: Math.max(1, Math.round(Number(f.weight) || 1)),
-          sizeRaw: Math.max(1, Math.round(Number(f.sizeRaw || f.size) || 1)),
-          weightRaw: Math.max(1, Math.round(Number(f.weightRaw || f.weight) || 1)),
-          currentValue: 0,
-          basePrice: 0,
-          price: 0
-        })),
-        exportedTeamChars: normalizedCharTeam,
-        exportedTeamStats: teamStats || { fishingSpeed: 1 },
-        teamStats: teamStats || { fishingSpeed: 1 },
-        source: "queue",
-        opponentTier: Math.max(1, Number(opponentTier) || 1)
-      };
-      setQueueStatus(`Match found vs ${opponentName}. Start Battle!`);
-      setBattleSpeedLock(true);
-      setQueueJoinedState(false);
-      renderEnemyCharacterTeam();
-      renderSummary();
-      if (!isBattleAnimating && getSelectedFish().length === 3) {
-        setTimeout(() => {
-          if (!isBattleAnimating) startBattleButton.click();
-        }, 180);
-      } else {
-        setDetailMessage("Match found, but auto-start failed (need 3 selected fish). Start manually.");
-      }
-    }
-
-    async function leaveQueue() {
-      stopQueuePolling();
-      if (!db) {
-        setQueueStatus("Supabase not configured.");
-        return;
-      }
-      const pid = getPlayerIdOrNull();
-      if (!pid) {
-        setQueueStatus("Please log in first.");
-        return;
-      }
-      const { error } = await db.from(BATTLE_QUEUE_TABLE).delete().eq("player_id", pid);
-      if (error) {
-        setQueueStatus(`Queue error: ${error.message}`);
-        return;
-      }
-      setBattleSpeedLock(false);
-      setQueueJoinedState(false);
-      setQueueStatus("Left queue.");
-      await refreshQueueCount();
-    }
-
-    async function pollQueueMatch() {
-      if (!db) return;
-      const pid = getPlayerIdOrNull();
-      if (!pid) return;
-
-      const { data: myRows, error: myErr } = await db.from(BATTLE_QUEUE_TABLE)
-        .select("player_id, player_name, fish_team, char_team, team_stats, status, matched_with")
-        .eq("player_id", pid)
-        .limit(1);
-      if (myErr || !Array.isArray(myRows) || !myRows.length) return;
-
-      const myRow = myRows[0];
-      if (myRow.status === "searching") {
-        setQueueJoinedState(true);
-        await refreshQueueCount();
-        return;
-      }
-      if (myRow.status !== "matched" || !myRow.matched_with) return;
-
-      const { data: oppRows, error: oppErr } = await db.from(BATTLE_QUEUE_TABLE)
-        .select("player_id, player_name, tier, fish_team, char_team, team_stats")
-        .eq("player_id", myRow.matched_with)
-        .limit(1);
-      if (oppErr || !Array.isArray(oppRows) || !oppRows.length) return;
-
-      const opp = oppRows[0];
-      await db.from(BATTLE_QUEUE_TABLE).delete().eq("player_id", pid);
-      stopQueuePolling();
-      setImportedBattleFromQueue(opp.player_name || "Opponent", opp.fish_team, opp.char_team, opp.team_stats, opp.tier);
-      await refreshQueueCount();
-    }
-
-    async function syncQueueStateOnLoad() {
-      if (!db) {
-        setQueueJoinedState(false);
-        setQueueStatus("Supabase not configured.");
-        await refreshQueueCount();
-        return;
-      }
-      const pid = getPlayerIdOrNull();
-      if (!pid) {
-        setQueueJoinedState(false);
-        setQueueStatus("Please log in first.");
-        await refreshQueueCount();
-        return;
-      }
-
-      const { data: myRows } = await db.from(BATTLE_QUEUE_TABLE)
-        .select("player_id, status")
-        .eq("player_id", pid)
-        .limit(1);
-      const me = Array.isArray(myRows) && myRows.length ? myRows[0] : null;
-      const inQueue = Boolean(me && (me.status === "searching" || me.status === "matched"));
-      setQueueJoinedState(inQueue);
-      setQueueStatus(inQueue ? "In queue. Looking for closest tier..." : "Queue inactive.");
-      await refreshQueueCount();
-      if (inQueue) {
-        stopQueuePolling();
-        queuePoller = setInterval(pollQueueMatch, 4000);
-      }
-    }
-
-    async function joinQueue() {
-      if (!db) {
-        setQueueStatus("Supabase not configured.");
-        return;
-      }
-      const pid = getPlayerIdOrNull();
-      if (!pid) {
-        setQueueStatus("Please log in first.");
-        return;
-      }
-      const playerName = getPlayerNameOrDefault();
-      const payload = buildBattlePayload();
-      if (!payload || !Array.isArray(payload.lineup) || payload.lineup.length !== 3) {
-        setQueueStatus("Select 3 fish before joining queue.");
-        return;
-      }
-
-      setQueueStatus("Searching opponent...");
-
-      await db.from(BATTLE_QUEUE_TABLE).delete().eq("player_id", pid);
-
-      const { data: candidates, error: candErr } = await db.from(BATTLE_QUEUE_TABLE)
-        .select("player_id, player_name, tier, fish_team, char_team, team_stats, created_at")
-        .eq("status", "searching")
-        .neq("player_id", pid)
-        .order("created_at", { ascending: true })
-        .limit(200);
-
-      if (candErr) {
-        setQueueStatus(`Queue error: ${candErr.message}`);
-        return;
-      }
-
-      const myTier = Math.max(1, Number(battleTier) || 1);
-      const list = Array.isArray(candidates) ? candidates : [];
-      let best = null;
-      list.forEach(c => {
-        const diff = Math.abs((Number(c.tier) || 1) - myTier);
-        if (!best || diff < best.diff) {
-          best = { row: c, diff };
-        }
-      });
-
-      if (best && best.row) {
-        const opp = best.row;
-        const nowIso = new Date().toISOString();
-
-        await db.from(BATTLE_QUEUE_TABLE).update({
-          status: "matched",
-          matched_with: pid,
-          matched_at: nowIso
-        }).eq("player_id", opp.player_id).eq("status", "searching");
-
-        await db.from(BATTLE_QUEUE_TABLE).insert({
-          player_id: pid,
-          player_name: playerName,
-          tier: myTier,
-          fish_team: payload.lineup,
-          char_team: payload.exportedTeamChars || [],
-          team_stats: payload.teamStats || {},
-          status: "matched",
-          matched_with: opp.player_id,
-          matched_at: nowIso
-        });
-
-        setImportedBattleFromQueue(opp.player_name || "Opponent", opp.fish_team, opp.char_team, opp.team_stats, opp.tier);
-        await refreshQueueCount();
-        return;
-      }
-
-      const { error: insertErr } = await db.from(BATTLE_QUEUE_TABLE).insert({
-        player_id: pid,
-        player_name: playerName,
-        tier: myTier,
-        fish_team: payload.lineup,
-        char_team: payload.exportedTeamChars || [],
-        team_stats: payload.teamStats || {},
-        status: "searching"
-      });
-
-      if (insertErr) {
-        setQueueStatus(`Queue error: ${insertErr.message}`);
-        return;
-      }
-
-      setQueueJoinedState(true);
-      setQueueStatus(`In queue at tier ${myTier}. Waiting for close-level opponent...`);
-      stopQueuePolling();
-      queuePoller = setInterval(pollQueueMatch, 4000);
-      await refreshQueueCount();
-    }
-
-    function setDetailMessage(message) {
-      if (message) {
-        console.info("[Battle]", message);
-      }
-    }
-
-    let inventory          = [];
-    let selectedFishUids   = [];
-    let sortMode           = "default";
-    let lastBattleState    = null;
-    let isBattleAnimating  = false;
-    let battleTimerId      = null;
-    let battleTickRescheduler = null;
-    let importedBattle     = null;
-    let battleSpeedMultiplier = 2;
-    let battleTier = Math.max(1, Number(localStorage.getItem(BATTLE_TIER_KEY)) || 1);
-    let autoBattleActive = false;
-    let autoBattleMaxTier = 10000;
-    const autoBattleToggle = document.getElementById("autoBattleToggle");
-    let speedLockedByQueue = false;
-    let previousBattleSpeedMultiplier = 2;
-    const battleSpeedInputs = Array.from(document.querySelectorAll('input[name="battleSpeed"]'));
-
-    function getRarityColor(r) { return RARITY_COLOR[r] || "#fff"; }
-    function getBattleStepDelay() { return Math.max(80, Math.floor(BATTLE_STEP_MS / battleSpeedMultiplier)); }
-
-    function setBattleSpeedLock(lock) {
-      speedLockedByQueue = Boolean(lock);
-      if (speedLockedByQueue) {
-        previousBattleSpeedMultiplier = battleSpeedMultiplier;
-        battleSpeedMultiplier = 1;
-      } else {
-        battleSpeedMultiplier = Math.max(1, Math.min(5, Number(previousBattleSpeedMultiplier) || 2));
-      }
-      battleSpeedInputs.forEach(input => {
-        if (speedLockedByQueue && input.value === "1") input.checked = true;
-        if (!speedLockedByQueue) input.checked = Number(input.value) === battleSpeedMultiplier;
-        input.disabled = speedLockedByQueue;
-      });
-    }
-
-    function getQueuePvpHooksReward() {
-      const base = 20;
-      const tierBonus = Math.floor(Math.max(1, Number(battleTier) || 1) / 20);
-      return Math.max(20, base + tierBonus);
-    }
-
-    function showHookNotification(title, text) {
-      if (!hookNotificationLayer) return;
-      const t = document.createElement("div");
-      t.className = "hook-notification";
-      t.innerHTML = `<div class="hook-notification-title">${title}</div><div>${text}</div>`;
-      hookNotificationLayer.appendChild(t);
-      setTimeout(() => { t.classList.add("fade-out"); setTimeout(() => t.remove(), 260); }, 2300);
-    }
-
-    function addHooks(amount, title, text) {
-      const n = Math.max(0, Math.floor(Number(amount)||0));
-      if (!n) return;
-      localStorage.setItem(HOOKS_KEY, String(Math.max(0, Number(localStorage.getItem(HOOKS_KEY))||0) + n));
-      showHookNotification(title, `${text} (+${n} Hooks)`);
-    }
-
-    function saveBattleTier() { localStorage.setItem(BATTLE_TIER_KEY, String(Math.max(1, Math.floor(battleTier)))); }
-
-    function getTierReward(t) {
-      const s = Math.max(1, Number(t)||1);
-      const bossBonus = isBossTier(s) ? 3.0 : 1.0;
-      // Extra reward for abyssal/oblivion tiers to compensate difficulty
-      let zoneBonus = 1.0;
-      if (s >= 500) zoneBonus = 15.0;
-      else if (s >= 300) zoneBonus = 5.0;
-      return Math.max(100, Math.floor((180 + s * 150 + Math.pow(s, 1.55) * 30) * bossBonus * zoneBonus));
-    }
-
-    function createFishUid() { return `fish-${Date.now()}-${Math.random().toString(36).slice(2,10)}`; }
-    function rarityRank(r) { return {common:1,uncommon:2,rare:3,epic:4,legendary:5}[r]||1; }
-    function rarityLabel(r) { return {common:"Common",uncommon:"Uncommon",rare:"Rare",epic:"Epic",legendary:"Legendary"}[r]||r; }
-
-    function fishDescriptors(f) {
-      const sz=Number(f.size)||0, wt=Number(f.weight)||0, tags=[];
-      if(sz>=180) tags.push("huge"); else if(sz>=95) tags.push("big"); else if(sz<=28) tags.push("small");
-      if(wt>=40) tags.push("heavy"); else if(wt<=1.2) tags.push("light");
-      return tags.length ? `(${tags.join(", ")})` : "(average)";
-    }
-
-    function normalizeFishState(f) {
-      const price=Number(f&&f.price)||0, base=Number(f&&f.basePrice)||price, cv=Number(f&&f.currentValue);
-      return {
-        uid: typeof f?.uid==="string"&&f.uid ? f.uid : createFishUid(),
-        type: f&&f.type ? f.type : "Fish",
-        rarity: f&&f.rarity ? f.rarity : "common",
-        size: Number(f&&f.size)||0, weight: Number(f&&f.weight)||0,
-        price: Number.isFinite(price)?price:0, basePrice: Number.isFinite(base)?base:0,
-        currentValue: Number.isNaN(cv)?base:cv,
-        priceReductionVersion: Number(f&&f.priceReductionVersion)||1,
-        storageState: f&&f.storageState?f.storageState:"fridge",
-        spoiled: Boolean(f&&f.spoiled)
-      };
-    }
-
-    function getFishValue(f) { return Math.max(0,Math.round(Number(f.currentValue)||Number(f.basePrice)||Number(f.price)||0)); }
-
-    function loadInventory() {
-      try { const r=localStorage.getItem(INVENTORY_KEY); const p=r?JSON.parse(r):[]; inventory=Array.isArray(p)?p.map(normalizeFishState):[]; }
-      catch { inventory=[]; }
-      if (inventory.some(f=>!f.uid)) { inventory=inventory.map(f=>({...f,uid:f.uid||createFishUid()})); saveInventory(); }
-    }
-    function saveInventory() { localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory)); }
-
-    function loadSelection() {
-      try { const r=localStorage.getItem(BATTLE_SELECTION_KEY); const p=r?JSON.parse(r):[]; selectedFishUids=Array.isArray(p)?p.filter(u=>typeof u==="string"):[]; }
-      catch { selectedFishUids=[]; }
-      selectedFishUids=selectedFishUids.slice(0,3);
-    }
-    function saveSelection() { localStorage.setItem(BATTLE_SELECTION_KEY, JSON.stringify(selectedFishUids)); }
-    function getSelectedFish() { return selectedFishUids.map(uid=>inventory.find(f=>f.uid===uid)).filter(Boolean); }
-
-    function normalizeSelectedFishUids() {
-      const valid=new Set(inventory.map(f=>f.uid)), deduped=[];
-      for(const uid of selectedFishUids){ if(!valid.has(uid)||deduped.includes(uid)) continue; deduped.push(uid); }
-      const changed=deduped.length!==selectedFishUids.length||deduped.some((u,i)=>u!==selectedFishUids[i]);
-      selectedFishUids=deduped.slice(0,3); return changed;
-    }
-
-    function encodeBattlePayload(payload) {
-      const json=JSON.stringify(payload), bytes=new TextEncoder().encode(json);
-      let bin=""; bytes.forEach(b=>{ bin+=String.fromCharCode(b); });
-      return BATTLE_PREFIX+btoa(bin);
-    }
-    function decodeBattlePayload(text) {
-      const raw=String(text||"").trim();
-      if(!raw.startsWith(BATTLE_PREFIX)) return null;
-      const bin=atob(raw.slice(BATTLE_PREFIX.length));
-      return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0))));
-    }
-    function buildBattlePayload() {
-      const f=getSelectedFish(); if(f.length!==3) return null;
-      const lineup = f.map(x=>{
-        const boosted = applyTeamBoostsToFishStats(
-          Math.max(1,Math.round(Number(x.size)||1)),
-          Math.max(1,Math.round(Number(x.weight)||1))
-        );
-        return {
-          name:   x.type||"Fish",
-          rarity: x.rarity||"common",
-          size:   boosted.hp,
-          weight: boosted.atk,
-          sizeRaw:   Math.max(1,Math.round(Number(x.size)||1)),
-          weightRaw: Math.max(1,Math.round(Number(x.weight)||1))
-        };
-      });
-      const teamChars = loadPlayerCharacterTeam();
-      return {
-        version: 2,
-        createdAt: new Date().toISOString(),
-        lineup,
-        teamStats: {
-          sizeBonus:        teamStats.sizeBonus,
-          weightBonus:      teamStats.weightBonus,
-          incomeMultiplier: teamStats.incomeMultiplier,
-          fishingSpeed:     teamStats.fishingSpeed
-        },
-        exportedTeamChars: teamChars,
-        bait: [null,null]
-      };
-    }
-    function parseImportedBattleText(text) {
-      let p=null; try { p=decodeBattlePayload(text); } catch { return null; }
-      if(!p||!Array.isArray(p.lineup)||p.lineup.length!==3) return null;
-      const lineup=p.lineup.map((e,i)=>({
-        uid:`import-${i}-${Date.now()}`,
-        type:typeof e?.name==="string"&&e.name.trim()?e.name.trim():`Enemy ${i+1}`,
-        rarity:typeof e?.rarity==="string"?e.rarity:"common",
-        size:   Math.max(1,Math.round(Number(e?.size)||1)),
-        weight: Math.max(1,Math.round(Number(e?.weight)||1)),
-        sizeRaw: Math.max(1,Math.round(Number(e?.sizeRaw||e?.size)||1)),
-        weightRaw: Math.max(1,Math.round(Number(e?.weightRaw||e?.weight)||1)),
-        currentValue:0, basePrice:0, price:0
-      }));
-      const exportedTeamStats = p.teamStats || null;
-      const exportedTeamChars = Array.isArray(p.exportedTeamChars) ? p.exportedTeamChars : [];
-      return {...p, lineup, exportedTeamStats, exportedTeamChars, source: "text"};
-    }
-
-    function sortInventory(items) {
-      const l=[...items];
-      if(sortMode==="rarity") l.sort((a,b)=>rarityRank(b.rarity)-rarityRank(a.rarity)||getFishValue(b)-getFishValue(a));
-      else if(sortMode==="price")  l.sort((a,b)=>getFishValue(b)-getFishValue(a));
-      else if(sortMode==="size")   l.sort((a,b)=>(Number(b.size)||0)-(Number(a.size)||0));
-      else if(sortMode==="weight") l.sort((a,b)=>(Number(b.weight)||0)-(Number(a.weight)||0));
-      else if(sortMode==="name")   l.sort((a,b)=>String(a.type||"").localeCompare(String(b.type||"")));
-      return l;
-    }
-
-    function isSelected(uid) { return selectedFishUids.includes(uid); }
-
-    function toggleSelection(uid) {
-      if(isSelected(uid)) selectedFishUids=selectedFishUids.filter(u=>u!==uid);
-      else if(getSelectedFish().length<3) selectedFishUids.push(uid);
-      else { setDetailMessage("You already have 3 fish selected."); return; }
-      saveSelection(); render();
-    }
-
-    function computeTeamScore(team) {
-      if(!team||!team.length) return 0;
-      let score=0;
-      team.forEach(f=>{
-        score += (Math.min(f.maxHp,200)/200)*40;
-        score += (Math.min(f.attack,20)/20)*30;
-        score += (rarityRank(f.rarity)/5)*30;
-      });
-      return Math.round(Math.min(100, score/team.length));
-    }
-
-    function renderSelectedSlots() {
-      const fish=getSelectedFish(); selectedSlots.innerHTML="";
-      for(let i=0;i<3;i++){
-        const f=fish[i], slot=document.createElement("div");
-        slot.className="slot-card";
-        if(f){
-          slot.classList.add(`rarity-${f.rarity}`,"selected-highlight");
-          const boosted = applyTeamBoostsToFishStats(f.size, f.weight);
-          slot.innerHTML=`
-            <div class="slot-label">Fish ${i+1}</div>
-            <div class="slot-name" style="color:${getRarityColor(f.rarity)}">${f.type}</div>
-            <div class="slot-meta">${fishDescriptors(f)}<br>Rarity: ${rarityLabel(f.rarity)}<br>Size: ${f.size} cm → <strong style="color:#7ee787">${boosted.hp} HP</strong><br>Weight: ${f.weight} kg → <strong style="color:#ffa657">${boosted.atk} ATK</strong></div>
-            <div class="slot-actions"><button class="btn btn-danger" type="button" data-remove="${f.uid}">Remove</button></div>`;
-        } else {
-          slot.innerHTML=`<div class="slot-label">Fish ${i+1}</div><div class="slot-empty">Empty slot</div><div class="slot-meta">Choose a fish from your collection.</div>`;
-        }
-        selectedSlots.appendChild(slot);
-      }
-      selectedSlots.querySelectorAll("button[data-remove]").forEach(btn=>{
-        btn.addEventListener("click",()=>{ selectedFishUids=selectedFishUids.filter(u=>u!==btn.getAttribute("data-remove")); saveSelection(); render(); });
-      });
-    }
-
-    function renderSummary() {
-      const fish=getSelectedFish();
-      const reward=getTierReward(battleTier), tierLabel=`Tier ${battleTier}`;
-      currentTierLabel.textContent=tierLabel; tierRewardLabel.textContent=`+${reward} money`;
-      captureTierLabel.textContent="N/A";
-      tierDifficultyLabel.textContent=getTierDifficultyLabel(battleTier);
-      if(!fish.length){
-        startBattleButton.disabled=true;
-        actionNote.textContent=`Select 3 fish first. ${tierLabel} is waiting.`;
-        if(!lastBattleState) battleResult.textContent="Start battle to see turn-by-turn results.";
-        return;
-      }
-      startBattleButton.disabled=fish.length!==3||isBattleAnimating;
-      const goesFirst = importedBattle && importedBattle.exportedTeamStats
-        ? teamStats.fishingSpeed >= (Number(importedBattle.exportedTeamStats.fishingSpeed) || 1)
-        : playerStartsFirst();
-      actionNote.textContent=fish.length===3
-        ?(isBattleAnimating?"Battle in progress...":(importedBattle
-            ? `Imported battle ready. ${goesFirst ? "You go first." : "Opponent goes first."}`
-            : `Win ${tierLabel} to claim +${reward} money. ${goesFirst ? "Your team goes first." : "Enemy goes first."}`))
-        :`Select 3 fish first. ${tierLabel} awaits.`;
-    }
-
-    function createBattleantFromFish(fish, teamLabel, index, applyTeamBonus) {
-      const rawHp  = Math.max(1, Math.round(Number(fish.size)   || 1));
-      const rawAtk = Math.max(1, Math.round(Number(fish.weight) || 1));
-      let finalHp  = rawHp, finalAtk = rawAtk;
-      if (applyTeamBonus) {
-        const boosted = applyTeamBoostsToFishStats(rawHp, rawAtk);
-        finalHp  = boosted.hp; finalAtk = boosted.atk;
-      }
-      return {
-        id: `${teamLabel}-${index}-${fish.uid}`,
-        name: fish.type || "Fish",
-        rarity: fish.rarity || "common",
-        maxHp: finalHp, hp: finalHp,
-        attack: finalAtk,
-        alive: true,
-        descriptor: fishDescriptors(fish)
-      };
-    }
-
-    function snapshotBattleants(team) { return team.map(f=>({...f})); }
-
-    function runBattle(allies, enemies, allyGoesFirst) {
-      const log=[], steps=[];
-      const push=text=>{ log.push(text); steps.push({text,allies:snapshotBattleants(allies),enemies:snapshotBattleants(enemies)}); };
-      let eD=0, aD=0, ai=0, ei=0, turn=1;
-      const initiativeMsg = allyGoesFirst
-        ? `Initiative: Your team is faster (Fishing Speed ${teamStats.fishingSpeed.toFixed(2)}x) — you go first!`
-        : `Initiative: Opponent is faster — they go first.`;
-      push(initiativeMsg);
-      let pt = allyGoesFirst;
-      if(allies[ai]&&enemies[ei]) push(`Battle starts: ${allies[ai].name} vs ${enemies[ei].name}`);
-      while(ai<allies.length&&ei<enemies.length){
-        const ally=allies[ai], enemy=enemies[ei];
-        if(pt){
-          enemy.hp=Math.max(0,enemy.hp-ally.attack);
-          push(`Turn ${turn}: ${ally.name} hits ${enemy.name} for ${ally.attack}. (${enemy.hp}/${enemy.maxHp} HP)`);
-          if(enemy.hp<=0){ enemy.alive=false; eD++; push(`${enemy.name} is KO.`); ei++;
-            if(ei<enemies.length) push(`${ally.name} continues and faces ${enemies[ei].name}.`);
-            turn++; pt=false; continue; }
-        } else {
-          ally.hp=Math.max(0,ally.hp-enemy.attack);
-          push(`Turn ${turn}: ${enemy.name} hits ${ally.name} for ${enemy.attack}. (${ally.hp}/${ally.maxHp} HP)`);
-          if(ally.hp<=0){ ally.alive=false; aD++; push(`${ally.name} is KO.`); ai++;
-            if(ai<allies.length) push(`${enemies[ei].name} stays and fights ${allies[ai].name}.`); }
-        }
-        turn++; pt=!pt;
-      }
-      return {allies,enemies,log,steps,allyWins:eD,enemyWins:aD,playerWon:ei>=enemies.length};
-    }
-
-    function renderBattleState(state) {
-      battleGrid.innerHTML="";
-      const allySide=document.createElement("div"); allySide.className="battle-side";
-      const enemySide=document.createElement("div"); enemySide.className="battle-side";
-      allySide.innerHTML=`<div class="battle-side-title">Your Team</div>`;
-      enemySide.innerHTML=`<div class="battle-side-title">Enemy Team</div>`;
-      const makeCard=(fighter,isEnemy)=>{
-        const pct=fighter.maxHp>0?Math.round((fighter.hp/fighter.maxHp)*100):0;
-        const card=document.createElement("div");
-        card.className=`battle-fish-card${isEnemy?" enemy":""} rarity-${fighter.rarity}`;
-        card.innerHTML=`
-          <div class="battle-fish-name" style="color:${getRarityColor(fighter.rarity)}">${fighter.name}</div>
-          <div class="battle-fish-stats">ATK ${fighter.attack} | HP ${fighter.maxHp}</div>
-          <div class="hp-row">
-            <div class="hp-bar"><div class="hp-fill" style="width:${Math.max(0,pct)}%"></div></div>
-            <div class="hp-value">${fighter.hp}/${fighter.maxHp}</div>
-          </div>`;
-        return card;
-      };
-      state.allies.forEach(f=>allySide.appendChild(makeCard(f,false)));
-      state.enemies.forEach(f=>enemySide.appendChild(makeCard(f,true)));
-      battleGrid.appendChild(allySide);
-      battleGrid.appendChild(enemySide);
-      battleLog.innerHTML="";
-      (state.log||[]).forEach(line=>{ const e=document.createElement("div"); e.className="battle-log-entry"; e.textContent=line; battleLog.appendChild(e); });
-      battleLog.scrollTop=battleLog.scrollHeight;
-      if(state.final){
-        const sA=computeTeamScore(state.allies), sE=computeTeamScore(state.enemies);
-        scoreBarAlly.style.width=sA+"%"; scoreBarEnemy.style.width=sE+"%";
-        scoreNumAlly.textContent=sA; scoreNumEnemy.textContent=sE;
-        const d=sA-sE;
-        scoreVerdict.textContent=d>15?"Your team was clearly stronger.":d>0?"Close fight — you had the edge.":d===0?"Perfectly matched teams.":d>-15?"Close fight — enemy had the edge.":"Enemy team was clearly stronger.";
-        battleScorePanel.classList.add("visible");
-      } else {
-        battleScorePanel.classList.remove("visible");
-      }
-      if(state.resultText) battleResult.textContent=state.resultText;
-      else battleResult.textContent=state.playerWon?`Victory! Enemies defeated: ${state.allyWins}/3.`:`Defeat. Enemies defeated: ${state.allyWins}/3.`;
-    }
-
-    function renderCollection() {
-      const sorted=sortInventory(inventory); collectionList.innerHTML="";
-      if(!sorted.length){ emptyState.style.display="block"; return; }
-      emptyState.style.display="none";
-      sorted.forEach(fish=>{
-        const card=document.createElement("div");
-        card.className=`fish-card rarity-${fish.rarity}`;
-        if(isSelected(fish.uid)) card.classList.add("selected-highlight");
-        const boosted = applyTeamBoostsToFishStats(fish.size, fish.weight);
-        card.innerHTML=`
-          <div class="fish-header">
-            <div>
-              <div class="fish-name" style="color:${getRarityColor(fish.rarity)}">${fish.type}</div>
-              <div class="fish-status">${isSelected(fish.uid)?"Selected for battle":"Available in collection"}</div>
-            </div>
-            <div class="count-pill">${getFishValue(fish)} value</div>
-          </div>
-          <div class="fish-meta">${fishDescriptors(fish)}<br>Rarity: ${rarityLabel(fish.rarity)}<br>Size: ${fish.size} cm → <span style="color:#7ee787">${boosted.hp} HP</span><br>Weight: ${fish.weight} kg → <span style="color:#ffa657">${boosted.atk} ATK</span></div>
-          <button class="btn ${isSelected(fish.uid)?"btn-danger":""}" type="button" data-toggle="${fish.uid}">${isSelected(fish.uid)?"Remove":"Select"}</button>`;
-        collectionList.appendChild(card);
-      });
-      collectionList.querySelectorAll("button[data-toggle]").forEach(btn=>{
-        btn.addEventListener("click",()=>toggleSelection(btn.getAttribute("data-toggle")));
-      });
-    }
-
-    function renderSortButtons() {
-      document.querySelectorAll(".sort-btn").forEach(btn=>btn.classList.toggle("active",btn.getAttribute("data-sort")===sortMode));
-    }
-
-    const CHARACTER_RESERVE_KEY = 'clicker_characterReserve';
-    const allCharactersData = [
-      {id:1,name:"Bob",stars:1},{id:2,name:"Ben",stars:1},{id:3,name:"Liam",stars:1},{id:4,name:"Noah",stars:1},{id:5,name:"Owen",stars:1},
-      {id:6,name:"Ryan",stars:1},{id:7,name:"Leo",stars:1},{id:8,name:"Evan",stars:1},{id:9,name:"Cole",stars:1},{id:10,name:"Mason",stars:1},
-      {id:11,name:"Logan",stars:1},{id:12,name:"Carter",stars:1},{id:13,name:"Geoffrey",stars:1},{id:14,name:"Jace",stars:1},{id:15,name:"Xander",stars:1},
-      {id:16,name:"Ryder",stars:2},{id:17,name:"Knox",stars:2},{id:18,name:"Dante",stars:2},{id:19,name:"Victor",stars:2},{id:20,name:"Adrian",stars:2},
-      {id:21,name:"Orion",stars:2},{id:22,name:"Phoenix",stars:2},{id:23,name:"Sterling",stars:2},{id:24,name:"Maverick",stars:2},{id:25,name:"Tristan",stars:2},
-      {id:26,name:"Roman",stars:3},{id:27,name:"Apollo",stars:3},{id:28,name:"Atlas",stars:3},{id:29,name:"Soren",stars:3},{id:30,name:"Cyrus",stars:3},
-      {id:31,name:"Lucian",stars:3},{id:32,name:"Dany",stars:4},{id:33,name:"Magnus",stars:4},{id:34,name:"Zayne",stars:4},
-      {id:35,name:"Ares",stars:5},{id:36,name:"Draco",stars:5}
-    ];
-
-    const TALENT_DESCRIPTION_BY_ID = {
-      "avant-garde":"Slot 1 only: this character income and click are multiplied by x1.25.",
-      "relais":"Gives +8% chance to the teammate directly on the right.",
-      "capitaine":"Slot 2 only: applies x1.15 fishing speed to the two other teammates.",
-      "finisseur":"Slot 3 only: this character click multiplier is multiplied by x1.35.",
-      "ancre":"Gives +20% weight to slot 2 and +10% resale to slot 3.",
-      "duo-parfait":"Adjacent teammates with same stars gain x1.2 income.",
-      "escalier":"If stars strictly increase left to right, team gains +15% chance.",
-      "miroir":"If slot 1 and slot 3 have same stars, slot 2 gains x1.3 click.",
-      "specialiste-income":"If base income is at least x1.3, gains an extra x1.15 income.",
-      "specialiste-chance":"Converts up to +10% own weight bonus into +10% own chance bonus.",
-      "specialiste-resale":"Own resale is multiplied by x1.2, but own click is multiplied by x0.95.",
-      "pecheur-equipe":"For each teammate with fishing speed >= x1.2, gains +0.05x fishing speed.",
-      "combo-additif":"If at least two additive bonuses are non-zero, lowest additive bonus gets +12%.",
-      "combo-multiplicatif":"Each existing stat multiplier above x1 gets +0.05.",
-      "solitaire-tactique":"If alone in team, own income/click/fishing are multiplied by x1.8.",
-      "duo-tactique":"If exactly 2 teammates, gains +12% chance and +12% resale.",
-      "trio-tactique":"If team is full: slot1 x1.1 income, slot2 +10% weight, slot3 x1.1 click.",
-      "swap-ready":"If this copy changed slot since last save, gains +20% size.",
-      "anti-synergie":"Risk/reward: own income x1.35 and own chance -12%.",
-      "no-talent":"No talent on this character."
-    };
-
-    const CHARACTER_BY_ID = new Map(allCharactersData.map((c) => [c.id, c]));
-    const CHARACTER_BY_STAR = allCharactersData.reduce((g, c) => { if (!g[c.stars]) g[c.stars]=[]; g[c.stars].push(c); return g; }, {});
-
-    function getCharacterFromPool(id) { return CHARACTER_BY_ID.get(Number(id)) || null; }
-    function getCharacterName(id) { const c=getCharacterFromPool(id); return c?c.name:"Unknown"; }
-    function getCharacterStars(id) { const c=getCharacterFromPool(id); return c?c.stars:1; }
-
-    function escapeHtml(v) {
-      return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-    }
-
-    function getTalentDescriptionById(id) {
-      if(!id) return TALENT_DESCRIPTION_BY_ID['no-talent'];
-      return TALENT_DESCRIPTION_BY_ID[id]||'No description available.';
-    }
-
-    function renderTalentWithHelp(name, talentId) {
-      const safeName=escapeHtml(name||'No Talent');
-      const safeDesc=escapeHtml(getTalentDescriptionById(talentId));
-      return `<span class="talent-badge"><span class="talent-name-text">${safeName}</span><span class="talent-help" tabindex="0" data-tooltip="${safeDesc}" aria-label="Talent description">?</span></span>`;
-    }
-
-    function loadPlayerCharacterTeam() {
-      try {
-        const stateRaw=localStorage.getItem("clicker_teamState");
-        if(stateRaw){
-          const state=JSON.parse(stateRaw);
-          if(state&&Array.isArray(state.teamChars)){
-            return state.teamChars.filter(c=>c&&c.teamSlot!=null).sort((a,b)=>Number(a.teamSlot)-Number(b.teamSlot));
-          }
-        }
-        const rosterRaw=localStorage.getItem("clicker_teamRoster");
-        if(rosterRaw){
-          const roster=JSON.parse(rosterRaw);
-          if(roster&&Array.isArray(roster.slots)){
-            return roster.slots.filter(c=>c&&c.slot!=null).map(c=>({...(getCharacterFromPool(c.templateId||c.id)||{}),...c,teamSlot:c.slot,level:c.level||1})).sort((a,b)=>Number(a.teamSlot)-Number(b.teamSlot));
-          }
-        }
-        const raw=localStorage.getItem(CHARACTER_RESERVE_KEY);
-        if(!raw) return [];
-        const reserve=JSON.parse(raw);
-        return reserve.filter(c=>c.teamSlot!=null).sort((a,b)=>a.teamSlot-b.teamSlot);
-      } catch(e){ return []; }
-    }
-
-    function getEnemyStarsForTier(tier) {
-      const t=Math.max(1,Number(tier)||1);
-      if(t<=4) return 1; if(t<=49) return 2; if(t<=99) return 3; if(t<=149) return 4; return 5;
-    }
-
-    function getEnemyCharacterPoolForTier(tier) {
-      const stars=getEnemyStarsForTier(tier);
-      const pool=CHARACTER_BY_STAR[stars]&&CHARACTER_BY_STAR[stars].length?CHARACTER_BY_STAR[stars]:allCharactersData;
-      const offset=Math.max(0,Number(tier)||0)-1;
-      return [0,1,2].map(i=>pool[(offset+i)%pool.length]);
-    }
-
-    function generateEnemyCharacterTeam(tier) {
-      const t=Math.max(1,Number(tier)||1);
-      const pool=getEnemyCharacterPoolForTier(t);
-      const stars=getEnemyStarsForTier(t);
-      const progressionMult=1+Math.log1p(t)*0.10;
-      return pool.map((c,i)=>{
-        const baseLevel=Math.max(1,Math.floor(t/5)+i);
-        const level=Math.min(5,Math.max(1,baseLevel+Math.floor(Math.random()*5)-2));
-        return {
-          id:`enemy-char-${t}-${c.id}-${i}`,templateId:c.id,name:c.name,stars,level,
-          incomeMultiplier:1,clickMultiplier:1,
-          sizeAdd:0,sizeMult:1,weightAdd:0,weightMult:1,
-          chanceAdd:0,chanceMult:1,resaleAdd:0,resaleMult:1,
-          fishingSpeed:Number((1+progressionMult+i*0.04).toFixed(2)),
-          maxHp:Math.round(60+t*3+stars*10+i*4),
-          attack:Math.round(10+t*1.2+stars*4+i*2),
-          teamSlot:i
-        };
-      });
-    }
-
-    function renderCharacterCard(char, isEnemy=false) {
-      const stars=getCharacterStars(char.templateId||char.id);
-      const name=char.name||getCharacterName(char.templateId||char.id);
-      const level=char.level||1;
-      const talentId=char.talentId||null;
-      const talentName=char.talentName||'No Talent';
-      const card=document.createElement("div");
-      card.className=`character-team-card character-team-card-clickable stars-${stars}`;
-      card.setAttribute("role","button"); card.setAttribute("tabindex","0");
-      card.innerHTML=`
-        <div class="character-team-card-name">${name}</div>
-        <div class="character-team-card-stars">${"★".repeat(stars)}</div>
-        <div class="character-team-card-level">Lvl ${level}</div>
-        <div>${renderTalentWithHelp(talentName,talentId)}</div>`;
-      card.addEventListener("click",()=>openCharacterStatsModal(char,isEnemy?"Enemy":"Your"));
-      card.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openCharacterStatsModal(char,isEnemy?"Enemy":"Your"); } });
-      return card;
-    }
-
-    function formatStatValue(v,suffix="") { if(typeof v==="number"&&Number.isFinite(v)) return `${v}${suffix}`; return v||"-"; }
-
-    function openCharacterStatsModal(char, ownerLabel) {
-      const modal=document.getElementById("characterStatsModal");
-      const modalTitle=document.getElementById("characterStatsModalTitle");
-      const modalStars=document.getElementById("characterStatsModalStars");
-      const modalStats=document.getElementById("characterStatsModalStats");
-      const modalTalent=document.getElementById("characterStatsModalTalent");
-      const modalNotes=document.getElementById("characterStatsModalNotes");
-      if(!modal||!modalTitle||!modalStars||!modalStats||!modalTalent||!modalNotes) return;
-      const stars=getCharacterStars(char.templateId||char.id);
-      const name=char.name||getCharacterName(char.templateId||char.id);
-      const talentId=char.talentId||null;
-      const talentName=char.talentName||"No Talent";
-      const inc=Number(char.incomeMultiplier||1);
-      const clk=Number(char.clickMultiplier||1);
-      const fs=Number(char.fishingSpeed||1);
-      const sizeV=`${Number(char.sizeAdd||0)} ${Number(char.sizeMult||1)!==1?`| x${Number(char.sizeMult||1).toFixed(2)}`:''}`.trim();
-      const wgtV=`${Number(char.weightAdd||0)} ${Number(char.weightMult||1)!==1?`| x${Number(char.weightMult||1).toFixed(2)}`:''}`.trim();
-      const chcV=`${Number(char.chanceAdd||0)} ${Number(char.chanceMult||1)!==1?`| x${Number(char.chanceMult||1).toFixed(2)}`:''}`.trim();
-      const rslV=`${Number(char.resaleAdd||0)} ${Number(char.resaleMult||1)!==1?`| x${Number(char.resaleMult||1).toFixed(2)}`:''}`.trim();
-      modalTitle.textContent=`${ownerLabel} Character: ${name}`;
-      modalStars.textContent="★".repeat(stars);
-      modalTalent.innerHTML=renderTalentWithHelp(talentName,talentId);
-      modalNotes.textContent=ownerLabel==="Enemy"?"This is the opponent team used for this tier. Stats scale with tier progression.":"This is your active battle character from the Team menu.";
-      const stats=[
-        ["Level",formatStatValue(char.level||1)],["Talent Status",talentId?"Active":"No Talent"],
-        ["Income Multiplier",`${inc.toFixed(2)}x`],["Click Multiplier",`${clk.toFixed(2)}x`],
-        ["Size Bonus",sizeV||"0"],["Weight Bonus",wgtV||"0"],["Chance Bonus",chcV||"0"],["Resale Bonus",rslV||"0"],
-        ["Fishing Speed",`${fs.toFixed(2)}x`],
-        ["HP",formatStatValue(char.maxHp||Math.max(1,Math.round(Number(char.size||1))))],
-        ["ATK",formatStatValue(char.attack||Math.max(1,Math.round(Number(char.weight||1))))]
-      ];
-      modalStats.innerHTML=stats.map(([label,value])=>`<div class="character-stat-item"><span class="character-stat-label">${label}</span><span class="character-stat-value">${value}</span></div>`).join("");
-      modal.classList.add("visible"); modal.setAttribute("aria-hidden","false");
-    }
-
-    function closeCharacterStatsModal() {
-      const modal=document.getElementById("characterStatsModal");
-      if(!modal) return;
-      modal.classList.remove("visible"); modal.setAttribute("aria-hidden","true");
-    }
-
-    const characterStatsModal=document.getElementById("characterStatsModal");
-    const characterStatsModalClose=document.getElementById("characterStatsModalClose");
-    if(characterStatsModal&&characterStatsModalClose){
-      characterStatsModalClose.addEventListener("click",closeCharacterStatsModal);
-      characterStatsModal.addEventListener("click",(e)=>{ if(e.target===characterStatsModal) closeCharacterStatsModal(); });
-      document.addEventListener("keydown",(e)=>{ if(e.key==="Escape") closeCharacterStatsModal(); });
-    }
-
-    function renderPlayerCharacterTeam() {
-      if(!playerCharacterGrid) return;
-      const team=loadPlayerCharacterTeam();
-      playerCharacterGrid.innerHTML="";
-      if(!team.length){ playerCharacterGrid.innerHTML='<div class="character-team-empty">No characters in team</div>'; return; }
-      team.forEach(c=>{ playerCharacterGrid.appendChild(renderCharacterCard(c,false)); });
-    }
-
-    function renderEnemyCharacterTeam() {
-      if(!enemyCharacterGrid) return;
-      let enemyTeam = (importedBattle&&Array.isArray(importedBattle.exportedTeamChars)&&importedBattle.exportedTeamChars.length>0)
-        ? importedBattle.exportedTeamChars.slice()
-        : generateEnemyCharacterTeam(battleTier);
-      enemyTeam.sort((a,b) => {
-        const aSlot = Number.isFinite(Number(a.teamSlot)) ? Number(a.teamSlot) : 999;
-        const bSlot = Number.isFinite(Number(b.teamSlot)) ? Number(b.teamSlot) : 999;
-        return aSlot - bSlot;
-      });
-      enemyCharacterGrid.innerHTML="";
-      if(!enemyTeam.length){ enemyCharacterGrid.innerHTML='<div class="character-team-empty">Opponent has no character team</div>'; return; }
-      enemyTeam.forEach(c=>{ enemyCharacterGrid.appendChild(renderCharacterCard(c,true)); });
-    }
-
-    function render() {
-      const fresh=loadTeamStats(); if(fresh) teamStats=fresh;
-      updateTeamHud(); renderTierInfoBar();
-      renderSelectedSlots(); renderSummary(); renderCollection(); renderSortButtons();
-      renderPlayerCharacterTeam(); renderEnemyCharacterTeam();
-      if(characterTeamSection) characterTeamSection.style.display="block";
-      if(lastBattleState) renderBattleState(lastBattleState); else { battleGrid.innerHTML=""; battleLog.innerHTML=""; }
-    }
-
-    document.addEventListener("click",()=>{
-      const tooltip=document.getElementById("enemyTeamTooltip");
-      if(tooltip&&tooltipOpen){ tooltip.classList.remove("open"); tooltipOpen=false; }
-    });
-
-    loadInventory(); loadSelection();
-    if(normalizeSelectedFishUids()) saveSelection();
-    render();
-
-    customBattleBtn.addEventListener("click",()=>{
-      const hidden=battlePanel.style.display==="none";
-      battlePanel.style.display=hidden?"grid":"none";
-      if(hidden){
-        const p=buildBattlePayload();
-        if(p){ battleTextArea.value=encodeBattlePayload(p); battleTextArea.select(); setDetailMessage("Battle text generated. Share it with another player."); }
-        else setDetailMessage("Custom battle opened. Select 3 fish to generate battle text, or paste one to import.");
-        battleTextArea.focus();
-      } else { setDetailMessage(importedBattle?"Imported battle ready. Press Start Battle.":"Battle panel closed."); }
-    });
-
-    if (toggleQueueBtn) {
-      toggleQueueBtn.addEventListener("click", () => {
-        const action = queueJoined ? leaveQueue() : joinQueue();
-        action.catch((e) => setQueueStatus(`Queue error: ${e.message || e}`));
-      });
-    }
-
-    syncQueueStateOnLoad().catch((e) => setQueueStatus(`Queue init error: ${e.message || e}`));
-
-    importBattleBtn.addEventListener("click",()=>{
-      const p=parseImportedBattleText(battleTextArea.value);
-      if(!p){ setDetailMessage("Invalid battle text. Paste a valid exported text."); return; }
-      importedBattle=p;
-      setBattleSpeedLock(false);
-      const oppFs=p.exportedTeamStats?Number(p.exportedTeamStats.fishingSpeed).toFixed(2):"?";
-      setDetailMessage(`Battle imported (opponent Fishing Speed: ${oppFs}x). Press Start Battle.`);
-      updateTeamHud(); renderSummary(); renderEnemyCharacterTeam();
-    });
-
-    exportBattleBtn.addEventListener("click",()=>{
-      const p=buildBattlePayload();
-      if(!p){ setDetailMessage("Select exactly 3 fish before exporting."); return; }
-      battlePanel.style.display="grid"; battleTextArea.value=encodeBattlePayload(p); battleTextArea.focus(); battleTextArea.select();
-      setDetailMessage("Battle text exported. Share it with another player.");
-    });
-
-    clearBattleBtn.addEventListener("click",()=>{ importedBattle=null; battleTextArea.value=""; setBattleSpeedLock(false); setDetailMessage("Imported battle cleared."); renderSummary(); renderEnemyCharacterTeam(); });
-
-    document.querySelectorAll('input[name="battleSpeed"]').forEach(input=>{
-      input.addEventListener("change",()=>{
-        if (speedLockedByQueue) {
-          input.checked = input.value === "1";
-          battleSpeedMultiplier = 1;
-          return;
-        }
-        battleSpeedMultiplier=Math.max(1,Math.min(5,Number(input.value)||1));
-        if(isBattleAnimating&&typeof battleTickRescheduler==="function") battleTickRescheduler();
-      });
-    });
-
-    startBattleButton.addEventListener("click",()=>{
-      const fish=getSelectedFish();
-      if(fish.length!==3){ setDetailMessage("You need 3 fish selected before starting battle."); return; }
-      if(isBattleAnimating) return;
-      if(battleTimerId){ clearTimeout(battleTimerId); battleTimerId=null; }
-      battleScorePanel.classList.remove("visible");
-
-      const isCustom=Boolean(importedBattle), isQueueBattle=Boolean(importedBattle&&importedBattle.source==="queue"), currentTier=battleTier, reward=getTierReward(currentTier);
-      const allies=fish.map((f,i)=>createBattleantFromFish(f,"ally",i,true));
-
-      let enemies;
-      if(importedBattle){
-        const enemyStats = importedBattle.teamStats || importedBattle.exportedTeamStats || { sizeBonus: 0, weightBonus: 0, incomeMultiplier: 1, fishingSpeed: 1 };
-        const enemyIncomeMult = Number(enemyStats.incomeMultiplier || 1);
-        enemies=importedBattle.lineup.map((f,i)=>({
-          id:`enemy-import-${i}-${Date.now()}`,
-          name:f.type||`Enemy ${i+1}`,
-          rarity:f.rarity||"common",
-          maxHp: Math.max(1, Math.round((Number(f.sizeRaw||f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) * 0.005) * enemyIncomeMult)),
-          hp:    Math.max(1, Math.round((Number(f.sizeRaw||f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) * 0.005) * enemyIncomeMult)),
-          attack: Math.max(1, Math.round((Number(f.weightRaw||f.weight)||1) * (1 + Number(enemyStats.weightBonus||0) * 0.005) * enemyIncomeMult)),
-          alive:true,
-          descriptor:fishDescriptors(f)
-        }));
-      } else {
-        enemies=createTierEnemyRoster(currentTier);
-      }
-
-      const allyGoesFirst = shouldPlayerStartFirst(teamStats.fishingSpeed, getOpponentFishingSpeed());
-      const result=runBattle(allies,enemies,allyGoesFirst);
-
-      let stepIndex=0; const displayedLog=[];
-      isBattleAnimating=true; setDetailMessage("Battle in progress..."); renderSummary();
-
-      const applyStep=()=>{
-        const step=result.steps[stepIndex]; if(!step) return;
-        displayedLog.push(step.text);
-        lastBattleState={ allies:step.allies,enemies:step.enemies,log:[...displayedLog],
-          playerWon:result.playerWon,allyWins:result.allyWins,resultText:step.text,final:false };
-        renderBattleState(lastBattleState); stepIndex++;
-      };
-
-      const scheduleNextStep=()=>{
-        if(battleTimerId) clearTimeout(battleTimerId);
-        battleTimerId=setTimeout(()=>{
-          if(stepIndex>=result.steps.length){ finishBattle(); return; }
-          applyStep(); scheduleNextStep();
-        },getBattleStepDelay());
-      };
-
-      const finishBattle=()=>{
-        if(battleTimerId){ clearTimeout(battleTimerId); battleTimerId=null; }
-        battleTickRescheduler=null;
-
-        if(result.playerWon&&!isCustom){
-          localStorage.setItem(MONEY_KEY, String(Math.max(0,Number(localStorage.getItem(MONEY_KEY))||0)+reward));
-          const hooks=10+(isBossTier(currentTier)?30:0)+(currentTier>=500?50:currentTier>=300?20:0);
-          addHooks(hooks,"Battle Hooks",
-            currentTier>=500?`Tier ${currentTier} — OBLIVION CLEARED! Massive reward.`:
-            currentTier>=300?`Tier ${currentTier} — Abyssal cleared!`:
-            isBossTier(currentTier)?`Tier ${currentTier} clear + boss bonus`:`Tier ${currentTier} clear`);
-          battleTier=currentTier+1; saveBattleTier();
-          renderTierInfoBar();
-        } else if (result.playerWon && isQueueBattle) {
-          const pvpHooks = getQueuePvpHooksReward();
-          addHooks(pvpHooks, "PVP Victory", `Queue battle won at tier ${currentTier}`);
-        }
-
-        const bossStr=isBossTier(currentTier)?" [BOSS CLEARED!]":"";
-        const zoneStr=currentTier>=500?" [☠ OBLIVION CLEARED!]":currentTier>=300?" [🌑 ABYSSAL CLEARED!]":"";
-        const resultText=result.playerWon
-          ?(isCustom?`Victory! Enemies defeated: ${result.allyWins}/3.`
-            :`Victory!${bossStr}${zoneStr} Tier ${currentTier} cleared. +${reward} money. Next: Tier ${battleTier}.`)
-          :`Defeat. Enemies defeated: ${result.allyWins}/3.`;
-
-        lastBattleState={ allies:result.allies,enemies:result.enemies,log:[...displayedLog],
-          playerWon:result.playerWon,allyWins:result.allyWins,resultText,final:true };
-        renderBattleState(lastBattleState);
-        isBattleAnimating=false;
-        if (isQueueBattle) setBattleSpeedLock(false);
-        setDetailMessage(result.playerWon
-          ?(isCustom?"You won the Custom Battle.":`Tier ${currentTier} cleared: +${reward} money. Now Tier ${battleTier}.`)
-          :(isCustom?"You lost this battle.":"Try again to clear this tier."));
-        renderSummary();
-      };
-
-      applyStep(); battleTickRescheduler=scheduleNextStep; scheduleNextStep();
-    });
-
-    document.querySelectorAll(".sort-btn").forEach(btn=>{
-      btn.addEventListener("click",()=>{ sortMode=btn.getAttribute("data-sort")||"default"; render(); });
-    });
-
-    function startAutoBattle() {
-      autoBattleActive=true;
-      const runNextBattle=()=>{
-        if(!autoBattleActive||!autoBattleToggle.checked){ autoBattleActive=false; autoBattleToggle.checked=false; return; }
-        if(battleTier>autoBattleMaxTier){ autoBattleActive=false; autoBattleToggle.checked=false; showHookNotification("Auto Battle",`Reached tier ${autoBattleMaxTier}`); return; }
-        if(!isBattleAnimating&&getSelectedFish().length===3) startBattleButton.click();
-        setTimeout(runNextBattle,1200);
-      };
-      runNextBattle();
-    }
-
-    autoBattleToggle.addEventListener("change",()=>{
-      if(autoBattleToggle.checked){
-        if(getSelectedFish().length!==3){ autoBattleToggle.checked=false; setDetailMessage("Select 3 fish first"); return; }
-        startAutoBattle();
-      } else { autoBattleActive=false; }
-    });
-
-    // ── PVP BATTLE DETECTION ──────────────────────────────────────────────────
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('pvp') === 'true') {
-      const opponentId = urlParams.get('opponentId');
-      const opponentName = urlParams.get('opponentName');
-      const fishTeamStr = urlParams.get('fishTeam');
-      const charTeamStr = urlParams.get('charTeam');
-      const teamStatsStr = urlParams.get('teamStats');
-
-      if (opponentId && opponentName && fishTeamStr && charTeamStr) {
-        try {
-          const fishTeam = JSON.parse(fishTeamStr);
-          const charTeam = JSON.parse(charTeamStr);
-          const teamStats = (teamStatsStr && JSON.parse(teamStatsStr)) || null;
-
-          // Create imported battle data for PVP
-          const defaultFishingSpeed = (() => {
-            if (!Array.isArray(charTeam) || charTeam.length === 0) return 1;
-            const speeds = charTeam.map(c => Number(c.fishingSpeed || 1)).filter(v => Number.isFinite(v) && v > 0);
-            return speeds.length ? speeds.reduce((sum, v) => sum + v, 0) / speeds.length : 1;
-          })();
-
-          importedBattle = {
-            lineup: fishTeam.map((f, i) => ({
-              uid: `pvp-${i}-${Date.now()}`,
-              type: f.type || `Enemy Fish ${i+1}`,
-              rarity: f.rarity || "common",
-              size: Math.max(1, Math.round(Number(f.size) || 1)),
-              weight: Math.max(1, Math.round(Number(f.weight) || 1)),
-              currentValue: 0, basePrice: 0, price: 0
-            })),
-            exportedTeamChars: Array.isArray(charTeam) ? charTeam : [],
-            exportedTeamStats: teamStats || { fishingSpeed: defaultFishingSpeed },
-            teamStats: teamStats || { fishingSpeed: defaultFishingSpeed },
-            source: "pvp"
-          };
-          setBattleSpeedLock(false);
-
-          // Update UI to show PVP mode
-          document.querySelector('.section-title').textContent = `PVP Battle vs ${opponentName}`;
-          setDetailMessage(`PVP Battle against ${opponentName}. Select your 3 fish to fight!`);
-          battlePanel.style.display = 'none'; // Hide custom battle panel
-
-        } catch (error) {
-          console.error('Error parsing PVP data:', error);
-          setDetailMessage("Error loading PVP battle data.");
-        }
-      }
-    }
-
-    if(localStorage.getItem("clicker_upgradesUnlocked")!=="true") document.body.classList.add("limited-nav-mode");
-  </script>
+	<div class="top-bar">
+		<div class="top-nav">
+			<button class="nav-button" onclick="window.location.href='../'">Game</button>
+			<button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
+			<button class="nav-button locked-nav-button" onclick="window.location.href='../team/'">Team</button>
+			<button class="nav-button locked-nav-button" onclick="window.location.href='../shop/'">Shop</button>
+			<button class="nav-button locked-nav-button" onclick="window.location.href='../bestiary/'">Bestiary</button>
+			<button class="nav-button active-nav-button" onclick="window.location.href='./'">Battle</button>
+			<button class="nav-button locked-nav-button" onclick="window.location.href='../reproduction/'">Reproduction</button>
+			<button class="nav-button locked-nav-button" onclick="window.location.href='../missions/'">Missions</button>
+			<button class="nav-button locked-nav-button" onclick="window.location.href='../guild/'">Guild</button>
+			<button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
+		</div>
+	</div>
+
+	<main>
+		<section class="hero">
+			<h1>Battle Modes</h1>
+			<p>Choisis ton mode de combat. Le Raid de Guilde demande une connexion joueur avant d'entrer.</p>
+		</section>
+
+		<section class="mode-grid">
+			<article class="mode-card">
+				<h2>PVP</h2>
+				<p>Affronte d'autres joueurs avec ton equipe actuelle.</p>
+				<button class="mode-btn" id="pvpButton">Entrer en PVP</button>
+			</article>
+
+			<article class="mode-card">
+				<h2>Raid de Guilde</h2>
+				<p>Mode cooperative de guilde. Tu dois etre connecte avant d'entrer.</p>
+				<div id="loginState" class="disconnected">Non connecte</div>
+				<button class="mode-btn raid" id="raidButton">Entrer en Raid de Guilde</button>
+			</article>
+		</section>
+	</main>
+
+	<script>
+		const userId = localStorage.getItem("clicker_userId") || "";
+		const username = localStorage.getItem("clicker_username") || "";
+
+		const loginStateEl = document.getElementById("loginState");
+		const isConnected = !!(userId && username);
+
+		if (isConnected) {
+			loginStateEl.textContent = "Connecte en tant que " + username;
+			loginStateEl.className = "connected";
+		} else {
+			loginStateEl.textContent = "Non connecte";
+			loginStateEl.className = "disconnected";
+		}
+
+		document.getElementById("pvpButton").addEventListener("click", () => {
+			window.location.href = "./pvp/";
+		});
+
+		document.getElementById("raidButton").addEventListener("click", () => {
+			if (!isConnected) {
+				alert("Connecte-toi d'abord dans Settings pour acceder au Raid de Guilde.");
+				window.location.href = "../settings/";
+				return;
+			}
+			window.location.href = "./raid/";
+		});
+	</script>
 </body>
 </html>
