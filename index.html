@@ -2311,7 +2311,6 @@
         scheduledCatches.sort((a, b) => a - b);
       }
 
-      // FIX 1 + FIX 3: Main auto-fisher logic, works in background and distributes catches
       function processAutoFisher() {
         if (autoFisherLevel <= 0) {
           lastAutoCatchMs = Date.now();
@@ -2320,34 +2319,122 @@
 
         const interval = getAutoIntervalMs();
         const now = Date.now();
-        let catchesDone = 0;
+        const elapsed = now - lastAutoCatchMs;
 
-        // Catch up on missed intervals (background mode)
+        // Si on revient après une longue absence : estimation offline
+        const OFFLINE_THRESHOLD_MS = 5000;
+        if (elapsed > OFFLINE_THRESHOLD_MS) {
+          const missedIntervals = Math.floor(elapsed / interval);
+          if (missedIntervals > 0) {
+            const totalMissedFish = missedIntervals * autoFisherLevel;
+
+            // Calcul des probabilités ajustées
+            const weights = getAdjustedRarityWeights();
+            const totalWeight = weights.reduce((s, w) => s + w.weight, 0);
+            const prob = {};
+            weights.forEach(w => { prob[w.rarity] = w.weight / totalWeight; });
+
+            // Estimation : on calcule combien d'epic/legendary on aurait eu
+            const expectedLegendary = Math.floor(totalMissedFish * prob.legendary);
+            const expectedEpic      = Math.floor(totalMissedFish * prob.epic);
+            // Argent pour les raretés inférieures (estimation directe sans créer les objets)
+            const expectedRare      = Math.floor(totalMissedFish * prob.rare);
+            const expectedUncommon  = Math.floor(totalMissedFish * prob.uncommon);
+            const expectedCommon    = totalMissedFish - expectedLegendary - expectedEpic - expectedRare - expectedUncommon;
+
+            // Valeur moyenne estimée par rareté (prix moyen d'une espèce au hasard)
+            function avgPriceForRarity(rarity) {
+              const pool = FISH_SPECIES.filter(s => s.rarity === rarity);
+              if (!pool.length) return 0;
+              const avgSize   = pool.reduce((s, sp) => s + (sp.sizeMin   + sp.sizeMax)   / 2, 0) / pool.length;
+              const avgWeight = pool.reduce((s, sp) => s + (sp.weightMin + sp.weightMax) / 2, 0) / pool.length;
+              const basePrice = Math.max(1, Math.round((avgSize * 0.315 + avgWeight * 9) * RARITY_MULTIPLIERS[rarity]));
+              const reduced   = Math.max(1, Math.round(basePrice * (2 / 3)));
+              return Math.max(1, Math.round(reduced * teamBonuses.incomeMultiplier * (1 + teamBonuses.resaleBonus * 0.01)));
+            }
+
+            // Argent offline (tout auto-vendu sauf epic/legendary qui vont en inventaire)
+            const offlineMoney =
+              expectedCommon   * avgPriceForRarity("common")   +
+              expectedUncommon * avgPriceForRarity("uncommon") +
+              expectedRare     * avgPriceForRarity("rare");
+
+            money += offlineMoney;
+
+            // Génère uniquement les epic et legendary comme vrais objets
+            const rareFish = [];
+            for (let i = 0; i < expectedLegendary; i++) {
+              const pool = FISH_SPECIES.filter(s => s.rarity === "legendary");
+              const species = pickRandom(pool);
+              const f = catchCurrentFish("auto-offline");
+              // on vient de pop un poisson aléatoire, on le remplace par un legendary
+              inventory.pop();
+              const size   = randomBetween(species.sizeMin,   species.sizeMax,   1);
+              const weight = randomBetween(species.weightMin, species.weightMax, 2);
+              const bp     = Math.max(1, Math.round((size * 0.315 + weight * 9) * RARITY_MULTIPLIERS["legendary"]));
+              const reduced= Math.max(1, Math.round(bp * (2/3)));
+              const price  = Math.max(1, Math.round(reduced * teamBonuses.incomeMultiplier));
+              const fish   = { type: species.type, rarity: "legendary", size, weight, price, basePrice: reduced, currentValue: price, priceReductionVersion: 1, caughtAt: new Date().toISOString() };
+              inventory.push(fish);
+              rareFish.push(fish);
+            }
+            for (let i = 0; i < expectedEpic; i++) {
+              const pool = FISH_SPECIES.filter(s => s.rarity === "epic");
+              const species = pickRandom(pool);
+              const size   = randomBetween(species.sizeMin,   species.sizeMax,   1);
+              const weight = randomBetween(species.weightMin, species.weightMax, 2);
+              const bp     = Math.max(1, Math.round((size * 0.315 + weight * 9) * RARITY_MULTIPLIERS["epic"]));
+              const reduced= Math.max(1, Math.round(bp * (2/3)));
+              const price  = Math.max(1, Math.round(reduced * teamBonuses.incomeMultiplier));
+              const fish   = { type: species.type, rarity: "epic", size, weight, price, basePrice: reduced, currentValue: price, priceReductionVersion: 1, caughtAt: new Date().toISOString() };
+              inventory.push(fish);
+              rareFish.push(fish);
+            }
+
+            caughtCount += totalMissedFish;
+            lastAutoCatchMs = now;
+            scheduledCatches = [];
+
+            if (rareFish.length > 0) {
+              const best = pickBestFish(rareFish);
+              bestCaughtFishDisplay = best;
+              if (bestCaughtDisplayTimer) clearTimeout(bestCaughtDisplayTimer);
+              bestCaughtDisplayTimer = setTimeout(() => { bestCaughtFishDisplay = null; renderDisplay(); }, 4000);
+              showHookNotification(
+                "Offline catch-up",
+                `${totalMissedFish} fish caught while away. Found ${rareFish.length} rare catch${rareFish.length > 1 ? "es" : ""}!`
+              );
+            } else {
+              showHookNotification(
+                "Offline catch-up",
+                `${totalMissedFish} fish caught while away (+${offlineMoney} money).`
+              );
+            }
+          }
+          lastAutoCatchMs = now;
+          return;
+        }
+
+        // Mode normal (en temps réel)
+        let catchesDone = 0;
         while (now - lastAutoCatchMs >= interval) {
-          // FIX 3: Schedule distributed catches for this cycle instead of immediate batch
           scheduleDistributedCatches(autoFisherLevel, interval);
           lastAutoCatchMs += interval;
         }
 
-        // Execute any scheduled catches that are due now
         const caughtBatch = [];
         while (scheduledCatches.length > 0 && scheduledCatches[0] <= now) {
           scheduledCatches.shift();
-          const fish = catchCurrentFish("auto");
-          caughtBatch.push(fish);
+          caughtBatch.push(catchCurrentFish("auto"));
           catchesDone++;
         }
 
         if (catchesDone > 0 && caughtBatch.length > 0) {
-          // FIX 2: Show the best fish from this batch on the button
           const best = pickBestFish(caughtBatch);
           if (best) {
             bestCaughtFishDisplay = best;
             if (bestCaughtDisplayTimer) clearTimeout(bestCaughtDisplayTimer);
-            bestCaughtDisplayTimer = setTimeout(() => {
-              bestCaughtFishDisplay = null;
-              renderDisplay();
-            }, 3000);
+            bestCaughtDisplayTimer = setTimeout(() => { bestCaughtFishDisplay = null; renderDisplay(); }, 3000);
           }
           render();
         }
