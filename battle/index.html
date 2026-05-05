@@ -469,20 +469,35 @@
 
     function getTierScaling(t) {
       const tier = Math.max(1, Number(t) || 1);
-      // Progression douce jusqu'à 100, puis plus rapide après
-      let logMult;
-      if (tier <= 100) {
-        logMult = 1 + (0.08 * tier) / (1 + 0.003 * tier) / 20;
+      const boss = isBossTier(tier);
+
+      const BASE_HP    = 33;
+      const ATK_RATIO  = 0.40;
+      const BOSS_HP    = 1.20;
+      const BOSS_ATK   = 1.30;
+
+      const S1_END = 100, S1_SLOPE = 3,  S1_POW = 0.95;
+      const S2_END = 200, S2_SLOPE = 4,  S2_POW = 1.20;
+      const               S3_SLOPE = 3,  S3_POW = 1.40;
+
+      const hp_at_s1 = BASE_HP + S1_SLOPE * Math.pow(S1_END - 1, S1_POW);
+      const hp_at_s2 = hp_at_s1 + S2_SLOPE * Math.pow(S2_END - S1_END, S2_POW);
+
+      let hp;
+      if (tier <= S1_END) {
+        hp = BASE_HP + S1_SLOPE * Math.pow(tier - 1, S1_POW);
+      } else if (tier <= S2_END) {
+        hp = hp_at_s1 + S2_SLOPE * Math.pow(tier - S1_END, S2_POW);
       } else {
-        // Après 100, progression 2.5x plus rapide
-        logMult = 1 + (0.08 * tier) / (1 + 0.003 * tier) / 8;
+        hp = hp_at_s2 + S3_SLOPE * Math.pow(tier - S2_END, S3_POW);
       }
-      // Bonus boss très faible
-      const bossSpikeHp  = isBossTier(tier) ? 1.03 : 1.0;
-      const bossSpikeAtk = isBossTier(tier) ? 1.04 : 1.0;
+
+      const finalHp  = Math.max(1, Math.round(hp  * (boss ? BOSS_HP  : 1)));
+      const finalAtk = Math.max(1, Math.round(hp * ATK_RATIO * (boss ? BOSS_ATK : 1)));
+
       return {
-        hp:  logMult * bossSpikeHp,
-        atk: (logMult * bossSpikeAtk) * 0.45 // ATK ennemie très réduite
+        hp:  finalHp  / Math.max(1, Math.round(hp)),
+        atk: finalAtk / Math.max(1, Math.round(hp))
       };
     }
 
@@ -498,17 +513,36 @@
     }
 
     function speciesStatsAtTier(species, tier) {
-      const s = getTierScaling(tier);
-      const isBoss = isBossTier(tier);
-      const sizeBase   = isBoss
-        ? species.sizeMin + (species.sizeMax - species.sizeMin) * 0.92
-        : species.sizeMin + (species.sizeMax - species.sizeMin) * 0.75;
-      const weightBase = isBoss
-        ? species.weightMin + (species.weightMax - species.weightMin) * 0.92
-        : species.weightMin + (species.weightMax - species.weightMin) * 0.75;
-      const hp  = Math.max(1, Math.round(sizeBase   * s.hp));
-      // ATK ennemie très réduite (poids divisé par 2)
-      const atk = Math.max(1, Math.round((weightBase * s.atk) * 0.5));
+      const boss = isBossTier(tier);
+
+      const BASE_HP    = 33;
+      const ATK_RATIO  = 0.40;
+      const BOSS_HP    = 1.20;
+      const BOSS_ATK   = 1.30;
+
+      const S1_END = 100, S1_SLOPE = 3,  S1_POW = 0.95;
+      const S2_END = 200, S2_SLOPE = 4,  S2_POW = 1.20;
+      const               S3_SLOPE = 3,  S3_POW = 1.40;
+
+      const hp_at_s1 = BASE_HP + S1_SLOPE * Math.pow(S1_END - 1, S1_POW);
+      const hp_at_s2 = hp_at_s1 + S2_SLOPE * Math.pow(S2_END - S1_END, S2_POW);
+
+      let base;
+      if (tier <= S1_END) {
+        base = BASE_HP + S1_SLOPE * Math.pow(tier - 1, S1_POW);
+      } else if (tier <= S2_END) {
+        base = hp_at_s1 + S2_SLOPE * Math.pow(tier - S1_END, S2_POW);
+      } else {
+        base = hp_at_s2 + S3_SLOPE * Math.pow(tier - S2_END, S3_POW);
+      }
+
+      // Variation légère par espèce selon sa rareté
+      const rarityMult = { common:0.85, uncommon:1.0, rare:1.2, epic:1.45, legendary:1.80 };
+      const mult = rarityMult[species.rarity] || 1.0;
+
+      const hp  = Math.max(1, Math.round(base * mult * (boss ? BOSS_HP  : 1)));
+      const atk = Math.max(1, Math.round(base * mult * ATK_RATIO * (boss ? BOSS_ATK : 1)));
+
       return { hp, atk };
     }
 
@@ -756,7 +790,7 @@
     let battleSpeedMultiplier = 2;
     let battleTier = Math.max(1, Number(localStorage.getItem(BATTLE_TIER_KEY)) || 1);
     let autoBattleActive = false;
-    let autoBattleMaxTier = 100;
+    let autoBattleMaxTier = 10000;
     const autoBattleToggle = document.getElementById("autoBattleToggle");
 
     function getRarityColor(r) { return RARITY_COLOR[r] || "#fff"; }
