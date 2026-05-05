@@ -522,7 +522,7 @@
 
       const S1_END = 100, S1_SLOPE = 2.5, S1_POW = 0.95;
       const S2_END = 200, S2_SLOPE = 1.5, S2_POW = 1.35;
-      const               S3_SLOPE = 3.0, S3_POW = 1.40;
+      const               S3_SLOPE = 3.0, S3_POW = 0.95;
 
       const hp_at_s1 = BASE_HP + S1_SLOPE * Math.pow(S1_END - 1, S1_POW);
       const hp_at_s2 = hp_at_s1 + S2_SLOPE * Math.pow(S2_END - S1_END, S2_POW);
