@@ -3,402 +3,90 @@
 <head>
   <title>Draw - Clicker</title>
   <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      background: #111;
-      color: white;
-      margin: 0;
-      padding: 24px 20px 36px 16px;
-      min-height: 100vh;
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-
-    .top-bar {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      background: #0c1217;
-      border-bottom: 1px solid #22313b;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
-      margin: -24px -20px -18px -24px;
-      padding: 10px 0;
-      margin-bottom: 18px;
-    }
-
-    .top-nav {
-      display: flex;
-      justify-content: flex-start;
-      gap: 10px;
-      flex-wrap: wrap;
-      width: 100%;
-      max-width: none;
-      margin: 0;
-      padding: 0 0 0 16px;
-    }
-
-    .nav-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      background: #31414d;
-      color: #eef5f9;
-      border: 1px solid #667a86;
-      padding: 12px 16px;
-      margin: 0;
-      margin-right: 8px;
-      font-size: 15px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-    }
-
+    body { font-family: Arial; text-align: center; background: #111; color: white; margin: 0; padding: 24px 20px 36px 16px; min-height: 100vh; overflow-y: auto; overflow-x: hidden; }
+    .top-bar { position: sticky; top: 0; z-index: 20; background: #0c1217; border-bottom: 1px solid #22313b; box-shadow: 0 10px 20px rgba(0,0,0,0.35); margin: -24px -20px -18px -24px; padding: 10px 0; margin-bottom: 18px; }
+    .top-nav { display: flex; justify-content: flex-start; gap: 10px; flex-wrap: wrap; width: 100%; max-width: none; margin: 0; padding: 0 0 0 16px; }
+    .nav-button { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #31414d; color: #eef5f9; border: 1px solid #667a86; padding: 12px 16px; margin: 0; margin-right: 8px; font-size: 15px; border-radius: 10px; cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
     .nav-button:hover { background: #3a4c59; border-color: #7f95a3; }
     .nav-button.active-nav-button { background: #dbe3e8; color: #1d2a33; border-color: #dbe3e8; font-weight: bold; }
     .settings-nav-button { margin-left: auto; margin-right: 16px; }
-
-    .shell {
-      max-width: 1080px;
-      margin: 0 auto;
-      min-height: calc(100vh - 24px - 36px);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .shop-container {
-      background: linear-gradient(180deg, #18222a 0%, #12191f 100%);
-      border: 1px solid #2f4d5c;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 860px;
-      margin: 0 auto;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .money-top {
-      margin: 0 0 8px;
-      font-size: 28px;
-      font-weight: bold;
-      color: #f2fbff;
-      text-align: center;
-      letter-spacing: 0.02em;
-    }
-
-    .actions {
-      margin-top: 18px;
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .action-btn {
-      border: 1px solid #6ea0bd;
-      background: #21455a;
-      color: #fff;
-      border-radius: 10px;
-      padding: 12px 18px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
+    .shell { max-width: 1080px; margin: 0 auto; min-height: calc(100vh - 24px - 36px); display: flex; flex-direction: column; gap: 16px; }
+    .shop-container { background: linear-gradient(180deg, #18222a 0%, #12191f 100%); border: 1px solid #2f4d5c; border-radius: 16px; padding: 24px; max-width: 860px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    .money-top { margin: 0 0 8px; font-size: 28px; font-weight: bold; color: #f2fbff; text-align: center; letter-spacing: 0.02em; }
+    .actions { margin-top: 18px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .action-btn { border: 1px solid #6ea0bd; background: #21455a; color: #fff; border-radius: 10px; padding: 12px 18px; font-size: 16px; cursor: pointer; }
     .action-btn:hover { background: #2a5870; }
     .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    .draw-main-btn {
-      width: min(560px, 100%);
-      padding: 18px 20px;
-      text-align: left;
-      display: grid;
-      gap: 4px;
-      border: 1px solid #8ec4df;
-      background: linear-gradient(180deg, #2a607a 0%, #224d63 100%);
-      box-shadow: 0 10px 24px rgba(0,0,0,0.34), 0 0 0 1px rgba(142,196,223,0.25);
-      transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
-    }
-
+    .draw-main-btn { width: min(560px, 100%); padding: 18px 20px; text-align: left; display: grid; gap: 4px; border: 1px solid #8ec4df; background: linear-gradient(180deg, #2a607a 0%, #224d63 100%); box-shadow: 0 10px 24px rgba(0,0,0,0.34), 0 0 0 1px rgba(142,196,223,0.25); transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease; }
     .draw-main-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
     .draw-main-btn:active { transform: translateY(0); }
-
     .draw-btn-name { font-size: 20px; font-weight: bold; color: #f4fbff; }
     .draw-btn-price { font-size: 16px; color: #f7f0c4; font-weight: bold; }
     .draw-btn-effect { font-size: 13px; color: #cde3ef; }
-
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.72);
-      z-index: 100;
-      padding: 20px;
-      box-sizing: border-box;
-      align-items: center;
-      justify-content: center;
-    }
-
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 100; padding: 20px; box-sizing: border-box; align-items: center; justify-content: center; }
     .modal.visible { display: flex; }
-
-    .modal-card {
-      width: min(940px, 100%);
-      background: #18222a;
-      border: 1px solid #3f6075;
-      border-radius: 14px;
-      padding: 16px;
-      box-sizing: border-box;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
+    .modal-card { width: min(940px, 100%); background: #18222a; border: 1px solid #3f6075; border-radius: 14px; padding: 16px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
     .modal-title { margin: 0; font-size: 22px; }
-
-    .draw-quick-info {
-      margin-bottom: 12px;
-      padding: 12px;
-      border: 1px solid #3f6075;
-      border-radius: 12px;
-      background: #101a21;
-      text-align: left;
-      display: grid;
-      gap: 8px;
-    }
-
+    .draw-quick-info { margin-bottom: 12px; padding: 12px; border: 1px solid #3f6075; border-radius: 12px; background: #101a21; text-align: left; display: grid; gap: 8px; }
     .draw-quick-title { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #9dc2d8; font-weight: bold; }
     .draw-quick-text { margin: 0; color: #d9ebf7; font-size: 14px; line-height: 1.5; }
-
-    .draw-price-badge {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 8px;
-      border: 1px solid #476072;
-      border-radius: 999px;
-      padding: 6px 12px;
-      background: #142029;
-      color: #d6e8f2;
-      width: fit-content;
-    }
-
+    .draw-price-badge { display: inline-flex; align-items: baseline; gap: 8px; border: 1px solid #476072; border-radius: 999px; padding: 6px 12px; background: #142029; color: #d6e8f2; width: fit-content; }
     .draw-price-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #9dc2d8; }
     .draw-price-value { font-size: 22px; font-weight: bold; color: #e6f4fb; line-height: 1; }
-
-    .close-btn {
-      border: 1px solid #8eb9d0;
-      background: #2f5368;
-      color: #fff;
-      border-radius: 10px;
-      cursor: pointer;
-      padding: 10px 14px;
-      font-size: 16px;
-      font-weight: bold;
-    }
-
-    .drop-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 14px;
-      font-size: 14px;
-    }
-
+    .close-btn { border: 1px solid #8eb9d0; background: #2f5368; color: #fff; border-radius: 10px; cursor: pointer; padding: 10px 14px; font-size: 16px; font-weight: bold; }
+    .drop-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 14px; }
     .drop-table th, .drop-table td { border: 1px solid #325263; padding: 8px; }
     .drop-table th { background: #12202a; color: #cde3ef; text-align: left; }
     .drop-table td.rate-cell { font-family: monospace; }
     .drop-table td.rate-boosted { color: #7ee787; font-weight: bold; }
     .drop-table td.rate-lowered { color: #ff9a6f; }
-
-    .pity-bar-wrap {
-      margin: 10px 0 4px;
-      display: grid;
-      gap: 6px;
-    }
-
-    .pity-counter-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
+    .pity-bar-wrap { margin: 10px 0 4px; display: grid; gap: 6px; }
+    .pity-counter-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
     .pity-counter-label { font-size: 13px; color: #9dc2d8; }
-
-    .pity-counter-value {
-      font-size: 22px;
-      font-weight: bold;
-      color: #f5fbff;
-    }
-
+    .pity-counter-value { font-size: 22px; font-weight: bold; color: #f5fbff; }
     .pity-counter-value span { font-size: 13px; color: #7ea8b8; font-weight: normal; margin-left: 4px; }
-
-    .pity-track {
-      height: 10px;
-      border-radius: 999px;
-      background: #0f1d26;
-      border: 1px solid #2a4555;
-      overflow: hidden;
-    }
-
-    .pity-fill {
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #2f9f6a 0%, #ffa040 60%, #d2a8ff 100%);
-      transition: width 0.4s ease;
-    }
-
-    .pity-milestones {
-      display: flex;
-      justify-content: space-between;
-      font-size: 10px;
-      color: #4a6878;
-      margin-top: 2px;
-    }
-
+    .pity-track { height: 10px; border-radius: 999px; background: #0f1d26; border: 1px solid #2a4555; overflow: hidden; }
+    .pity-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #2f9f6a 0%, #ffa040 60%, #d2a8ff 100%); transition: width 0.4s ease; }
+    .pity-milestones { display: flex; justify-content: space-between; font-size: 10px; color: #4a6878; margin-top: 2px; }
     .roll-area { display: none; margin-top: 12px; }
     .roll-area.visible { display: block; }
-
-    .roll-window {
-      width: 100%;
-      height: 120px;
-      overflow: hidden;
-      border: 1px solid #466a7f;
-      border-radius: 12px;
-      position: relative;
-      background: #0f171d;
-    }
-
-    .roll-window::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: 0;
-      transform: translateX(-50%);
-      width: 4px;
-      height: 100%;
-      background: #f5f2c4;
-      box-shadow: 0 0 10px rgba(245,242,196,0.8);
-      pointer-events: none;
-    }
-
-    .roll-track {
-      display: flex;
-      gap: 8px;
-      padding: 14px 10px;
-      transition: transform 4.2s cubic-bezier(0.15, 0.88, 0.2, 1);
-      will-change: transform;
-    }
-
-    .roll-item {
-      width: 140px;
-      min-width: 140px;
-      height: 86px;
-      border: 1px solid #3b596c;
-      border-radius: 10px;
-      background: #17232c;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      box-sizing: border-box;
-      text-align: center;
-      padding: 4px;
-    }
-
+    .roll-window { width: 100%; height: 120px; overflow: hidden; border: 1px solid #466a7f; border-radius: 12px; position: relative; background: #0f171d; }
+    .roll-window::after { content: ""; position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 4px; height: 100%; background: #f5f2c4; box-shadow: 0 0 10px rgba(245,242,196,0.8); pointer-events: none; }
+    .roll-track { display: flex; gap: 8px; padding: 14px 10px; transition: transform 4.2s cubic-bezier(0.15, 0.88, 0.2, 1); will-change: transform; }
+    .roll-item { width: 140px; min-width: 140px; height: 86px; border: 1px solid #3b596c; border-radius: 10px; background: #17232c; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; text-align: center; padding: 4px; }
     .roll-name { font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
     .roll-stars { margin-top: 4px; font-size: 13px; color: #f5eaa8; }
-
-    .modal-actions {
-      margin-top: 12px;
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .draw-recap {
-      display: none;
-      margin-top: 12px;
-      border: 1px solid #406378;
-      border-radius: 12px;
-      background: #111a20;
-      padding: 12px;
-      text-align: left;
-    }
-
+    .modal-actions { margin-top: 12px; display: flex; justify-content: flex-start; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .draw-recap { display: none; margin-top: 12px; border: 1px solid #406378; border-radius: 12px; background: #111a20; padding: 12px; text-align: left; }
     .draw-recap.visible { display: block; }
     .draw-recap-title { margin: 0; color: #9dc2d8; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
     .draw-recap-name { margin-top: 6px; font-size: 22px; font-weight: bold; }
     .draw-recap-text { margin-top: 6px; color: #cbe0ec; font-size: 14px; }
-
     .rarity-common { color: #d9d9d9; }
     .rarity-uncommon { color: #7ee787; }
     .rarity-rare { color: #58a6ff; }
     .rarity-epic { color: #d2a8ff; }
     .rarity-legendary { color: #ffa657; }
-
     .roll-item.rarity-common { background: linear-gradient(180deg,#25303a,#1b242c); border-color: #7d8a95; }
     .roll-item.rarity-uncommon { background: linear-gradient(180deg,#1f3a2a,#162a1f); border-color: #4ea867; }
     .roll-item.rarity-rare { background: linear-gradient(180deg,#1d324a,#162737); border-color: #4f86c7; }
     .roll-item.rarity-epic { background: linear-gradient(180deg,#33244a,#241a37); border-color: #8d65bf; }
     .roll-item.rarity-legendary { background: linear-gradient(180deg,#4b341d,#362513); border-color: #c88a3f; }
-
     .result-box.rarity-common, .draw-recap.rarity-common { background: linear-gradient(180deg,#25303a,#1b242c); border-color: #7d8a95; }
     .result-box.rarity-uncommon, .draw-recap.rarity-uncommon { background: linear-gradient(180deg,#1f3a2a,#162a1f); border-color: #4ea867; }
     .result-box.rarity-rare, .draw-recap.rarity-rare { background: linear-gradient(180deg,#1d324a,#162737); border-color: #4f86c7; }
     .result-box.rarity-epic, .draw-recap.rarity-epic { background: linear-gradient(180deg,#33244a,#241a37); border-color: #8d65bf; }
     .result-box.rarity-legendary, .draw-recap.rarity-legendary { background: linear-gradient(180deg,#4b341d,#362513); border-color: #c88a3f; }
-
     .talent-inline { display: inline-flex; align-items: center; gap: 8px; vertical-align: middle; min-width: 0; }
     .talent-name-text { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .talent-help {
-      position: relative;
-      width: 16px; height: 16px;
-      border-radius: 999px;
-      border: 1px solid #84a9be;
-      color: #d9ecf8;
-      display: inline-flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: bold;
-      background: #203240;
-      cursor: help; line-height: 1; flex: 0 0 auto;
-    }
-
-    .talent-help::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      left: 50%; bottom: calc(100% + 8px);
-      transform: translateX(-50%) translateY(4px);
-      background: #0f1519; color: #d9ecf8;
-      border: 1px solid #4b6878; border-radius: 8px;
-      padding: 8px 10px; font-size: 12px; line-height: 1.35;
-      min-width: 220px; max-width: 320px; white-space: normal;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.45);
-      pointer-events: none; opacity: 0; visibility: hidden; z-index: 120;
-      transition: opacity 0.06s ease, transform 0.06s ease, visibility 0.06s ease;
-    }
-
-    .talent-help:hover::after, .talent-help:focus-visible::after {
-      opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
-    }
-
-    @media (max-width: 760px) {
-      .roll-item { width: 120px; min-width: 120px; }
-    }
-
+    .talent-help { position: relative; width: 16px; height: 16px; border-radius: 999px; border: 1px solid #84a9be; color: #d9ecf8; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; background: #203240; cursor: help; line-height: 1; flex: 0 0 auto; }
+    .talent-help::after { content: attr(data-tooltip); position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%) translateY(4px); background: #0f1519; color: #d9ecf8; border: 1px solid #4b6878; border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.35; min-width: 220px; max-width: 320px; white-space: normal; box-shadow: 0 10px 24px rgba(0,0,0,0.45); pointer-events: none; opacity: 0; visibility: hidden; z-index: 120; transition: opacity 0.06s ease, transform 0.06s ease, visibility 0.06s ease; }
+    .talent-help:hover::after, .talent-help:focus-visible::after { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    @media (max-width: 760px) { .roll-item { width: 120px; min-width: 120px; } }
     body.limited-nav-mode .locked-nav-button { display: none; }
   </style>
 </head>
-
 <body>
 
   <div class="top-bar">
@@ -438,17 +126,15 @@
       <div class="modal-header">
         <h3 class="modal-title">Character Draw</h3>
       </div>
-
       <div class="draw-quick-info">
         <p class="draw-quick-title">How this draw works</p>
-        <p class="draw-quick-text">Each draw spent without a Legendary increases the rates for rarer characters. Rates reset fully when you pull a Legendary. At 100 draws without Legendary, the chance reaches ~100%.</p>
+        <p class="draw-quick-text">Each draw without a Legendary increases rates for rarer characters. Rates reset when you pull a Legendary. At 100 draws: Legendary reaches ~20%, Epic reaches ~40%. Common drains first, then Uncommon starts draining too.</p>
         <div class="draw-price-badge">
           <span class="draw-price-label">Price</span>
           <span class="draw-price-value">100</span>
           <span>🪝 Hooks</span>
         </div>
       </div>
-
       <div class="pity-bar-wrap">
         <div class="pity-counter-row">
           <span class="pity-counter-label">Draws since last Legendary</span>
@@ -459,30 +145,22 @@
           <span>0</span><span>25</span><span>50</span><span>75</span><span>100 🌟</span>
         </div>
       </div>
-
       <table class="drop-table" id="dropTable">
         <thead>
-          <tr>
-            <th>Rarity</th>
-            <th>Base rate</th>
-            <th>Current rate</th>
-          </tr>
+          <tr><th>Rarity</th><th>Base rate</th><th>Current rate</th></tr>
         </thead>
         <tbody></tbody>
       </table>
-
       <div class="roll-area" id="rollArea">
         <div class="roll-window" id="rollWindow">
           <div class="roll-track" id="rollTrack"></div>
         </div>
       </div>
-
       <div class="draw-recap" id="drawRecap">
         <p class="draw-recap-title">Draw complete</p>
         <div class="draw-recap-name" id="drawRecapName"></div>
         <div class="draw-recap-text" id="drawRecapText"></div>
       </div>
-
       <div class="modal-actions">
         <button class="close-btn modal-close-bottom" id="closeGachaBtn">Close</button>
         <button class="action-btn" id="startDrawBtn">Start Draw</button>
@@ -497,7 +175,6 @@
       <div class="modal-header">
         <h3 class="modal-title">Bait Draw</h3>
       </div>
-
       <div class="draw-quick-info">
         <p class="draw-quick-title">How this bait draw works</p>
         <p class="draw-quick-text">One click spends Hooks once and gives you exactly one random bait. Baits boost battle stats like attack and defense, and some are built for combos.</p>
@@ -507,26 +184,22 @@
           <span>🪝 Hooks</span>
         </div>
       </div>
-
       <table class="drop-table" id="baitDropTable">
         <thead>
           <tr><th>Rarity</th><th>Probability</th></tr>
         </thead>
         <tbody></tbody>
       </table>
-
       <div class="roll-area" id="baitRollArea">
         <div class="roll-window" id="baitRollWindow">
           <div class="roll-track" id="baitRollTrack"></div>
         </div>
       </div>
-
       <div class="draw-recap" id="baitRecap">
         <p class="draw-recap-title">Bait obtained</p>
         <div class="draw-recap-name" id="baitRecapName"></div>
         <div class="draw-recap-text" id="baitRecapText"></div>
       </div>
-
       <div class="modal-actions">
         <button class="close-btn modal-close-bottom" id="closeBaitBtn">Close</button>
         <button class="action-btn" id="startBaitDrawBtn">Start Draw</button>
@@ -560,29 +233,39 @@
       const p = Math.min(pity, PITY_MAX);
       const t = p / PITY_MAX;
 
-      // Epic: base 0.96 → ~35% at pity 100
-      const epicRate = BASE_RATES[4] + (35 - BASE_RATES[4]) * Math.pow(t, 1.2);
-      // Legendary: base 0.39 → ~100% at pity 100
-      const legendaryRate = BASE_RATES[5] + (100 - BASE_RATES[5]) * Math.pow(t, 1.5);
+      // Legendary: base 0.39% → max 20% at pity 100
+      const legendaryRate = BASE_RATES[5] + (20 - BASE_RATES[5]) * Math.pow(t, 1.5);
+      const cappedLeg = Math.min(legendaryRate, 20);
 
-      const cappedLeg  = Math.min(legendaryRate, 100);
-      const cappedEpic = Math.min(epicRate, Math.max(0, 100 - cappedLeg));
-      const boostedTotal = cappedLeg + cappedEpic;
-      const remaining    = Math.max(0, 100 - boostedTotal);
+      // Epic: always strictly higher than legendary, base 0.96% → max 40% at pity 100
+      // Guaranteed at least 0.5% above legendary at all times
+      const epicRaw = BASE_RATES[4] + (40 - BASE_RATES[4]) * Math.pow(t, 1.2);
+      const cappedEpic = Math.min(Math.max(epicRaw, cappedLeg + 0.5), 40);
 
-      // Drain common first, then uncommon, rare last
-      const baseRemaining = BASE_RATES[1] + BASE_RATES[2] + BASE_RATES[3];
-      const drain = Math.max(0, baseRemaining - remaining);
-      const commonDrain   = Math.min(drain, BASE_RATES[1]);
-      const uncommonDrain = Math.min(Math.max(0, drain - commonDrain), BASE_RATES[2]);
-      const rareDrain     = Math.min(Math.max(0, drain - commonDrain - uncommonDrain), BASE_RATES[3]);
+      // Rare (3★): base 4.78% → rises to ~18% at pity 100
+      const rareRate = BASE_RATES[3] + (18 - BASE_RATES[3]) * Math.pow(t, 1.0);
+
+      // Budget left for 1★ and 2★
+      const boostedTotal = cappedLeg + cappedEpic + rareRate;
+      const remainingForLow = Math.max(0, 100 - boostedTotal);
+
+      // Common (1★): drains first — fills as much as possible leaving room for base 2★
+      const commonRate = Math.max(0, remainingForLow - BASE_RATES[2]);
+
+      // Uncommon (2★): gets remaining after common, capped at its base rate
+      // When common hits 0, uncommon starts draining too
+      const uncommonRate = Math.min(BASE_RATES[2], Math.max(0, remainingForLow - commonRate));
+
+      // Normalize to ensure exact 100%
+      const total = cappedLeg + cappedEpic + rareRate + uncommonRate + commonRate;
+      const scale = 100 / total;
 
       return {
-        1: Math.max(0, BASE_RATES[1] - commonDrain),
-        2: Math.max(0, BASE_RATES[2] - uncommonDrain),
-        3: Math.max(0, BASE_RATES[3] - rareDrain),
-        4: cappedEpic,
-        5: cappedLeg
+        1: Math.max(0, commonRate * scale),
+        2: Math.max(0, uncommonRate * scale),
+        3: Math.max(0, rareRate * scale),
+        4: cappedEpic * scale,
+        5: cappedLeg * scale
       };
     }
 
@@ -695,40 +378,40 @@
       { id: 24, name: "Twin Shell",    stars: 3, kind: "mixed",   attack: 4,  defense: 4,  combo: "same-species" }
     ];
 
-    const openGachaBtn    = document.getElementById("openGachaBtn");
-    const openBaitBtn     = document.getElementById("openBaitBtn");
-    const hooksTop        = document.getElementById("hooksTop");
-    const gachaModal      = document.getElementById("gachaModal");
-    const closeGachaBtn   = document.getElementById("closeGachaBtn");
-    const startDrawBtn    = document.getElementById("startDrawBtn");
-    const dropTableBody   = document.querySelector("#dropTable tbody");
-    const rollArea        = document.getElementById("rollArea");
-    const rollTrack       = document.getElementById("rollTrack");
-    const rollWindow      = document.getElementById("rollWindow");
-    const drawRecap       = document.getElementById("drawRecap");
-    const drawRecapName   = document.getElementById("drawRecapName");
-    const drawRecapText   = document.getElementById("drawRecapText");
-    const pityCounter     = document.getElementById("pityCounter");
-    const pityFill        = document.getElementById("pityFill");
-    const baitModal       = document.getElementById("baitModal");
-    const closeBaitBtn    = document.getElementById("closeBaitBtn");
-    const startBaitDrawBtn= document.getElementById("startBaitDrawBtn");
-    const baitDropTableBody=document.querySelector("#baitDropTable tbody");
-    const baitRollArea    = document.getElementById("baitRollArea");
-    const baitRollTrack   = document.getElementById("baitRollTrack");
-    const baitRollWindow  = document.getElementById("baitRollWindow");
-    const baitRecap       = document.getElementById("baitRecap");
-    const baitRecapName   = document.getElementById("baitRecapName");
-    const baitRecapText   = document.getElementById("baitRecapText");
+    const openGachaBtn     = document.getElementById("openGachaBtn");
+    const openBaitBtn      = document.getElementById("openBaitBtn");
+    const hooksTop         = document.getElementById("hooksTop");
+    const gachaModal       = document.getElementById("gachaModal");
+    const closeGachaBtn    = document.getElementById("closeGachaBtn");
+    const startDrawBtn     = document.getElementById("startDrawBtn");
+    const dropTableBody    = document.querySelector("#dropTable tbody");
+    const rollArea         = document.getElementById("rollArea");
+    const rollTrack        = document.getElementById("rollTrack");
+    const rollWindow       = document.getElementById("rollWindow");
+    const drawRecap        = document.getElementById("drawRecap");
+    const drawRecapName    = document.getElementById("drawRecapName");
+    const drawRecapText    = document.getElementById("drawRecapText");
+    const pityCounter      = document.getElementById("pityCounter");
+    const pityFill         = document.getElementById("pityFill");
+    const baitModal        = document.getElementById("baitModal");
+    const closeBaitBtn     = document.getElementById("closeBaitBtn");
+    const startBaitDrawBtn = document.getElementById("startBaitDrawBtn");
+    const baitDropTableBody= document.querySelector("#baitDropTable tbody");
+    const baitRollArea     = document.getElementById("baitRollArea");
+    const baitRollTrack    = document.getElementById("baitRollTrack");
+    const baitRollWindow   = document.getElementById("baitRollWindow");
+    const baitRecap        = document.getElementById("baitRecap");
+    const baitRecapName    = document.getElementById("baitRecapName");
+    const baitRecapText    = document.getElementById("baitRecapText");
 
     let spinning     = false;
     let baitSpinning = false;
     let lastRewardChar   = null;
     let lastRewardTalent = null;
 
-    function getHooks()    { return Math.max(0, Number(localStorage.getItem(HOOKS_KEY)) || 0); }
-    function setHooks(v)   { localStorage.setItem(HOOKS_KEY, String(Math.max(0, Math.floor(v)))); }
-    function getMoney()    { return Math.max(0, Number(localStorage.getItem(MONEY_KEY)) || 0); }
+    function getHooks()  { return Math.max(0, Number(localStorage.getItem(HOOKS_KEY)) || 0); }
+    function setHooks(v) { localStorage.setItem(HOOKS_KEY, String(Math.max(0, Math.floor(v)))); }
+    function getMoney()  { return Math.max(0, Number(localStorage.getItem(MONEY_KEY)) || 0); }
 
     function loadReserveList() {
       try {
@@ -773,9 +456,9 @@
     }
 
     function buildDropTable() {
-      const pity  = getPity();
-      const cur   = getCurrentRates(pity);
-      const base  = BASE_RATES;
+      const pity = getPity();
+      const cur  = getCurrentRates(pity);
+      const base = BASE_RATES;
       dropTableBody.innerHTML = [1,2,3,4,5].map(stars => {
         const rc   = rarityConfig[stars];
         const b    = base[stars];
@@ -785,7 +468,7 @@
         let arrow = "";
         if (Math.abs(diff) >= 0.01) {
           if (diff > 0) { cls = "rate-cell rate-boosted"; arrow = " ▲"; }
-          else          { cls = "rate-cell rate-lowered"; arrow = " ▼"; }
+          else          { cls = "rate-cell rate-lowered";  arrow = " ▼"; }
         }
         return `<tr>
           <td class="${rc.className}">${rc.label}</td>
@@ -910,31 +593,20 @@
 
     function applyReward(rewardChar, rewardTalent) {
       const isLegendary = rewardChar.stars === 5;
-
       const list = loadReserveList();
       list.push({ templateId: rewardChar.id, talentId: rewardTalent.id, instanceId: uid() });
       saveReserveList(list);
-
-      if (isLegendary) {
-        setPity(0);
-      } else {
-        setPity(getPity() + 1);
-      }
-
+      if (isLegendary) { setPity(0); } else { setPity(getPity() + 1); }
       updatePityUI();
       buildDropTable();
-
       const rc = getRarityClassByStars(rewardChar.stars);
       drawRecap.className = `draw-recap visible ${rc}`;
       drawRecapName.className = `draw-recap-name ${rc}`;
       drawRecapName.textContent = `${rewardChar.name} ${getStarsString(rewardChar.stars)}`;
-
       const pityNote = isLegendary
         ? " <span style='color:#ffa657'>✨ Pity reset!</span>"
         : ` <span style='color:#7ea8b8'>(Pity: ${getPity()}/${PITY_MAX})</span>`;
-
       drawRecapText.innerHTML = `Talent won: ${renderTalentWithHelp(rewardTalent.name, rewardTalent.id)}. Added to your Team reserve.${pityNote}`;
-
       lastRewardChar   = rewardChar;
       lastRewardTalent = rewardTalent;
       document.getElementById("sellDrawBtn").style.display = "inline-block";
