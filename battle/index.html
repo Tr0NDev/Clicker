@@ -469,8 +469,14 @@
 
     function getTierScaling(t) {
       const tier = Math.max(1, Number(t) || 1);
-      // Progression ultra douce : division par 20
-      const logMult = 1 + (0.08 * tier) / (1 + 0.003 * tier) / 20;
+      // Progression douce jusqu'à 100, puis plus rapide après
+      let logMult;
+      if (tier <= 100) {
+        logMult = 1 + (0.08 * tier) / (1 + 0.003 * tier) / 20;
+      } else {
+        // Après 100, progression 2.5x plus rapide
+        logMult = 1 + (0.08 * tier) / (1 + 0.003 * tier) / 8;
+      }
       // Bonus boss très faible
       const bossSpikeHp  = isBossTier(tier) ? 1.03 : 1.0;
       const bossSpikeAtk = isBossTier(tier) ? 1.04 : 1.0;
@@ -1562,13 +1568,8 @@
         }
         if (!isBattleAnimating && getSelectedFish().length === 3) {
           startBattleButton.click();
-          const checkBattle = setInterval(() => {
-            if (!isBattleAnimating && autoBattleActive) {
-              clearInterval(checkBattle);
-              setTimeout(runNextBattle, 500);
-            }
-          }, 100);
         }
+        setTimeout(runNextBattle, 1200); // Relance automatique toutes les 1.2s (ajustable)
       };
       runNextBattle();
     }
