@@ -607,12 +607,10 @@
       if (sizeEl)   sizeEl.textContent   = "+" + teamStats.sizeBonus.toFixed(1) + "%";
       if (weightEl) weightEl.textContent = "+" + teamStats.weightBonus.toFixed(1) + "%";
       if (incEl)    incEl.textContent    = teamStats.incomeMultiplier.toFixed(2) + "x";
-      const opponentFishing = (importedBattle && importedBattle.exportedTeamStats)
-        ? Number(importedBattle.exportedTeamStats.fishingSpeed) || 1
-        : getEnemyFishingSpeed(battleTier);
-      const playerGoesFirst = teamStats.fishingSpeed >= opponentFishing;
+      const opponentFishing = getOpponentFishingSpeed();
+      const playerGoesFirst = shouldPlayerStartFirst(teamStats.fishingSpeed, opponentFishing);
       if (fishEl) {
-        if (importedBattle && importedBattle.exportedTeamStats) {
+        if (importedBattle) {
           fishEl.textContent = teamStats.fishingSpeed.toFixed(2) + "x vs " + opponentFishing.toFixed(2) + "x";
         } else {
           fishEl.textContent = teamStats.fishingSpeed.toFixed(2) + "x";
@@ -647,8 +645,54 @@
       return 1.0 + Math.log10(t) * 0.5;
     }
 
+    function parseTeamStatsObject(raw) {
+      try {
+        if (!raw) return null;
+        if (typeof raw === "string") {
+          const parsed = JSON.parse(raw);
+          return parsed && typeof parsed === "object" ? parsed : null;
+        }
+        return typeof raw === "object" ? raw : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function extractFishingSpeed(rawStats) {
+      const stats = parseTeamStatsObject(rawStats);
+      const speed = Number(stats && stats.fishingSpeed);
+      return Number.isFinite(speed) && speed > 0 ? speed : null;
+    }
+
+    function getOpponentFishingSpeed() {
+      if (importedBattle) {
+        const fromExported = extractFishingSpeed(importedBattle.exportedTeamStats);
+        if (fromExported) return fromExported;
+
+        const fromTeamStats = extractFishingSpeed(importedBattle.teamStats);
+        if (fromTeamStats) return fromTeamStats;
+
+        const chars = Array.isArray(importedBattle.exportedTeamChars) ? importedBattle.exportedTeamChars : [];
+        const speeds = chars
+          .map(c => Number(c && c.fishingSpeed))
+          .filter(v => Number.isFinite(v) && v > 0);
+        if (speeds.length) {
+          return speeds.reduce((sum, v) => sum + v, 0) / speeds.length;
+        }
+
+        return 1;
+      }
+      return getEnemyFishingSpeed(battleTier);
+    }
+
+    function shouldPlayerStartFirst(playerSpeed, opponentSpeed) {
+      const p = Number(playerSpeed) || 1;
+      const o = Number(opponentSpeed) || 1;
+      return p >= o;
+    }
+
     function playerStartsFirst() {
-      return teamStats.fishingSpeed >= getEnemyFishingSpeed(battleTier);
+      return shouldPlayerStartFirst(teamStats.fishingSpeed, getOpponentFishingSpeed());
     }
 
     let tooltipOpen = false;
@@ -1740,12 +1784,7 @@
         enemies=createTierEnemyRoster(currentTier);
       }
 
-      let allyGoesFirst;
-      if(importedBattle&&importedBattle.exportedTeamStats&&importedBattle.exportedTeamStats.fishingSpeed){
-        allyGoesFirst=teamStats.fishingSpeed>=(Number(importedBattle.exportedTeamStats.fishingSpeed)||1);
-      } else {
-        allyGoesFirst=playerStartsFirst();
-      }
+      const allyGoesFirst = shouldPlayerStartFirst(teamStats.fishingSpeed, getOpponentFishingSpeed());
       const result=runBattle(allies,enemies,allyGoesFirst);
 
       let stepIndex=0; const displayedLog=[];
