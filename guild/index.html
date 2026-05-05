@@ -5,269 +5,426 @@
   <title>Guild - Clicker</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; background: #111; color: #fff; margin: 0; padding: 24px 16px; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .top-bar { position: sticky; top: 0; z-index: 20; background: #0c1217; border-bottom: 1px solid #22313b; box-shadow: 0 10px 20px rgba(0,0,0,.35); margin: -24px -16px 18px; padding: 10px 0; }
-    .top-nav { display: flex; justify-content: flex-start; gap: 10px; flex-wrap: wrap; width: 100%; padding: 0 0 0 16px; }
-    .nav-button { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #31414d; color: #eef5f9; border: 1px solid #667a86; padding: 12px 16px; margin-right: 8px; font-size: 15px; cursor: pointer; border-radius: 10px; transition: background-color .15s,border-color .15s,color .15s; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── TOP BAR ── */
+    .top-bar {
+      position: sticky; top: 0; z-index: 20;
+      background: #0c1217;
+      border-bottom: 1px solid #22313b;
+      box-shadow: 0 10px 20px rgba(0,0,0,.35);
+      padding: 10px 0;
+      flex-shrink: 0;
+    }
+    .top-nav {
+      display: flex; justify-content: flex-start; gap: 10px;
+      flex-wrap: wrap; width: 100%; padding: 0 0 0 16px;
+    }
+    .nav-button {
+      display: inline-flex; align-items: center; justify-content: center;
+      text-decoration: none; background: #31414d; color: #eef5f9;
+      border: 1px solid #667a86; padding: 12px 16px; margin-right: 8px;
+      font-size: 15px; cursor: pointer; border-radius: 10px;
+      transition: background-color .15s, border-color .15s, color .15s;
+    }
     .nav-button:hover { background: #3a4c59; border-color: #7f95a3; }
     .nav-button.active-nav-button { background: #dbe3e8; color: #1d2a33; border-color: #dbe3e8; font-weight: bold; }
     .settings-nav-button { margin-left: auto; margin-right: 16px; }
-
-    .shell { max-width: 860px; margin: 0 auto; display: grid; gap: 14px; text-align: left; }
-
-    .panel { border: 1px solid #2f4d5c; border-radius: 14px; background: #142028; padding: 16px; }
-    .panel-title { font-size: 18px; font-weight: bold; color: #8dc4e0; margin-bottom: 12px; }
-
-    .hud { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
-    .hud-item { border: 1px solid #365563; border-radius: 10px; background: #0f1519; padding: 10px; text-align: center; }
-    .hud-label { color: #aac2d0; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
-    .hud-value { color: #fff; font-size: 18px; font-weight: bold; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .field { display: grid; gap: 6px; margin-bottom: 10px; }
-    .field label { color: #bcd3e1; font-size: 13px; font-weight: bold; }
-    .field input { width: 100%; box-sizing: border-box; border: 1px solid #4f7185; border-radius: 10px; background: #101920; color: #e9f6ff; padding: 10px; font-size: 14px; }
-    .field input:focus { outline: none; border-color: #6aaece; }
-
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-    .btn { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #8ea3b1; background: #263541; color: #fff; border-radius: 10px; padding: 10px 16px; cursor: pointer; font-size: 14px; }
-    .btn:hover { background: #324555; }
-    .btn:disabled { opacity: .5; cursor: not-allowed; }
-    .btn-primary { background: #2f6e43; border-color: #5eab79; }
-    .btn-primary:hover { background: #3b8252; }
-    .btn-danger { background: #5a1f1f; border-color: #9a4040; }
-    .btn-danger:hover { background: #6e2828; }
-
-    .status { min-height: 20px; margin-top: 8px; font-size: 13px; color: #b8d4e3; }
-    .status.error { color: #ff9a9a; }
-    .status.ok { color: #92e1ad; }
-
-    .guild-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    .guild-table th, .guild-table td { border: 1px solid #365563; padding: 8px 10px; vertical-align: middle; }
-    .guild-table th { background: #0f1519; color: #cfe0ea; text-align: left; }
-    .guild-table tr:hover td { background: rgba(141,196,224,.04); }
-    .guild-table td.rank { text-align: center; font-weight: bold; color: #f5db9b; }
-
-    .guild-name-cell { font-weight: bold; color: #d9f0ff; }
-    .mine-badge { display: inline-block; font-size: 10px; background: #1a4a2a; border: 1px solid #3a8a5a; color: #7ee787; border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
-    .owner-badge { display: inline-block; font-size: 10px; background: #3a2a0a; border: 1px solid #8a6020; color: #ffd080; border-radius: 4px; padding: 1px 5px; margin-left: 4px; }
-
-    .join-btn { border: 1px solid #4a7a9a; background: #1a3545; color: #cde8f8; border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; }
-    .join-btn:hover { background: #224055; }
-    .join-btn:disabled { opacity: .4; cursor: not-allowed; }
-
-    .empty-state { color: #9ab3c2; border: 1px dashed #406378; border-radius: 10px; padding: 14px; background: #0f1519; text-align: center; }
-
-    /* Tutorial accordion */
-    .tuto-block { border: 1px solid #365563; border-radius: 12px; background: #0f1519; overflow: hidden; }
-    .tuto-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; cursor: pointer; user-select: none; }
-    .tuto-header:hover { background: #131f28; }
-    .tuto-title { font-size: 15px; font-weight: bold; color: #8dc4e0; }
-    .tuto-chevron { color: #5a8899; font-size: 14px; transition: transform .2s; }
-    .tuto-chevron.open { transform: rotate(180deg); }
-    .tuto-body { display: none; padding: 0 14px 14px; text-align: left; }
-    .tuto-body.open { display: block; }
-
-    .step-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
-    .step-item { display: flex; gap: 10px; align-items: flex-start; }
-    .step-num { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: #1a4a6a; border: 1px solid #3a7aaa; color: #8dc4e0; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-    .step-text { font-size: 13px; color: #cde3ef; line-height: 1.5; }
-    .step-text code { background: #0a1520; border: 1px solid #2a4050; border-radius: 4px; padding: 1px 5px; color: #7ec8e3; font-family: monospace; font-size: 12px; }
-    .step-text strong { color: #f0f8ff; }
-
-    .sql-block { background: #080e14; border: 1px solid #2a4050; border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 12px; color: #7ec8e3; margin-top: 6px; white-space: pre-wrap; line-height: 1.6; }
-    .copy-sql-btn { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #3a5a6a; background: #142028; color: #8dc4e0; border-radius: 6px; padding: 4px 9px; font-size: 11px; cursor: pointer; margin-top: 6px; }
-    .copy-sql-btn:hover { background: #1e2f3a; }
-
-    .config-missing { background: #1a0a0a; border: 1px solid #7a2020; border-radius: 10px; padding: 12px; color: #ffb0b0; font-size: 13px; text-align: center; }
-
-    .loading-row { text-align: center; color: #5a8899; padding: 14px; font-size: 13px; }
-
     body.limited-nav-mode .locked-nav-button { display: none; }
 
-    @media (max-width: 640px) {
-      .hud { grid-template-columns: 1fr; }
+    /* ── LAYOUT ── */
+    .shell { max-width: 1600px; margin: 0 auto; padding: 16px; flex: 1; }
+    .page-grid {
+      display: grid;
+      grid-template-columns: minmax(280px, 340px) 1fr minmax(320px, 380px);
+      gap: 16px;
+      align-items: start;
     }
+
+    /* ── SHARED SECTION STYLE ── */
+    .section {
+      border: 1px solid #2f4d5c; border-radius: 14px;
+      background: #142028; padding: 14px;
+    }
+    .section-title {
+      font-size: 18px; font-weight: bold; color: #8dc4e0; margin-bottom: 10px;
+    }
+    .section-header-row {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 10px; flex-wrap: wrap; margin-bottom: 12px;
+    }
+    .section-header-row .section-title { margin-bottom: 0; }
+
+    /* ── BTN ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid #8ea3b1; background: #263541; color: #fff;
+      border-radius: 10px; padding: 8px 14px; cursor: pointer; font-size: 13px;
+    }
+    .btn:hover { background: #324555; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-cyan { border-color: #4a9eff; color: #4a9eff; background: rgba(74,158,255,.08); }
+    .btn-cyan:hover { background: rgba(74,158,255,.18); }
+    .btn-danger { border-color: #9a5a68; background: #4a2730; color: #ff9999; }
+    .btn-danger:hover { background: #5b3140; }
+    .btn-gold { border-color: #c9a227; color: #e8c060; background: rgba(201,162,39,.08); }
+    .btn-gold:hover { background: rgba(201,162,39,.18); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn.active-sort { background: #3a5f7a; border-color: #5a8faa; color: #fff; }
+
+    /* ── LEFT COLUMN ── */
+    .left-col { display: grid; gap: 12px; align-content: start; }
+
+    .hooks-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(201,162,39,.1); border: 1px solid #7a5f18;
+      border-radius: 999px; padding: 5px 14px;
+      font-size: 13px; color: #e8c060; font-weight: bold; margin-bottom: 8px;
+    }
+
+    /* search */
+    .search-input {
+      width: 100%; background: #0f1519; border: 1px solid #365563;
+      border-radius: 10px; color: #e9f6ff;
+      font-family: Arial, sans-serif; font-size: 13px;
+      padding: 8px 12px; outline: none;
+      transition: border-color .15s;
+    }
+    .search-input:focus { border-color: #5a8faa; }
+    .search-input::placeholder { color: #4a6878; }
+
+    /* guild list */
+    .guild-list { display: grid; gap: 8px; max-height: 420px; overflow-y: auto; padding-right: 4px; margin-top: 10px; }
+    .guild-list::-webkit-scrollbar { width: 4px; }
+    .guild-list::-webkit-scrollbar-thumb { background: #365563; border-radius: 2px; }
+
+    .guild-card {
+      border: 1px solid #2f4d5c; border-radius: 12px; background: #0f1519;
+      padding: 10px 12px; cursor: pointer; transition: all .15s; position: relative;
+    }
+    .guild-card::before {
+      content:''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; border-radius: 12px 0 0 12px; background: transparent; transition: background .15s;
+    }
+    .guild-card:hover { border-color: #3a5f7a; }
+    .guild-card:hover::before { background: #3a5f7a; }
+    .guild-card.active { border-color: #c9a227; background: rgba(201,162,39,.06); }
+    .guild-card.active::before { background: #c9a227; }
+    .guild-card.is-mine { border-color: #3a6a8a; background: rgba(74,158,255,.05); }
+    .guild-card.is-mine::before { background: #4a9eff; }
+    .guild-card.is-mine.active { border-color: #4a9eff; background: rgba(74,158,255,.1); }
+
+    .gc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .gc-name { font-size: 14px; font-weight: bold; color: #e9f6ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .gc-rank { font-size: 11px; color: #6a8a9a; }
+    .gc-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .gc-members { font-size: 12px; color: #8dc4e0; }
+    .gc-score { font-size: 12px; color: #e8c060; font-weight: bold; }
+    .gc-points { font-size: 12px; color: #7ee787; font-weight: bold; }
+    .gc-mine-badge {
+      font-size: 9px; font-weight: bold; padding: 1px 5px; border-radius: 4px;
+      background: rgba(74,158,255,.15); color: #4a9eff; border: 1px solid #2a4a6a; text-transform: uppercase;
+    }
+
+    /* create form */
+    .create-inner {
+      background: #0f1519; border: 1px solid #365563; border-radius: 12px; padding: 16px;
+    }
+    .field-label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #88a8b9; margin-bottom: 6px; }
+    .field-input {
+      width: 100%; background: #0c1217; border: 1px solid #365563;
+      border-radius: 8px; color: #e9f6ff; font-family: Arial, sans-serif;
+      font-size: 14px; padding: 10px 12px; outline: none;
+      transition: border-color .15s; margin-bottom: 12px;
+    }
+    .field-input:focus { border-color: #5a8faa; }
+    .cost-note { font-size: 12px; color: #6a8a9a; margin-top: 8px; text-align: center; }
+    .status-line { min-height: 18px; font-size: 13px; margin-top: 8px; color: #f5db9b; text-align: center; }
+    .status-line.err { color: #ff7070; }
+    .status-line.ok { color: #7ee787; }
+
+    /* shimmer */
+    .shimmer {
+      height: 56px; border-radius: 12px;
+      background: linear-gradient(90deg, #0f1519 25%, #162028 50%, #0f1519 75%);
+      background-size: 200% 100%; animation: shimmer 1.2s infinite;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* ── CENTER COLUMN ── */
+    .center-col { display: grid; gap: 12px; align-content: start; }
+
+    /* ── RIGHT COLUMN (PROFILE) ── */
+    .right-col { display: grid; gap: 12px; align-content: start; }
+
+    .empty-state {
+      border: 1px dashed #4b6878; border-radius: 12px;
+      padding: 40px 16px; color: #93aab8;
+      background: rgba(15,21,25,.8); text-align: center; font-size: 14px;
+    }
+
+    /* guild hero */
+    .guild-hero {
+      display: flex; align-items: center; gap: 16px;
+      padding-bottom: 14px; margin-bottom: 14px;
+      border-bottom: 1px solid #1e3040;
+    }
+    .guild-crest {
+      width: 64px; height: 64px; border-radius: 50%;
+      border: 2px solid #7a5f18; background: rgba(201,162,39,.07);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; flex-shrink: 0;
+    }
+    .guild-info { flex: 1; min-width: 0; }
+    .guild-name { font-size: 22px; font-weight: bold; color: #e8c060; margin-bottom: 6px; }
+    .guild-stats { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: #8dc4e0; }
+    .guild-stats b { color: #e9f6ff; }
+
+    /* ── GUILD SCORE BANNER ── */
+    .guild-score-banner {
+      display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .score-banner-card {
+      flex: 1; min-width: 140px;
+      border: 1px solid #2f4d5c; border-radius: 12px; background: #0f1519;
+      padding: 12px 16px; text-align: center;
+    }
+    .score-banner-card.score-card { border-color: #7a5f18; background: rgba(201,162,39,.06); }
+    .score-banner-card.points-card { border-color: #1a5a2a; background: rgba(126,231,135,.05); }
+    .sbc-label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #6a8a9a; margin-bottom: 6px; }
+    .sbc-value { font-size: 26px; font-weight: bold; line-height: 1; }
+    .sbc-value.gold { color: #e8c060; }
+    .sbc-value.green { color: #7ee787; }
+    .sbc-sub { font-size: 11px; color: #4a6878; margin-top: 4px; }
+
+    /* sort bar */
+    .sort-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+    .sort-label { font-size: 13px; color: #8dc4e0; font-weight: bold; margin-right: 4px; }
+
+    /* member rows */
+    .members-list { display: grid; gap: 8px; }
+
+    .member-row {
+      border: 1px solid #2f4d5c; border-radius: 12px; background: #0f1519;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 36px 1fr auto;
+      align-items: start; gap: 12px;
+      transition: border-color .15s;
+    }
+    .member-row:hover { border-color: #3a5f7a; }
+    .member-row.is-me { border-color: #3a6a8a; background: rgba(74,158,255,.04); }
+
+    .member-rank-num {
+      font-size: 15px; font-weight: bold; color: #e8c060;
+      text-align: center; line-height: 1; padding-top: 2px;
+    }
+
+    .member-body { display: grid; gap: 8px; min-width: 0; }
+    .member-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .member-name { font-size: 15px; font-weight: bold; color: #e9f6ff; }
+    .me-tag {
+      font-size: 10px; font-weight: bold; padding: 1px 6px; border-radius: 4px;
+      background: rgba(74,158,255,.15); color: #4a9eff; border: 1px solid #2a4a6a;
+    }
+    .owner-tag {
+      font-size: 10px; font-weight: bold; padding: 1px 6px; border-radius: 4px;
+      background: rgba(201,162,39,.15); color: #e8c060; border: 1px solid #7a5f18;
+    }
+    .member-id { font-size: 10px; color: #4a6878; font-family: monospace; }
+    .member-guild-rank { font-size: 11px; color: #8dc4e0; }
+
+    /* team section inside member */
+    .member-teams { display: flex; gap: 16px; flex-wrap: wrap; }
+    .team-block { flex-shrink: 0; }
+    .team-block-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #6a8a9a; margin-bottom: 6px; }
+    .team-slots { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ── FISH SLOTS (avec couleur par rareté + taille/poids) ── */
+    .fish-slot {
+      border: 1px solid #2f4d5c; border-radius: 8px; background: #0c1217;
+      padding: 5px 8px; font-size: 11px;
+      display: flex; flex-direction: column; gap: 2px;
+      min-width: 80px; max-width: 110px;
+    }
+    .fish-slot-name {
+      font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .fish-slot-stats {
+      font-size: 10px; color: #6a8a9a; display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .fish-slot-stat { white-space: nowrap; }
+
+    /* Couleurs par rareté */
+    .fish-slot.rarity-common    { border-color: #4a5a5a; }
+    .fish-slot.rarity-uncommon  { border-color: #2a5a2a; background: rgba(126,231,135,.04); }
+    .fish-slot.rarity-rare      { border-color: #1a3a7a; background: rgba(88,166,255,.05); }
+    .fish-slot.rarity-epic      { border-color: #4a2a7a; background: rgba(210,168,255,.05); }
+    .fish-slot.rarity-legendary { border-color: #7a4a10; background: rgba(255,166,87,.06); }
+
+    .fish-name-common    { color: #c0c0c0; }
+    .fish-name-uncommon  { color: #7ee787; }
+    .fish-name-rare      { color: #58a6ff; }
+    .fish-name-epic      { color: #d2a8ff; }
+    .fish-name-legendary { color: #ffa657; }
+
+    /* ── CHAR SLOTS (couleur par étoiles) ── */
+    .char-slot {
+      border: 1px solid #2f4d5c; border-radius: 8px; background: #0c1217;
+      padding: 5px 8px; font-size: 11px;
+      display: flex; flex-direction: column; gap: 2px;
+      min-width: 80px; max-width: 110px;
+    }
+    .char-slot-name {
+      font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .char-slot-stars { font-size: 10px; }
+
+    .char-slot.stars-1 { border-color: #4a5a5a; }
+    .char-slot.stars-2 { border-color: #2a5a2a; background: rgba(126,231,135,.04); }
+    .char-slot.stars-3 { border-color: #1a3a7a; background: rgba(88,166,255,.05); }
+    .char-slot.stars-4 { border-color: #4a2a7a; background: rgba(210,168,255,.05); }
+    .char-slot.stars-5 { border-color: #7a4a10; background: rgba(255,166,87,.06); }
+
+    .char-name-1 { color: #c0c0c0; }
+    .char-name-2 { color: #7ee787; }
+    .char-name-3 { color: #58a6ff; }
+    .char-name-4 { color: #d2a8ff; }
+    .char-name-5 { color: #ffa657; }
+
+    .char-stars-1 { color: #6a8a9a; }
+    .char-stars-2 { color: #7ee787; }
+    .char-stars-3 { color: #58a6ff; }
+    .char-stars-4 { color: #d2a8ff; }
+    .char-stars-5 { color: #ffa657; }
+
+    /* empty slot */
+    .team-slot-empty {
+      border: 1px dashed #2f4d5c; border-radius: 8px; background: #0c1217;
+      padding: 5px 8px; font-size: 11px; color: #4a6878;
+    }
+
+    .member-score-col { text-align: right; flex-shrink: 0; }
+    .score-big { font-size: 20px; font-weight: bold; color: #e8c060; line-height: 1; }
+    .score-sub { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #6a8a9a; margin-top: 2px; }
+    .points-line { font-size: 12px; color: #7ee787; margin-top: 6px; font-weight: bold; }
+    .points-sub { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #4a6878; margin-top: 1px; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .anim-in { animation: fadeIn .18s ease forwards; }
   </style>
 </head>
 <body>
   <div class="top-bar">
     <div class="top-nav">
-      <button class="nav-button" onclick="window.location.href='../'">Game</button>
-      <button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
-      <button class="nav-button locked-nav-button" onclick="window.location.href='../team/'">Team</button>
-      <button class="nav-button locked-nav-button" onclick="window.location.href='../shop/'">Shop</button>
-      <button class="nav-button locked-nav-button" onclick="window.location.href='../battle/'">Battle</button>
-      <button class="nav-button locked-nav-button active-nav-button" onclick="window.location.href='./'">Guild</button>
-      <button class="nav-button locked-nav-button" onclick="window.location.href='../missions/'">Missions</button>
-      <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
+      <button class="nav-button" onclick="location.href='../'">Game</button>
+      <button class="nav-button" onclick="location.href='../inventory/'">Inventory</button>
+      <button class="nav-button locked-nav-button" onclick="location.href='../team/'">Team</button>
+      <button class="nav-button locked-nav-button" onclick="location.href='../shop/'">Shop</button>
+      <button class="nav-button locked-nav-button" onclick="location.href='../battle/'">Battle</button>
+      <button class="nav-button locked-nav-button active-nav-button">Guild</button>
+      <button class="nav-button locked-nav-button" onclick="location.href='../missions/'">Missions</button>
+      <button class="nav-button settings-nav-button" onclick="location.href='../settings/'">Settings</button>
     </div>
   </div>
 
   <div class="shell">
+    <div class="page-grid">
 
-    <!-- HUD -->
-    <div class="panel">
-      <div class="panel-title">Guild Hub</div>
-      <div class="hud">
-        <div class="hud-item">
-          <div class="hud-label">Your Hooks</div>
-          <div class="hud-value" id="hooksLabel">—</div>
+      <!-- LEFT -->
+      <div class="left-col">
+
+        <div class="section">
+          <div class="section-header-row">
+            <div class="section-title">All Guilds</div>
+            <button class="btn btn-sm" id="refreshBtn" onclick="refreshGuilds()">↻ Refresh</button>
+          </div>
+          <input class="search-input" id="searchInput" type="text" placeholder="Search guilds…" oninput="filterGuilds()">
+          <div class="guild-list" id="guildList">
+            <div class="shimmer"></div>
+            <div class="shimmer" style="opacity:.6"></div>
+            <div class="shimmer" style="opacity:.3"></div>
+          </div>
         </div>
-        <div class="hud-item">
-          <div class="hud-label">Create cost</div>
-          <div class="hud-value">100 🪝</div>
+
+        <!-- Create / membership status -->
+        <div class="section" id="createSection">
+          <div class="section-title">Found a Guild</div>
+          <div class="hooks-pill" id="hooksPill">🪝 0 Hooks</div>
+          <div class="create-inner">
+            <div class="field-label">Guild Name</div>
+            <input class="field-input" id="guildNameInput" type="text" maxlength="40" placeholder="Min 3 characters">
+            <button class="btn btn-gold" id="createGuildBtn" onclick="createGuild()" style="width:100%;padding:10px;font-size:14px;font-weight:bold;">
+              ⚔️ Create Guild — 100 🪝
+            </button>
+            <div class="cost-note" id="costNote"></div>
+            <div class="status-line" id="createStatus"></div>
+          </div>
         </div>
-        <div class="hud-item">
-          <div class="hud-label">Your Guild</div>
-          <div class="hud-value" id="currentGuildLabel">None</div>
+
+      </div>
+
+      <!-- CENTER -->
+      <div class="center-col" id="centerCol">
+        <div class="section">
+          <div class="empty-state">Select a guild from the list to view details.</div>
         </div>
       </div>
+
+      <!-- RIGHT (PLAYER PROFILE) -->
+      <div class="right-col" id="rightCol">
+        <div class="section">
+          <div class="empty-state">Your Guild Profile</div>
+        </div>
+      </div>
+
     </div>
-
-    <!-- NO CONFIG WARNING (hidden when SUPABASE_URL is set) -->
-    <div class="panel" id="noConfigPanel" style="display:none">
-      <div class="config-missing">
-        ⚠️ No Supabase config found in the code.<br>
-        Follow the setup guide below, then paste your URL + key directly into <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> at the top of the page's <code>&lt;script&gt;</code>.
-      </div>
-    </div>
-
-    <!-- CREATE / LEAVE -->
-    <div class="panel" id="guildActionPanel">
-      <div class="panel-title" id="guildActionTitle">Create a Guild</div>
-      <div id="createForm">
-        <div class="field">
-          <label for="guildNameInput">Guild Name</label>
-          <input id="guildNameInput" type="text" maxlength="40" placeholder="Min 3 characters">
-        </div>
-        <div class="actions">
-          <button class="btn btn-primary" id="createGuildBtn" type="button">Create Guild (100 🪝)</button>
-        </div>
-        <div class="status" id="createStatus"></div>
-      </div>
-      <div id="memberForm" style="display:none">
-        <p style="color:#cde3ef;font-size:14px;margin:0 0 10px">You are a member of <strong id="myGuildNameDisplay"></strong>.</p>
-        <div class="actions">
-          <button class="btn btn-danger" id="leaveGuildBtn" type="button">Leave Guild</button>
-        </div>
-        <div class="status" id="leaveStatus"></div>
-      </div>
-    </div>
-
-    <!-- GUILD LIST -->
-    <div class="panel">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-        <div class="panel-title" style="margin:0">All Guilds</div>
-        <button class="btn" id="refreshBtn" type="button">↻ Refresh</button>
-      </div>
-      <div id="guildListWrap"><div class="loading-row">Loading…</div></div>
-      <div class="status" id="listStatus"></div>
-    </div>
-
-    <!-- SETUP TUTORIAL -->
-    <div class="panel">
-      <div class="panel-title">⚙️ Developer Setup — Supabase</div>
-      <p style="font-size:13px;color:#9ab3c2;margin:0 0 12px">This guide is for whoever hosts the game. Players don't need to do anything — the connection is shared.</p>
-
-      <div class="tuto-block">
-        <div class="tuto-header" onclick="toggleTuto(this)">
-          <span class="tuto-title">📋 Step-by-step Supabase setup</span>
-          <span class="tuto-chevron">▼</span>
-        </div>
-        <div class="tuto-body">
-          <ul class="step-list">
-            <li class="step-item">
-              <div class="step-num">1</div>
-              <div class="step-text">Go to <strong>supabase.com</strong>, create a free account and click <strong>New Project</strong>. Pick a name (e.g. "clicker-game"), choose a region close to your players, set a database password.</div>
-            </li>
-            <li class="step-item">
-              <div class="step-num">2</div>
-              <div class="step-text">In your project dashboard, go to <strong>Project Settings → API</strong>. Copy the <strong>Project URL</strong> and the <strong>anon / public key</strong>.</div>
-            </li>
-            <li class="step-item">
-              <div class="step-num">3</div>
-              <div class="step-text">Go to <strong>SQL Editor</strong> (left sidebar) and run the following query to create the guilds table:
-                <div class="sql-block" id="sqlBlock">create table guilds (
-  id uuid default gen_random_uuid() primary key,
-  name text not null unique,
-  owner_id text not null,
-  member_count int not null default 1,
-  members jsonb not null default '[]',
-  created_at timestamptz default now()
-);
-
--- Allow anyone to read guilds
-create policy "Read guilds" on guilds
-  for select using (true);
-
--- Allow authenticated/anon users to insert
-create policy "Create guild" on guilds
-  for insert with check (true);
-
--- Allow owner to update their guild
-create policy "Update own guild" on guilds
-  for update using (owner_id = current_setting('request.jwt.claims', true)::json->>'sub' or true);
-
--- Allow owner to delete their guild
-create policy "Delete own guild" on guilds
-  for delete using (true);
-
-alter table guilds enable row level security;</div>
-                <button class="copy-sql-btn" onclick="copySQL()">📋 Copy SQL</button>
-              </div>
-            </li>
-            <li class="step-item">
-              <div class="step-num">4</div>
-              <div class="step-text">Back in your guild page source code, find these two lines at the top of the <code>&lt;script&gt;</code> and replace the placeholder values:
-                <div class="sql-block">const SUPABASE_URL      = "https://YOUR_PROJECT.supabase.co";
-                                    const SUPABASE_ANON_KEY = "eyJ...";</div>
-              </div>
-            </li>
-            <li class="step-item">
-              <div class="step-num">5</div>
-              <div class="step-text">Deploy the updated file. All players who open the page will automatically connect to the same shared database. No login required — each player gets a persistent anonymous ID stored in their browser.</div>
-            </li>
-            <li class="step-item">
-              <div class="step-num">6</div>
-              <div class="step-text"><strong>Optional security:</strong> In Supabase → <strong>Authentication → Settings</strong>, you can leave anonymous sign-ins off. The anon key already scopes access to the RLS policies you set up in step 3. For a more secure setup, enable Supabase Auth anonymous sign-ins and remove the <code>or true</code> from the update/delete policies.</div>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /shell -->
+  </div>
 
   <script>
-    // ─────────────────────────────────────────────────────────────
-    // PASTE YOUR SUPABASE CREDENTIALS HERE
-    // ─────────────────────────────────────────────────────────────
-    const SUPABASE_URL = "https://vrozpjdyqerpcrwlcdfo.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_moV-dfu5sVohSbQOR6z0zw_BSpcVCHg";
-    const GUILDS_TABLE      = "guilds";
-    // ─────────────────────────────────────────────────────────────
+    // ── CONFIG ──────────────────────────────────────────────────────────────────
+    const SUPABASE_URL       = "https://vrozpjdyqerpcrwlcdfo.supabase.co";
+    const SUPABASE_ANON_KEY  = "sb_publishable_moV-dfu5sVohSbQOR6z0zw_BSpcVCHg";
+    const GUILDS_TABLE       = "guilds";
+    const GUILD_CREATE_COST  = 100;
 
-    const HOOKS_KEY           = "clicker_hooks";
-    const GUILD_MEMBERSHIP_KEY= "clicker_guildMembership";
-    const GUILD_PLAYER_ID_KEY = "clicker_guildPlayerId";
-    const GUILD_CREATE_COST   = 100;
+    const HOOKS_KEY            = "clicker_hooks";
+    const GUILD_MEMBERSHIP_KEY = "clicker_guildMembership";
+    const GUILD_PLAYER_ID_KEY  = "clicker_guildPlayerId";
+    const INVENTORY_KEY        = "clicker_inventory";
+    const BATTLE_SELECTION_KEY = "clicker_battleSelection";
+    const TEAM_STATE_KEY       = "clicker_teamState";
 
-    const configOk = SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_ANON_KEY !== "YOUR_SUPABASE_ANON_KEY";
     let db = null;
-    if (configOk && window.supabase) {
+    if (window.supabase && SUPABASE_URL !== "YOUR_SUPABASE_URL") {
       db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // ── helpers ──────────────────────────────────────────────────
-    function getHooks()    { return Math.max(0, Number(localStorage.getItem(HOOKS_KEY)) || 0); }
-    function setHooks(v)   { localStorage.setItem(HOOKS_KEY, String(Math.max(0, Math.floor(v)))); }
+    let allGuilds = [];
+    let selectedGuildId = null;
+    let currentMemberSort = "score";
+    let playerProfile = null;
+    let viewingProfileId = null; // Track whose profile we're viewing
+
+    // ── LOCAL DATA HELPERS ────────────────────────────────────────────────────
+    function getHooks()  { return Math.max(0, Number(localStorage.getItem(HOOKS_KEY)) || 0); }
+    function setHooks(v) { localStorage.setItem(HOOKS_KEY, String(Math.max(0, Math.floor(v)))); }
 
     function getPlayerId() {
       let id = localStorage.getItem(GUILD_PLAYER_ID_KEY);
-      if (id) return id;
-      id = "p-" + Date.now() + "-" + Math.random().toString(36).slice(2,10);
-      localStorage.setItem(GUILD_PLAYER_ID_KEY, id);
+      if (!id) {
+        id = "p-" + Date.now() + "-" + Math.random().toString(36).slice(2,10);
+        localStorage.setItem(GUILD_PLAYER_ID_KEY, id);
+      }
       return id;
     }
 
@@ -275,238 +432,719 @@ alter table guilds enable row level security;</div>
       try { return JSON.parse(localStorage.getItem(GUILD_MEMBERSHIP_KEY) || "null"); }
       catch { return null; }
     }
-
     function saveMembership(v) {
       if (v) localStorage.setItem(GUILD_MEMBERSHIP_KEY, JSON.stringify(v));
       else localStorage.removeItem(GUILD_MEMBERSHIP_KEY);
     }
 
-    function setStatus(el, text, type) {
-      el.textContent = text;
-      el.className   = "status" + (type ? " " + type : "");
+    function getPlayerFishTeam() {
+      try {
+        const inv = JSON.parse(localStorage.getItem(INVENTORY_KEY) || "[]");
+        const sel = JSON.parse(localStorage.getItem(BATTLE_SELECTION_KEY) || "[]");
+        const fishMap = new Map(inv.map(f => [f.uid, f]));
+        return sel.slice(0, 3).map(uid => fishMap.get(uid)).filter(Boolean);
+      } catch { return []; }
     }
 
-    // ── UI ───────────────────────────────────────────────────────
-    function renderHud() {
-      document.getElementById("hooksLabel").textContent = getHooks() + " 🪝";
-      const m = getMembership();
-      document.getElementById("currentGuildLabel").textContent = m?.guildName || "None";
-
-      const createForm = document.getElementById("createForm");
-      const memberForm = document.getElementById("memberForm");
-      const title      = document.getElementById("guildActionTitle");
-
-      if (m) {
-        createForm.style.display = "none";
-        memberForm.style.display = "block";
-        title.textContent = "Your Guild";
-        document.getElementById("myGuildNameDisplay").textContent = m.guildName;
-      } else {
-        createForm.style.display = "block";
-        memberForm.style.display = "none";
-        title.textContent = "Create or Join a Guild";
-        document.getElementById("createGuildBtn").disabled = getHooks() < GUILD_CREATE_COST || !configOk;
-      }
+    function getPlayerCharTeam() {
+      try {
+        const stateRaw = localStorage.getItem(TEAM_STATE_KEY);
+        if (stateRaw) {
+          const state = JSON.parse(stateRaw);
+          if (state && Array.isArray(state.teamChars)) {
+            return state.teamChars.filter(c => c && c.teamSlot != null)
+              .sort((a,b) => Number(a.teamSlot) - Number(b.teamSlot))
+              .slice(0, 3);
+          }
+        }
+        return [];
+      } catch { return []; }
     }
 
-    function renderGuildList(rows) {
-      const wrap = document.getElementById("guildListWrap");
-      if (!rows || !rows.length) {
-        wrap.innerHTML = '<div class="empty-state">No guilds yet — be the first to create one!</div>';
-        return;
-      }
-      const m = getMembership();
+    // ── SCORE / RANK ─────────────────────────────────────────────────────────
+    const RARITY_RANK = { common:1, uncommon:2, rare:3, epic:4, legendary:5 };
+
+    function computePlayerScore(fish, chars) {
+      let score = 0;
+      fish.forEach(f => {
+        score += (Number(f.size)   || 0) * 2;
+        score += (Number(f.weight) || 0) * 5;
+        score += (RARITY_RANK[f.rarity] || 1) * 800;
+      });
+      chars.forEach(c => {
+        score += (c.stars || c.level || 1) * 600;
+      });
+      return Math.round(score);
+    }
+
+    // Score total de la guilde = somme des scores membres + bonus de taille de guilde
+    function computeGuildTotalScore(members) {
+      const memberCount = members.length || 1;
+      // Bonus de base : plus la guilde est grande, plus le bonus est important
+      const sizeBonus = memberCount * 1200;
+      // Somme des scores des membres (fallback déterministe)
       const pid = getPlayerId();
-
-      const sorted = [...rows].sort((a,b) => (b.member_count||0) - (a.member_count||0));
-
-      let html = '<table class="guild-table"><thead><tr><th>#</th><th>Guild Name</th><th>Members</th><th>Created</th><th></th></tr></thead><tbody>';
-      sorted.forEach((row, i) => {
-        const name     = row.name || "Unknown";
-        const members  = row.member_count ?? 1;
-        const created  = row.created_at ? new Date(row.created_at).toLocaleDateString() : "—";
-        const isOwner  = row.owner_id === pid;
-        const isMine   = m?.guildId === row.id;
-        const canJoin  = !m && configOk;
-
-        const nameBadge = isMine ? '<span class="mine-badge">JOINED</span>' : "";
-        const ownerBadge= isOwner ? '<span class="owner-badge">OWNER</span>' : "";
-        const rankIcons = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : String(i+1);
-
-        const joinBtn = isMine
-          ? ""
-          : `<button class="join-btn" ${canJoin ? "" : "disabled"} data-id="${row.id}" data-name="${encodeURIComponent(name)}" data-owner="${row.owner_id}">Join</button>`;
-
-        html += `<tr>
-          <td class="rank">${rankIcons}</td>
-          <td class="guild-name-cell">${escHtml(name)}${nameBadge}${ownerBadge}</td>
-          <td style="text-align:center">${members}</td>
-          <td>${created}</td>
-          <td>${joinBtn}</td>
-        </tr>`;
+      let membersScore = 0;
+      members.forEach((mem, idx) => {
+        if (mem.pid === pid) {
+          const myScore = computePlayerScore(getPlayerFishTeam(), getPlayerCharTeam());
+          membersScore += myScore;
+        } else {
+          membersScore += computeMemberFallbackScore(mem.pid, idx);
+        }
       });
-      html += "</tbody></table>";
-      wrap.innerHTML = html;
-
-      wrap.querySelectorAll(".join-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const guildId   = btn.dataset.id;
-          const guildName = decodeURIComponent(btn.dataset.name);
-          const ownerId   = btn.dataset.owner;
-          joinGuild(guildId, guildName, ownerId);
-        });
-      });
+      return Math.round(membersScore + sizeBonus);
     }
 
+    // Points de guilde : toujours 0 (système à implémenter / progression en jeu)
+    function getGuildPoints(guildId) {
+      try {
+        const key = "clicker_guildPoints_" + guildId;
+        return Number(localStorage.getItem(key)) || 0;
+      } catch { return 0; }
+    }
+
+    function safeParseMembers(raw) {
+      try {
+        const arr = Array.isArray(raw) ? raw : JSON.parse(raw || "[]");
+        return Array.isArray(arr) ? arr : [];
+      } catch { return []; }
+    }
+
+    function fmtNum(n) {
+      return n >= 1000000 ? (n/1000000).toFixed(1)+"M" : n >= 1000 ? (n/1000).toFixed(1)+"k" : String(Math.round(n));
+    }
     function escHtml(s) {
       return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
-
-    // ── Supabase ops ─────────────────────────────────────────────
-    async function loadGuilds() {
-      const wrap = document.getElementById("guildListWrap");
-      const statusEl = document.getElementById("listStatus");
-      if (!db) {
-        wrap.innerHTML = '<div class="empty-state">Configure Supabase credentials in the code to enable online guilds.</div>';
-        return;
-      }
-      wrap.innerHTML = '<div class="loading-row">Loading guilds…</div>';
-      const { data, error } = await db.from(GUILDS_TABLE).select("*").order("member_count", { ascending: false }).limit(100);
-      if (error) { setStatus(statusEl, "Error: " + error.message, "error"); wrap.innerHTML = '<div class="empty-state">Could not load guilds.</div>'; return; }
-      setStatus(statusEl, "", "");
-      renderGuildList(data || []);
+    function rarityLabel(r) {
+      return {common:"Common",uncommon:"Uncommon",rare:"Rare",epic:"Epic",legendary:"Legendary"}[r] || r;
     }
 
+    function getGuildRankLabel(role, posInRoster) {
+      if (role === "owner") return "Guild Master";
+      if (posInRoster <= 2) return "Officer";
+      return "Member";
+    }
+
+    // ── RENDU FISH SLOT (couleur + taille/poids) ──────────────────────────────
+    function renderFishSlot(f) {
+      const r = f.rarity || "common";
+      const name = escHtml((f.type || "Fish").slice(0, 14));
+      const size   = f.size   != null ? `${Number(f.size).toFixed(1)} cm`  : null;
+      const weight = f.weight != null ? `${Number(f.weight).toFixed(2)} kg` : null;
+      const statsHtml = (size || weight)
+        ? `<div class="fish-slot-stats">
+            ${size   ? `<span class="fish-slot-stat">${size}</span>` : ""}
+            ${weight ? `<span class="fish-slot-stat">${weight}</span>` : ""}
+           </div>`
+        : "";
+      return `<div class="fish-slot rarity-${r}" title="${name} — ${rarityLabel(r)}">
+        <span class="fish-slot-name fish-name-${r}">${name}</span>
+        ${statsHtml}
+      </div>`;
+    }
+
+    // ── RENDU CHAR SLOT (couleur par étoiles) ─────────────────────────────────
+    function renderCharSlot(c) {
+      const stars = Math.min(5, Math.max(1, c.stars || c.level || 1));
+      const name = escHtml((c.name || "?").slice(0, 14));
+      const starsStr = "★".repeat(stars) + "☆".repeat(5 - stars);
+      return `<div class="char-slot stars-${stars}" title="${name} ★${stars}">
+        <span class="char-slot-name char-name-${stars}">${name}</span>
+        <span class="char-slot-stars char-stars-${stars}">${starsStr}</span>
+      </div>`;
+    }
+
+    // ── SIDEBAR ───────────────────────────────────────────────────────────────
+    async function refreshGuilds() {
+      const btn = document.getElementById("refreshBtn");
+      btn.textContent = "↻ …";
+      await loadGuilds();
+      btn.textContent = "↻ Refresh";
+    }
+
+    async function loadGuilds() {
+      const list = document.getElementById("guildList");
+      list.innerHTML = '<div class="shimmer"></div><div class="shimmer" style="opacity:.6"></div><div class="shimmer" style="opacity:.3"></div>';
+
+      updateCreateSection();
+      await loadPlayerProfile();
+
+      if (!db) {
+        list.innerHTML = '<div style="color:#6a8a9a;font-size:13px;padding:16px">Configure Supabase to load guilds.</div>';
+        return;
+      }
+
+      const { data, error } = await db.from(GUILDS_TABLE).select("*").order("member_count", { ascending: false }).limit(100);
+      if (error) {
+        list.innerHTML = `<div style="color:#ff7070;font-size:13px;padding:16px">Error: ${escHtml(error.message)}</div>`;
+        return;
+      }
+
+      allGuilds = (data || []).map(g => {
+        const members = safeParseMembers(g.members);
+        return { ...g, score: computeGuildTotalScore(members), guildPoints: getGuildPoints(g.id) };
+      });
+      allGuilds.sort((a,b) => b.score - a.score);
+      renderSidebar();
+
+      const m = getMembership();
+      if (m) {
+        const mine = allGuilds.find(g => g.id === m.guildId);
+        if (mine) { selectedGuildId = mine.id; renderSidebar(); renderGuildView(mine, true); }
+      }
+    }
+
+    function renderSidebar() {
+      const q = (document.getElementById("searchInput")?.value || "").toLowerCase();
+      const list = document.getElementById("guildList");
+      const m = getMembership();
+      const filtered = allGuilds.filter(g => g.name.toLowerCase().includes(q));
+
+      if (!filtered.length) {
+        list.innerHTML = '<div style="color:#6a8a9a;font-size:13px;padding:16px">No guilds found.</div>';
+        return;
+      }
+
+      list.innerHTML = filtered.map((g, i) => {
+        const isMine  = m?.guildId === g.id;
+        const isActive = selectedGuildId === g.id;
+        const rank = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
+        return `<div class="guild-card ${isMine?"is-mine":""} ${isActive?"active":""}" onclick="selectGuild('${g.id}')">
+          <div class="gc-top">
+            <span class="gc-name">${escHtml(g.name)}</span>
+            <span class="gc-rank">${rank}</span>
+          </div>
+          <div class="gc-meta">
+            <span class="gc-members">👥 ${g.member_count||1}</span>
+            <span class="gc-score">⚔️ ${fmtNum(g.score)}</span>
+            <span class="gc-points">🏆 ${fmtNum(g.guildPoints)} pts</span>
+            ${isMine ? '<span class="gc-mine-badge">Yours</span>' : ""}
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    // ── LOAD PLAYER PROFILE FROM SUPABASE ────────────────────────────────────
+    async function loadPlayerProfile() {
+      if (!db) return;
+      const pid = getPlayerId();
+      const { data, error } = await db.from("profiles").select("*").eq("player_id", pid).single();
+
+      if (!error && data) {
+        playerProfile = data;
+      } else {
+        // Create profile if doesn't exist
+        const { data: newProfile } = await db.from("profiles").insert({
+          player_id: pid,
+          display_name: "Player",
+          fish_team: [],
+          char_team: []
+        }).select("*").single();
+        playerProfile = newProfile;
+      }
+      renderPlayerProfile();
+    }
+
+    // ── RENDER PLAYER PROFILE ────────────────────────────────────────────────
+    function renderPlayerProfile() {
+      if (!playerProfile) {
+        document.getElementById("rightCol").innerHTML = `<div class="section"><div class="empty-state">Loading profile…</div></div>`;
+        return;
+      }
+
+      viewingProfileId = playerProfile.player_id;
+      const myFish = getPlayerFishTeam();
+      const myChars = getPlayerCharTeam();
+      const myScore = computePlayerScore(myFish, myChars);
+
+      const rarityColors = { common: "#c0c0c0", uncommon: "#7ee787", rare: "#58a6ff", epic: "#d2a8ff", legendary: "#ffa657" };
+      const starColors = { 1: "#c0c0c0", 2: "#7ee787", 3: "#58a6ff", 4: "#d2a8ff", 5: "#ffa657" };
+      const rarityBgs = { common: "#4a5a5a", uncommon: "#2a5a2a", rare: "#1a3a7a", epic: "#4a2a7a", legendary: "#7a4a10" };
+      const starBgs = { 1: "#4a5a5a", 2: "#2a5a2a", 3: "#1a3a7a", 4: "#4a2a7a", 5: "#7a4a10" };
+
+      const fishHtml = myFish.length > 0
+        ? myFish.map(f => {
+            const rarity = f.rarity || "common";
+            const color = rarityColors[rarity] || "#c0c0c0";
+            const borderColor = rarityBgs[rarity] || "#4a5a5a";
+            return `
+            <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
+              <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
+              <div style="font-size:11px;color:#8dc4e0">Size: ${Number(f.size).toFixed(1)} cm</div>
+              <div style="font-size:11px;color:#8dc4e0">Weight: ${Number(f.weight).toFixed(2)} kg</div>
+              <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
+            </div>`;
+          }).join("")
+        : '<div style="padding:16px;text-align:center;color:#6a8a9a">No fish team</div>';
+
+      const charHtml = myChars.length > 0
+        ? myChars.map(c => {
+            const stars = Math.min(5, Math.max(1, c.stars || c.level || 1));
+            const name = escHtml((c.name || "?").slice(0, 14));
+            const color = starColors[stars];
+            const borderColor = starBgs[stars];
+            return `
+            <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
+              <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${name}</div>
+              <div style="font-size:11px;color:${color};font-weight:bold">★ ${stars}/5</div>
+              ${(c.talents || []).length > 0 ? `<div style="font-size:10px;color:#e8c060;margin-top:4px">${(c.talents || []).slice(0,2).join(", ")}</div>` : ""}
+            </div>`;
+          }).join("")
+        : '<div style="padding:16px;text-align:center;color:#6a8a9a">No characters</div>';
+
+      const profileHtml = `
+        <div class="section anim-in">
+          <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #1e3040">
+            <div style="font-size:16px;font-weight:bold;color:#e8c060">Your Profile</div>
+            <div style="font-size:12px;color:#6a8a9a;margin-top:6px">ID: ${escHtml(getPlayerId().slice(-8))}</div>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Fish Team</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${fishHtml}</div>
+          </div>
+
+          <div style="margin-bottom:14px;border-top:1px solid #1e3040;padding-top:14px">
+            <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Character Team</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${charHtml}</div>
+          </div>
+
+          <div style="text-align:center;padding-top:12px;border-top:1px solid #1e3040">
+            <div style="font-size:12px;color:#8dc4e0;margin-bottom:12px">Score: <b style="color:#e8c060;font-size:16px">${fmtNum(myScore)}</b></div>
+            <button class="btn btn-gold" onclick="savePlayerTeamToSupabase()" style="width:100%;padding:10px;font-size:13px;font-weight:bold">
+              Save Team
+            </button>
+            <div class="status-line" id="saveProfileStatus" style="margin-top:8px"></div>
+          </div>
+        </div>`;
+
+      document.getElementById("rightCol").innerHTML = profileHtml;
+    }
+
+    // ── VIEW OTHER MEMBER PROFILE ─────────────────────────────────────────────
+    async function viewMemberProfile(memberId, memberName) {
+      if (!db) {
+        renderPlayerProfile();
+        return;
+      }
+
+      const { data: profile, error } = await db.from("profiles").select("*").eq("player_id", memberId).single();
+      
+      if (error || !profile) {
+        // Member not found, show placeholder
+        document.getElementById("rightCol").innerHTML = `<div class="section"><div class="empty-state">${escHtml(memberName)}<br><br>No profile saved</div></div>`;
+        return;
+      }
+
+      viewingProfileId = memberId;
+      const fish_team = profile.fish_team || [];
+      const char_team = profile.char_team || [];
+
+      // Calculate score using saved team data
+      let score = 0;
+      fish_team.forEach(f => {
+        score += (Number(f.size) || 0) * 2;
+        score += (Number(f.weight) || 0) * 5;
+        score += (RARITY_RANK[f.rarity] || 1) * 800;
+      });
+      char_team.forEach(c => {
+        score += (c.stars || 1) * 600;
+      });
+      score = Math.round(score);
+
+      const rarityColors = { common: "#c0c0c0", uncommon: "#7ee787", rare: "#58a6ff", epic: "#d2a8ff", legendary: "#ffa657" };
+      const starColors = { 1: "#c0c0c0", 2: "#7ee787", 3: "#58a6ff", 4: "#d2a8ff", 5: "#ffa657" };
+      const rarityBgs = { common: "#4a5a5a", uncommon: "#2a5a2a", rare: "#1a3a7a", epic: "#4a2a7a", legendary: "#7a4a10" };
+      const starBgs = { 1: "#4a5a5a", 2: "#2a5a2a", 3: "#1a3a7a", 4: "#4a2a7a", 5: "#7a4a10" };
+
+      const fishHtml = fish_team.length > 0
+        ? fish_team.map(f => {
+            const rarity = f.rarity || "common";
+            const color = rarityColors[rarity] || "#c0c0c0";
+            const borderColor = rarityBgs[rarity] || "#4a5a5a";
+            return `
+            <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
+              <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
+              <div style="font-size:11px;color:#8dc4e0">Size: ${Number(f.size).toFixed(1)} cm</div>
+              <div style="font-size:11px;color:#8dc4e0">Weight: ${Number(f.weight).toFixed(2)} kg</div>
+              <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
+            </div>`;
+          }).join("")
+        : '<div style="padding:16px;text-align:center;color:#6a8a9a">No fish team</div>';
+
+      const charHtml = char_team.length > 0
+        ? char_team.map(c => {
+            const stars = Math.min(5, Math.max(1, c.stars || 1));
+            const name = escHtml((c.name || "?").slice(0, 14));
+            const color = starColors[stars];
+            const borderColor = starBgs[stars];
+            return `
+            <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
+              <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${name}</div>
+              <div style="font-size:11px;color:${color};font-weight:bold">★ ${stars}/5</div>
+              ${(c.talents || []).length > 0 ? `<div style="font-size:10px;color:#e8c060;margin-top:4px">${(c.talents || []).slice(0,2).join(", ")}</div>` : ""}
+            </div>`;
+          }).join("")
+        : '<div style="padding:16px;text-align:center;color:#6a8a9a">No characters</div>';
+
+      const profileHtml = `
+        <div class="section anim-in">
+          <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #1e3040">
+            <div style="font-size:16px;font-weight:bold;color:#e8c060">${escHtml(memberName)}</div>
+            <div style="font-size:12px;color:#6a8a9a;margin-top:6px">ID: ${escHtml(memberId.slice(-8))}</div>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Fish Team</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${fishHtml}</div>
+          </div>
+
+          <div style="margin-bottom:14px;border-top:1px solid #1e3040;padding-top:14px">
+            <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Character Team</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${charHtml}</div>
+          </div>
+
+          <div style="text-align:center;padding-top:12px;border-top:1px solid #1e3040">
+            <div style="font-size:12px;color:#8dc4e0;margin-bottom:12px">Score: <b style="color:#e8c060;font-size:16px">${fmtNum(score)}</b></div>
+            <button class="btn btn-cyan" onclick="renderPlayerProfile()" style="width:100%;padding:10px;font-size:13px;font-weight:bold">
+              Back to Your Profile
+            </button>
+          </div>
+        </div>`;
+
+      document.getElementById("rightCol").innerHTML = profileHtml;
+    }
+
+    function filterGuilds() { renderSidebar(); }
+
+    function updateCreateSection() {
+      const hooks = getHooks();
+      const m = getMembership();
+      const el = document.getElementById("hooksPill");
+      const note = document.getElementById("costNote");
+      const btn = document.getElementById("createGuildBtn");
+      const sec = document.getElementById("createSection");
+      if (!el) return;
+      el.textContent = `🪝 ${hooks} Hooks`;
+      if (m) {
+        sec.style.display = "none";
+      } else {
+        sec.style.display = "block";
+        if (note) note.textContent = hooks < GUILD_CREATE_COST
+          ? `Need ${GUILD_CREATE_COST - hooks} more Hooks` : "You have enough Hooks";
+        if (btn) btn.disabled = hooks < GUILD_CREATE_COST || !db;
+      }
+    }
+
+    // ── GUILD VIEW ────────────────────────────────────────────────────────────
+    function selectGuild(id) {
+      selectedGuildId = id;
+      renderSidebar();
+      const guild = allGuilds.find(g => g.id === id);
+      if (!guild) return;
+      const m = getMembership();
+      renderGuildView(guild, m?.guildId === id);
+    }
+
+    function setSortMode(mode) {
+      currentMemberSort = mode;
+      const guild = allGuilds.find(g => g.id === selectedGuildId);
+      if (guild) renderGuildView(guild, getMembership()?.guildId === guild.id);
+    }
+
+    function renderGuildView(guild, isMine) {
+      const pid = getPlayerId();
+      const m = getMembership();
+      const members = safeParseMembers(guild.members);
+      const totalScore = guild.score || computeGuildTotalScore(members);
+      const guildPoints = guild.guildPoints || 0;
+      const created = guild.created_at
+        ? new Date(guild.created_at).toLocaleDateString("en-GB", {day:"numeric",month:"short",year:"numeric"})
+        : "—";
+
+      const myFish  = getPlayerFishTeam();
+      const myChars = getPlayerCharTeam();
+      const myScore = computePlayerScore(myFish, myChars);
+
+      const membersData = members.map((mem, rawIdx) => {
+        const isMe = mem.pid === pid;
+        const fish  = isMe ? myFish  : [];
+        const chars = isMe ? myChars : [];
+        const s = isMe ? myScore : computeMemberFallbackScore(mem.pid, rawIdx);
+        return { ...mem, fish, chars, score: s, rawIdx, guildRank: getGuildRankLabel(mem.role, rawIdx), memberPoints: 0 };
+      });
+
+      const sorted = [...membersData].sort((a, b) => {
+        if (currentMemberSort === "score") return b.score - a.score;
+        if (currentMemberSort === "rank")  return a.rawIdx - b.rawIdx;
+        return String(a.pid||"").localeCompare(String(b.pid||""));
+      });
+
+      const canJoin = !m && db;
+
+      const actionBtn = isMine
+        ? `<button class="btn btn-danger btn-sm" onclick="leaveGuild()">Leave Guild</button>`
+        : canJoin
+          ? `<button class="btn btn-cyan btn-sm" onclick="joinGuild('${guild.id}','${escHtml(guild.name)}')">+ Join</button>`
+          : m
+            ? `<button class="btn btn-sm" disabled>Already in a Guild</button>`
+            : `<button class="btn btn-sm" disabled>Join</button>`;
+
+      const sortBtns = `
+        <span class="sort-label">Sort:</span>
+        <button class="btn btn-sm ${currentMemberSort==="score"?"active-sort":""}" onclick="setSortMode('score')">Score</button>
+        <button class="btn btn-sm ${currentMemberSort==="rank" ?"active-sort":""}" onclick="setSortMode('rank')">Guild Rank</button>
+        <button class="btn btn-sm ${currentMemberSort==="name" ?"active-sort":""}" onclick="setSortMode('name')">ID</button>`;
+
+      const rows = sorted.map((mem, displayIdx) => {
+        const isMe = mem.pid === pid;
+        const rankIcon = displayIdx === 0 ? "🥇" : displayIdx === 1 ? "🥈" : displayIdx === 2 ? "🥉" : `${displayIdx+1}`;
+        const shortId = mem.pid ? mem.pid.slice(-8) : "????????";
+
+        // Fish slots avec couleurs + taille/poids
+        const fishHtml = mem.fish.length > 0
+          ? mem.fish.map(f => renderFishSlot(f)).join("")
+          : `<span class="team-slot-empty">No fish</span>`;
+
+        // Char slots avec couleurs par étoiles
+        const charHtml = mem.chars.length > 0
+          ? mem.chars.map(c => renderCharSlot(c)).join("")
+          : isMe && myFish.length === 0
+            ? '<span class="team-slot-empty">Set up in Battle</span>'
+            : '<span class="team-slot-empty">No chars</span>';
+
+        return `<div class="member-row ${isMe?"is-me":""}" onclick="viewMemberProfile('${mem.pid}', '${isMe ? "You" : "Player"}')" style="${!isMe || true ? "cursor:pointer;" : ""}">
+          <div class="member-rank-num">${rankIcon}</div>
+          <div class="member-body">
+            <div class="member-top">
+              <span class="member-name">${isMe ? "You" : "Player"}</span>
+              ${isMe ? '<span class="me-tag">Me</span>' : ""}
+              ${mem.role === "owner" ? '<span class="owner-tag">⚜ Master</span>' : ""}
+              <span class="member-guild-rank" style="margin-left:4px;font-size:11px;color:#6a8a9a">${mem.guildRank}</span>
+              <span class="member-id">#${shortId}</span>
+            </div>
+            <div class="member-teams">
+              <div class="team-block">
+                <div class="team-block-label">Fish Team</div>
+                <div class="team-slots">${fishHtml}</div>
+              </div>
+              <div class="team-block">
+                <div class="team-block-label">Character Team</div>
+                <div class="team-slots">${charHtml}</div>
+              </div>
+            </div>
+          </div>
+          <div class="member-score-col">
+            <div class="score-big">${fmtNum(mem.score)}</div>
+            <div class="score-sub">Score</div>
+            ${m?.guildId === guild.id && m.role === "owner" && !isMe ? `<button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); kickMember('${guild.id}', '${mem.pid}')" style="margin-top:6px">Kick</button>` : ""}
+          </div>
+        </div>`;
+      }).join("");
+
+      document.getElementById("centerCol").innerHTML = `
+        <div class="section anim-in">
+          <div class="guild-hero">
+            <div class="guild-crest">⚔️</div>
+            <div class="guild-info">
+              <div class="guild-name">${escHtml(guild.name)}</div>
+              <div class="guild-stats">
+                <span>👥 Members: <b>${guild.member_count||1}</b></span>
+                <span>📅 Founded: <b>${created}</b></span>
+              </div>
+            </div>
+            <div style="flex-shrink:0;display:flex;gap:8px;align-items:center">
+              ${actionBtn}
+            </div>
+          </div>
+
+          <div class="guild-score-banner">
+            <div class="score-banner-card score-card">
+              <div class="sbc-label">Guild Score</div>
+              <div class="sbc-value gold">${fmtNum(totalScore)}</div>
+              <div class="sbc-sub">Sum of members + size bonus</div>
+            </div>
+            <div class="score-banner-card points-card">
+              <div class="sbc-label">Guild Points</div>
+              <div class="sbc-value green">${fmtNum(guildPoints)}</div>
+              <div class="sbc-sub">Earned in wars & missions</div>
+            </div>
+          </div>
+
+          <div class="sort-bar">${sortBtns}</div>
+
+          <div class="members-list">
+            ${rows || '<div style="color:#6a8a9a;font-size:13px;padding:8px">No member data.</div>'}
+          </div>
+          <div class="status-line" id="actionStatus"></div>
+        </div>`;
+    }
+
+    function computeMemberFallbackScore(pid, idx) {
+      const hash = [...(pid||"x")].reduce((a,c,i) => a + c.charCodeAt(0)*(i+1), 0);
+      return 1000 + (Math.abs(hash) % 15000) + idx * 50;
+    }
+
+    // ── SUPABASE OPS ──────────────────────────────────────────────────────────
     async function createGuild() {
       const statusEl = document.getElementById("createStatus");
-      const name     = (document.getElementById("guildNameInput").value || "").trim();
-      if (name.length < 3) { setStatus(statusEl, "Name must be at least 3 characters.", "error"); return; }
-      if (getMembership()) { setStatus(statusEl, "You are already in a guild.", "error"); return; }
-      if (getHooks() < GUILD_CREATE_COST) { setStatus(statusEl, "Not enough Hooks.", "error"); return; }
-      if (!db) { setStatus(statusEl, "Supabase not configured.", "error"); return; }
+      const name = (document.getElementById("guildNameInput")?.value || "").trim();
+      if (name.length < 3) { setStatus(statusEl, "Name must be at least 3 characters.", "err"); return; }
+      if (getMembership()) { setStatus(statusEl, "Already in a guild.", "err"); return; }
+      if (getHooks() < GUILD_CREATE_COST) { setStatus(statusEl, "Not enough Hooks.", "err"); return; }
+      if (!db) { setStatus(statusEl, "Supabase not configured.", "err"); return; }
 
       const pid = getPlayerId();
       document.getElementById("createGuildBtn").disabled = true;
       setStatus(statusEl, "Creating…", "");
 
-      const payload = { name, owner_id: pid, member_count: 1, members: JSON.stringify([{ pid, role: "owner", joined: new Date().toISOString() }]) };
+      const payload = {
+        name, owner_id: pid, member_count: 1,
+        members: JSON.stringify([{ pid, role: "owner", joined: new Date().toISOString() }])
+      };
       const { data, error } = await db.from(GUILDS_TABLE).insert(payload).select("*").single();
 
       if (error) {
-        setStatus(statusEl, "Error: " + error.message, "error");
+        setStatus(statusEl, "Error: " + error.message, "err");
         document.getElementById("createGuildBtn").disabled = false;
         return;
       }
 
       setHooks(getHooks() - GUILD_CREATE_COST);
       saveMembership({ guildId: data.id, guildName: data.name, role: "owner", playerId: pid, joinedAt: new Date().toISOString() });
-      document.getElementById("guildNameInput").value = "";
       setStatus(statusEl, "Guild created!", "ok");
-      renderHud();
       await loadGuilds();
     }
 
-    async function joinGuild(guildId, guildName, ownerId) {
-      const statusEl = document.getElementById("listStatus");
+    async function joinGuild(guildId, guildName) {
+      const statusEl = document.getElementById("actionStatus");
       if (!db) return;
       const pid = getPlayerId();
       setStatus(statusEl, "Joining…", "");
 
-      // Fetch current guild data
       const { data: guild, error: fetchErr } = await db.from(GUILDS_TABLE).select("*").eq("id", guildId).single();
-      if (fetchErr || !guild) { setStatus(statusEl, "Could not fetch guild.", "error"); return; }
+      if (fetchErr || !guild) { setStatus(statusEl, "Could not fetch guild.", "err"); return; }
 
-      let members = [];
-      try { members = JSON.parse(guild.members || "[]"); } catch { members = []; }
-      if (!Array.isArray(members)) members = [];
-
-      if (members.some(m => m.pid === pid)) {
-        setStatus(statusEl, "You are already in this guild.", "error");
-        return;
-      }
+      let members = safeParseMembers(guild.members);
+      if (members.some(m => m.pid === pid)) { setStatus(statusEl, "Already in this guild.", "err"); return; }
 
       members.push({ pid, role: "member", joined: new Date().toISOString() });
-      const { error: updateErr } = await db.from(GUILDS_TABLE).update({ member_count: members.length, members: JSON.stringify(members) }).eq("id", guildId);
+      const { error: updateErr } = await db.from(GUILDS_TABLE).update({
+        member_count: members.length, members: JSON.stringify(members)
+      }).eq("id", guildId);
 
-      if (updateErr) { setStatus(statusEl, "Error: " + updateErr.message, "error"); return; }
-
+      if (updateErr) { setStatus(statusEl, "Error: " + updateErr.message, "err"); return; }
       saveMembership({ guildId, guildName, role: "member", playerId: pid, joinedAt: new Date().toISOString() });
-      setStatus(statusEl, "Joined " + guildName + "!", "ok");
-      renderHud();
       await loadGuilds();
     }
 
     async function leaveGuild() {
-      const statusEl = document.getElementById("leaveStatus");
       const m = getMembership();
       if (!m || !db) return;
       const pid = getPlayerId();
-      setStatus(statusEl, "Leaving…", "");
 
       const { data: guild, error: fetchErr } = await db.from(GUILDS_TABLE).select("*").eq("id", m.guildId).single();
-      if (fetchErr || !guild) {
-        saveMembership(null);
-        renderHud();
-        await loadGuilds();
-        return;
-      }
+      if (fetchErr || !guild) { saveMembership(null); await loadGuilds(); return; }
 
-      let members = [];
-      try { members = JSON.parse(guild.members || "[]"); } catch { members = []; }
+      let members = safeParseMembers(guild.members);
       members = members.filter(x => x.pid !== pid);
 
-      // If owner leaves and no one remains, delete guild
       if (members.length === 0) {
         await db.from(GUILDS_TABLE).delete().eq("id", m.guildId);
-        setStatus(statusEl, "Guild disbanded (no members left).", "ok");
-      } else if (m.role === "owner" && members.length > 0) {
-        // Transfer ownership to oldest member
+      } else if (m.role === "owner") {
         const newOwner = members[0];
         newOwner.role = "owner";
-        await db.from(GUILDS_TABLE).update({ member_count: members.length, members: JSON.stringify(members), owner_id: newOwner.pid }).eq("id", m.guildId);
-        setStatus(statusEl, "Left guild. Ownership transferred.", "ok");
+        await db.from(GUILDS_TABLE).update({
+          member_count: members.length,
+          members: JSON.stringify(members),
+          owner_id: newOwner.pid
+        }).eq("id", m.guildId);
       } else {
-        await db.from(GUILDS_TABLE).update({ member_count: members.length, members: JSON.stringify(members) }).eq("id", m.guildId);
-        setStatus(statusEl, "You left the guild.", "ok");
+        await db.from(GUILDS_TABLE).update({
+          member_count: members.length, members: JSON.stringify(members)
+        }).eq("id", m.guildId);
       }
 
       saveMembership(null);
-      renderHud();
+      selectedGuildId = null;
+      await loadGuilds();
+      document.getElementById("centerCol").innerHTML = `
+        <div class="section"><div class="empty-state">You left the guild. Select a guild or create one.</div></div>`;
+      updateCreateSection();
+    }
+
+    function setStatus(el, text, type) {
+      if (!el) return;
+      el.textContent = text;
+      el.className = "status-line" + (type ? " "+type : "");
+    }
+
+    // ── KICK MEMBER ───────────────────────────────────────────────────────────
+    async function kickMember(guildId, memberId) {
+      if (!db) return;
+      const m = getMembership();
+      if (!m || m.role !== "owner") {
+        alert("Only the guild leader can kick members.");
+        return;
+      }
+
+      if (!confirm("Are you sure you want to kick this member?")) return;
+
+      const { data: guild, error: fetchErr } = await db.from(GUILDS_TABLE).select("*").eq("id", guildId).single();
+      if (fetchErr || !guild) { alert("Error fetching guild."); return; }
+
+      let members = safeParseMembers(guild.members);
+      members = members.filter(x => x.pid !== memberId);
+
+      const { error: updateErr } = await db.from(GUILDS_TABLE).update({
+        member_count: members.length,
+        members: JSON.stringify(members)
+      }).eq("id", guildId);
+
+      if (updateErr) { alert("Error: " + updateErr.message); return; }
       await loadGuilds();
     }
 
-    // ── Tutorial accordion ────────────────────────────────────────
-    function toggleTuto(header) {
-      const body    = header.nextElementSibling;
-      const chevron = header.querySelector(".tuto-chevron");
-      const open    = body.classList.toggle("open");
-      chevron.classList.toggle("open", open);
+    // ── SAVE PLAYER TEAM TO SUPABASE ──────────────────────────────────────────
+    async function savePlayerTeamToSupabase() {
+      const statusEl = document.getElementById("saveProfileStatus");
+      if (!db) { setStatus(statusEl, "Supabase not configured.", "err"); return; }
+
+      const pid = getPlayerId();
+      const myFish = getPlayerFishTeam();
+      const myChars = getPlayerCharTeam();
+
+      const teamData = {
+        fish_team: myFish.map(f => ({ uid: f.uid, type: f.type, rarity: f.rarity, size: f.size, weight: f.weight })),
+        char_team: myChars.map(c => ({ id: c.id, name: c.name, stars: c.stars, templateId: c.templateId, talents: c.talents })),
+        updated_at: new Date().toISOString()
+      };
+
+      setStatus(statusEl, "Saving…", "");
+
+      // Update in profiles table
+      const { error: updateErr } = await db.from("profiles").update({
+        fish_team: teamData.fish_team,
+        char_team: teamData.char_team,
+        updated_at: teamData.updated_at
+      }).eq("player_id", pid);
+
+      if (updateErr) {
+        setStatus(statusEl, "Error: " + updateErr.message, "err");
+        return;
+      }
+
+      setStatus(statusEl, "Team saved to Supabase!", "ok");
+      await loadPlayerProfile();
     }
 
-    function copySQL() {
-      const txt = document.getElementById("sqlBlock").textContent;
-      navigator.clipboard.writeText(txt).then(() => {
-        const btn = document.querySelector(".copy-sql-btn");
-        btn.textContent = "✅ Copied!";
-        setTimeout(() => btn.textContent = "📋 Copy SQL", 2000);
-      });
-    }
-
-    // ── Boot ─────────────────────────────────────────────────────
-    document.getElementById("createGuildBtn").addEventListener("click", createGuild);
-    document.getElementById("leaveGuildBtn").addEventListener("click", leaveGuild);
-    document.getElementById("refreshBtn").addEventListener("click", loadGuilds);
-
-    if (!configOk) {
-      document.getElementById("noConfigPanel").style.display = "block";
-    }
-
-    renderHud();
-    loadGuilds();
-
+    // ── BOOT ──────────────────────────────────────────────────────────────────
     if (localStorage.getItem("clicker_upgradesUnlocked") !== "true") {
       document.body.classList.add("limited-nav-mode");
     }
+    loadGuilds();
   </script>
 </body>
 </html>
