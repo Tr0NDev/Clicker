@@ -164,6 +164,7 @@
       <div class="modal-actions">
         <button class="close-btn modal-close-bottom" id="closeGachaBtn">Close</button>
         <button class="action-btn" id="startDrawBtn">Start Draw</button>
+        <button class="action-btn" id="startDraw10Btn">Draw 10 (+1 Free)</button>
         <button class="action-btn" id="sellDrawBtn" style="display:none">Sell</button>
       </div>
     </div>
@@ -209,6 +210,8 @@
 
   <script>
     const DRAW_COST = 100;
+    const DRAW_10_COST = 1000;
+    const DRAW_10_TOTAL_DRAWS = 11;
     const RESERVE_MAX = 50;
     const MONEY_KEY = "clicker_money";
     const RESERVE_KEY = "clicker_characterReserve";
@@ -557,6 +560,9 @@
       startDrawBtn.disabled  = !canAfford || getReserveCount() >= RESERVE_MAX || spinning;
       openBaitBtn.disabled   = !canAfford || getBaitReserveCount() >= RESERVE_MAX;
       startBaitDrawBtn.disabled = !canAfford || getBaitReserveCount() >= RESERVE_MAX || baitSpinning;
+      const canAfford10 = hooks >= DRAW_10_COST;
+      const hasRoomForDraw10 = getReserveCount() + DRAW_10_TOTAL_DRAWS <= RESERVE_MAX;
+      document.getElementById("startDraw10Btn").disabled = !canAfford10 || !hasRoomForDraw10 || spinning;
     }
 
     function createRollItem(c) {
@@ -661,6 +667,29 @@
       refreshSummary();
     }
 
+    async function startDraw10() {
+      if (spinning || getReserveCount() + DRAW_10_TOTAL_DRAWS > RESERVE_MAX || getHooks() < DRAW_10_COST) return;
+      spinning = true;
+      startDrawBtn.disabled = true;
+      document.getElementById("startDraw10Btn").disabled = true;
+      openGachaBtn.disabled = true;
+      drawRecap.classList.remove("visible");
+      rollArea.classList.add("visible");
+      setHooks(getHooks() - DRAW_10_COST);
+      refreshSummary();
+
+      for (let i = 0; i < DRAW_10_TOTAL_DRAWS; i++) {
+        const reward = pickRewardCharacter();
+        if (!reward) continue;
+        const talent = pickRandomTalent();
+        await runAnimation(rollTrack, rollWindow, reward, createRollItem);
+        applyReward(reward, talent);
+      }
+
+      spinning = false;
+      refreshSummary();
+    }
+
     function openGachaModal() {
       buildDropTable();
       updatePityUI();
@@ -688,6 +717,7 @@
       rollTrack.innerHTML = "";
       document.getElementById("sellDrawBtn").style.display = "none";
       lastRewardChar = null; lastRewardTalent = null;
+       refreshSummary();
     }
 
     function closeBaitModal() {
@@ -702,6 +732,7 @@
     openBaitBtn.addEventListener("click", openBaitModal);
     closeGachaBtn.addEventListener("click", closeGachaModal);
     startDrawBtn.addEventListener("click", startDraw);
+    document.getElementById("startDraw10Btn").addEventListener("click", startDraw10);
     closeBaitBtn.addEventListener("click", closeBaitModal);
     startBaitDrawBtn.addEventListener("click", startBaitDraw);
 
@@ -713,9 +744,9 @@
       const list = loadReserveList();
       list.pop();
       saveReserveList(list);
-      const sellValues = { 1: 25, 2: 50, 3: 100, 4: 250, 5: 500 };
-      setHooks(getHooks() + (sellValues[lastRewardChar.stars] || 50));
-      drawRecapText.innerHTML = `Sold for <b>${sellValues[lastRewardChar.stars] || 50} Hooks</b>.`;
+      const sellValues = { 1: 10, 2: 25, 3: 120, 4: 400, 5: 1200 };
+      setHooks(getHooks() + (sellValues[lastRewardChar.stars] || 10));
+      drawRecapText.innerHTML = `Sold for <b>${sellValues[lastRewardChar.stars] || 10} Hooks</b>.`;
       document.getElementById("sellDrawBtn").style.display = "none";
       lastRewardChar = null; lastRewardTalent = null;
       refreshSummary();
