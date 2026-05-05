@@ -798,6 +798,19 @@
       if (queueStatusEl) queueStatusEl.textContent = message;
     }
 
+    function normalizeTeamArray(value) {
+      try {
+        if (!value) return [];
+        if (typeof value === "string") {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed) ? parsed : [];
+        }
+        return Array.isArray(value) ? value : [];
+      } catch {
+        return [];
+      }
+    }
+
     function setQueueJoinedState(inQueue) {
       queueJoined = Boolean(inQueue);
       if (!toggleQueueBtn) return;
@@ -832,18 +845,22 @@
     }
 
     function setImportedBattleFromQueue(opponentName, fishTeam, charTeam, teamStats, opponentTier) {
+      const normalizedFishTeam = normalizeTeamArray(fishTeam);
+      const normalizedCharTeam = normalizeTeamArray(charTeam);
       importedBattle = {
-        lineup: (Array.isArray(fishTeam) ? fishTeam : []).map((f, i) => ({
+        lineup: normalizedFishTeam.map((f, i) => ({
           uid: `queue-${i}-${Date.now()}`,
           type: f.type || f.name || `Enemy Fish ${i+1}`,
           rarity: f.rarity || "common",
           size: Math.max(1, Math.round(Number(f.size) || 1)),
           weight: Math.max(1, Math.round(Number(f.weight) || 1)),
+          sizeRaw: Math.max(1, Math.round(Number(f.sizeRaw || f.size) || 1)),
+          weightRaw: Math.max(1, Math.round(Number(f.weightRaw || f.weight) || 1)),
           currentValue: 0,
           basePrice: 0,
           price: 0
         })),
-        exportedTeamChars: Array.isArray(charTeam) ? charTeam : [],
+        exportedTeamChars: normalizedCharTeam,
         exportedTeamStats: teamStats || { fishingSpeed: 1 },
         teamStats: teamStats || { fishingSpeed: 1 },
         source: "queue",
@@ -1059,6 +1076,7 @@
     let autoBattleMaxTier = 10000;
     const autoBattleToggle = document.getElementById("autoBattleToggle");
     let speedLockedByQueue = false;
+    let previousBattleSpeedMultiplier = 2;
     const battleSpeedInputs = Array.from(document.querySelectorAll('input[name="battleSpeed"]'));
 
     function getRarityColor(r) { return RARITY_COLOR[r] || "#fff"; }
@@ -1067,10 +1085,14 @@
     function setBattleSpeedLock(lock) {
       speedLockedByQueue = Boolean(lock);
       if (speedLockedByQueue) {
+        previousBattleSpeedMultiplier = battleSpeedMultiplier;
         battleSpeedMultiplier = 1;
+      } else {
+        battleSpeedMultiplier = Math.max(1, Math.min(5, Number(previousBattleSpeedMultiplier) || 2));
       }
       battleSpeedInputs.forEach(input => {
         if (speedLockedByQueue && input.value === "1") input.checked = true;
+        if (!speedLockedByQueue) input.checked = Number(input.value) === battleSpeedMultiplier;
         input.disabled = speedLockedByQueue;
       });
     }
@@ -1210,6 +1232,8 @@
         rarity:typeof e?.rarity==="string"?e.rarity:"common",
         size:   Math.max(1,Math.round(Number(e?.size)||1)),
         weight: Math.max(1,Math.round(Number(e?.weight)||1)),
+        sizeRaw: Math.max(1,Math.round(Number(e?.sizeRaw||e?.size)||1)),
+        weightRaw: Math.max(1,Math.round(Number(e?.weightRaw||e?.weight)||1)),
         currentValue:0, basePrice:0, price:0
       }));
       const exportedTeamStats = p.teamStats || null;
@@ -1706,9 +1730,9 @@
           id:`enemy-import-${i}-${Date.now()}`,
           name:f.type||`Enemy ${i+1}`,
           rarity:f.rarity||"common",
-          maxHp: Math.max(1, Math.round((Number(f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) * 0.005) * enemyIncomeMult)),
-          hp:    Math.max(1, Math.round((Number(f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) * 0.005) * enemyIncomeMult)),
-          attack: Math.max(1, Math.round((Number(f.weight)||1) * (1 + Number(enemyStats.weightBonus||0) * 0.005) * enemyIncomeMult)),
+          maxHp: Math.max(1, Math.round((Number(f.sizeRaw||f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) * 0.005) * enemyIncomeMult)),
+          hp:    Math.max(1, Math.round((Number(f.sizeRaw||f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) * 0.005) * enemyIncomeMult)),
+          attack: Math.max(1, Math.round((Number(f.weightRaw||f.weight)||1) * (1 + Number(enemyStats.weightBonus||0) * 0.005) * enemyIncomeMult)),
           alive:true,
           descriptor:fishDescriptors(f)
         }));
