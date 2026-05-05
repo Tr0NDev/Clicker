@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raid de Guilde - Clicker</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #0c1217;
+      border-bottom: 1px solid #22313b;
+      box-shadow: 0 10px 20px rgba(0,0,0,.35);
+      padding: 10px 0;
+      flex-shrink: 0;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
+      padding: 0 0 0 16px;
+    }
+
+    .nav-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      background: #31414d;
+      color: #eef5f9;
+      border: 1px solid #667a86;
+      padding: 12px 16px;
+      margin-right: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: background-color .15s, border-color .15s, color .15s;
+    }
+
+    .nav-button:hover { background: #3a4c59; border-color: #7f95a3; }
+    .nav-button.active-nav-button { background: #dbe3e8; color: #1d2a33; border-color: #dbe3e8; font-weight: bold; }
+    .settings-nav-button { margin-left: auto; margin-right: 16px; }
+    body.limited-nav-mode .locked-nav-button { display: none; }
+
+    .shell {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 16px;
+      flex: 1;
+      width: 100%;
+    }
+
+    .hero {
+      border: 1px solid #2f4d5c;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #18222a 0%, #12191f 100%);
+      box-shadow: 0 18px 42px rgba(0,0,0,.35);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+    }
+
+    .hero-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .hero-title {
+      font-size: clamp(24px, 4vw, 34px);
+      font-weight: bold;
+      color: #e8c060;
+      line-height: 1.1;
+    }
+
+    .hero-subtitle {
+      color: #bed1dd;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    .guild-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #7a5f18;
+      border-radius: 999px;
+      padding: 7px 12px;
+      background: rgba(201,162,39,.08);
+      color: #f0d488;
+      font-size: 13px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .guild-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #2fd468;
+      box-shadow: 0 0 8px rgba(47,212,104,.65);
+      flex: 0 0 auto;
+    }
+
+    .mode-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .mode-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      border: 1px solid #667a86;
+      background: #31414d;
+      color: #eef5f9;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .mode-tab:hover { background: #3a4c59; border-color: #7f95a3; }
+    .mode-tab.active { background: #dbe3e8; color: #1d2a33; border-color: #dbe3e8; font-weight: bold; }
+    .mode-tab.raid { border-color: #49687b; background: #1d2a33; }
+    .mode-tab.raid:hover { background: #243541; }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 380px) minmax(0, 1.2fr) minmax(320px, 380px);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .section {
+      border: 1px solid #2f4d5c;
+      border-radius: 14px;
+      background: #142028;
+      padding: 14px;
+      box-shadow: 0 10px 28px rgba(0,0,0,.18);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #8dc4e0;
+      margin-bottom: 10px;
+    }
+
+    .section-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .section-header-row .section-title { margin-bottom: 0; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #8ea3b1;
+      background: #263541;
+      color: #fff;
+      border-radius: 10px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+    }
+
+    .btn:hover { background: #324555; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-cyan { border-color: #4a9eff; color: #4a9eff; background: rgba(74,158,255,.08); }
+    .btn-cyan:hover { background: rgba(74,158,255,.18); }
+    .btn-danger { border-color: #9a5a68; background: #4a2730; color: #ff9999; }
+    .btn-danger:hover { background: #5b3140; }
+    .btn-gold { border-color: #c9a227; color: #e8c060; background: rgba(201,162,39,.08); }
+    .btn-gold:hover { background: rgba(201,162,39,.18); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+    .status-line {
+      min-height: 20px;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #f5db9b;
+      margin-top: 8px;
+    }
+    .status-line.ok { color: #7ee787; }
+    .status-line.err { color: #ff7070; }
+
+    .panel {
+      border: 1px solid #365563;
+      border-radius: 12px;
+      background: #0f1519;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .panel-subtitle {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #88a8b9;
+      font-weight: bold;
+    }
+
+    .squad-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .squad-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: rgba(126,231,135,.08);
+      border: 1px solid #2d6b40;
+      color: #7ee787;
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    .squad-count-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2fd468;
+      box-shadow: 0 0 8px rgba(47,212,104,.65);
+    }
+
+    .squad-list,
+    .roster-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .member-card {
+      border: 1px solid #2f4d5c;
+      border-radius: 12px;
+      background: #0f1519;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .member-card.active { border-color: #2d6b40; background: rgba(126,231,135,.05); }
+    .member-card.leader { border-color: #c9a227; background: rgba(201,162,39,.06); }
+    .member-name { font-size: 14px; font-weight: bold; color: #e9f6ff; }
+    .member-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 4px; font-size: 11px; color: #8dc4e0; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .badge.leader { background: rgba(201,162,39,.14); color: #e8c060; border: 1px solid #7a5f18; }
+    .badge.joined { background: rgba(126,231,135,.12); color: #7ee787; border: 1px solid #2d6b40; }
+    .badge.waiting { background: rgba(106,138,154,.12); color: #8ea3b1; border: 1px solid #365563; }
+
+    .empty-state {
+      border: 1px dashed #4b6878;
+      border-radius: 12px;
+      padding: 24px 16px;
+      color: #93aab8;
+      background: rgba(15,21,25,.8);
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .raid-info {
+      display: grid;
+      gap: 10px;
+    }
+
+    .raid-rule {
+      border: 1px solid #365563;
+      border-radius: 10px;
+      background: #0f1519;
+      padding: 10px 12px;
+      color: #cde3ef;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .raid-rule strong { color: #8dc4e0; }
+
+    .live-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #365563;
+      background: #0f1519;
+      font-size: 12px;
+      color: #d9ecf8;
+    }
+
+    .chip .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #6a8a9a;
+    }
+
+    .chip.joined .dot { background: #2fd468; box-shadow: 0 0 8px rgba(47,212,104,.45); }
+    .chip.leader { border-color: #7a5f18; color: #e8c060; }
+
+    .subtle {
+      font-size: 12px;
+      color: #6a8a9a;
+      line-height: 1.5;
+    }
+
+    .split-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .member-count {
+      color: #7ee787;
+      font-weight: bold;
+    }
+
+    @media (max-width: 1180px) {
+      .page-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .settings-nav-button { margin-left: 0; }
+      .hero-top { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="top-nav">
+      <button class="nav-button" onclick="window.location.href='../../'">Game</button>
+      <button class="nav-button" onclick="window.location.href='../../inventory/'">Inventory</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../../team/'">Team</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../../shop/'">Shop</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../../bestiary/'">Bestiary</button>
+      <button class="nav-button locked-nav-button active-nav-button" onclick="window.location.href='../'">Battle</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../../reproduction/'">Reproduction</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../../missions/'">Missions</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../../guild/'">Guild</button>
+      <button class="nav-button settings-nav-button" onclick="window.location.href='../../settings/'">Settings</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="hero-title" id="guildTitle">Raid de Guilde</div>
+          <div class="hero-subtitle" id="guildSubtitle">Menu entre guildes. Rejoins une escouade et vois la composition en direct.</div>
+        </div>
+        <div class="guild-badge" id="guildBadge">
+          <span class="guild-dot"></span>
+          <span id="guildBadgeText">Guilde inconnue</span>
+        </div>
+      </div>
+      <div class="subtle" id="connectionHint">Connexion requise pour utiliser le raid.</div>
+    </section>
+
+    <div class="mode-tabs">
+      <button class="mode-tab" onclick="window.location.href='../pvp/'">PVP</button>
+      <button class="mode-tab raid active">Raid de Guilde</button>
+    </div>
+
+    <div class="page-grid">
+      <div class="split-stack">
+        <section class="section">
+          <div class="section-header-row">
+            <div class="section-title">Squad</div>
+            <div class="squad-count"><span class="squad-count-dot"></span><span id="squadCountText">0/0</span></div>
+          </div>
+          <div class="panel">
+            <div class="squad-header">
+              <div>
+                <div class="panel-subtitle">File active</div>
+                <div class="subtle">Le premier à rejoindre devient chef d'escouade. S'il quitte, le chef est réattribué au hasard.</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-cyan" id="toggleSquadBtn" type="button">Rejoindre la squad</button>
+                <button class="btn btn-danger" id="leaveSquadBtn" type="button" style="display:none;">Quitter</button>
+              </div>
+            </div>
+            <div class="status-line" id="squadStatus">Chargement de la guilde…</div>
+            <div class="squad-list" id="squadList"></div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header-row">
+            <div class="section-title">Raid Board</div>
+          </div>
+          <div class="panel raid-info">
+            <div class="raid-rule"><strong>Règle 1:</strong> la squad est partagée uniquement avec les membres de ta guilde.</div>
+            <div class="raid-rule"><strong>Règle 2:</strong> quand tu rejoins, tu apparais immédiatement dans la file des membres actifs.</div>
+            <div class="raid-rule"><strong>Règle 3:</strong> le chef d'escouade est choisi automatiquement. S'il sort, un autre membre prend la main.</div>
+            <div class="raid-rule"><strong>Règle 4:</strong> la page se met à jour toute seule pour refléter les arrivées et les départs.</div>
+          </div>
+        </section>
+      </div>
+
+      <div class="section">
+        <div class="section-header-row">
+          <div class="section-title">Guilde</div>
+          <button class="btn btn-sm" id="refreshBtn" type="button">↻ Refresh</button>
+        </div>
+        <div class="panel">
+          <div class="panel-subtitle">Membres de la guilde</div>
+          <div class="subtle">Les membres actifs dans la squad sont marqués en vert.</div>
+          <div class="live-chips" id="guildChips" style="margin-top:8px;"></div>
+        </div>
+        <div style="height:12px"></div>
+        <div class="panel">
+          <div class="panel-subtitle">Chef d'escouade</div>
+          <div id="leaderBox" class="empty-state" style="padding:16px;">Aucun chef pour le moment.</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header-row">
+          <div class="section-title">Squad Status</div>
+        </div>
+        <div class="panel">
+          <div class="panel-subtitle">Présence en direct</div>
+          <div class="subtle">Cette colonne montre la file telle qu'elle est maintenant, avec les membres actifs et ceux qui n'ont pas rejoint.</div>
+          <div class="roster-list" id="rosterList" style="margin-top:10px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL      = "https://vrozpjdyqerpcrwlcdfo.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_moV-dfu5sVohSbQOR6z0zw_BSpcVCHg";
+    const GUILDS_TABLE      = "guilds";
+    const MEMBERSHIP_KEY    = "clicker_guildMembership";
+    const USER_ID_KEY       = "clicker_userId";
+    const USER_NAME_KEY     = "clicker_username";
+
+    const ACTIVE_WINDOW_MS = 45 * 1000;
+    const HEARTBEAT_MS = 12 * 1000;
+    const POLL_MS = 3000;
+
+    let db = null;
+    if (window.supabase && SUPABASE_URL !== "YOUR_SUPABASE_URL") {
+      db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    let pollTimer = null;
+    let heartbeatTimer = null;
+    let currentGuild = null;
+    let currentMembership = null;
+    let currentGuildMembers = [];
+    let currentRaidMembers = [];
+    let syncingRaid = false;
+
+    function getPlayerId() {
+      return localStorage.getItem(USER_ID_KEY) || "";
+    }
+
+    function getPlayerName() {
+      return localStorage.getItem(USER_NAME_KEY) || "Player";
+    }
+
+    function getMembership() {
+      try { return JSON.parse(localStorage.getItem(MEMBERSHIP_KEY) || "null"); }
+      catch { return null; }
+    }
+
+    function safeParseMembers(raw) {
+      try {
+        const arr = Array.isArray(raw) ? raw : JSON.parse(raw || "[]");
+        return Array.isArray(arr) ? arr : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function escHtml(s) {
+      return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function setStatus(message, type) {
+      const el = document.getElementById("squadStatus");
+      if (!el) return;
+      el.textContent = message;
+      el.className = "status-line" + (type ? " " + type : "");
+    }
+
+    function getGuildMemberEntry(pid) {
+      return currentGuildMembers.find(member => member.pid === pid) || null;
+    }
+
+    function getActiveRaidMembers(members) {
+      const now = Date.now();
+      return members.filter(member => {
+        const joinedAt = Date.parse(member.raidJoinedAt || "");
+        const lastSeen = Date.parse(member.raidLastSeen || "");
+        if (!Number.isFinite(joinedAt) || !Number.isFinite(lastSeen)) return false;
+        return now - lastSeen <= ACTIVE_WINDOW_MS;
+      });
+    }
+
+    function pickRandom(items) {
+      if (!items.length) return null;
+      return items[Math.floor(Math.random() * items.length)] || null;
+    }
+
+    function normalizeRaidMembers(members) {
+      return members.map(member => ({
+        pid: member.pid,
+        role: member.role,
+        joined: member.joined,
+        raidJoinedAt: member.raidJoinedAt || null,
+        raidLastSeen: member.raidLastSeen || null,
+        raidLeader: Boolean(member.raidLeader)
+      }));
+    }
+
+    function renderRaidState() {
+      const badgeText = document.getElementById("guildBadgeText");
+      const guildTitle = document.getElementById("guildTitle");
+      const guildSubtitle = document.getElementById("guildSubtitle");
+      const squadCountText = document.getElementById("squadCountText");
+      const squadList = document.getElementById("squadList");
+      const leaderBox = document.getElementById("leaderBox");
+      const guildChips = document.getElementById("guildChips");
+      const rosterList = document.getElementById("rosterList");
+      const toggleBtn = document.getElementById("toggleSquadBtn");
+      const leaveBtn = document.getElementById("leaveSquadBtn");
+      const membership = currentMembership;
+      const guild = currentGuild;
+      const raidMembers = currentRaidMembers;
+      const me = getPlayerId();
+      const isJoined = Boolean(raidMembers.find(member => member.pid === me));
+      const leader = raidMembers.find(member => member.raidLeader) || raidMembers[0] || null;
+
+      if (guild) {
+        const name = guild.name || "Guilde";
+        if (badgeText) badgeText.textContent = name;
+        if (guildTitle) guildTitle.textContent = `${name} - Raid de Guilde`;
+        if (guildSubtitle) guildSubtitle.textContent = "Menu entre guildes. Rejoins une escouade et vois la composition en direct.";
+      } else {
+        if (badgeText) badgeText.textContent = "Guilde inconnue";
+        if (guildTitle) guildTitle.textContent = "Raid de Guilde";
+        if (guildSubtitle) guildSubtitle.textContent = "Tu dois rejoindre une guilde avant d'entrer ici.";
+      }
+
+      if (squadCountText) squadCountText.textContent = `${raidMembers.length}/${currentGuildMembers.length}`;
+      if (toggleBtn) toggleBtn.textContent = isJoined ? "Squad rejointe" : "Rejoindre la squad";
+      if (leaveBtn) leaveBtn.style.display = isJoined ? "inline-flex" : "none";
+
+      if (leaderBox) {
+        if (!leader) {
+          leaderBox.className = "empty-state";
+          leaderBox.textContent = "Aucun chef pour le moment.";
+        } else {
+          const leaderName = getGuildMemberEntry(leader.pid)?.displayName || leader.pid;
+          leaderBox.className = "member-card leader";
+          leaderBox.innerHTML = `
+            <div>
+              <div class="member-name">${escHtml(leaderName)}</div>
+              <div class="member-meta">
+                <span class="badge leader">Chef d'escouade</span>
+                <span>${escHtml(leader.role || "member")}</span>
+                <span>#${escHtml(String(leader.pid).slice(-8))}</span>
+              </div>
+            </div>
+            <div class="member-meta" style="justify-content:flex-end; text-align:right;">
+              <span class="badge joined">Actif</span>
+            </div>`;
+        }
+      }
+
+      if (guildChips) {
+        const chips = currentGuildMembers.map(member => {
+          const active = raidMembers.some(activeMember => activeMember.pid === member.pid);
+          const leaderClass = leader && leader.pid === member.pid ? "leader" : "";
+          const name = member.displayName || member.pid;
+          return `<span class="chip ${active ? "joined" : ""} ${leaderClass}"><span class="dot"></span>${escHtml(name)}${leader && leader.pid === member.pid ? " • Chef" : ""}</span>`;
+        });
+        guildChips.innerHTML = chips.length ? chips.join("") : '<div class="subtle">Aucun membre de guilde trouvé.</div>';
+      }
+
+      if (squadList) {
+        if (!raidMembers.length) {
+          squadList.innerHTML = '<div class="empty-state">Aucun membre n\'a rejoint la squad pour le moment.</div>';
+        } else {
+          squadList.innerHTML = raidMembers.map(member => {
+            const entry = getGuildMemberEntry(member.pid);
+            const name = entry?.displayName || member.pid;
+            const isLeader = leader && leader.pid === member.pid;
+            return `
+              <div class="member-card ${isLeader ? "leader" : "active"}">
+                <div>
+                  <div class="member-name">${escHtml(name)}</div>
+                  <div class="member-meta">
+                    ${isLeader ? '<span class="badge leader">Chef</span>' : '<span class="badge joined">Joined</span>'}
+                    <span>${escHtml(member.role || "member")}</span>
+                    <span>Rejoint ${new Date(member.raidJoinedAt || member.joined || Date.now()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                  </div>
+                </div>
+                <div class="member-meta" style="justify-content:flex-end; text-align:right;">
+                  <span class="badge joined">En ligne</span>
+                </div>
+              </div>`;
+          }).join("");
+        }
+      }
+
+      if (rosterList) {
+        const activeIds = new Set(raidMembers.map(member => member.pid));
+        rosterList.innerHTML = currentGuildMembers.map(member => {
+          const active = activeIds.has(member.pid);
+          const isLeader = leader && leader.pid === member.pid;
+          return `
+            <div class="member-card ${active ? "active" : ""} ${isLeader ? "leader" : ""}">
+              <div>
+                <div class="member-name">${escHtml(member.displayName || member.pid)}</div>
+                <div class="member-meta">
+                  ${active ? '<span class="badge joined">Squad</span>' : '<span class="badge waiting">Waiting</span>'}
+                  ${isLeader ? '<span class="badge leader">Chef</span>' : ''}
+                  <span>#${escHtml(String(member.pid).slice(-8))}</span>
+                </div>
+              </div>
+              <div class="member-meta" style="justify-content:flex-end; text-align:right;">
+                <span>${member.role === "owner" ? "Owner" : "Member"}</span>
+              </div>
+            </div>`;
+        }).join("");
+      }
+
+      if (toggleBtn) toggleBtn.disabled = !db || !guild;
+      if (leaveBtn) leaveBtn.disabled = !db || !guild;
+
+      if (!guild) {
+        setStatus("Tu dois rejoindre une guilde pour accéder au raid.", "err");
+      } else if (!raidMembers.length) {
+        setStatus(isJoined ? "Tu es en ligne, mais la squad est vide." : "Rejoins la squad pour apparaître dans la file.", "");
+      } else if (isJoined) {
+        setStatus(`Squad active: ${raidMembers.length} membre(s), chef: ${leader ? (getGuildMemberEntry(leader.pid)?.displayName || leader.pid) : "aucun"}.`, "ok");
+      } else {
+        setStatus(`Squad active: ${raidMembers.length} membre(s).`, "");
+      }
+    }
+
+    async function fetchGuildContext() {
+      const membership = getMembership();
+      currentMembership = membership;
+
+      if (!db) {
+        currentGuild = null;
+        currentGuildMembers = [];
+        currentRaidMembers = [];
+        renderRaidState();
+        return;
+      }
+
+      const pid = getPlayerId();
+      if (!pid) {
+        window.location.href = '../../login/';
+        return;
+      }
+
+      if (!membership || !membership.guildId) {
+        currentGuild = null;
+        currentGuildMembers = [];
+        currentRaidMembers = [];
+        renderRaidState();
+        return;
+      }
+
+      const { data: guild, error } = await db.from(GUILDS_TABLE).select("*").eq("id", membership.guildId).single();
+      if (error || !guild) {
+        currentGuild = null;
+        currentGuildMembers = [];
+        currentRaidMembers = [];
+        renderRaidState();
+        setStatus("Impossible de charger la guilde. Retourne au menu Guild.", "err");
+        return;
+      }
+
+      currentGuild = guild;
+      currentGuildMembers = normalizeRaidMembers(safeParseMembers(guild.members)).map(member => ({
+        ...member,
+        displayName: member.pid === pid ? (getPlayerName() || member.pid) : (member.displayName || member.pid)
+      }));
+      currentRaidMembers = getActiveRaidMembers(currentGuildMembers);
+
+      const currentLeader = currentRaidMembers.find(member => member.raidLeader) || null;
+      let changed = false;
+      const cleanedMembers = currentGuildMembers.map(member => ({ ...member }));
+      const activeIds = new Set(currentRaidMembers.map(member => member.pid));
+
+      cleanedMembers.forEach(member => {
+        if (!activeIds.has(member.pid)) {
+          if (member.raidJoinedAt || member.raidLastSeen || member.raidLeader) changed = true;
+          member.raidJoinedAt = null;
+          member.raidLastSeen = null;
+          member.raidLeader = false;
+        }
+      });
+
+      const activeMembers = cleanedMembers.filter(member => activeIds.has(member.pid));
+      const leaderExists = activeMembers.some(member => member.raidLeader);
+      if (activeMembers.length && !leaderExists) {
+        const chosenLeader = pickRandom(activeMembers);
+        activeMembers.forEach(member => { member.raidLeader = member.pid === chosenLeader.pid; });
+        changed = true;
+      } else if (activeMembers.length > 1) {
+        const leaderMembers = activeMembers.filter(member => member.raidLeader);
+        if (leaderMembers.length > 1) {
+          const chosen = leaderMembers[0];
+          activeMembers.forEach(member => { member.raidLeader = member.pid === chosen.pid; });
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        const updatedMembers = cleanedMembers.map(member => {
+          const active = activeMembers.find(activeMember => activeMember.pid === member.pid);
+          return active ? active : member;
+        });
+        await db.from(GUILDS_TABLE).update({ members: JSON.stringify(updatedMembers) }).eq("id", membership.guildId);
+        currentGuild.members = JSON.stringify(updatedMembers);
+        currentGuildMembers = normalizeRaidMembers(updatedMembers).map(member => ({
+          ...member,
+          displayName: member.pid === pid ? (getPlayerName() || member.pid) : (member.displayName || member.pid)
+        }));
+        currentRaidMembers = getActiveRaidMembers(currentGuildMembers);
+      }
+
+      renderRaidState();
+    }
+
+    async function joinSquad() {
+      if (!db) { setStatus("Supabase not configured.", "err"); return; }
+      const pid = getPlayerId();
+      if (!pid) { window.location.href = '../../login/'; return; }
+      const membership = getMembership();
+      if (!membership || !membership.guildId) { setStatus("Tu dois être dans une guilde.", "err"); return; }
+      if (!currentGuild) { await fetchGuildContext(); }
+      if (!currentGuild) return;
+
+      const members = normalizeRaidMembers(safeParseMembers(currentGuild.members));
+      const nowIso = new Date().toISOString();
+      let found = false;
+      const updatedMembers = members.map(member => {
+        if (member.pid !== pid) return member;
+        found = true;
+        return {
+          ...member,
+          displayName: member.displayName || getPlayerName(),
+          raidJoinedAt: nowIso,
+          raidLastSeen: nowIso,
+          raidLeader: member.raidLeader || false
+        };
+      });
+
+      if (!found) {
+        setStatus("Ton profil de guilde est introuvable.", "err");
+        return;
+      }
+
+      const activeMembers = getActiveRaidMembers(updatedMembers.map(member => ({ ...member, raidJoinedAt: member.pid === pid ? nowIso : member.raidJoinedAt, raidLastSeen: member.pid === pid ? nowIso : member.raidLastSeen })));
+      if (!activeMembers.some(member => member.raidLeader)) {
+        const chosen = pickRandom(activeMembers.length ? activeMembers : updatedMembers.filter(member => member.pid === pid));
+        updatedMembers.forEach(member => { member.raidLeader = chosen ? member.pid === chosen.pid : false; });
+      }
+
+      const { error } = await db.from(GUILDS_TABLE).update({ members: JSON.stringify(updatedMembers) }).eq("id", membership.guildId);
+      if (error) {
+        setStatus(`Erreur: ${error.message}`, "err");
+        return;
+      }
+
+      setStatus("Tu as rejoint la squad.", "ok");
+      await fetchGuildContext();
+    }
+
+    async function leaveSquad() {
+      if (!db) { setStatus("Supabase not configured.", "err"); return; }
+      const pid = getPlayerId();
+      const membership = getMembership();
+      if (!pid || !membership || !membership.guildId || !currentGuild) return;
+
+      const members = normalizeRaidMembers(safeParseMembers(currentGuild.members));
+      const currentActive = getActiveRaidMembers(members);
+      const leavingLeader = currentActive.find(member => member.pid === pid && member.raidLeader);
+      const updatedMembers = members.map(member => {
+        if (member.pid !== pid) return member;
+        return {
+          ...member,
+          raidJoinedAt: null,
+          raidLastSeen: null,
+          raidLeader: false
+        };
+      });
+
+      const remaining = getActiveRaidMembers(updatedMembers);
+      if (remaining.length) {
+        const nextLeader = leavingLeader ? pickRandom(remaining) : remaining.find(member => member.raidLeader) || remaining[0];
+        updatedMembers.forEach(member => {
+          if (remaining.some(active => active.pid === member.pid)) {
+            member.raidLeader = nextLeader ? member.pid === nextLeader.pid : false;
+          }
+        });
+      }
+
+      const { error } = await db.from(GUILDS_TABLE).update({ members: JSON.stringify(updatedMembers) }).eq("id", membership.guildId);
+      if (error) {
+        setStatus(`Erreur: ${error.message}`, "err");
+        return;
+      }
+
+      setStatus("Tu as quitté la squad.", "");
+      await fetchGuildContext();
+    }
+
+    async function heartbeatPresence() {
+      if (!db || syncingRaid) return;
+      const pid = getPlayerId();
+      const membership = getMembership();
+      if (!pid || !membership || !membership.guildId || !currentGuild) return;
+
+      const members = normalizeRaidMembers(safeParseMembers(currentGuild.members));
+      const nowIso = new Date().toISOString();
+      let changed = false;
+      const updatedMembers = members.map(member => {
+        if (member.pid !== pid) return member;
+        if (!member.raidJoinedAt) return member;
+        changed = true;
+        return {
+          ...member,
+          raidLastSeen: nowIso,
+          displayName: member.displayName || getPlayerName()
+        };
+      });
+
+      if (!changed) return;
+      await db.from(GUILDS_TABLE).update({ members: JSON.stringify(updatedMembers) }).eq("id", membership.guildId);
+      currentGuild.members = JSON.stringify(updatedMembers);
+    }
+
+    async function refreshAll() {
+      if (syncingRaid) return;
+      syncingRaid = true;
+      try {
+        await fetchGuildContext();
+      } finally {
+        syncingRaid = false;
+      }
+    }
+
+    function stopTimers() {
+      if (pollTimer) clearInterval(pollTimer);
+      if (heartbeatTimer) clearInterval(heartbeatTimer);
+      pollTimer = null;
+      heartbeatTimer = null;
+    }
+
+    function startTimers() {
+      stopTimers();
+      pollTimer = setInterval(() => {
+        refreshAll().catch(() => {});
+      }, POLL_MS);
+      heartbeatTimer = setInterval(() => {
+        heartbeatPresence().then(() => refreshAll()).catch(() => {});
+      }, HEARTBEAT_MS);
+    }
+
+    document.getElementById("toggleSquadBtn").addEventListener("click", async () => {
+      const me = getPlayerId();
+      const isJoined = currentRaidMembers.some(member => member.pid === me);
+      if (isJoined) {
+        await leaveSquad();
+      } else {
+        await joinSquad();
+      }
+    });
+
+    document.getElementById("leaveSquadBtn").addEventListener("click", () => {
+      leaveSquad().catch(err => setStatus(`Erreur: ${err.message || err}`, "err"));
+    });
+
+    document.getElementById("refreshBtn").addEventListener("click", () => {
+      refreshAll().catch(err => setStatus(`Erreur: ${err.message || err}`, "err"));
+    });
+
+    if (!getPlayerId()) {
+      window.location.href = '../../login/';
+    } else if (!getMembership()) {
+      window.location.href = '../../guild/';
+    } else {
+      refreshAll().catch(err => setStatus(`Erreur: ${err.message || err}`, "err"));
+      startTimers();
+    }
+
+    window.addEventListener("focus", () => {
+      refreshAll().catch(() => {});
+    });
+
+    window.addEventListener("beforeunload", () => {
+      stopTimers();
+    });
+  </script>
+</body>
+</html>
