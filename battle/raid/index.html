@@ -370,9 +370,7 @@
     }
 
     @media (max-width: 1180px) {
-      .page-grid {
-        grid-template-columns: 1fr;
-      }
+      .page-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 760px) {
@@ -407,13 +405,13 @@
         <div class="guild-badge" id="guildBadge">
           <span class="guild-dot"></span>
           <span id="guildBadgeText">Guilde inconnue</span>
+          <span style="font-size:12px;color:#a8c88a;font-weight:normal;">• <span id="onlineCountBadge">0</span> en ligne</span>
         </div>
       </div>
       <div class="subtle" id="connectionHint">Connexion requise pour utiliser le raid.</div>
     </section>
 
     <div class="mode-tabs">
-      <button class="mode-tab" onclick="window.location.href='../pvp/'">PVP</button>
       <button class="mode-tab raid active">Raid de Guilde</button>
     </div>
 
@@ -492,29 +490,24 @@
     const USER_NAME_KEY     = "clicker_username";
 
     const ACTIVE_WINDOW_MS = 45 * 1000;
-    const HEARTBEAT_MS = 12 * 1000;
-    const POLL_MS = 3000;
+    const HEARTBEAT_MS     = 12 * 1000;
+    const POLL_MS          = 3000;
 
     let db = null;
     if (window.supabase && SUPABASE_URL !== "YOUR_SUPABASE_URL") {
       db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    let pollTimer = null;
-    let heartbeatTimer = null;
-    let currentGuild = null;
-    let currentMembership = null;
-    let currentGuildMembers = [];
+    let pollTimer          = null;
+    let heartbeatTimer     = null;
+    let currentGuild       = null;
+    let currentMembership  = null;
+    let currentGuildMembers= [];
     let currentRaidMembers = [];
-    let syncingRaid = false;
+    let syncingRaid        = false;
 
-    function getPlayerId() {
-      return localStorage.getItem(USER_ID_KEY) || "";
-    }
-
-    function getPlayerName() {
-      return localStorage.getItem(USER_NAME_KEY) || "Player";
-    }
+    function getPlayerId()   { return localStorage.getItem(USER_ID_KEY) || ""; }
+    function getPlayerName() { return localStorage.getItem(USER_NAME_KEY) || "Player"; }
 
     function getMembership() {
       try { return JSON.parse(localStorage.getItem(MEMBERSHIP_KEY) || "null"); }
@@ -525,13 +518,11 @@
       try {
         const arr = Array.isArray(raw) ? raw : JSON.parse(raw || "[]");
         return Array.isArray(arr) ? arr : [];
-      } catch {
-        return [];
-      }
+      } catch { return []; }
     }
 
     function escHtml(s) {
-      return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
 
     function setStatus(message, type) {
@@ -542,14 +533,14 @@
     }
 
     function getGuildMemberEntry(pid) {
-      return currentGuildMembers.find(member => member.pid === pid) || null;
+      return currentGuildMembers.find(m => m.pid === pid) || null;
     }
 
     function getActiveRaidMembers(members) {
       const now = Date.now();
-      return members.filter(member => {
-        const joinedAt = Date.parse(member.raidJoinedAt || "");
-        const lastSeen = Date.parse(member.raidLastSeen || "");
+      return members.filter(m => {
+        const joinedAt = Date.parse(m.raidJoinedAt || "");
+        const lastSeen = Date.parse(m.raidLastSeen || "");
         if (!Number.isFinite(joinedAt) || !Number.isFinite(lastSeen)) return false;
         return now - lastSeen <= ACTIVE_WINDOW_MS;
       });
@@ -561,56 +552,67 @@
     }
 
     function normalizeRaidMembers(members) {
-      return members.map(member => ({
-        pid: member.pid,
-        role: member.role,
-        joined: member.joined,
-        raidJoinedAt: member.raidJoinedAt || null,
-        raidLastSeen: member.raidLastSeen || null,
-        raidLeader: Boolean(member.raidLeader)
+      return members.map(m => ({
+        pid:          m.pid,
+        role:         m.role,
+        joined:       m.joined,
+        displayName:  m.displayName || null,
+        raidJoinedAt: m.raidJoinedAt || null,
+        raidLastSeen: m.raidLastSeen || null,
+        raidLeader:   Boolean(m.raidLeader)
       }));
     }
 
+    function shortName(pid) {
+      return "user_" + String(pid).slice(-6);
+    }
+
     function renderRaidState() {
-      const badgeText = document.getElementById("guildBadgeText");
-      const guildTitle = document.getElementById("guildTitle");
-      const guildSubtitle = document.getElementById("guildSubtitle");
+      const badgeText      = document.getElementById("guildBadgeText");
+      const guildTitle     = document.getElementById("guildTitle");
+      const guildSubtitle  = document.getElementById("guildSubtitle");
       const squadCountText = document.getElementById("squadCountText");
-      const squadList = document.getElementById("squadList");
-      const leaderBox = document.getElementById("leaderBox");
-      const guildChips = document.getElementById("guildChips");
-      const rosterList = document.getElementById("rosterList");
-      const toggleBtn = document.getElementById("toggleSquadBtn");
-      const leaveBtn = document.getElementById("leaveSquadBtn");
-      const membership = currentMembership;
-      const guild = currentGuild;
+      const onlineCountEl  = document.getElementById("onlineCountBadge");
+      const squadList      = document.getElementById("squadList");
+      const leaderBox      = document.getElementById("leaderBox");
+      const guildChips     = document.getElementById("guildChips");
+      const rosterList     = document.getElementById("rosterList");
+      const toggleBtn      = document.getElementById("toggleSquadBtn");
+      const leaveBtn       = document.getElementById("leaveSquadBtn");
+
+      const guild       = currentGuild;
       const raidMembers = currentRaidMembers;
-      const me = getPlayerId();
-      const isJoined = Boolean(raidMembers.find(member => member.pid === me));
-      const leader = raidMembers.find(member => member.raidLeader) || raidMembers[0] || null;
+      const me          = getPlayerId();
+      const isJoined    = Boolean(raidMembers.find(m => m.pid === me));
+      const leader      = raidMembers.find(m => m.raidLeader) || raidMembers[0] || null;
 
       if (guild) {
         const name = guild.name || "Guilde";
-        if (badgeText) badgeText.textContent = name;
-        if (guildTitle) guildTitle.textContent = `${name} - Raid de Guilde`;
-        if (guildSubtitle) guildSubtitle.textContent = "Menu entre guildes. Rejoins une escouade et vois la composition en direct.";
+        if (badgeText)    badgeText.textContent    = name;
+        if (guildTitle)   guildTitle.textContent   = `${name} - Raid de Guilde`;
+        if (guildSubtitle)guildSubtitle.textContent= "Menu entre guildes. Rejoins une escouade et vois la composition en direct.";
       } else {
-        if (badgeText) badgeText.textContent = "Guilde inconnue";
-        if (guildTitle) guildTitle.textContent = "Raid de Guilde";
-        if (guildSubtitle) guildSubtitle.textContent = "Tu dois rejoindre une guilde avant d'entrer ici.";
+        if (badgeText)    badgeText.textContent    = "Guilde inconnue";
+        if (guildTitle)   guildTitle.textContent   = "Raid de Guilde";
+        if (guildSubtitle)guildSubtitle.textContent= "Tu dois rejoindre une guilde avant d'entrer ici.";
       }
 
       if (squadCountText) squadCountText.textContent = `${raidMembers.length}/${currentGuildMembers.length}`;
+      if (onlineCountEl)  onlineCountEl.textContent  = raidMembers.length;
+
       if (toggleBtn) toggleBtn.textContent = isJoined ? "Squad rejointe" : "Rejoindre la squad";
-      if (leaveBtn) leaveBtn.style.display = isJoined ? "inline-flex" : "none";
+      if (leaveBtn)  leaveBtn.style.display = isJoined ? "inline-flex" : "none";
 
       if (leaderBox) {
         if (!leader) {
-          leaderBox.className = "empty-state";
+          leaderBox.className   = "empty-state";
           leaderBox.textContent = "Aucun chef pour le moment.";
         } else {
-          const leaderName = getGuildMemberEntry(leader.pid)?.displayName || leader.pid;
-          leaderBox.className = "member-card leader";
+          const entry      = getGuildMemberEntry(leader.pid);
+          const leaderName = leader.pid === me
+            ? (getPlayerName() || shortName(leader.pid))
+            : shortName(leader.pid);
+          leaderBox.className   = "member-card leader";
           leaderBox.innerHTML = `
             <div>
               <div class="member-name">${escHtml(leaderName)}</div>
@@ -620,41 +622,49 @@
                 <span>#${escHtml(String(leader.pid).slice(-8))}</span>
               </div>
             </div>
-            <div class="member-meta" style="justify-content:flex-end; text-align:right;">
+            <div class="member-meta" style="justify-content:flex-end;text-align:right;">
               <span class="badge joined">Actif</span>
             </div>`;
         }
       }
 
       if (guildChips) {
-        const chips = currentGuildMembers.map(member => {
-          const active = raidMembers.some(activeMember => activeMember.pid === member.pid);
-          const leaderClass = leader && leader.pid === member.pid ? "leader" : "";
-          const name = member.displayName || member.pid;
-          return `<span class="chip ${active ? "joined" : ""} ${leaderClass}"><span class="dot"></span>${escHtml(name)}${leader && leader.pid === member.pid ? " • Chef" : ""}</span>`;
+        const chips = currentGuildMembers.map(m => {
+          const active      = raidMembers.some(r => r.pid === m.pid);
+          const isLeader    = leader && leader.pid === m.pid;
+          const displayName = m.pid === me
+            ? (getPlayerName() || shortName(m.pid))
+            : shortName(m.pid);
+          return `<span class="chip ${active ? "joined" : ""} ${isLeader ? "leader" : ""}">
+            <span class="dot"></span>
+            ${escHtml(displayName)}${isLeader ? " • Chef" : ""}
+          </span>`;
         });
-        guildChips.innerHTML = chips.length ? chips.join("") : '<div class="subtle">Aucun membre de guilde trouvé.</div>';
+        guildChips.innerHTML = chips.length
+          ? chips.join("")
+          : '<div class="subtle">Aucun membre de guilde trouvé.</div>';
       }
 
       if (squadList) {
         if (!raidMembers.length) {
           squadList.innerHTML = '<div class="empty-state">Aucun membre n\'a rejoint la squad pour le moment.</div>';
         } else {
-          squadList.innerHTML = raidMembers.map(member => {
-            const entry = getGuildMemberEntry(member.pid);
-            const name = entry?.displayName || member.pid;
-            const isLeader = leader && leader.pid === member.pid;
+          squadList.innerHTML = raidMembers.map(m => {
+            const isLeader    = leader && leader.pid === m.pid;
+            const displayName = m.pid === me
+              ? (getPlayerName() || shortName(m.pid))
+              : shortName(m.pid);
             return `
               <div class="member-card ${isLeader ? "leader" : "active"}">
                 <div>
-                  <div class="member-name">${escHtml(name)}</div>
+                  <div class="member-name">${escHtml(displayName)}</div>
                   <div class="member-meta">
                     ${isLeader ? '<span class="badge leader">Chef</span>' : '<span class="badge joined">Joined</span>'}
-                    <span>${escHtml(member.role || "member")}</span>
-                    <span>Rejoint ${new Date(member.raidJoinedAt || member.joined || Date.now()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                    <span>${escHtml(m.role || "member")}</span>
+                    <span>Rejoint ${new Date(m.raidJoinedAt || m.joined || Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>
                   </div>
                 </div>
-                <div class="member-meta" style="justify-content:flex-end; text-align:right;">
+                <div class="member-meta" style="justify-content:flex-end;text-align:right;">
                   <span class="badge joined">En ligne</span>
                 </div>
               </div>`;
@@ -663,125 +673,116 @@
       }
 
       if (rosterList) {
-        const activeIds = new Set(raidMembers.map(member => member.pid));
-        rosterList.innerHTML = currentGuildMembers.map(member => {
-          const active = activeIds.has(member.pid);
-          const isLeader = leader && leader.pid === member.pid;
+        const activeIds = new Set(raidMembers.map(m => m.pid));
+        rosterList.innerHTML = currentGuildMembers.map(m => {
+          const active      = activeIds.has(m.pid);
+          const isLeader    = leader && leader.pid === m.pid;
+          const displayName = m.pid === me
+            ? (getPlayerName() || shortName(m.pid))
+            : shortName(m.pid);
+          const onlineDot = active
+            ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2fd468;box-shadow:0 0 6px rgba(47,212,104,.65);margin-right:4px;vertical-align:middle;"></span>`
+            : `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4a6070;margin-right:4px;vertical-align:middle;"></span>`;
           return `
             <div class="member-card ${active ? "active" : ""} ${isLeader ? "leader" : ""}">
               <div>
-                <div class="member-name">${escHtml(member.displayName || member.pid)}</div>
+                <div class="member-name">${onlineDot}${escHtml(displayName)}</div>
                 <div class="member-meta">
-                  ${active ? '<span class="badge joined">Squad</span>' : '<span class="badge waiting">Waiting</span>'}
+                  ${active
+                    ? '<span class="badge joined">En ligne</span>'
+                    : '<span class="badge waiting">Hors ligne</span>'}
                   ${isLeader ? '<span class="badge leader">Chef</span>' : ''}
-                  <span>#${escHtml(String(member.pid).slice(-8))}</span>
+                  <span>#${escHtml(String(m.pid).slice(-8))}</span>
                 </div>
               </div>
-              <div class="member-meta" style="justify-content:flex-end; text-align:right;">
-                <span>${member.role === "owner" ? "Owner" : "Member"}</span>
+              <div class="member-meta" style="justify-content:flex-end;text-align:right;">
+                <span>${m.role === "owner" ? "Owner" : "Member"}</span>
               </div>
             </div>`;
         }).join("");
       }
 
       if (toggleBtn) toggleBtn.disabled = !db || !guild;
-      if (leaveBtn) leaveBtn.disabled = !db || !guild;
+      if (leaveBtn)  leaveBtn.disabled  = !db || !guild;
 
       if (!guild) {
         setStatus("Tu dois rejoindre une guilde pour accéder au raid.", "err");
       } else if (!raidMembers.length) {
         setStatus(isJoined ? "Tu es en ligne, mais la squad est vide." : "Rejoins la squad pour apparaître dans la file.", "");
       } else if (isJoined) {
-        setStatus(`Squad active: ${raidMembers.length} membre(s), chef: ${leader ? (getGuildMemberEntry(leader.pid)?.displayName || leader.pid) : "aucun"}.`, "ok");
+        const leaderName = leader
+          ? (leader.pid === me ? (getPlayerName() || shortName(leader.pid)) : shortName(leader.pid))
+          : "aucun";
+        setStatus(`Squad active: ${raidMembers.length} membre(s), chef: ${leaderName}.`, "ok");
       } else {
         setStatus(`Squad active: ${raidMembers.length} membre(s).`, "");
       }
     }
 
     async function fetchGuildContext() {
-      const membership = getMembership();
+      const membership  = getMembership();
       currentMembership = membership;
 
       if (!db) {
-        currentGuild = null;
-        currentGuildMembers = [];
-        currentRaidMembers = [];
-        renderRaidState();
-        return;
+        currentGuild = null; currentGuildMembers = []; currentRaidMembers = [];
+        renderRaidState(); return;
       }
 
       const pid = getPlayerId();
-      if (!pid) {
-        window.location.href = '../../login/';
-        return;
-      }
+      if (!pid) { window.location.href = '../../login/'; return; }
 
       if (!membership || !membership.guildId) {
-        currentGuild = null;
-        currentGuildMembers = [];
-        currentRaidMembers = [];
-        renderRaidState();
-        return;
+        currentGuild = null; currentGuildMembers = []; currentRaidMembers = [];
+        renderRaidState(); return;
       }
 
       const { data: guild, error } = await db.from(GUILDS_TABLE).select("*").eq("id", membership.guildId).single();
       if (error || !guild) {
-        currentGuild = null;
-        currentGuildMembers = [];
-        currentRaidMembers = [];
+        currentGuild = null; currentGuildMembers = []; currentRaidMembers = [];
         renderRaidState();
         setStatus("Impossible de charger la guilde. Retourne au menu Guild.", "err");
         return;
       }
 
-      currentGuild = guild;
-      currentGuildMembers = normalizeRaidMembers(safeParseMembers(guild.members)).map(member => ({
-        ...member,
-        displayName: member.pid === pid ? (getPlayerName() || member.pid) : (member.displayName || member.pid)
-      }));
-      currentRaidMembers = getActiveRaidMembers(currentGuildMembers);
+      currentGuild        = guild;
+      currentGuildMembers = normalizeRaidMembers(safeParseMembers(guild.members));
+      currentRaidMembers  = getActiveRaidMembers(currentGuildMembers);
 
-      const currentLeader = currentRaidMembers.find(member => member.raidLeader) || null;
+      const activeIds   = new Set(currentRaidMembers.map(m => m.pid));
+      const cleanedMembers = currentGuildMembers.map(m => ({ ...m }));
       let changed = false;
-      const cleanedMembers = currentGuildMembers.map(member => ({ ...member }));
-      const activeIds = new Set(currentRaidMembers.map(member => member.pid));
 
-      cleanedMembers.forEach(member => {
-        if (!activeIds.has(member.pid)) {
-          if (member.raidJoinedAt || member.raidLastSeen || member.raidLeader) changed = true;
-          member.raidJoinedAt = null;
-          member.raidLastSeen = null;
-          member.raidLeader = false;
+      cleanedMembers.forEach(m => {
+        if (!activeIds.has(m.pid)) {
+          if (m.raidJoinedAt || m.raidLastSeen || m.raidLeader) changed = true;
+          m.raidJoinedAt = null; m.raidLastSeen = null; m.raidLeader = false;
         }
       });
 
-      const activeMembers = cleanedMembers.filter(member => activeIds.has(member.pid));
-      const leaderExists = activeMembers.some(member => member.raidLeader);
+      const activeMembers  = cleanedMembers.filter(m => activeIds.has(m.pid));
+      const leaderExists   = activeMembers.some(m => m.raidLeader);
       if (activeMembers.length && !leaderExists) {
-        const chosenLeader = pickRandom(activeMembers);
-        activeMembers.forEach(member => { member.raidLeader = member.pid === chosenLeader.pid; });
+        const chosen = pickRandom(activeMembers);
+        activeMembers.forEach(m => { m.raidLeader = m.pid === chosen.pid; });
         changed = true;
       } else if (activeMembers.length > 1) {
-        const leaderMembers = activeMembers.filter(member => member.raidLeader);
-        if (leaderMembers.length > 1) {
-          const chosen = leaderMembers[0];
-          activeMembers.forEach(member => { member.raidLeader = member.pid === chosen.pid; });
+        const leaders = activeMembers.filter(m => m.raidLeader);
+        if (leaders.length > 1) {
+          const chosen = leaders[0];
+          activeMembers.forEach(m => { m.raidLeader = m.pid === chosen.pid; });
           changed = true;
         }
       }
 
       if (changed) {
-        const updatedMembers = cleanedMembers.map(member => {
-          const active = activeMembers.find(activeMember => activeMember.pid === member.pid);
-          return active ? active : member;
+        const updatedMembers = cleanedMembers.map(m => {
+          const active = activeMembers.find(a => a.pid === m.pid);
+          return active ? active : m;
         });
         await db.from(GUILDS_TABLE).update({ members: JSON.stringify(updatedMembers) }).eq("id", membership.guildId);
         currentGuild.members = JSON.stringify(updatedMembers);
-        currentGuildMembers = normalizeRaidMembers(updatedMembers).map(member => ({
-          ...member,
-          displayName: member.pid === pid ? (getPlayerName() || member.pid) : (member.displayName || member.pid)
-        }));
-        currentRaidMembers = getActiveRaidMembers(currentGuildMembers);
+        currentGuildMembers  = normalizeRaidMembers(updatedMembers);
+        currentRaidMembers   = getActiveRaidMembers(currentGuildMembers);
       }
 
       renderRaidState();
@@ -789,7 +790,7 @@
 
     async function joinSquad() {
       if (!db) { setStatus("Supabase not configured.", "err"); return; }
-      const pid = getPlayerId();
+      const pid        = getPlayerId();
       if (!pid) { window.location.href = '../../login/'; return; }
       const membership = getMembership();
       if (!membership || !membership.guildId) { setStatus("Tu dois être dans une guilde.", "err"); return; }
@@ -797,36 +798,25 @@
       if (!currentGuild) return;
 
       const members = normalizeRaidMembers(safeParseMembers(currentGuild.members));
-      const nowIso = new Date().toISOString();
-      let found = false;
-      const updatedMembers = members.map(member => {
-        if (member.pid !== pid) return member;
+      const nowIso  = new Date().toISOString();
+      let found     = false;
+
+      const updatedMembers = members.map(m => {
+        if (m.pid !== pid) return m;
         found = true;
-        return {
-          ...member,
-          displayName: member.displayName || getPlayerName(),
-          raidJoinedAt: nowIso,
-          raidLastSeen: nowIso,
-          raidLeader: member.raidLeader || false
-        };
+        return { ...m, raidJoinedAt: nowIso, raidLastSeen: nowIso, raidLeader: m.raidLeader || false };
       });
 
-      if (!found) {
-        setStatus("Ton profil de guilde est introuvable.", "err");
-        return;
-      }
+      if (!found) { setStatus("Ton profil de guilde est introuvable.", "err"); return; }
 
-      const activeMembers = getActiveRaidMembers(updatedMembers.map(member => ({ ...member, raidJoinedAt: member.pid === pid ? nowIso : member.raidJoinedAt, raidLastSeen: member.pid === pid ? nowIso : member.raidLastSeen })));
-      if (!activeMembers.some(member => member.raidLeader)) {
-        const chosen = pickRandom(activeMembers.length ? activeMembers : updatedMembers.filter(member => member.pid === pid));
-        updatedMembers.forEach(member => { member.raidLeader = chosen ? member.pid === chosen.pid : false; });
+      const activeAfter = getActiveRaidMembers(updatedMembers);
+      if (!activeAfter.some(m => m.raidLeader)) {
+        const chosen = pickRandom(activeAfter.length ? activeAfter : updatedMembers.filter(m => m.pid === pid));
+        updatedMembers.forEach(m => { m.raidLeader = chosen ? m.pid === chosen.pid : false; });
       }
 
       const { error } = await db.from(GUILDS_TABLE).update({ members: JSON.stringify(updatedMembers) }).eq("id", membership.guildId);
-      if (error) {
-        setStatus(`Erreur: ${error.message}`, "err");
-        return;
-      }
+      if (error) { setStatus(`Erreur: ${error.message}`, "err"); return; }
 
       setStatus("Tu as rejoint la squad.", "ok");
       await fetchGuildContext();
@@ -834,38 +824,33 @@
 
     async function leaveSquad() {
       if (!db) { setStatus("Supabase not configured.", "err"); return; }
-      const pid = getPlayerId();
+      const pid        = getPlayerId();
       const membership = getMembership();
       if (!pid || !membership || !membership.guildId || !currentGuild) return;
 
-      const members = normalizeRaidMembers(safeParseMembers(currentGuild.members));
-      const currentActive = getActiveRaidMembers(members);
-      const leavingLeader = currentActive.find(member => member.pid === pid && member.raidLeader);
-      const updatedMembers = members.map(member => {
-        if (member.pid !== pid) return member;
-        return {
-          ...member,
-          raidJoinedAt: null,
-          raidLastSeen: null,
-          raidLeader: false
-        };
+      const members        = normalizeRaidMembers(safeParseMembers(currentGuild.members));
+      const currentActive  = getActiveRaidMembers(members);
+      const leavingLeader  = currentActive.find(m => m.pid === pid && m.raidLeader);
+
+      const updatedMembers = members.map(m => {
+        if (m.pid !== pid) return m;
+        return { ...m, raidJoinedAt: null, raidLastSeen: null, raidLeader: false };
       });
 
       const remaining = getActiveRaidMembers(updatedMembers);
       if (remaining.length) {
-        const nextLeader = leavingLeader ? pickRandom(remaining) : remaining.find(member => member.raidLeader) || remaining[0];
-        updatedMembers.forEach(member => {
-          if (remaining.some(active => active.pid === member.pid)) {
-            member.raidLeader = nextLeader ? member.pid === nextLeader.pid : false;
+        const nextLeader = leavingLeader
+          ? pickRandom(remaining)
+          : remaining.find(m => m.raidLeader) || remaining[0];
+        updatedMembers.forEach(m => {
+          if (remaining.some(r => r.pid === m.pid)) {
+            m.raidLeader = nextLeader ? m.pid === nextLeader.pid : false;
           }
         });
       }
 
       const { error } = await db.from(GUILDS_TABLE).update({ members: JSON.stringify(updatedMembers) }).eq("id", membership.guildId);
-      if (error) {
-        setStatus(`Erreur: ${error.message}`, "err");
-        return;
-      }
+      if (error) { setStatus(`Erreur: ${error.message}`, "err"); return; }
 
       setStatus("Tu as quitté la squad.", "");
       await fetchGuildContext();
@@ -873,22 +858,18 @@
 
     async function heartbeatPresence() {
       if (!db || syncingRaid) return;
-      const pid = getPlayerId();
+      const pid        = getPlayerId();
       const membership = getMembership();
       if (!pid || !membership || !membership.guildId || !currentGuild) return;
 
       const members = normalizeRaidMembers(safeParseMembers(currentGuild.members));
-      const nowIso = new Date().toISOString();
-      let changed = false;
-      const updatedMembers = members.map(member => {
-        if (member.pid !== pid) return member;
-        if (!member.raidJoinedAt) return member;
+      const nowIso  = new Date().toISOString();
+      let changed   = false;
+
+      const updatedMembers = members.map(m => {
+        if (m.pid !== pid || !m.raidJoinedAt) return m;
         changed = true;
-        return {
-          ...member,
-          raidLastSeen: nowIso,
-          displayName: member.displayName || getPlayerName()
-        };
+        return { ...m, raidLastSeen: nowIso };
       });
 
       if (!changed) return;
@@ -899,38 +880,26 @@
     async function refreshAll() {
       if (syncingRaid) return;
       syncingRaid = true;
-      try {
-        await fetchGuildContext();
-      } finally {
-        syncingRaid = false;
-      }
+      try { await fetchGuildContext(); }
+      finally { syncingRaid = false; }
     }
 
     function stopTimers() {
-      if (pollTimer) clearInterval(pollTimer);
-      if (heartbeatTimer) clearInterval(heartbeatTimer);
-      pollTimer = null;
-      heartbeatTimer = null;
+      if (pollTimer)     clearInterval(pollTimer);
+      if (heartbeatTimer)clearInterval(heartbeatTimer);
+      pollTimer = null; heartbeatTimer = null;
     }
 
     function startTimers() {
       stopTimers();
-      pollTimer = setInterval(() => {
-        refreshAll().catch(() => {});
-      }, POLL_MS);
-      heartbeatTimer = setInterval(() => {
-        heartbeatPresence().then(() => refreshAll()).catch(() => {});
-      }, HEARTBEAT_MS);
+      pollTimer      = setInterval(() => { refreshAll().catch(() => {}); }, POLL_MS);
+      heartbeatTimer = setInterval(() => { heartbeatPresence().then(() => refreshAll()).catch(() => {}); }, HEARTBEAT_MS);
     }
 
     document.getElementById("toggleSquadBtn").addEventListener("click", async () => {
-      const me = getPlayerId();
-      const isJoined = currentRaidMembers.some(member => member.pid === me);
-      if (isJoined) {
-        await leaveSquad();
-      } else {
-        await joinSquad();
-      }
+      const me       = getPlayerId();
+      const isJoined = currentRaidMembers.some(m => m.pid === me);
+      if (isJoined) await leaveSquad(); else await joinSquad();
     });
 
     document.getElementById("leaveSquadBtn").addEventListener("click", () => {
@@ -950,13 +919,12 @@
       startTimers();
     }
 
-    window.addEventListener("focus", () => {
-      refreshAll().catch(() => {});
-    });
+    window.addEventListener("focus",        () => { refreshAll().catch(() => {}); });
+    window.addEventListener("beforeunload", () => { stopTimers(); });
 
-    window.addEventListener("beforeunload", () => {
-      stopTimers();
-    });
+    if (localStorage.getItem("clicker_upgradesUnlocked") !== "true") {
+      document.body.classList.add("limited-nav-mode");
+    }
   </script>
 </body>
 </html>
