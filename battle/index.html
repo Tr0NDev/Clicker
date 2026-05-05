@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>Battle - Clicker</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; background: #111; color: #fff; margin: 0; padding: 24px 16px; }
-    .top-bar { position: sticky; top: 0; z-index: 20; background: #0c1217; border-bottom: 1px solid #22313b; box-shadow: 0 10px 20px rgba(0,0,0,.35); margin: -24px -16px 18px; padding: 10px 0; }
-    .top-nav { display: flex; justify-content: flex-start; gap: 10px; flex-wrap: wrap; width: 100%; padding: 0 0 0 16px; }
+    body { font-family: Arial, sans-serif; text-align: center; background: #111; color: #fff; margin: 0; padding: 24px 0; }
+    .top-bar { position: sticky; top: 0; z-index: 20; background: #0c1217; border-bottom: 1px solid #22313b; box-shadow: 0 10px 20px rgba(0,0,0,.35); margin: -24px 0 18px; padding: 10px 0; }
+    .top-nav { display: flex; justify-content: flex-start; gap: 10px; flex-wrap: wrap; width: 100%; padding: 0 16px; }
     .nav-button { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #31414d; color: #eef5f9; border: 1px solid #667a86; padding: 12px 16px; margin-right: 8px; font-size: 15px; cursor: pointer; border-radius: 10px; transition: background-color .15s,border-color .15s,color .15s; }
     .nav-button:hover { background: #3a4c59; border-color: #7f95a3; }
     .nav-button.active-nav-button { background: #dbe3e8; color: #1d2a33; border-color: #dbe3e8; font-weight: bold; }
     .settings-nav-button { margin-left: auto; margin-right: 16px; }
-    .shell { max-width: 1440px; margin: 0 auto; }
+    .shell { max-width: 1440px; margin: 0 auto; padding: 0 16px; box-sizing: border-box; }
     .page-grid { display: grid; grid-template-columns: minmax(380px,1.1fr) minmax(0,1.48fr) minmax(320px,.78fr); gap: 16px; margin-top: 16px; text-align: left; align-items: start; }
     .section { border: 1px solid #2f4d5c; border-radius: 14px; background: #142028; padding: 14px; }
     .section-title { font-size: 18px; font-weight: bold; color: #8dc4e0; margin-bottom: 10px; }
@@ -67,17 +68,14 @@
     input:checked + .slider { background-color: #2d8a6d; }
     input:checked + .slider:before { transform: translateX(24px); }
     .action-note { margin-top: 10px; color: #b8d4e3; font-size: 14px; line-height: 1.5; }
+    .action-tools { display: grid; gap: 8px; margin-top: 10px; }
+    .queue-panel { margin-top: 10px; border: 1px solid #365563; border-radius: 10px; background: #0f1519; padding: 10px; display: grid; gap: 8px; }
+    .queue-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .queue-status { color: #b8d4e3; font-size: 13px; line-height: 1.4; min-height: 20px; }
     .tier-hud { display: grid; gap: 8px; margin-top: 10px; padding: 10px; border: 1px solid #365563; border-radius: 12px; background: #0f1519; }
     .tier-hud-row { display: flex; justify-content: space-between; gap: 10px; align-items: center; font-size: 13px; }
     .tier-hud-label { color: #aac2d0; }
     .tier-hud-value { color: #fff; font-weight: bold; text-align: right; }
-    .summary-row { display: grid; gap: 10px; }
-    .summary-block { border: 1px solid #365563; border-radius: 12px; background: #0f1519; padding: 12px; }
-    .summary-grid { display: grid; gap: 8px; }
-    .summary-item { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(104,132,149,.2); }
-    .summary-item:last-child { border-bottom: 0; padding-bottom: 0; }
-    .summary-key { color: #aac2d0; font-size: 13px; }
-    .summary-value { font-size: 13px; color: #fff; text-align: right; }
     .bait-note { color: #9eb0bc; font-size: 14px; line-height: 1.5; }
     .selected-highlight { outline: 2px solid #5a8faa; box-shadow: 0 0 0 2px rgba(90,143,170,.15); }
     .status-line { margin-top: 14px; color: #f5db9b; font-size: 14px; min-height: 20px; }
@@ -227,9 +225,6 @@
         <div class="section">
           <div class="section-header-row">
             <div class="section-title">Your Battle Lineup</div>
-            <div class="header-actions">
-              <button class="btn btn-secondary" id="customBattleBtn" type="button">Custom Battle</button>
-            </div>
           </div>
           <div class="selection-grid" id="selectedSlots"></div>
           <div class="battle-panel" id="battlePanel" style="display:none;">
@@ -321,6 +316,9 @@
           <div class="section action-panel">
             <div class="section-title">Action</div>
             <button class="btn action-button" id="startBattleButton" type="button" disabled>Start Battle</button>
+            <div class="action-tools">
+              <button class="btn btn-secondary" id="customBattleBtn" type="button">Custom Battle</button>
+            </div>
             <div class="auto-battle-toggle">
               <label class="switch">
                 <input type="checkbox" id="autoBattleToggle">
@@ -342,27 +340,14 @@
               <label class="speed-tick"><input type="radio" name="battleSpeed" value="3"> x3</label>
               <label class="speed-tick"><input type="radio" name="battleSpeed" value="5"> x5</label>
             </div>
-          </div>
-
-          <div class="section summary-panel">
-            <div class="section-title">Battle Summary</div>
-            <div class="summary-row">
-              <div class="summary-block">
-                <div class="summary-grid">
-                  <div class="summary-item"><span class="summary-key">Selected fish</span><span class="summary-value" id="selectedCount">0 / 3</span></div>
-                  <div class="summary-item"><span class="summary-key">Average rarity</span><span class="summary-value" id="averageRarity">-</span></div>
-                  <div class="summary-item"><span class="summary-key">Average value</span><span class="summary-value" id="averageValue">0</span></div>
-                </div>
+            <div class="queue-panel">
+              <div class="section-title" style="font-size:14px;margin:0">PVP Queue</div>
+              <div class="queue-row">
+                <button class="btn btn-secondary" id="toggleQueueBtn" type="button">Join Queue</button>
+                <span class="count-pill" id="queueCountPill">Queue: 0</span>
               </div>
-              <div class="summary-block">
-                <div class="summary-grid">
-                  <div class="summary-item"><span class="summary-key">Ready</span><span class="summary-value" id="battleReady">No</span></div>
-                  <div class="summary-item"><span class="summary-key">Bait slots</span><span class="summary-value">0 / 2</span></div>
-                  <div class="summary-item"><span class="summary-key">Status</span><span class="summary-value" id="statusText">Pick 3 fish to prepare battle.</span></div>
-                </div>
-              </div>
+              <div class="queue-status" id="queueStatus">Queue inactive.</div>
             </div>
-            <div class="status-line" id="detailLine"></div>
           </div>
 
           <div class="section character-team-section" id="characterTeamSection" style="display:block;">
@@ -419,6 +404,9 @@
     const TEAM_STATE_KEY       = "clicker_teamState";
     const BATTLE_STEP_MS       = 500;
     const BATTLE_PREFIX        = "CLICKER_BATTLE_V1:";
+    const SUPABASE_URL         = "https://vrozpjdyqerpcrwlcdfo.supabase.co";
+    const SUPABASE_ANON_KEY    = "sb_publishable_moV-dfu5sVohSbQOR6z0zw_BSpcVCHg";
+    const BATTLE_QUEUE_TABLE   = "battle_queue";
 
     const ENEMY_FISHING_SPEED_BASE = 1.0;
 
@@ -761,12 +749,6 @@
     const collectionList      = document.getElementById("collectionList");
     const selectedSlots       = document.getElementById("selectedSlots");
     const emptyState          = document.getElementById("emptyState");
-    const selectedCount       = document.getElementById("selectedCount");
-    const averageRarity       = document.getElementById("averageRarity");
-    const averageValue        = document.getElementById("averageValue");
-    const battleReady         = document.getElementById("battleReady");
-    const statusText          = document.getElementById("statusText");
-    const detailLine          = document.getElementById("detailLine");
     const startBattleButton   = document.getElementById("startBattleButton");
     const actionNote          = document.getElementById("actionNote");
     const battleGrid          = document.getElementById("battleGrid");
@@ -782,6 +764,9 @@
     const playerCharacterGrid = document.getElementById("playerCharacterGrid");
     const enemyCharacterGrid  = document.getElementById("enemyCharacterGrid");
     const customBattleBtn     = document.getElementById("customBattleBtn");
+    const toggleQueueBtn      = document.getElementById("toggleQueueBtn");
+    const queueCountPill      = document.getElementById("queueCountPill");
+    const queueStatusEl       = document.getElementById("queueStatus");
     const battlePanel         = document.getElementById("battlePanel");
     const battleTextArea      = document.getElementById("battleTextArea");
     const importBattleBtn     = document.getElementById("importBattleBtn");
@@ -792,6 +777,262 @@
     const captureTierLabel    = document.getElementById("captureTierLabel");
     const tierDifficultyLabel = document.getElementById("tierDifficultyLabel");
     const hookNotificationLayer = document.getElementById("hookNotificationLayer");
+
+    let db = null;
+    let queuePoller = null;
+    let queueJoined = false;
+
+    if (window.supabase && SUPABASE_URL !== "YOUR_SUPABASE_URL") {
+      db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    function getPlayerIdOrNull() {
+      return localStorage.getItem("clicker_userId") || null;
+    }
+
+    function getPlayerNameOrDefault() {
+      return localStorage.getItem("clicker_username") || "Player";
+    }
+
+    function setQueueStatus(message) {
+      if (queueStatusEl) queueStatusEl.textContent = message;
+    }
+
+    function setQueueJoinedState(inQueue) {
+      queueJoined = Boolean(inQueue);
+      if (!toggleQueueBtn) return;
+      if (queueJoined) {
+        toggleQueueBtn.textContent = "Leave Queue";
+        toggleQueueBtn.classList.remove("btn-secondary");
+        toggleQueueBtn.classList.add("btn-danger");
+      } else {
+        toggleQueueBtn.textContent = "Join Queue";
+        toggleQueueBtn.classList.remove("btn-danger");
+        toggleQueueBtn.classList.add("btn-secondary");
+      }
+    }
+
+    async function refreshQueueCount() {
+      if (!queueCountPill) return;
+      if (!db) {
+        queueCountPill.textContent = "Queue: -";
+        return;
+      }
+      const { count } = await db.from(BATTLE_QUEUE_TABLE)
+        .select("player_id", { count: "exact", head: true })
+        .eq("status", "searching");
+      queueCountPill.textContent = `Queue: ${Number(count) || 0}`;
+    }
+
+    function stopQueuePolling() {
+      if (queuePoller) {
+        clearInterval(queuePoller);
+        queuePoller = null;
+      }
+    }
+
+    function setImportedBattleFromQueue(opponentName, fishTeam, charTeam, teamStats) {
+      importedBattle = {
+        lineup: (Array.isArray(fishTeam) ? fishTeam : []).map((f, i) => ({
+          uid: `queue-${i}-${Date.now()}`,
+          type: f.type || f.name || `Enemy Fish ${i+1}`,
+          rarity: f.rarity || "common",
+          size: Math.max(1, Math.round(Number(f.size) || 1)),
+          weight: Math.max(1, Math.round(Number(f.weight) || 1)),
+          currentValue: 0,
+          basePrice: 0,
+          price: 0
+        })),
+        exportedTeamChars: Array.isArray(charTeam) ? charTeam : [],
+        exportedTeamStats: teamStats || { fishingSpeed: 1 },
+        teamStats: teamStats || { fishingSpeed: 1 }
+      };
+      setQueueStatus(`Match found vs ${opponentName}. Start Battle!`);
+      setQueueJoinedState(false);
+      renderEnemyCharacterTeam();
+      renderSummary();
+    }
+
+    async function leaveQueue() {
+      stopQueuePolling();
+      if (!db) {
+        setQueueStatus("Supabase not configured.");
+        return;
+      }
+      const pid = getPlayerIdOrNull();
+      if (!pid) {
+        setQueueStatus("Please log in first.");
+        return;
+      }
+      const { error } = await db.from(BATTLE_QUEUE_TABLE).delete().eq("player_id", pid);
+      if (error) {
+        setQueueStatus(`Queue error: ${error.message}`);
+        return;
+      }
+      setQueueJoinedState(false);
+      setQueueStatus("Left queue.");
+      await refreshQueueCount();
+    }
+
+    async function pollQueueMatch() {
+      if (!db) return;
+      const pid = getPlayerIdOrNull();
+      if (!pid) return;
+
+      const { data: myRows, error: myErr } = await db.from(BATTLE_QUEUE_TABLE)
+        .select("player_id, player_name, fish_team, char_team, team_stats, status, matched_with")
+        .eq("player_id", pid)
+        .limit(1);
+      if (myErr || !Array.isArray(myRows) || !myRows.length) return;
+
+      const myRow = myRows[0];
+      if (myRow.status === "searching") {
+        setQueueJoinedState(true);
+        await refreshQueueCount();
+        return;
+      }
+      if (myRow.status !== "matched" || !myRow.matched_with) return;
+
+      const { data: oppRows, error: oppErr } = await db.from(BATTLE_QUEUE_TABLE)
+        .select("player_id, player_name, fish_team, char_team, team_stats")
+        .eq("player_id", myRow.matched_with)
+        .limit(1);
+      if (oppErr || !Array.isArray(oppRows) || !oppRows.length) return;
+
+      const opp = oppRows[0];
+      await db.from(BATTLE_QUEUE_TABLE).delete().eq("player_id", pid);
+      stopQueuePolling();
+      setImportedBattleFromQueue(opp.player_name || "Opponent", opp.fish_team, opp.char_team, opp.team_stats);
+      await refreshQueueCount();
+    }
+
+    async function syncQueueStateOnLoad() {
+      if (!db) {
+        setQueueJoinedState(false);
+        setQueueStatus("Supabase not configured.");
+        await refreshQueueCount();
+        return;
+      }
+      const pid = getPlayerIdOrNull();
+      if (!pid) {
+        setQueueJoinedState(false);
+        setQueueStatus("Please log in first.");
+        await refreshQueueCount();
+        return;
+      }
+
+      const { data: myRows } = await db.from(BATTLE_QUEUE_TABLE)
+        .select("player_id, status")
+        .eq("player_id", pid)
+        .limit(1);
+      const me = Array.isArray(myRows) && myRows.length ? myRows[0] : null;
+      const inQueue = Boolean(me && (me.status === "searching" || me.status === "matched"));
+      setQueueJoinedState(inQueue);
+      setQueueStatus(inQueue ? "In queue. Looking for closest tier..." : "Queue inactive.");
+      await refreshQueueCount();
+      if (inQueue) {
+        stopQueuePolling();
+        queuePoller = setInterval(pollQueueMatch, 4000);
+      }
+    }
+
+    async function joinQueue() {
+      if (!db) {
+        setQueueStatus("Supabase not configured.");
+        return;
+      }
+      const pid = getPlayerIdOrNull();
+      if (!pid) {
+        setQueueStatus("Please log in first.");
+        return;
+      }
+      const playerName = getPlayerNameOrDefault();
+      const payload = buildBattlePayload();
+      if (!payload || !Array.isArray(payload.lineup) || payload.lineup.length !== 3) {
+        setQueueStatus("Select 3 fish before joining queue.");
+        return;
+      }
+
+      setQueueStatus("Searching opponent...");
+
+      await db.from(BATTLE_QUEUE_TABLE).delete().eq("player_id", pid);
+
+      const { data: candidates, error: candErr } = await db.from(BATTLE_QUEUE_TABLE)
+        .select("player_id, player_name, tier, fish_team, char_team, team_stats, created_at")
+        .eq("status", "searching")
+        .neq("player_id", pid)
+        .order("created_at", { ascending: true })
+        .limit(200);
+
+      if (candErr) {
+        setQueueStatus(`Queue error: ${candErr.message}`);
+        return;
+      }
+
+      const myTier = Math.max(1, Number(battleTier) || 1);
+      const list = Array.isArray(candidates) ? candidates : [];
+      let best = null;
+      list.forEach(c => {
+        const diff = Math.abs((Number(c.tier) || 1) - myTier);
+        if (!best || diff < best.diff) {
+          best = { row: c, diff };
+        }
+      });
+
+      if (best && best.row) {
+        const opp = best.row;
+        const nowIso = new Date().toISOString();
+
+        await db.from(BATTLE_QUEUE_TABLE).update({
+          status: "matched",
+          matched_with: pid,
+          matched_at: nowIso
+        }).eq("player_id", opp.player_id).eq("status", "searching");
+
+        await db.from(BATTLE_QUEUE_TABLE).insert({
+          player_id: pid,
+          player_name: playerName,
+          tier: myTier,
+          fish_team: payload.lineup,
+          char_team: payload.exportedTeamChars || [],
+          team_stats: payload.teamStats || {},
+          status: "matched",
+          matched_with: opp.player_id,
+          matched_at: nowIso
+        });
+
+        setImportedBattleFromQueue(opp.player_name || "Opponent", opp.fish_team, opp.char_team, opp.team_stats);
+        await refreshQueueCount();
+        return;
+      }
+
+      const { error: insertErr } = await db.from(BATTLE_QUEUE_TABLE).insert({
+        player_id: pid,
+        player_name: playerName,
+        tier: myTier,
+        fish_team: payload.lineup,
+        char_team: payload.exportedTeamChars || [],
+        team_stats: payload.teamStats || {},
+        status: "searching"
+      });
+
+      if (insertErr) {
+        setQueueStatus(`Queue error: ${insertErr.message}`);
+        return;
+      }
+
+      setQueueJoinedState(true);
+      setQueueStatus(`In queue at tier ${myTier}. Waiting for close-level opponent...`);
+      stopQueuePolling();
+      queuePoller = setInterval(pollQueueMatch, 4000);
+      await refreshQueueCount();
+    }
+
+    function setDetailMessage(message) {
+      if (message) {
+        console.info("[Battle]", message);
+      }
+    }
 
     let inventory          = [];
     let selectedFishUids   = [];
@@ -961,7 +1202,7 @@
     function toggleSelection(uid) {
       if(isSelected(uid)) selectedFishUids=selectedFishUids.filter(u=>u!==uid);
       else if(getSelectedFish().length<3) selectedFishUids.push(uid);
-      else { detailLine.textContent="You already have 3 fish selected."; return; }
+      else { setDetailMessage("You already have 3 fish selected."); return; }
       saveSelection(); render();
     }
 
@@ -1000,23 +1241,17 @@
     }
 
     function renderSummary() {
-      const fish=getSelectedFish(); selectedCount.textContent=`${fish.length} / 3`;
-      const reward=getTierReward(battleTier), tierLabel=`Tier ${battleTier}`, nextCap=Math.ceil(battleTier/10)*10;
+      const fish=getSelectedFish();
+      const reward=getTierReward(battleTier), tierLabel=`Tier ${battleTier}`;
       currentTierLabel.textContent=tierLabel; tierRewardLabel.textContent=`+${reward} money`;
       captureTierLabel.textContent="N/A";
       tierDifficultyLabel.textContent=getTierDifficultyLabel(battleTier);
       if(!fish.length){
-        averageRarity.textContent="-"; averageValue.textContent="0"; battleReady.textContent="No";
-        statusText.textContent="Pick 3 fish to prepare battle."; startBattleButton.disabled=true;
+        startBattleButton.disabled=true;
         actionNote.textContent=`Select 3 fish first. ${tierLabel} is waiting.`;
         if(!lastBattleState) battleResult.textContent="Start battle to see turn-by-turn results.";
         return;
       }
-      const avgRk=fish.reduce((s,f)=>s+rarityRank(f.rarity),0)/fish.length;
-      const avgVl=Math.round(fish.reduce((s,f)=>s+getFishValue(f),0)/fish.length);
-      averageRarity.textContent=`${avgRk.toFixed(1)} / 5`; averageValue.textContent=String(avgVl);
-      battleReady.textContent=fish.length===3?"Yes":"No";
-      statusText.textContent=fish.length===3?(importedBattle?"Imported custom battle ready.":`${tierLabel} ready.`):"Pick 3 fish to prepare battle.";
       startBattleButton.disabled=fish.length!==3||isBattleAnimating;
       const goesFirst = importedBattle && importedBattle.exportedTeamStats
         ? teamStats.fishingSpeed >= (Number(importedBattle.exportedTeamStats.fishingSpeed) || 1)
@@ -1377,29 +1612,38 @@
       battlePanel.style.display=hidden?"grid":"none";
       if(hidden){
         const p=buildBattlePayload();
-        if(p){ battleTextArea.value=encodeBattlePayload(p); battleTextArea.select(); detailLine.textContent="Battle text generated. Share it with another player."; }
-        else detailLine.textContent="Custom battle opened. Select 3 fish to generate battle text, or paste one to import.";
+        if(p){ battleTextArea.value=encodeBattlePayload(p); battleTextArea.select(); setDetailMessage("Battle text generated. Share it with another player."); }
+        else setDetailMessage("Custom battle opened. Select 3 fish to generate battle text, or paste one to import.");
         battleTextArea.focus();
-      } else { detailLine.textContent=importedBattle?"Imported battle ready. Press Start Battle.":"Battle panel closed."; }
+      } else { setDetailMessage(importedBattle?"Imported battle ready. Press Start Battle.":"Battle panel closed."); }
     });
+
+    if (toggleQueueBtn) {
+      toggleQueueBtn.addEventListener("click", () => {
+        const action = queueJoined ? leaveQueue() : joinQueue();
+        action.catch((e) => setQueueStatus(`Queue error: ${e.message || e}`));
+      });
+    }
+
+    syncQueueStateOnLoad().catch((e) => setQueueStatus(`Queue init error: ${e.message || e}`));
 
     importBattleBtn.addEventListener("click",()=>{
       const p=parseImportedBattleText(battleTextArea.value);
-      if(!p){ detailLine.textContent="Invalid battle text. Paste a valid exported text."; return; }
+      if(!p){ setDetailMessage("Invalid battle text. Paste a valid exported text."); return; }
       importedBattle=p;
       const oppFs=p.exportedTeamStats?Number(p.exportedTeamStats.fishingSpeed).toFixed(2):"?";
-      detailLine.textContent=`Battle imported (opponent Fishing Speed: ${oppFs}x). Press Start Battle.`;
+      setDetailMessage(`Battle imported (opponent Fishing Speed: ${oppFs}x). Press Start Battle.`);
       updateTeamHud(); renderSummary(); renderEnemyCharacterTeam();
     });
 
     exportBattleBtn.addEventListener("click",()=>{
       const p=buildBattlePayload();
-      if(!p){ detailLine.textContent="Select exactly 3 fish before exporting."; return; }
+      if(!p){ setDetailMessage("Select exactly 3 fish before exporting."); return; }
       battlePanel.style.display="grid"; battleTextArea.value=encodeBattlePayload(p); battleTextArea.focus(); battleTextArea.select();
-      detailLine.textContent="Battle text exported. Share it with another player.";
+      setDetailMessage("Battle text exported. Share it with another player.");
     });
 
-    clearBattleBtn.addEventListener("click",()=>{ importedBattle=null; battleTextArea.value=""; detailLine.textContent="Imported battle cleared."; renderSummary(); renderEnemyCharacterTeam(); });
+    clearBattleBtn.addEventListener("click",()=>{ importedBattle=null; battleTextArea.value=""; setDetailMessage("Imported battle cleared."); renderSummary(); renderEnemyCharacterTeam(); });
 
     document.querySelectorAll('input[name="battleSpeed"]').forEach(input=>{
       input.addEventListener("change",()=>{
@@ -1410,7 +1654,7 @@
 
     startBattleButton.addEventListener("click",()=>{
       const fish=getSelectedFish();
-      if(fish.length!==3){ detailLine.textContent="You need 3 fish selected before starting battle."; return; }
+      if(fish.length!==3){ setDetailMessage("You need 3 fish selected before starting battle."); return; }
       if(isBattleAnimating) return;
       if(battleTimerId){ clearTimeout(battleTimerId); battleTimerId=null; }
       battleScorePanel.classList.remove("visible");
@@ -1445,7 +1689,7 @@
       const result=runBattle(allies,enemies,allyGoesFirst);
 
       let stepIndex=0; const displayedLog=[];
-      isBattleAnimating=true; detailLine.textContent="Battle in progress..."; renderSummary();
+      isBattleAnimating=true; setDetailMessage("Battle in progress..."); renderSummary();
 
       const applyStep=()=>{
         const step=result.steps[stepIndex]; if(!step) return;
@@ -1489,9 +1733,9 @@
           playerWon:result.playerWon,allyWins:result.allyWins,resultText,final:true };
         renderBattleState(lastBattleState);
         isBattleAnimating=false;
-        detailLine.textContent=result.playerWon
+        setDetailMessage(result.playerWon
           ?(isCustom?"You won the Custom Battle.":`Tier ${currentTier} cleared: +${reward} money. Now Tier ${battleTier}.`)
-          :(isCustom?"You lost this battle.":"Try again to clear this tier.");
+          :(isCustom?"You lost this battle.":"Try again to clear this tier."));
         renderSummary();
       };
 
@@ -1515,7 +1759,7 @@
 
     autoBattleToggle.addEventListener("change",()=>{
       if(autoBattleToggle.checked){
-        if(getSelectedFish().length!==3){ autoBattleToggle.checked=false; detailLine.textContent="Select 3 fish first"; return; }
+        if(getSelectedFish().length!==3){ autoBattleToggle.checked=false; setDetailMessage("Select 3 fish first"); return; }
         startAutoBattle();
       } else { autoBattleActive=false; }
     });
@@ -1558,12 +1802,12 @@
 
           // Update UI to show PVP mode
           document.querySelector('.section-title').textContent = `PVP Battle vs ${opponentName}`;
-          detailLine.textContent = `PVP Battle against ${opponentName}. Select your 3 fish to fight!`;
+          setDetailMessage(`PVP Battle against ${opponentName}. Select your 3 fish to fight!`);
           battlePanel.style.display = 'none'; // Hide custom battle panel
 
         } catch (error) {
           console.error('Error parsing PVP data:', error);
-          detailLine.textContent = "Error loading PVP battle data.";
+          setDetailMessage("Error loading PVP battle data.");
         }
       }
     }
