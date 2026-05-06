@@ -307,6 +307,9 @@
   }
 
   // ─── HELPERS ─────────────────────────────────────────────────────────────────
+  const INVENTORY_KEY       = "clicker_inventory";
+  const BATTLE_SELECTION_KEY = "clicker_battleSelection";
+
   function safeParseArray(raw) {
     if (Array.isArray(raw)) return raw;
     try { const a = JSON.parse(raw || "[]"); return Array.isArray(a) ? a : []; } catch { return []; }
@@ -315,11 +318,75 @@
   function nowIso() { return new Date().toISOString(); }
 
   const CHARS = ["⚔️","🗡️","🛡️","🏹","🪄","🔱","⚡","🌀","🦅","🐉"];
+  function normalizeRaidFishState(f) {
+    if (!f || typeof f !== "object") return null;
+    const rawHp = Number(f.hp);
+    const rawMaxHp = Number(f.maxHp);
+    const rawSize = Number(f.size);
+    const maxHp = Math.max(0, Number.isFinite(rawMaxHp) ? rawMaxHp : (Number.isFinite(rawSize) ? rawSize : 0));
+    const hp = Math.max(0, Number.isFinite(rawHp) ? rawHp : maxHp);
+    const rawWeight = Number(f.weight);
+    const rawAtk = Number(f.atk);
+    const atk = Math.max(0, Number.isFinite(rawWeight) ? rawWeight : (Number.isFinite(rawAtk) ? rawAtk : 0));
+    return {
+      uid: String(f.uid || ""),
+      name: String(f.name || f.type || "Fish"),
+      rarity: String(f.rarity || "common"),
+      hp,
+      maxHp,
+      atk,
+      empty: !(hp || atk)
+    };
+  }
+  function loadRaidInventory() {
+    try {
+      const raw = localStorage.getItem(INVENTORY_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.map(normalizeRaidFishState).filter(Boolean) : [];
+    } catch {
+      return [];
+    }
+  }
+  function loadRaidSelection() {
+    try {
+      const raw = localStorage.getItem(BATTLE_SELECTION_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.filter(u => typeof u === "string").slice(0,3) : [];
+    } catch {
+      return [];
+    }
+  }
+  function padRaidTeam(team) {
+    const slots = (Array.isArray(team) ? team.slice(0,3).map(normalizeRaidFishState).filter(Boolean) : []).map(f => ({ ...f, empty: !f.hp && !f.atk }));
+    while (slots.length < 3) slots.push({ uid: "", name: "Empty", rarity: "empty", hp: 0, maxHp: 0, atk: 0, empty: true });
+    return slots;
+  }
+  function getLocalRaidTeam() {
+    const inventory = loadRaidInventory();
+    const selection = loadRaidSelection();
+    const team = selection.map(uid => inventory.find(f => f.uid === uid)).filter(Boolean);
+    return padRaidTeam(team);
+  }
+  function getRaidTeamFromMember(member) {
+    if (member?.raidTeam && Array.isArray(member.raidTeam) && member.raidTeam.length) {
+      return padRaidTeam(member.raidTeam);
+    }
+    if (memberPid(member) === myPid()) return getLocalRaidTeam();
+    return padRaidTeam([]);
+  }
   function fakeTeam(pid) {
     const h = [...(pid||"x")].reduce((a,c,i)=>a+c.charCodeAt(0)*(i+1),0);
     return [CHARS[Math.abs(h)%CHARS.length], CHARS[Math.abs(h+7)%CHARS.length], CHARS[Math.abs(h+14)%CHARS.length]];
   }
   function computeAtk(pid) {
+    const player = raidState?.players?.[pid];
+    if (player?.team && Array.isArray(player.team)) {
+      return player.team.reduce((sum, fish) => sum + (fish.hp > 0 ? fish.atk : 0), 0);
+    }
+    const member = allMembers.find(m => memberPid(m) === pid);
+    const team = getRaidTeamFromMember(member);
+    const total = team.reduce((sum, fish) => sum + (fish.hp > 0 ? fish.atk : 0), 0);
+    if (total) return total;
     const h = [...(pid||"x")].reduce((a,c,i)=>a+c.charCodeAt(0)*(i+1),0);
     return 15 + (Math.abs(h) % 20);
   }
@@ -462,9 +529,9 @@
     const now=nowIso();
     const idx=members.findIndex(mb=>memberPid(mb)===pid);
     if(idx===-1) {
-      members.push({pid,displayName:name,role:"member",joined:now,raidJoinedAt:now,raidLastSeen:now});
+      members.push({pid,displayName:name,role:"member",joined:now,raidJoinedAt:now,raidLastSeen:now,raidTeam:getLocalRaidTeam()});
     } else {
-      members[idx]={...members[idx],displayName:name,raidJoinedAt:members[idx].raidJoinedAt||now,raidLastSeen:now};
+      members[idx]={...members[idx],displayName:name,raidJoinedAt:members[idx].raidJoinedAt||now,raidLastSeen:now,raidTeam:getLocalRaidTeam()};
     }
 
     const {error:uerr}=await db.from(GUILDS_TABLE).update({members:JSON.stringify(members),member_count:members.length}).eq("id",mem.guildId);
@@ -513,7 +580,7 @@
     let members=safeParseArray(guild.members);
     const idx=members.findIndex(mb=>memberPid(mb)===pid);
     if(idx===-1) return;
-    members[idx]={...members[idx],raidLastSeen:nowIso()};
+    members[idx]={...members[idx],raidLastSeen:nowIso(),raidTeam:getLocalRaidTeam()};
     await db.from(GUILDS_TABLE).update({members:JSON.stringify(members)}).eq("id",mem.guildId);
   }
 
@@ -528,7 +595,12 @@
     const firstStage=raidDef.stages[0];
 
     const players={};
-    squadPids.forEach(p=>{ players[p]={hp:100,maxHp:100,eliminated:false}; });
+    squadPids.forEach(p=>{
+      const member = allMembers.find(mb => memberPid(mb) === p);
+      const team = getRaidTeamFromMember(member);
+      const totalHp = team.reduce((sum, fish) => sum + fish.maxHp, 0) || 100;
+      players[p] = {team, hp: totalHp, maxHp: totalHp, eliminated:false};
+    });
 
     const state={
       phase:"running",
@@ -546,6 +618,7 @@
     await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
     raidState = state;
     renderAll();
+    syncRaidLog();
   }
 
   async function attackEnemy() {
@@ -563,12 +636,22 @@
 
     if(state.enemyHp<=0) { await advanceStage(state,mem.guildId); return; }
 
-    // Counter-attack ALL players
     const atkDmg=stage.atk;
     let anyAlive=false;
     Object.keys(state.players).forEach(p=>{
       const pl=state.players[p]; if(pl.eliminated) return;
-      pl.hp=Math.max(0,pl.hp-atkDmg);
+      if (Array.isArray(pl.team)) {
+        let remaining = atkDmg;
+        pl.team.forEach(fish => {
+          if (remaining <= 0 || !fish || fish.hp <= 0) return;
+          const hit = Math.min(remaining, fish.hp);
+          fish.hp = Math.max(0, fish.hp - hit);
+          remaining -= hit;
+        });
+        pl.hp = Math.max(0, pl.team.reduce((sum, fish) => sum + Math.max(0, fish.hp), 0));
+      } else {
+        pl.hp = Math.max(0, pl.hp - atkDmg);
+      }
       state.log.push(`🔴 ${stage.name} hits ${resolveName(p)} for ${atkDmg}! (${Math.round(pl.hp)}/${pl.maxHp} HP)`);
       if(pl.hp<=0) { pl.eliminated=true; state.log.push(`💀 ${resolveName(p)} has been eliminated!`); }
       else { anyAlive=true; }
@@ -589,13 +672,24 @@
     state.completedStages=[...(state.completedStages||[]),state.stageIndex];
     state.log.push(`✅ Floor ${state.stageIndex+1} cleared! ${stage.name} defeated!`);
 
-    // Heal all 50%
     Object.keys(state.players).forEach(p=>{
       const pl=state.players[p];
-      const heal=Math.floor(pl.maxHp*0.5);
-      pl.hp=Math.min(pl.maxHp,pl.hp+heal);
-      pl.eliminated=false;
-      state.log.push(`💚 ${resolveName(p)} recovers ${heal} HP.`);
+      let healed=0;
+      if (Array.isArray(pl.team)) {
+        pl.team.forEach(fish => {
+          if (!fish || fish.maxHp <= 0) return;
+          const before = fish.hp;
+          fish.hp = Math.min(fish.maxHp, Math.max(0, fish.hp) + Math.floor(fish.maxHp * 0.5));
+          healed += fish.hp - before;
+        });
+        pl.hp = Math.max(0, pl.team.reduce((sum, fish) => sum + Math.max(0, fish.hp), 0));
+      } else {
+        const before = pl.hp;
+        pl.hp = Math.min(pl.maxHp, Math.max(0, pl.hp) + Math.floor(pl.maxHp * 0.5));
+        healed = pl.hp - before;
+      }
+      pl.eliminated = pl.hp <= 0;
+      state.log.push(`💚 ${resolveName(p)} recovers ${healed} HP.`);
     });
 
     if(state.stageIndex>=raidDef.stages.length-1) {
@@ -695,6 +789,7 @@
           const isLead=mpid===leaderPid;
           const isMe=mpid===pid;
           const elim=raidState?.players?.[mpid]?.eliminated;
+          const teamIcons = getRaidTeamFromMember(m).map(f=>f.empty?"—":(RARITY_EMOJI[f.rarity]||"🐟")).join(" ");
           return `<div class="member-card ${isLead?"is-leader":""} ${isMe?"is-me":""} ${elim?"eliminated":"active"}">
             <div>
               <div class="member-name">${escH(resolveName(mpid))}${isMe?' <span style="font-size:10px;color:#4a9eff">(you)</span>':""}</div>
@@ -704,6 +799,7 @@
                 <span class="badge badge-joined">Online</span>
                 ${elim?'<span class="badge badge-elim">Eliminated</span>':""}
               </div>
+              <div style="margin-top:8px;font-size:11px;color:#8dc4e0">${teamIcons}</div>
             </div>
           </div>`;
         }).join("");
@@ -802,15 +898,24 @@
     const rarityEmoji=RARITY_EMOJI[stage.rarity]||"";
 
     const playerCards=Object.entries(state.players).map(([p,pd])=>{
-      const hp=Math.max(0,pd.hp/pd.maxHp*100);
+      const hp=Math.max(0,pd.maxHp?pd.hp/pd.maxHp*100:0);
       const hc=hp>50?"high":hp>20?"medium":"low";
-      const team=fakeTeam(p);
       const isMe=p===pid;
+      const team = Array.isArray(pd.team) ? pd.team : getRaidTeamFromMember(allMembers.find(m=>memberPid(m)===p));
+      const teamHtml = team.map(f=>{
+        const label = f.empty ? "Empty" : `${RARITY_EMOJI[f.rarity]||"🐟"} ${escH(f.name)}`;
+        const hpText = f.empty ? "" : `${Math.round(f.hp)}/${f.maxHp}`;
+        const color = f.empty ? "#6a8a9a" : f.hp>0 ? "#7ee787" : "#ff7070";
+        return `<div style="min-width:72px;padding:8px;border:1px solid #2f4d5c;border-radius:10px;background:rgba(255,255,255,.03);font-size:10px;line-height:1.2;">
+          <div style="margin-bottom:4px;">${label}</div>
+          <div style="color:${color};font-weight:bold;">${hpText}</div>
+        </div>`;
+      }).join("");
       return `<div class="player-card ${pd.eliminated?"eliminated":"active"} ${isMe?"me-card":""}">
-        <div class="player-fish-icons">${team.join("")}</div>
         <div class="player-card-name">${escH(resolveName(p))}${isMe?" ✦":""}</div>
         <div class="player-hp-bar"><div class="player-hp-fill ${hc}" style="width:${hp}%"></div></div>
-        <div class="player-hp-text">${Math.round(pd.hp)}/${pd.maxHp}</div>
+        <div class="player-hp-text">${Math.round(pd.hp)}/${pd.maxHp} HP</div>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:10px">${teamHtml}</div>
         ${pd.eliminated?'<div class="elim-overlay">Eliminated</div>':""}
       </div>`;
     }).join("");
