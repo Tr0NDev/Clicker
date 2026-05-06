@@ -200,21 +200,21 @@
 	<main>
 		<section class="hero">
 			<h1>Battle Modes</h1>
-			<p>Choisis ton mode de combat. Le Raid de Guilde demande une connexion joueur avant d'entrer.</p>
+			<p>Choose your battle mode. Guild Raid requires a player login to enter.</p>
 		</section>
 
 		<section class="mode-grid">
 			<article class="mode-card">
 				<h2>PVP</h2>
-				<p>Affronte d'autres joueurs avec ton equipe actuelle.</p>
-				<button class="mode-btn" id="pvpButton">Entrer en PVP</button>
+				<p>Face off against other players with your team.</p>
+				<button class="mode-btn" id="pvpButton">Enter PVP</button>
 			</article>
 
 			<article class="mode-card">
-				<h2>Raid de Guilde</h2>
-				<p>Mode cooperative de guilde. Tu dois etre connecte avant d'entrer.</p>
-				<div id="loginState" class="disconnected">Non connecte</div>
-				<button class="mode-btn raid" id="raidButton">Entrer en Raid de Guilde</button>
+				<h2>Guild Raid</h2>
+				<p>Cooperative guild mode. You must be logged in before entering.</p>
+				<div id="loginState" class="disconnected">Not logged in</div>
+				<button class="mode-btn raid" id="raidButton">Enter Guild Raid</button>
 			</article>
 		</section>
 	</main>
@@ -227,10 +227,10 @@
 		const isConnected = !!(userId && username);
 
 		if (isConnected) {
-			loginStateEl.textContent = "Connecte en tant que " + username;
+			loginStateEl.textContent = "Connected as " + username;
 			loginStateEl.className = "connected";
 		} else {
-			loginStateEl.textContent = "Non connecte";
+			loginStateEl.textContent = "Not connected";
 			loginStateEl.className = "disconnected";
 		}
 
@@ -240,7 +240,7 @@
 
 		document.getElementById("raidButton").addEventListener("click", () => {
 			if (!isConnected) {
-				alert("Connecte-toi d'abord dans Settings pour acceder au Raid de Guilde.");
+				alert("You must be logged in to enter Guild Raid.");
 				window.location.href = "../settings/";
 				return;
 			}
