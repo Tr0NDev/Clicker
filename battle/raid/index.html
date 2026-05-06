@@ -172,7 +172,6 @@
       <button class="nav-button locked-nav-button" onclick="location.href='../../shop/'">Shop</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../../bestiary/'">Bestiary</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../'">Battle</button>
-      <button class="nav-button locked-nav-button active-nav-button">Raid</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../../reproduction/'">Reproduction</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../../missions/'">Missions</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../../guild/'">Guild</button>
@@ -520,6 +519,7 @@
 
   // ─── RAID ENGINE ─────────────────────────────────────────────────────────────
   async function launchRaid() {
+    localStorage.setItem("clicker_battleSpeedLock", "true");
     const squadPids=getSquadPids();
     if(squadPids.length<2) { setStatus("Need at least 2 players.","err"); return; }
     if(!selectedRaidKey||!RAIDS[selectedRaidKey]) { setStatus("Select a raid first.","err"); return; }
@@ -764,10 +764,7 @@
 
     const canLaunch=iAmLeader&&squadPids.length>=2&&!!selectedRaidKey;
     const launchBlock=iAmLeader
-      ?`${raidChooser}
-        <button class="btn btn-gold" ${canLaunch?"":"disabled"} onclick="launchRaid()">
-          ⚔️ Launch — ${selectedRaidKey?RAIDS[selectedRaidKey].name:"Select a raid first"}
-        </button>`
+      ? raidChooser
       :hasLeader
         ?`<div class="leader-waiting">⏳ Waiting for the leader to launch the raid…</div>`
         :`<div class="leader-waiting">⚠️ No leader. Click <strong>Become Leader</strong> to take command.</div>`;
@@ -785,7 +782,7 @@
     document.getElementById("rewardSection").style.display="none";
   }
 
-  function selectRaid(key) { selectedRaidKey=key; renderCenter(); }
+  function selectRaid(key) { selectedRaidKey=key; renderCenter(); if(amILeader()) launchRaid(); }
 
   function renderArena() {
     const state=raidState;
