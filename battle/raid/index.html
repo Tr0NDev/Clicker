@@ -29,6 +29,9 @@
 
     .section { border: 1px solid #2f4d5c; border-radius: 14px; background: #142028; padding: 14px; }
     .section-title { font-size: 18px; font-weight: bold; color: #8dc4e0; margin-bottom: 10px; }
+    .squad-title-row { display: flex; align-items: center; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+    .online-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: rgba(126,231,135,.08); border: 1px solid #2d6b40; color: #7ee787; font-size: 12px; font-weight: bold; }
+    .online-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #2fd468; box-shadow: 0 0 8px rgba(47,212,104,.45); }
     .section-header-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
     .section-header-row .section-title { margin-bottom: 0; }
 
@@ -186,7 +189,7 @@
 
     <section class="hero">
       <div class="hero-title">⚔️ Guild Raid</div>
-      <div class="hero-subtitle">5 waves of enemies to defeat together. The squad leader chooses the raid and launches it. Others wait. Reward: <strong style="color:#e8c060">10 🪝</strong> per survivor.</div>
+      <div class="hero-subtitle">5 stages of enemies to defeat together. The squad leader chooses the raid and launches it. Others wait. Reward: <strong style="color:#e8c060">10 🪝</strong> per survivor.</div>
     </section>
 
     <div class="page-grid">
@@ -194,16 +197,17 @@
       <!-- LEFT COLUMN -->
       <div class="split-stack">
         <section class="section">
-          <div class="section-header-row">
+          <div class="section-header-row squad-title-row">
             <div class="section-title">Squad</div>
-            <div style="display:flex;gap:6px">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <span class="online-pill"><span class="dot"></span><span id="onlineCountBadge">0</span> online</span>
               <button class="btn btn-sm" id="refreshBtn" onclick="refreshAll()">↻ Refresh</button>
               <button class="btn btn-sm" onclick="toggleDebug()" style="opacity:.5">🐛</button>
             </div>
           </div>
 
           <div class="panel" style="margin-bottom:10px">
-            <div class="panel-subtitle">Guild members (online = in squad)</div>
+            <div class="panel-subtitle">Guild members</div>
             <div class="live-chips" id="guildChips"><span class="subtle">Loading…</span></div>
           </div>
 
@@ -212,10 +216,7 @@
             <div id="squadList"><div class="subtle" style="padding:4px 0">Loading…</div></div>
 
             <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-              <!-- Join/Leave toggle — label and style updated dynamically -->
-              <button class="btn btn-cyan" id="squadToggleBtn" onclick="handleSquadToggle()" disabled>
-                Join Squad
-              </button>
+              <button class="btn btn-cyan" id="squadToggleBtn" onclick="handleSquadToggle()" disabled>Join Squad</button>
               <!-- "Become Leader" only visible when in squad and no leader -->
               <button class="btn btn-sm btn-gold" id="becomeLeaderBtn" onclick="handleBecomeLeader()" style="display:none">
                 ⚜ Become Leader
@@ -230,7 +231,7 @@
           <div class="section-title">Raid Rules</div>
           <div class="raid-rule"><strong>Minimum 2 players</strong> to start a raid.</div>
           <div class="raid-rule">The <strong>squad leader</strong> chooses the raid and launches it. Others wait.</div>
-          <div class="raid-rule"><strong>5 waves</strong> of enemies. Each player attacks by pressing the button.</div>
+          <div class="raid-rule"><strong>5 stages</strong> of enemies. Each player attacks by pressing the button.</div>
           <div class="raid-rule">The enemy counter-attacks <strong>all players</strong> after every hit.</div>
           <div class="raid-rule">After each wave, all fish recover <strong>50% HP</strong>.</div>
           <div class="raid-rule">If all your fish reach 0 HP → you're <strong style="color:#ff9999">eliminated</strong> (no reward).</div>
@@ -272,18 +273,48 @@
   const USER_ID_KEY   = "clicker_userId";      // primary player id
   const USERNAME_KEY  = "clicker_username";    // display name (local)
 
-  const SQUAD_ACTIVE_MS = 60_000;   // 60s — player counts as "in squad"
+  const SQUAD_ACTIVE_MS = 60_000;   // 60s — player counts as online
   const HEARTBEAT_MS    = 15_000;
   const POLL_MS         = 4_000;
+  const RAID_CONFIG_URL = "./raids.txt";
 
-  const WAVES = [
-    { name:"Clown Fish",      emoji:"🐠", hp: 80,  atk: 8  },
-    { name:"Wild Grouper",    emoji:"🐟", hp: 160, atk: 16 },
-    { name:"Hammerhead Shark",emoji:"🦈", hp: 280, atk: 28 },
-    { name:"Giant Octopus",   emoji:"🐙", hp: 420, atk: 45 },
-    { name:"Abyssal Kraken",  emoji:"🦑", hp: 650, atk: 70 },
-  ];
-  const WAVE_EMOJIS = WAVES.map(w => w.emoji);
+  const DEFAULT_RAIDS = {
+    raid1: { name: "Coral Assault", reward: 10, stages: [
+      { name: "Palier 1", emoji: "🐠", hp: 800, atk: 80 },
+      { name: "Palier 2", emoji: "🐟", hp: 1000, atk: 100 },
+      { name: "Palier 3", emoji: "🦈", hp: 1200, atk: 120 },
+      { name: "Palier 4", emoji: "🐙", hp: 1400, atk: 140 },
+      { name: "Palier 5", emoji: "🦑", hp: 1600, atk: 160 },
+    ] },
+    raid2: { name: "Frozen Trench", reward: 10, stages: [
+      { name: "Palier 1", emoji: "🐟", hp: 1100, atk: 105 },
+      { name: "Palier 2", emoji: "🐠", hp: 1300, atk: 125 },
+      { name: "Palier 3", emoji: "🦀", hp: 1500, atk: 145 },
+      { name: "Palier 4", emoji: "🦈", hp: 1700, atk: 165 },
+      { name: "Palier 5", emoji: "🐙", hp: 1900, atk: 185 },
+    ] },
+    raid3: { name: "Sunken Citadel", reward: 10, stages: [
+      { name: "Palier 1", emoji: "🐚", hp: 1400, atk: 130 },
+      { name: "Palier 2", emoji: "🐠", hp: 1600, atk: 150 },
+      { name: "Palier 3", emoji: "🦈", hp: 1800, atk: 170 },
+      { name: "Palier 4", emoji: "🐙", hp: 2000, atk: 190 },
+      { name: "Palier 5", emoji: "🦑", hp: 2200, atk: 210 },
+    ] },
+    raid4: { name: "Storm Reef", reward: 10, stages: [
+      { name: "Palier 1", emoji: "🐟", hp: 1700, atk: 150 },
+      { name: "Palier 2", emoji: "🦈", hp: 1900, atk: 170 },
+      { name: "Palier 3", emoji: "🐙", hp: 2100, atk: 190 },
+      { name: "Palier 4", emoji: "🦀", hp: 2300, atk: 210 },
+      { name: "Palier 5", emoji: "🦑", hp: 2500, atk: 230 },
+    ] },
+    raid5: { name: "Abyss Prime", reward: 10, stages: [
+      { name: "Palier 1", emoji: "🐠", hp: 2000, atk: 180 },
+      { name: "Palier 2", emoji: "🐟", hp: 2250, atk: 200 },
+      { name: "Palier 3", emoji: "🦈", hp: 2500, atk: 220 },
+      { name: "Palier 4", emoji: "🐙", hp: 2750, atk: 240 },
+      { name: "Palier 5", emoji: "🦑", hp: 3000, atk: 260 },
+    ] },
+  };
 
   // ─── HELPERS ─────────────────────────────────────────────────────────────────
   function safeParseArray(raw) {
@@ -330,6 +361,9 @@
   let allMembers   = [];
   let raidState    = null;
   let nameCache    = {};   // pid → display name fetched from Supabase
+  let raidCatalog  = DEFAULT_RAIDS;
+  let raidCatalogLoaded = false;
+  let selectedRaidKey = "raid1";
   let busyFetch    = false;
   let pollTimer    = null;
   let heartbeatTimer = null;
@@ -337,7 +371,7 @@
   let lastLogCount = 0;
 
   // ─── DISPLAY NAME RESOLUTION ─────────────────────────────────────────────────
-  // Always try Supabase profiles first, then memberName field in guild row, then short id.
+  // Always try Supabase profiles first, then accounts, then member object fields.
   async function fetchNames(pids) {
     if (!db || !pids.length) return;
     const missing = pids.filter(p => p && !nameCache[p]);
@@ -370,8 +404,7 @@
       const n = m.displayName || m.username || m.name || m.userName;
       if (n) return n;
     }
-    // Fallback: short id
-    return "Player·" + String(pid).slice(-4);
+    return "Player";
   }
 
   // Extract pid from a member object regardless of which field stores it
@@ -381,21 +414,62 @@
 
   // ─── SQUAD HELPERS ───────────────────────────────────────────────────────────
   function getSquadMembers() {
-    const cutoff = Date.now() - SQUAD_ACTIVE_MS;
-    return allMembers.filter(m => {
-      const t = Date.parse(m.raidLastSeen || "");
-      return Number.isFinite(t) && t >= cutoff;
-    });
+    return allMembers.filter(m => Boolean(m.raidJoinedAt));
   }
   function getSquadPids() { return getSquadMembers().map(m => memberPid(m)).filter(Boolean); }
   function amIInSquad()   { return getSquadPids().includes(myPid()); }
   function getLeaderPid() {
-    // Leader is the member with raidLeader:true that is still active in squad
-    const sqPids = getSquadPids();
-    const leader = allMembers.find(m => m.raidLeader && sqPids.includes(memberPid(m)));
+    const squad = getSquadMembers();
+    const leader = squad.find(m => m.raidLeader) || squad[0] || null;
     return leader ? memberPid(leader) : null;
   }
   function amILeader() { return getLeaderPid() === myPid(); }
+
+  function getOnlinePids() {
+    const cutoff = Date.now() - SQUAD_ACTIVE_MS;
+    return allMembers.filter(m => {
+      const t = Date.parse(m.lastSeenAt || m.raidLastSeen || m.updated_at || "");
+      return Number.isFinite(t) && t >= cutoff;
+    }).map(m => memberPid(m)).filter(Boolean);
+  }
+
+  function getRaidProgress() {
+    const n = Number(guildData?.raid_progress || 1);
+    return Math.min(5, Math.max(1, n || 1));
+  }
+
+  function getSelectedRaid() {
+    return raidCatalog[selectedRaidKey] || raidCatalog.raid1 || DEFAULT_RAIDS.raid1;
+  }
+
+  function getAvailableRaidKeys() {
+    const progress = getRaidProgress();
+    return Object.keys(raidCatalog).filter((key, idx) => idx < progress);
+  }
+
+  function getCurrentStages() {
+    const raid = getSelectedRaid();
+    return Array.isArray(raid?.stages) && raid.stages.length ? raid.stages : DEFAULT_RAIDS.raid1.stages;
+  }
+
+  async function loadRaidCatalog() {
+    if (raidCatalogLoaded) return;
+    try {
+      const res = await fetch(RAID_CONFIG_URL, { cache: "no-store" });
+      if (!res.ok) throw new Error("config load failed");
+      const raw = await res.text();
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        raidCatalog = parsed.raids ? parsed.raids : parsed;
+      }
+    } catch {
+      raidCatalog = DEFAULT_RAIDS;
+    }
+    if (!raidCatalog[selectedRaidKey]) {
+      selectedRaidKey = Object.keys(raidCatalog)[0] || "raid1";
+    }
+    raidCatalogLoaded = true;
+  }
 
   // ─── STATUS / LOG ────────────────────────────────────────────────────────────
   function setStatus(msg, type = "") {
@@ -438,6 +512,7 @@
     if (busyFetch) return;
     busyFetch = true;
     try {
+      await loadRaidCatalog();
       const mem = getMembership();
       if (!db || !mem?.guildId) { renderNoGuild(); busyFetch = false; return; }
 
@@ -446,6 +521,8 @@
 
       guildData  = guild;
       allMembers = safeParseArray(guild.members);
+      const availableRaidKeys = getAvailableRaidKeys();
+      if (!availableRaidKeys.includes(selectedRaidKey)) selectedRaidKey = availableRaidKeys[0] || "raid1";
 
       // Fetch display names from Supabase for all squad members
       await fetchNames(allMembers.map(m => memberPid(m)).filter(Boolean));
@@ -453,6 +530,12 @@
       try {
         const raw = guild.raid_state;
         raidState  = raw ? (typeof raw === "string" ? JSON.parse(raw) : raw) : null;
+        if (raidState && !Number.isInteger(raidState.stage) && Number.isInteger(raidState.wave)) {
+          raidState.stage = raidState.wave;
+        }
+        if (raidState && !raidState.raidKey) {
+          raidState.raidKey = selectedRaidKey;
+        }
       } catch { raidState = null; }
 
       syncRaidLog();
@@ -531,8 +614,8 @@
 
     // If this player was the leader, assign leader to next in squad
     if (members[idx]?.raidLeader) {
-      const stillActive = members.filter((m, i) => i !== idx && m.raidLastSeen && Date.now() - Date.parse(m.raidLastSeen) < SQUAD_ACTIVE_MS);
-      if (stillActive.length) stillActive[0].raidLeader = true;
+      const stillJoined = members.filter((m, i) => i !== idx && m.raidJoinedAt);
+      if (stillJoined.length) stillJoined[0].raidLeader = true;
     }
 
     const { error: uerr } = await db.from(GUILDS_TABLE).update({ members: JSON.stringify(members) }).eq("id", mem.guildId);
@@ -562,7 +645,6 @@
 
   // ─── HEARTBEAT ───────────────────────────────────────────────────────────────
   async function heartbeat() {
-    if (!amIInSquad()) return;
     const mem = getMembership();
     if (!db || !mem?.guildId) return;
     const pid = myPid();
@@ -579,22 +661,32 @@
   }
 
   // ─── RAID ENGINE ─────────────────────────────────────────────────────────────
-  let selectedWaveIndex = 0; // leader picks before launch
+  function getRaidIndex(key) {
+    return Object.keys(raidCatalog).indexOf(key);
+  }
+
+  async function persistRaidProgress(guildId, nextProgress) {
+    if (!db || !guildId) return;
+    await db.from(GUILDS_TABLE).update({ raid_progress: nextProgress }).eq("id", guildId);
+    if (guildData) guildData.raid_progress = nextProgress;
+  }
 
   async function launchRaid() {
     const squadPids = getSquadPids();
     if (squadPids.length < 2) { setStatus("Need at least 2 players in the squad.", "err"); return; }
     const mem  = getMembership();
-    const wave = WAVES[selectedWaveIndex];
+    const raid = getSelectedRaid();
+    const stages = getCurrentStages();
+    const firstStage = stages[0];
 
     const players = {};
     squadPids.forEach(p => { players[p] = { hp: 100, maxHp: 100, eliminated: false }; });
 
     const state = {
-      phase: "running", wave: selectedWaveIndex,
-      enemyMaxHp: wave.hp, enemyHp: wave.hp,
+      phase: "running", raidKey: selectedRaidKey, stage: 0,
+      enemyMaxHp: firstStage.hp, enemyHp: firstStage.hp,
       players, completedWaves: [], rewardClaimed: {},
-      log: [`🌊 Raid launched! Wave ${selectedWaveIndex + 1}: ${wave.name} (${wave.hp} HP)`]
+      log: [`🌊 Raid launched! ${raid.name} - Stage 1: ${firstStage.name} (${firstStage.hp} HP)`]
     };
 
     await db.from(GUILDS_TABLE).update({ raid_state: JSON.stringify(state) }).eq("id", mem.guildId);
@@ -617,13 +709,15 @@
     if (state.enemyHp <= 0) { await advanceWave(state, mem.guildId); return; }
 
     // Counter-attack all
-    const atkDmg = WAVES[state.wave].atk;
+    const stages = getCurrentStages();
+    const stage = stages[state.stage] || stages[0];
+    const atkDmg = stage.atk;
     let anyAlive = false;
     Object.keys(state.players).forEach(p => {
       const pl = state.players[p];
       if (pl.eliminated) return;
       pl.hp = Math.max(0, pl.hp - atkDmg);
-      state.log.push(`🔴 ${WAVES[state.wave].emoji} hits ${resolveName(p)} for ${atkDmg}! (${Math.round(pl.hp)}/${pl.maxHp} HP)`);
+      state.log.push(`🔴 ${stage.emoji} hits ${resolveName(p)} for ${atkDmg}! (${Math.round(pl.hp)}/${pl.maxHp} HP)`);
       if (pl.hp <= 0) { pl.eliminated = true; state.log.push(`💀 ${resolveName(p)} has been eliminated!`); }
       else { anyAlive = true; }
     });
@@ -638,9 +732,10 @@
   }
 
   async function advanceWave(state, guildId) {
-    const w = WAVES[state.wave];
-    state.completedWaves = [...(state.completedWaves || []), state.wave];
-    state.log.push(`✅ Wave ${state.wave + 1} complete! ${w.name} defeated!`);
+    const stages = getCurrentStages();
+    const w = stages[state.stage] || stages[0];
+    state.completedWaves = [...(state.completedWaves || []), state.stage];
+    state.log.push(`✅ Stage ${state.stage + 1} complete! ${w.name} defeated!`);
 
     Object.keys(state.players).forEach(p => {
       const pl   = state.players[p];
@@ -650,14 +745,21 @@
       state.log.push(`💚 ${resolveName(p)} recovers ${heal} HP.`);
     });
 
-    if (state.wave >= 4) {
+    if (state.stage >= stages.length - 1) {
       state.phase = "ended"; state.result = "victory";
       state.log.push("🏆 VICTORY! Survivors — claim your 10 🪝!");
+      const progress = getRaidProgress();
+      const selectedIndex = getRaidIndex(state.raidKey || selectedRaidKey);
+      const nextProgress = Math.max(progress, Math.min(5, selectedIndex + 2));
+      if (nextProgress > progress) {
+        await persistRaidProgress(guildId, nextProgress);
+        state.log.push(`🔓 ${Object.keys(raidCatalog)[nextProgress - 1] || "Next raid"} unlocked!`);
+      }
     } else {
-      state.wave++;
-      const nw = WAVES[state.wave];
+      state.stage++;
+      const nw = stages[state.stage];
       state.enemyMaxHp = nw.hp; state.enemyHp = nw.hp;
-      state.log.push(`🌊 Wave ${state.wave + 1}: ${nw.name} (${nw.hp} HP)`);
+      state.log.push(`🌊 Stage ${state.stage + 1}: ${nw.name} (${nw.hp} HP)`);
     }
 
     await db.from(GUILDS_TABLE).update({ raid_state: JSON.stringify(state) }).eq("id", guildId);
@@ -725,10 +827,14 @@
   function renderLeftPanel() {
     const pid       = myPid();
     const squadPids = getSquadPids();
+    const onlinePids = getOnlinePids();
     const isIn      = squadPids.includes(pid);
     const leaderPid = getLeaderPid();
     const iAmLeader = leaderPid === pid;
     const hasLeader = !!leaderPid;
+
+    const onlineBadge = document.getElementById("onlineCountBadge");
+    if (onlineBadge) onlineBadge.textContent = String(onlinePids.length);
 
     // --- Squad toggle button ---
     const toggleBtn = document.getElementById("squadToggleBtn");
@@ -757,7 +863,7 @@
       } else {
         chips.innerHTML = allMembers.map(m => {
           const mpid   = memberPid(m);
-          const active = squadPids.includes(mpid);
+          const active = onlinePids.includes(mpid);
           const isLead = mpid === leaderPid;
           const isMe   = mpid === pid;
           return `<span class="chip ${active?"online":""} ${isLead?"leader-chip":""} ${isMe?"my-chip":""}">
@@ -802,11 +908,12 @@
 
   // ── WAVE PIPS ──────────────────────────────────────────────────────────────
   function renderWavePips(currentWave) {
-    return `<div class="wave-selector">${WAVES.map((w,i) => {
+    const stages = getCurrentStages();
+    return `<div class="wave-selector">${stages.map((w,i) => {
       const done = raidState?.completedWaves?.includes(i);
       const cur  = i === currentWave;
       return `<div class="wave-pip ${done?"done":cur?"active":"locked"}">
-        <span class="wave-icon">${done?"✅":cur?"⚡":w.emoji}</span>W${i+1}
+        <span class="wave-icon">${done?"✅":cur?"⚡":w.emoji}</span>S${i+1}
       </div>`;
     }).join("")}</div>`;
   }
@@ -837,27 +944,32 @@
 
     // ── LOBBY ──
     const canLaunch = iAmLeader && squadPids.length >= 2;
+    const availableRaids = getAvailableRaidKeys();
+    const selectedRaid = getSelectedRaid();
 
-    // Wave chooser for leader
-    const waveChooser = iAmLeader ? `
+    const raidChooser = iAmLeader ? `
       <div style="margin-bottom:14px">
-        <div class="panel-subtitle" style="margin-bottom:8px">Choose Starting Wave</div>
+        <div class="panel-subtitle" style="margin-bottom:8px">Choose Raid</div>
         <div class="wave-chooser" id="waveChooser">
-          ${WAVES.map((w,i) => `
-            <div class="wave-choice ${selectedWaveIndex===i?"selected":""}" onclick="selectWave(${i})">
-              <span class="wave-choice-emoji">${w.emoji}</span>
+          ${availableRaids.map((key) => {
+            const raid = raidCatalog[key] || DEFAULT_RAIDS.raid1;
+            const stage0 = raid.stages?.[0] || DEFAULT_RAIDS.raid1.stages[0];
+            const locked = getRaidIndex(key) + 1 > getRaidProgress();
+            return `<div class="wave-choice ${selectedRaidKey===key?"selected":""} ${locked?"locked":""}" onclick="selectRaid('${key}')">
+              <span class="wave-choice-emoji">${stage0.emoji}</span>
               <div class="wave-choice-info">
-                <div class="wave-choice-name">${w.name}</div>
-                <div class="wave-choice-stats">${w.hp} HP · ${w.atk} ATK/hit</div>
+                <div class="wave-choice-name">${escH(raid.name)}</div>
+                <div class="wave-choice-stats">${(raid.stages || []).length} stages · ${raid.reward} hooks${locked ? " · locked" : ""}</div>
               </div>
-            </div>`).join("")}
+            </div>`;
+          }).join("")}
         </div>
       </div>` : "";
 
     const launchBlock = iAmLeader
-      ? `${waveChooser}
+      ? `${raidChooser}
          <button class="btn btn-gold" ${canLaunch?"":"disabled"} onclick="launchRaid()">
-           ⚔️ Launch Raid — ${squadPids.length} players (Wave ${selectedWaveIndex+1}: ${WAVES[selectedWaveIndex].name})
+           ⚔️ Launch Raid — ${squadPids.length} players (${escH(selectedRaid.name)})
          </button>`
       : hasLeader
         ? `<div class="leader-waiting">⏳ Waiting for the leader to launch the raid…</div>`
@@ -877,8 +989,9 @@
     document.getElementById("rewardSection").style.display = "none";
   }
 
-  function selectWave(idx) {
-    selectedWaveIndex = idx;
+  function selectRaid(key) {
+    if (!getAvailableRaidKeys().includes(key)) return;
+    selectedRaidKey = key;
     // Just re-render center without full fetch
     renderCenter();
   }
@@ -886,7 +999,9 @@
   // ── ARENA ──────────────────────────────────────────────────────────────────
   function renderArena() {
     const state  = raidState;
-    const wave   = WAVES[state.wave];
+    const stages = getCurrentStages();
+    const stageIndex = Number.isInteger(state.stage) ? state.stage : 0;
+    const wave   = stages[stageIndex] || stages[0];
     const pid    = myPid();
     const myData = state.players[pid];
     const canAtk = myData && !myData.eliminated;
@@ -913,7 +1028,7 @@
         <div class="section-title">⚔️ Battle in Progress</div>
         ${iAmLdr ? `<button class="btn btn-sm btn-danger" onclick="resetRaid()">Abandon</button>` : ""}
       </div>
-      ${renderWavePips(state.wave)}
+      ${renderWavePips(stageIndex)}
       <div class="arena">
         <div class="arena-inner">
           <div class="enemy-zone">
@@ -930,7 +1045,7 @@
       <button class="btn btn-gold" id="attackBtn" ${canAtk?"":"disabled"} onclick="doAttack()">
         ${myData?.eliminated ? "❌ Eliminated" : `⚔️ Attack — ${computeAtk(pid)} damage`}
       </button>
-      <div class="subtle" style="margin-top:6px;text-align:center">Wave ${state.wave+1}/5</div>`;
+      <div class="subtle" style="margin-top:6px;text-align:center">Stage ${stageIndex+1}/${stages.length}</div>`;
     document.getElementById("rewardSection").style.display = "none";
   }
 
@@ -957,6 +1072,7 @@
   // ── END STATE ──────────────────────────────────────────────────────────────
   function renderEndState() {
     const state  = raidState;
+    const stages = getCurrentStages();
     const pid    = myPid();
     const myData = state.players[pid];
     const isVic  = state.result === "victory";
@@ -986,7 +1102,7 @@
         <div class="section-title">${isVic ? "🏆 Victory!" : "💀 Defeat"}</div>
         ${iAmLdr ? `<button class="btn btn-sm" onclick="resetRaid()">🔄 New Raid</button>` : ""}
       </div>
-      ${renderWavePips(isVic ? 5 : -1)}
+      ${renderWavePips(isVic ? stages.length : -1)}
       <div class="panel" style="margin-bottom:12px">
         <div class="panel-subtitle">Results</div>
         ${Object.entries(state.players).map(([p,pd]) => `
@@ -1041,7 +1157,7 @@
   } else if (!myPid()) {
     setStatus("No player ID found (clicker_userId). Please log in.", "err");
   } else {
-    fetchAll().then(startTimers).catch(e => setStatus(e?.message || "Error", "err"));
+    loadRaidCatalog().then(() => fetchAll()).then(startTimers).catch(e => setStatus(e?.message || "Error", "err"));
   }
 
   window.addEventListener("focus",        () => fetchAll().catch(() => {}));

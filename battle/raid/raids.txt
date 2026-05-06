@@ -1,0 +1,59 @@
+{
+  "raids": {
+    "raid1": {
+      "name": "Coral Assault",
+      "reward": 10,
+      "stages": [
+        { "name": "Palier 1", "emoji": "🐠", "hp": 800, "atk": 80 },
+        { "name": "Palier 2", "emoji": "🐟", "hp": 1000, "atk": 100 },
+        { "name": "Palier 3", "emoji": "🦈", "hp": 1200, "atk": 120 },
+        { "name": "Palier 4", "emoji": "🐙", "hp": 1400, "atk": 140 },
+        { "name": "Palier 5", "emoji": "🦑", "hp": 1600, "atk": 160 }
+      ]
+    },
+    "raid2": {
+      "name": "Frozen Trench",
+      "reward": 10,
+      "stages": [
+        { "name": "Palier 1", "emoji": "🐟", "hp": 1100, "atk": 105 },
+        { "name": "Palier 2", "emoji": "🐠", "hp": 1300, "atk": 125 },
+        { "name": "Palier 3", "emoji": "🦀", "hp": 1500, "atk": 145 },
+        { "name": "Palier 4", "emoji": "🦈", "hp": 1700, "atk": 165 },
+        { "name": "Palier 5", "emoji": "🐙", "hp": 1900, "atk": 185 }
+      ]
+    },
+    "raid3": {
+      "name": "Sunken Citadel",
+      "reward": 10,
+      "stages": [
+        { "name": "Palier 1", "emoji": "🐚", "hp": 1400, "atk": 130 },
+        { "name": "Palier 2", "emoji": "🐠", "hp": 1600, "atk": 150 },
+        { "name": "Palier 3", "emoji": "🦈", "hp": 1800, "atk": 170 },
+        { "name": "Palier 4", "emoji": "🐙", "hp": 2000, "atk": 190 },
+        { "name": "Palier 5", "emoji": "🦑", "hp": 2200, "atk": 210 }
+      ]
+    },
+    "raid4": {
+      "name": "Storm Reef",
+      "reward": 10,
+      "stages": [
+        { "name": "Palier 1", "emoji": "🐟", "hp": 1700, "atk": 150 },
+        { "name": "Palier 2", "emoji": "🦈", "hp": 1900, "atk": 170 },
+        { "name": "Palier 3", "emoji": "🐙", "hp": 2100, "atk": 190 },
+        { "name": "Palier 4", "emoji": "🦀", "hp": 2300, "atk": 210 },
+        { "name": "Palier 5", "emoji": "🦑", "hp": 2500, "atk": 230 }
+      ]
+    },
+    "raid5": {
+      "name": "Abyss Prime",
+      "reward": 10,
+      "stages": [
+        { "name": "Palier 1", "emoji": "🐠", "hp": 2000, "atk": 180 },
+        { "name": "Palier 2", "emoji": "🐟", "hp": 2250, "atk": 200 },
+        { "name": "Palier 3", "emoji": "🦈", "hp": 2500, "atk": 220 },
+        { "name": "Palier 4", "emoji": "🐙", "hp": 2750, "atk": 240 },
+        { "name": "Palier 5", "emoji": "🦑", "hp": 3000, "atk": 260 }
+      ]
+    }
+  }
+}
