@@ -543,6 +543,8 @@
       log:[`⚔️ Raid "${raidDef.name}" launched! Floor 1: ${firstStage.name} (${firstStage.hp} HP | ${firstStage.atk} ATK) [${firstStage.rarity}]`]
     };
 
+    raidState = state;
+    renderAll();
     await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
     await fetchAll();
   }
