@@ -378,8 +378,8 @@
     const h = [...(pid||"x")].reduce((a,c,i)=>a+c.charCodeAt(0)*(i+1),0);
     return [CHARS[Math.abs(h)%CHARS.length], CHARS[Math.abs(h+7)%CHARS.length], CHARS[Math.abs(h+14)%CHARS.length]];
   }
-  function computeAtk(pid) {
-    const player = raidState?.players?.[pid];
+  function computeAtk(pid, state) {
+    const player = state.players[pid];
     if (player?.team && Array.isArray(player.team)) {
       return player.team.reduce((sum, fish) => sum + (fish.hp > 0 ? fish.atk : 0), 0);
     }
@@ -595,12 +595,16 @@
     const firstStage=raidDef.stages[0];
 
     const players={};
+    let totalAtk = 0;
     squadPids.forEach(p=>{
       const member = allMembers.find(mb => memberPid(mb) === p);
       const team = getRaidTeamFromMember(member);
       const totalHp = team.reduce((sum, fish) => sum + fish.maxHp, 0) || 100;
+      const atk = team.reduce((sum, fish) => sum + fish.atk, 0);
+      totalAtk += atk;
       players[p] = {team, hp: totalHp, maxHp: totalHp, eliminated:false};
     });
+    if (totalAtk === 0) { setStatus("No attack power in squad — select fish first.","err"); return; }
 
     const state={
       phase:"running",
@@ -624,13 +628,20 @@
   async function attackEnemy() {
     if(!raidState||raidState.phase!=="running") return;
     const pid=myPid(), mem=getMembership();
-    const state=JSON.parse(JSON.stringify(raidState));
+
+    // Fetch current state to avoid race conditions
+    const {data:guild} = await db.from(GUILDS_TABLE).select("raid_state").eq("id",mem.guildId).single();
+    if(!guild) return;
+    let state = guild.raid_state ? JSON.parse(guild.raid_state) : null;
+    if(!state || state.phase !== "running") return;
+
     const me=state.players[pid];
     if(!me||me.eliminated) return;
 
     const raidDef=RAIDS[state.raidKey];
     const stage=raidDef.stages[state.stageIndex];
-    const dmg=computeAtk(pid);
+    const dmg=computeAtk(pid, state);
+    console.log(`Player ${pid} attacks with ${dmg} dmg, enemy HP ${state.enemyHp} -> ${Math.max(0, state.enemyHp - dmg)}`);
     state.enemyHp=Math.max(0,state.enemyHp-dmg);
     state.log.push(`⚔️ ${resolveName(pid)} hits ${stage.name} for ${dmg} dmg! (${Math.round(state.enemyHp)}/${state.enemyMaxHp} HP)`);
 
@@ -941,7 +952,7 @@
         </div>
       </div>
       <button class="btn btn-gold" id="attackBtn" ${canAtk?"":"disabled"} onclick="doAttack()">
-        ${myData?.eliminated?"❌ Eliminated":`⚔️ Attack — ${computeAtk(pid)} damage`}
+        ${myData?.eliminated?"❌ Eliminated":`⚔️ Attack — ${computeAtk(pid, raidState)} damage`}
       </button>
       <div class="subtle" style="margin-top:6px;text-align:center">Raid: ${escH(raidDef.name)}</div>`;
     document.getElementById("rewardSection").style.display="none";
@@ -951,7 +962,7 @@
     const btn=document.getElementById("attackBtn"); if(btn) btn.disabled=true;
     const fe=document.getElementById("fishEmoji");
     if(fe) { fe.classList.remove("hit"); void fe.offsetWidth; fe.classList.add("hit"); }
-    spawnFloaty(fe,`-${computeAtk(myPid())}`);
+    spawnFloaty(fe,`-${computeAtk(myPid(), raidState)}`);
     await attackEnemy();
   }
 
