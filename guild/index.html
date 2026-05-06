@@ -294,12 +294,14 @@
     .fish-slot.rarity-rare      { border-color: #1a3a7a; background: rgba(88,166,255,.05); }
     .fish-slot.rarity-epic      { border-color: #4a2a7a; background: rgba(210,168,255,.05); }
     .fish-slot.rarity-legendary { border-color: #7a4a10; background: rgba(255,166,87,.06); }
+    .fish-slot.rarity-mythic    { border-color: #ff5e5e; background: rgba(255,94,94,.06); }
 
     .fish-name-common    { color: #c0c0c0; }
     .fish-name-uncommon  { color: #7ee787; }
     .fish-name-rare      { color: #58a6ff; }
     .fish-name-epic      { color: #d2a8ff; }
     .fish-name-legendary { color: #ffa657; }
+    .fish-name-mythic    { color: #ff5e5e; }
 
     /* ── CHAR SLOTS (couleur par étoiles) ── */
     .char-slot {
@@ -615,7 +617,7 @@
     }
 
     // ── SCORE / RANK ─────────────────────────────────────────────────────────
-    const RARITY_RANK = { common:1, uncommon:2, rare:3, epic:4, legendary:5 };
+    const RARITY_RANK = { common:1, uncommon:2, rare:3, epic:4, legendary:5, mythic:6 };
 
     function computePlayerScore(fish, chars) {
       let score = 0;
@@ -668,7 +670,7 @@
       return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
     function rarityLabel(r) {
-      return {common:"Common",uncommon:"Uncommon",rare:"Rare",epic:"Epic",legendary:"Legendary"}[r] || r;
+      return {common:"Common",uncommon:"Uncommon",rare:"Rare",epic:"Epic",legendary:"Legendary",mythic:"Mythic"}[r] || r;
     }
 
     function getGuildRankLabel(role, posInRoster) {
@@ -917,9 +919,9 @@
       const myChars = getPlayerCharTeam();
       const myScore = computePlayerScore(myFish, myChars);
 
-      const rarityColors = { common: "#c0c0c0", uncommon: "#7ee787", rare: "#58a6ff", epic: "#d2a8ff", legendary: "#ffa657" };
+      const rarityColors = { common: "#c0c0c0", uncommon: "#7ee787", rare: "#58a6ff", epic: "#d2a8ff", legendary: "#ffa657", mythic: "#ff5e5e" };
       const starColors = { 1: "#c0c0c0", 2: "#7ee787", 3: "#58a6ff", 4: "#d2a8ff", 5: "#ffa657" };
-      const rarityBgs = { common: "#4a5a5a", uncommon: "#2a5a2a", rare: "#1a3a7a", epic: "#4a2a7a", legendary: "#7a4a10" };
+      const rarityBgs = { common: "#4a5a5a", uncommon: "#2a5a2a", rare: "#1a3a7a", epic: "#4a2a7a", legendary: "#7a4a10", mythic: "#5a1515" };
       const starBgs = { 1: "#4a5a5a", 2: "#2a5a2a", 3: "#1a3a7a", 4: "#4a2a7a", 5: "#7a4a10" };
 
       const fishHtml = myFish.length > 0
@@ -1028,9 +1030,9 @@
       });
       score = Math.round(score);
 
-      const rarityColors = { common: "#c0c0c0", uncommon: "#7ee787", rare: "#58a6ff", epic: "#d2a8ff", legendary: "#ffa657" };
+      const rarityColors = { common: "#c0c0c0", uncommon: "#7ee787", rare: "#58a6ff", epic: "#d2a8ff", legendary: "#ffa657", mythic: "#ff5e5e" };
       const starColors = { 1: "#c0c0c0", 2: "#7ee787", 3: "#58a6ff", 4: "#d2a8ff", 5: "#ffa657" };
-      const rarityBgs = { common: "#4a5a5a", uncommon: "#2a5a2a", rare: "#1a3a7a", epic: "#4a2a7a", legendary: "#7a4a10" };
+      const rarityBgs = { common: "#4a5a5a", uncommon: "#2a5a2a", rare: "#1a3a7a", epic: "#4a2a7a", legendary: "#7a4a10", mythic: "#5a1515" };
       const starBgs = { 1: "#4a5a5a", 2: "#2a5a2a", 3: "#1a3a7a", 4: "#4a2a7a", 5: "#7a4a10" };
 
       const fishHtml = fish_team.length > 0

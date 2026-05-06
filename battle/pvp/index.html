@@ -31,6 +31,7 @@
     .slot-card.rarity-rare,.fish-card.rarity-rare { background: #13202e; border-color: #335f94; }
     .slot-card.rarity-epic,.fish-card.rarity-epic { background: #1b1428; border-color: #7a5bb3; }
     .slot-card.rarity-legendary,.fish-card.rarity-legendary { background: #2a1d0f; border-color: #c57a2a; }
+    .slot-card.rarity-mythic,.fish-card.rarity-mythic { background: #2f1313; border-color: #ff5e5e; }
     .slot-label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #88a8b9; margin-bottom: 4px; }
     .slot-name { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
     .slot-meta { font-size: 13px; color: #cfe0ea; line-height: 1.4; }
@@ -415,10 +416,11 @@
       uncommon:  "#7ee787",
       rare:      "#58a6ff",
       epic:      "#d2a8ff",
-      legendary: "#ffa657"
+      legendary: "#ffa657",
+      mythic:    "#ff5e5e"
     };
 
-    const RARITY_VALUE_MULTIPLIERS = { common:1, uncommon:1.35, rare:1.9, epic:2.8, legendary:4.2 };
+    const RARITY_VALUE_MULTIPLIERS = { common:1, uncommon:1.35, rare:1.9, epic:2.8, legendary:4.2, mythic:6.0 };
 
     const FISH_SPECIES = [
       { type:"Common carp",    rarity:"common",    sizeMin:25,  sizeMax:55,  weightMin:0.8,  weightMax:2.8  },
@@ -449,7 +451,7 @@
       { type:"Sea dragon",     rarity:"legendary", sizeMin:120, sizeMax:300, weightMin:30,   weightMax:180  },
     ];
 
-    const RARITY_BANDS = ["common","uncommon","rare","epic","legendary"];
+    const RARITY_BANDS = ["common","uncommon","rare","epic","legendary","mythic"];
 
     function getRarityBandForTier(t) {
       if (t <=  4) return "common";
@@ -510,7 +512,7 @@
         base = hp_at_s2 + S3_SLOPE * (tier - S2_END);
       }
 
-      const rarityMult = { common: 0.85, uncommon: 1.0, rare: 1.2, epic: 1.45, legendary: 1.80 };
+      const rarityMult = { common: 0.85, uncommon: 1.0, rare: 1.2, epic: 1.45, legendary: 1.80, mythic: 2.40 };
       const mult = rarityMult[species.rarity] || 1.0;
 
       const hp  = Math.max(1, Math.round(base * mult * (boss ? BOSS_HP  : 1)));
@@ -1176,8 +1178,8 @@
     }
 
     function createFishUid() { return `fish-${Date.now()}-${Math.random().toString(36).slice(2,10)}`; }
-    function rarityRank(r) { return {common:1,uncommon:2,rare:3,epic:4,legendary:5}[r]||1; }
-    function rarityLabel(r) { return {common:"Common",uncommon:"Uncommon",rare:"Rare",epic:"Epic",legendary:"Legendary"}[r]||r; }
+    function rarityRank(r) { return {common:1,uncommon:2,rare:3,epic:4,legendary:5,mythic:6}[r]||1; }
+    function rarityLabel(r) { return {common:"Common",uncommon:"Uncommon",rare:"Rare",epic:"Epic",legendary:"Legendary",mythic:"Mythic"}[r]||r; }
 
     function fishDescriptors(f) {
       const sz=Number(f.size)||0, wt=Number(f.weight)||0, tags=[];
@@ -1204,9 +1206,22 @@
     function getFishValue(f) { return Math.max(0,Math.round(Number(f.currentValue)||Number(f.basePrice)||Number(f.price)||0)); }
 
     function loadInventory() {
-      try { const r=localStorage.getItem(INVENTORY_KEY); const p=r?JSON.parse(r):[]; inventory=Array.isArray(p)?p.map(normalizeFishState):[]; }
-      catch { inventory=[]; }
-      if (inventory.some(f=>!f.uid)) { inventory=inventory.map(f=>({...f,uid:f.uid||createFishUid()})); saveInventory(); }
+      try {
+        const r = localStorage.getItem(INVENTORY_KEY);
+        const p = r ? JSON.parse(r) : [];
+        const seenUids = new Set();
+        inventory = Array.isArray(p) ? p.map(f => {
+          const normalized = normalizeFishState(f);
+          while (!normalized.uid || seenUids.has(normalized.uid)) {
+            normalized.uid = createFishUid();
+          }
+          seenUids.add(normalized.uid);
+          return normalized;
+        }) : [];
+      } catch {
+        inventory = [];
+      }
+      saveInventory();
     }
     function saveInventory() { localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory)); }
 
@@ -1310,7 +1325,7 @@
       team.forEach(f=>{
         score += (Math.min(f.maxHp,200)/200)*40;
         score += (Math.min(f.attack,20)/20)*30;
-        score += (rarityRank(f.rarity)/5)*30;
+        score += (rarityRank(f.rarity)/6)*30;
       });
       return Math.round(Math.min(100, score/team.length));
     }

@@ -23,6 +23,11 @@
     .hero { border: 1px solid #2f4d5c; border-radius: 16px; background: linear-gradient(180deg, #18222a 0%, #12191f 100%); padding: 18px 20px; }
     .hero-title { font-size: clamp(22px, 4vw, 30px); font-weight: bold; color: #e8c060; }
     .hero-subtitle { color: #bed1dd; font-size: 14px; line-height: 1.5; margin-top: 6px; }
+    .hero-score { margin-top: 14px; display: grid; gap: 8px; }
+    .hero-score-label { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: #8dc4e0; }
+    .hero-score-meter { height: 12px; background: #0f1519; border: 1px solid #365563; border-radius: 999px; overflow: hidden; }
+    .hero-score-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #58d3ff, #7ee787); transition: width .4s ease; }
+    .hero-score-text { color: #d9ecf8; font-size: 13px; }
 
     .page-grid { display: grid; grid-template-columns: minmax(280px, 340px) minmax(0, 1.2fr) minmax(280px, 340px); gap: 16px; align-items: start; }
     @media (max-width: 1100px) { .page-grid { grid-template-columns: 1fr; } }
@@ -62,6 +67,7 @@
     .badge-leader  { background: rgba(201,162,39,.14); color: #e8c060; border: 1px solid #7a5f18; }
     .badge-joined  { background: rgba(126,231,135,.12); color: #7ee787; border: 1px solid #2d6b40; }
     .badge-me      { background: rgba(74,158,255,.12); color: #4a9eff; border: 1px solid #2a5a9a; }
+    .badge-spectator { background: rgba(106,138,154,.12); color: #8ea3b1; border: 1px solid #365563; }
     .badge-waiting { background: rgba(106,138,154,.12); color: #8ea3b1; border: 1px solid #365563; }
     .badge-elim    { background: rgba(192,57,43,.15); color: #ff7070; border: 1px solid #7a2020; }
     .badge-epic    { background: rgba(179,102,255,.15); color: #d2a8ff; border: 1px solid #7a50b0; }
@@ -140,9 +146,25 @@
     .log-entry.system { color: #e8c060; font-style: italic; }
     .log-entry.win    { color: #e8c060; font-weight: bold; }
 
-    .reward-banner { border: 1px solid #c9a227; border-radius: 14px; background: linear-gradient(180deg, rgba(201,162,39,.12) 0%, rgba(201,162,39,.04) 100%); padding: 20px; text-align: center; margin-bottom: 12px; }
+    .reward-banner { border: 1px solid #c9a227; border-radius: 14px; background: linear-gradient(180deg, rgba(201,162,39,.18) 0%, rgba(255,230,146,.12) 45%, rgba(201,162,39,.04) 100%); padding: 20px; text-align: center; margin-bottom: 12px; }
     .reward-title  { font-size: 20px; font-weight: bold; color: #e8c060; margin-bottom: 4px; }
-    .reward-amount { font-size: 30px; font-weight: bold; color: #f5db9b; }
+    .reward-amount { font-size: 30px; font-weight: bold; color: #824c0d; text-shadow: 0 0 10px rgba(255,235,170,.55); }
+
+    .reward-roll-window { border: 1px solid #365563; border-radius: 16px; background: #0d1720; padding: 12px; overflow: hidden; margin: 14px auto; min-height: 160px; max-width: 760px; position: relative; }
+    .reward-roll-window::before { content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-bottom: 20px solid #f5db9b; filter: drop-shadow(0 0 8px rgba(255,235,139,.8)); }
+    .reward-roll-track { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(140px, 1fr); gap: 10px; align-items: center; transition: transform 5.4s cubic-bezier(0.15,0.88,0.2,1); will-change: transform; }
+    .reward-roll-item { min-width: 140px; border: 1px solid #365563; border-radius: 14px; background: #0f1519; padding: 18px 12px; color: #d9ecf8; text-align: center; box-shadow: inset 0 0 4px rgba(0,0,0,.4); }
+    .reward-roll-item.highlight { border-color: #c9a227; background: rgba(201,162,39,.16); box-shadow: 0 0 22px rgba(201,162,39,.3); }
+    .reward-roll-icon { font-size: 34px; display: block; margin-bottom: 10px; }
+    .reward-roll-name { font-size: 14px; line-height: 1.3; font-weight: bold; margin-bottom: 6px; }
+    .reward-roll-subtext { font-size: 12px; color: #92c8e7; margin-bottom: 6px; }
+    .reward-roll-label { font-size: 12px; color: #8dc4e0; }
+    .reward-popup-backdrop { position: fixed; inset: 0; background: rgba(7,12,18,.85); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    .reward-popup { border: 1px solid #c9a227; border-radius: 18px; background: #081116; padding: 28px 24px; width: min(420px,calc(100vw-32px)); text-align: center; box-shadow: 0 0 40px rgba(201,162,39,.25); }
+    .reward-popup-icon { font-size: 60px; margin-bottom: 14px; }
+    .reward-popup-title { font-size: 24px; font-weight: bold; color: #f5db9b; margin-bottom: 12px; }
+    .reward-popup-text { font-size: 16px; color: #e8e2c6; margin-bottom: 22px; line-height: 1.4; }
+    .reward-popup button { width: 100%; margin-top: 6px; }
 
     .raid-rule { border: 1px solid #365563; border-radius: 10px; background: #0f1519; padding: 10px 12px; color: #cde3ef; font-size: 13px; line-height: 1.5; margin-bottom: 6px; }
     .raid-rule strong { color: #8dc4e0; }
@@ -185,7 +207,8 @@
   <div class="shell">
     <section class="hero">
       <div class="hero-title">⚔️ Guild Raid</div>
-      <div class="hero-subtitle">5 floors of enemies to defeat together. The squad leader picks the raid and launches it. Others wait. Reward: <strong style="color:#e8c060">hooks</strong> per survivor.</div>
+      <div class="hero-subtitle">5 floors of enemies to defeat together. The squad leader picks the raid and launches it. Others wait. Reward: <strong style="color:#e8c060">per the raid reward pool</strong>.</div>
+      <div id="scoreSection" class="hero-score"></div>
     </section>
 
     <div class="page-grid">
@@ -222,7 +245,7 @@
           <div class="raid-rule">The enemy counter-attacks <strong>all players</strong> after every player hit.</div>
           <div class="raid-rule">After each floor, all players recover <strong>50% HP</strong>.</div>
           <div class="raid-rule">If all your fish reach 0 HP → you're <strong style="color:#ff9999">eliminated</strong> (no reward).</div>
-          <div class="raid-rule" style="border-color:#c9a227;background:rgba(201,162,39,.05)">Reward if you survive: <strong style="color:#e8c060">hooks per the raid definition</strong>.</div>
+          <div class="raid-rule" style="border-color:#c9a227;background:rgba(201,162,39,.05)">Reward if you survive: <strong style="color:#e8c060">per the raid reward pool</strong>.</div>
         </section>
       </div>
 
@@ -263,15 +286,17 @@
   const POLL_MS         = 4_000;
 
   // Rarity colours for enemy badges
-  const RARITY_COLOR = { common:"#d9d9d9", uncommon:"#7ee787", rare:"#58a6ff", epic:"#d2a8ff", legendary:"#ffa657" };
-  const RARITY_EMOJI = { common:"⚪", uncommon:"🟢", rare:"🔵", epic:"🟣", legendary:"" };
+  const RARITY_COLOR = { common:"#d9d9d9", uncommon:"#7ee787", rare:"#58a6ff", epic:"#d2a8ff", legendary:"#ffa657", mythic:"#ff5e5e" };
+  const RARITY_EMOJI = { common:"⚪", uncommon:"🟢", rare:"🔵", epic:"🟣", legendary:"", mythic:"🔴" };
 
   // ─── RAID DATA (from raids.txt) ───────────────────────────────────────────────
   // NOTE: raids.txt is fetched at runtime from battle/raid/raids.txt relative to this page.
   // If the fetch fails we fall back to this inline copy.
   const RAIDS_FALLBACK = {
     raid1: {
-      name: "Coral Assault", reward: 10,
+      name: "Coral Assault",
+      cost: 20,
+      rewards: [{ pct:100, type: "hooks", amount: 10 }],
       stages: [
         { floor:"Floor 1", name:"Prismatic eel",      rarity:"epic",      hp:80,  atk:8  },
         { floor:"Floor 2", name:"Royal moray",         rarity:"epic",      hp:100, atk:10 },
@@ -281,7 +306,9 @@
       ]
     },
     raid2: {
-      name: "Coral War", reward: 10,
+      name: "Coral War",
+      cost: 35,
+      rewards: [{ pct:100, type: "hooks", amount: 10 }],
       stages: [
         { floor:"Floor 1", name:"Prismatic eel",      rarity:"epic",      hp:80,  atk:16  },
         { floor:"Floor 2", name:"Royal moray",         rarity:"epic",      hp:200, atk:100 },
@@ -307,6 +334,379 @@
     } catch (e) {
       console.warn("Could not load raids.txt, using fallback.", e);
     }
+    const editorRaids = loadEditorRaids();
+    if (editorRaids) RAIDS = {...RAIDS, ...editorRaids};
+    RAIDS = normalizeRaidDefs(RAIDS);
+  }
+
+  function loadEditorRaids() {
+    try {
+      const raw = localStorage.getItem("raidEditorSavedRaids");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return normalizeRaidDefs(parsed);
+    } catch (e) {
+      console.warn("Could not load editor raids from localStorage.", e);
+      return null;
+    }
+  }
+
+  function normalizeRaidDefs(rawDefs) {
+    if (!rawDefs || typeof rawDefs !== 'object') return {};
+    const normalized = {};
+    Object.entries(rawDefs).forEach(([key, def]) => {
+      const raid = normalizeRaidDef(def, key);
+      if (raid) normalized[key] = raid;
+    });
+    return normalized;
+  }
+
+  function normalizeRaidDef(def, key) {
+    if (!def || typeof def !== 'object') return null;
+    const raid = {
+      key,
+      name: String(def.name || def.title || key),
+      desc: String(def.desc || def.description || ""),
+      cost: (() => {
+        const rawCost = def && def.cost != null ? def.cost : 20;
+        const numericCost = Number(rawCost);
+        return Math.max(0, Number.isFinite(numericCost) ? numericCost : 20);
+      })(),
+      stages: Array.isArray(def.stages) ? def.stages.map(normalizeStage).filter(Boolean) : [],
+      fishTemplates: Array.isArray(def.fishTemplates) ? def.fishTemplates.map(normalizeFishTemplate).filter(Boolean) : [],
+      rewards: []
+    };
+
+    if (Array.isArray(def.rewards)) {
+      raid.rewards = def.rewards.map(r => normalizeReward(r, raid)).filter(Boolean);
+    }
+
+    if (!raid.rewards.length && def.reward !== undefined) {
+      const fallback = normalizeReward(def.reward, raid);
+      if (fallback) raid.rewards = [fallback];
+    }
+
+    if (!raid.rewards.length && def.reward && typeof def.reward === 'object') {
+      const fallback = normalizeReward(def.reward, raid);
+      if (fallback) raid.rewards = [fallback];
+    }
+
+    if (!raid.rewards.length && typeof def.reward === 'number') {
+      raid.rewards = [{ pct: 100, type: 'hooks', amount: Math.max(0, def.reward) }];
+    }
+
+    if (!raid.fishTemplates) raid.fishTemplates = [];
+    if (!raid.stages.length) raid.stages = [];
+
+    return raid;
+  }
+
+  function normalizeStage(stage) {
+    if (!stage || typeof stage !== 'object') return null;
+    const name = String(stage.name || stage.enemy || stage.label || "Enemy");
+    const floor = String(stage.floor || stage.label || name || "Floor");
+    return {
+      floor,
+      name,
+      rarity: String(stage.rarity || "common"),
+      hp: Math.max(0, Number(stage.hp) || 0),
+      atk: Math.max(0, Number(stage.atk) || 0)
+    };
+  }
+
+  function normalizeFishTemplate(fish) {
+    if (!fish || typeof fish !== 'object') return null;
+    const name = String(fish.name || fish.type || "Fish");
+    const id = String(fish.id || fish.uid || createTemplateFishId(name));
+    return {
+      id,
+      name,
+      rarity: String(fish.rarity || "common"),
+      maxHp: Math.max(0, Number(fish.maxHp) || Number(fish.hp) || 0),
+      atk: Math.max(0, Number(fish.atk) || 0)
+    };
+  }
+
+  function normalizeReward(reward, raid) {
+    if (reward == null) return null;
+    if (typeof reward === 'number' || typeof reward === 'string') {
+      return { pct: 100, type: 'hooks', amount: Math.max(0, Number(reward) || 0) };
+    }
+    if (typeof reward !== 'object') return null;
+    const pct = Number.isFinite(Number(reward.pct)) ? Number(reward.pct) : 100;
+    const type = String(reward.type || (reward.hooks !== undefined ? 'hooks' : reward.fish ? 'fish' : '')).toLowerCase();
+    if (type === 'hooks') {
+      return { pct, type: 'hooks', amount: Math.max(0, Number(reward.amount) || Number(reward.hooks) || 0) };
+    }
+    if (type === 'fish') {
+      let fishId = String(reward.fishId || '');
+      if (!fishId && reward.fish && typeof reward.fish === 'object') {
+        const fish = normalizeFishTemplate(reward.fish);
+        if (fish) {
+          fishId = fish.id;
+          if (!raid.fishTemplates.some(f => f.id === fishId)) raid.fishTemplates.push(fish);
+        }
+      }
+      if (!fishId) return null;
+      return { pct, type: 'fish', fishId };
+    }
+    if (reward.fish) {
+      return normalizeReward({ pct, type: 'fish', fish: reward.fish }, raid);
+    }
+    if (Number.isFinite(Number(reward.amount))) {
+      return { pct, type: 'hooks', amount: Math.max(0, Number(reward.amount)) };
+    }
+    return null;
+  }
+
+  function createTemplateFishId(name) {
+    return `fish_${name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')}_${Date.now()}`;
+  }
+
+  function formatRaidRewardSummary(raidDef) {
+    const rewards = Array.isArray(raidDef.rewards) ? raidDef.rewards : [];
+    if (!rewards.length) return 'No reward';
+    return rewards.map(r => {
+      const label = r.type === 'hooks'
+        ? `+${Math.max(0, Number(r.amount) || 0)} hooks`
+        : r.type === 'fish'
+          ? `Fish: ${escH(resolveRewardFish(raidDef, r)?.name || 'Unknown')}`
+          : 'Reward';
+      return `${r.pct === 100 ? '' : `${r.pct}% `}${label}`;
+    }).join(' + ');
+  }
+
+  function getRaidClaimButtonText(raidDef) {
+    const rewards = Array.isArray(raidDef.rewards) ? raidDef.rewards : [];
+    if (!rewards.length) return 'Claim Reward';
+    if (rewards.length === 1) {
+      const r = rewards[0];
+      if (r.type === 'hooks') return `Claim ${Math.max(0, Number(r.amount) || 0)} Hooks`;
+      if (r.type === 'fish') return `Claim ${resolveRewardFish(raidDef, r)?.name || 'Fish Reward'}`;
+    }
+    return 'Claim Reward';
+  }
+
+  function pickRaidReward(raidDef) {
+    const rewards = Array.isArray(raidDef.rewards) ? raidDef.rewards.filter(Boolean) : [];
+    if (!rewards.length) return null;
+    const total = rewards.reduce((sum, r) => sum + (Number.isFinite(Number(r.pct)) ? Number(r.pct) : 0), 0) || rewards.length * 100;
+    const roll = Math.random() * total;
+    let current = 0;
+    for (const reward of rewards) {
+      current += Number.isFinite(Number(reward.pct)) ? Number(reward.pct) : 0;
+      if (roll < current) return reward;
+    }
+    return rewards[rewards.length - 1];
+  }
+
+  function resolveRewardFish(raidDef, reward) {
+    if (!reward || reward.type !== 'fish') return null;
+    if (reward.fishId && Array.isArray(raidDef.fishTemplates)) {
+      return raidDef.fishTemplates.find(f => f.id === reward.fishId) || null;
+    }
+    return null;
+  }
+
+  function createRaidRewardRollItem(reward, raidDef) {
+    const fish = reward.type === 'fish' ? resolveRewardFish(raidDef, reward) : null;
+    const title = reward.type === 'hooks'
+      ? `+${Math.max(0, Number(reward.amount) || 0)} Hooks`
+      : reward.type === 'fish'
+        ? `Fish: ${escH(fish?.name || 'Fish')}`
+        : 'Reward';
+    const icon = reward.type === 'hooks' ? '🪝' : reward.type === 'fish' ? '🐟' : '🎁';
+    const label = Number.isFinite(Number(reward.pct)) ? `${Math.max(0, Number(reward.pct))}%` : 'Chance';
+    const fishMeta = fish ? `<div class="reward-roll-subtext">${escH(String(fish.size || fish.maxHp || ''))} cm · ${escH(String(fish.weight || fish.atk || ''))} kg</div>` : '';
+    return `
+      <div class="reward-roll-item">
+        <div class="reward-roll-icon">${icon}</div>
+        <div class="reward-roll-name">${title}</div>
+        ${fishMeta}
+        <div class="reward-roll-label">${label}</div>
+      </div>`;
+  }
+
+  function renderRaidRewardWheel(raidDef) {
+    const anchor = document.getElementById("raidRewardWheelHolder") || document.getElementById("centerSection");
+    if (!anchor) return;
+    const rewards = Array.isArray(raidDef.rewards) ? raidDef.rewards.filter(Boolean) : [];
+    const previewHtml = rewards.length
+      ? rewards.map(r => createRaidRewardRollItem(r, raidDef)).join('')
+      : '<div class="idle-state">No reward pool configured.</div>';
+    const wrapper = anchor.querySelector('.reward-wheel-preview');
+    const html = `
+      <div class="reward-wheel-preview">
+        <div class="reward-wheel-header">Reward wheel preview</div>
+        <div class="reward-roll-track preview">${previewHtml}</div>
+      </div>`;
+    if (wrapper) {
+      wrapper.outerHTML = html;
+    } else {
+      anchor.insertAdjacentHTML('beforeend', html);
+    }
+  }
+
+  async function animateRaidRewardClaim(raidDef, chosen) {
+    const anchor = document.getElementById("raidRewardWheelHolder") || document.getElementById("centerSection");
+    if (!anchor) return;
+    let rollWindow = anchor.querySelector(".reward-roll-window");
+    if (!rollWindow) {
+      rollWindow = document.createElement("div");
+      rollWindow.className = "reward-roll-window";
+      anchor.appendChild(rollWindow);
+    }
+
+    const rewards = Array.isArray(raidDef.rewards) ? raidDef.rewards.filter(Boolean) : [];
+    if (!rewards.length) {
+      rollWindow.innerHTML = '<div class="idle-state">No reward pool configured.</div>';
+      return;
+    }
+
+    const pool = [];
+    for (let i = 0; i < 42; i += 1) {
+      pool.push(rewards[Math.floor(Math.random() * rewards.length)]);
+    }
+    const rewardIdx = 35;
+    pool[rewardIdx] = chosen;
+
+    rollWindow.innerHTML = `<div class="reward-roll-track">${pool.map(r => createRaidRewardRollItem(r, raidDef)).join('')}</div>`;
+    const track = rollWindow.querySelector('.reward-roll-track');
+    if (!track) return;
+
+    await new Promise(resolve => {
+      const item = track.querySelector('.reward-roll-item');
+      const gap = 10;
+      const iw = item ? item.offsetWidth + gap : 150;
+      const center = (rollWindow.clientWidth / 2) - (iw / 2);
+      const finalX = -((rewardIdx * iw) - center);
+      track.style.transform = 'translateX(0px)';
+      track.style.transition = 'none';
+      requestAnimationFrame(() => {
+        track.style.transition = 'transform 5.6s cubic-bezier(0.18,0.77,0.22,1)';
+        track.style.transform = `translateX(${finalX}px)`;
+      });
+      const timeout = setTimeout(() => {
+        track.removeEventListener('transitionend', done);
+        resolve();
+      }, 6200);
+      const done = () => {
+        clearTimeout(timeout);
+        track.removeEventListener('transitionend', done);
+        resolve();
+      };
+      track.addEventListener('transitionend', done);
+    });
+
+    const items = rollWindow.querySelectorAll('.reward-roll-item');
+    if (items[rewardIdx]) items[rewardIdx].classList.add('highlight');
+  }
+
+  function removeRaidRewardWheel() {
+    const anchor = document.getElementById("raidRewardWheelHolder") || document.getElementById("centerSection");
+    if (!anchor) return;
+    const preview = anchor.querySelector('.reward-wheel-preview');
+    const window = anchor.querySelector('.reward-roll-window');
+    if (preview) preview.remove();
+    if (window) window.remove();
+  }
+
+  function showRaidRewardPopup(chosen, raidDef) {
+    const icon = chosen.type === 'hooks' ? '🪝' : chosen.type === 'fish' ? '🐟' : '🎁';
+    const rewardFish = chosen.type === 'fish' ? resolveRewardFish(raidDef, chosen) : null;
+    const fishName = rewardFish?.name || rewardFish?.type || 'Fish reward';
+    const fishDetails = rewardFish ? ` (${escH(String(rewardFish.size || rewardFish.maxHp || ''))} cm, ${escH(String(rewardFish.weight || rewardFish.atk || ''))} kg)` : '';
+    const label = chosen.type === 'hooks'
+      ? `+${Math.max(0, Number(chosen.amount) || 0)} Hooks`
+      : chosen.type === 'fish'
+        ? `${escH(fishName)}${fishDetails} added to inventory!`
+        : 'Reward claimed!';
+
+    const popup = document.createElement('div');
+    popup.className = 'reward-popup-backdrop';
+    popup.innerHTML = `
+      <div class="reward-popup">
+        <div class="reward-popup-icon">${icon}</div>
+        <div class="reward-popup-title">You won</div>
+        <div class="reward-popup-text">${label}</div>
+        <button class="btn btn-gold" type="button">OK</button>
+      </div>`;
+    document.body.appendChild(popup);
+
+    const btn = popup.querySelector('button');
+    rewardPopupOpen = true;
+    if (btn) {
+      btn.addEventListener('click', async () => {
+        rewardPopupOpen = false;
+        popup.remove();
+        removeRaidRewardWheel();
+        await fetchAll().catch(() => {});
+      });
+    }
+  }
+
+  function loadInventory() {
+    try {
+      const raw = localStorage.getItem(INVENTORY_KEY) || '[]';
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveInventory(inventory) {
+    localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
+  }
+
+  function createFishUid() {
+    return `fish_${Date.now()}_${Math.random().toString(16).slice(2,8)}`;
+  }
+
+  function createInventoryFish(fish) {
+    if (!fish || typeof fish !== 'object') return null;
+    const type = String(fish.type || fish.name || 'Fish');
+    const rarity = String(fish.rarity || 'common');
+    const size = Math.max(1, Number(fish.size) || Number(fish.maxHp) || 1);
+    const weight = Math.max(0.1, Number(fish.weight) || Number(fish.atk) || 1);
+    const RARITY_MULTIPLIERS = { common: 1, uncommon: 1.35, rare: 1.9, epic: 2.8, legendary: 4.2, mythic: 6.0 };
+    const multiplier = RARITY_MULTIPLIERS[rarity] || 1;
+    const basePrice = Math.max(1, Math.round((size * 0.315 + weight * 9) * multiplier));
+    const currentValue = basePrice;
+    const spoiledValue = Math.max(1, Math.round(basePrice * 0.08));
+    return {
+      uid: String(fish.uid || fish.id || createFishUid()),
+      type,
+      rarity,
+      size,
+      weight,
+      basePrice,
+      currentValue,
+      spoiledValue,
+      storageState: 'fridge',
+      outDurationMs: 0,
+      outStartedAtMs: 0,
+      outStartValue: currentValue,
+      outBonusPercent: null,
+      outTargetValue: null,
+      outCount: 0,
+      totalOutMs: 0,
+      hiddenSpoilMs: 0,
+      hiddenResistance: 1,
+      growthRate: 0.08,
+      spoiled: false,
+      priceReductionVersion: 1
+    };
+  }
+
+  function addFishToInventory(fish) {
+    const inventory = loadInventory();
+    const newFish = createInventoryFish(fish);
+    if (!newFish) return null;
+    inventory.push(newFish);
+    saveInventory(inventory);
+    return newFish;
   }
 
   // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -415,8 +815,11 @@
   let busyFetch    = false;
   let pollTimer    = null;
   let heartbeatTimer = null;
+  let rewardPopupOpen = false;
   let lastLogCount = 0;
   let selectedRaidKey = null; // leader's chosen raid id
+  let raidRewardClaiming = false;
+  let lastRaidRewardChoice = null;
 
   // ─── NAME RESOLUTION ─────────────────────────────────────────────────────────
   async function fetchNames(pids) {
@@ -488,6 +891,36 @@
     lastLogCount = log.length;
   }
 
+  function getRaidCost(raidDef) {
+    const rawCost = raidDef && raidDef.cost != null ? raidDef.cost : 20;
+    const numericCost = Number(rawCost);
+    return Math.max(0, Number.isFinite(numericCost) ? numericCost : 20);
+  }
+
+  function ensureRaidScoreState(state) {
+    if (!state) return;
+    state.scoreMax = 100;
+    state.scoreRefillMs = 60000;
+    state.score = Number.isFinite(Number(state.score)) ? Math.min(state.scoreMax, Number(state.score)) : state.scoreMax;
+    state.scoreLastRefill = state.scoreLastRefill || nowIso();
+    state.log = Array.isArray(state.log) ? state.log : [];
+  }
+
+  function applyScoreRefill(state) {
+    if (!state || !state.scoreLastRefill) return false;
+    const last = Date.parse(state.scoreLastRefill);
+    if (!Number.isFinite(last)) { state.scoreLastRefill = nowIso(); return false; }
+    const elapsed = Date.now() - last;
+    if (elapsed < state.scoreRefillMs) return false;
+    const ticks = Math.floor(elapsed / state.scoreRefillMs);
+    const refill = ticks * 1;
+    state.scoreLastRefill = new Date(last + ticks * state.scoreRefillMs).toISOString();
+    if (state.score >= state.scoreMax) return false;
+    state.score = Math.min(state.scoreMax, state.score + refill);
+    state.log.push(`⏱️ Raid energy restored +${refill}. Raid energy is now ${state.score}/${state.scoreMax}.`);
+    return true;
+  }
+
   // ─── FETCH ────────────────────────────────────────────────────────────────────
   async function fetchAll() {
     if (busyFetch) return;
@@ -505,11 +938,17 @@
 
       try {
         const raw = guild.raid_state;
-        raidState = raw ? (typeof raw==="string" ? JSON.parse(raw) : raw) : null;
-      } catch { raidState=null; }
+        raidState = raw ? (typeof raw==="string" ? JSON.parse(raw) : raw) : { phase: "idle", score: 100, scoreMax: 100, scoreRefillMs: 60000, scoreLastRefill: nowIso(), log: [] };
+      } catch { raidState={ phase: "idle", score: 100, scoreMax: 100, scoreRefillMs: 60000, scoreLastRefill: nowIso(), log: [] }; }
+      ensureRaidScoreState(raidState);
+      if (applyScoreRefill(raidState)) {
+        await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(raidState)}).eq("id",mem.guildId);
+      }
 
       syncRaidLog();
-      renderAll();
+      if (!raidRewardClaiming && !rewardPopupOpen) {
+        renderAll();
+      }
     } catch(e) {
       setStatus("Fetch error: "+e.message, "err");
     } finally { busyFetch=false; }
@@ -597,6 +1036,9 @@
     if(!selectedRaidKey||!RAIDS[selectedRaidKey]) { setStatus("Select a raid first.","err"); return; }
     const mem=getMembership();
     const raidDef=RAIDS[selectedRaidKey];
+    const raidCost=getRaidCost(raidDef);
+    ensureRaidScoreState(raidState);
+    if(raidState.score < raidCost) { setStatus(`Need at least ${raidCost} raid energy to launch this raid.`,"err"); return; }
     const firstStage=raidDef.stages[0];
 
     const players={};
@@ -621,7 +1063,12 @@
       players,
       completedStages:[],
       rewardClaimed:{},
-      log:[`⚔️ Raid "${raidDef.name}" launched! Floor 1: ${firstStage.name} (${firstStage.hp} HP | ${firstStage.atk} ATK) [${firstStage.rarity}]`]
+      score: raidState.score,
+      scoreMax: raidState.scoreMax,
+      scoreRefillMs: raidState.scoreRefillMs,
+      scoreLastRefill: raidState.scoreLastRefill,
+      currentRaidCost: raidCost,
+      log:[`⚔️ Raid "${raidDef.name}" launched! Floor 1: ${firstStage.name} (${firstStage.hp} HP | ${firstStage.atk} ATK) [${firstStage.rarity}] — Cost ${raidCost} score.`]
     };
 
     await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
@@ -692,7 +1139,9 @@
 
     if(!anyAlive) {
       state.phase="ended"; state.result="defeat";
+      state.score = 0;
       state.log.push("💀 All players eliminated — Defeat.");
+      state.log.push("💥 Raid energy drained to 0.");
     }
 
     await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
@@ -722,7 +1171,10 @@
 
     if(state.stageIndex>=raidDef.stages.length-1) {
       state.phase="ended"; state.result="victory";
-      state.log.push(`🏆 VICTORY! "${raidDef.name}" cleared! Survivors: claim your ${raidDef.reward} 🪝!`);
+      const victoryCost = Math.ceil(getRaidCost(raidDef) / 2);
+      state.score = Math.max(0, state.score - victoryCost);
+      state.log.push(`🏅 Victory! Raid energy reduced by ${victoryCost}.`);
+      state.log.push(`🏆 VICTORY! "${raidDef.name}" cleared! Survivors: claim your reward.`);
     } else {
       state.stageIndex++;
       const ns=raidDef.stages[state.stageIndex];
@@ -756,24 +1208,73 @@
     if(!raidState||raidState.result!=="victory") return;
     const pid=myPid(), mem=getMembership();
     const me=raidState.players[pid];
-    if(!me||me.eliminated) { setStatus("You were eliminated — no reward.","err"); return; }
+    if(!me) { setStatus("You are spectating this raid and do not receive rewards.","err"); return; }
+    if(me.eliminated) { setStatus("You were eliminated — no reward.","err"); return; }
+    if (raidRewardClaiming) return;
     if(raidState.rewardClaimed?.[pid]) { setStatus("Already claimed.",""); return; }
 
     const raidDef=RAIDS[raidState.raidKey];
-    const reward=raidDef?.reward||10;
+    const chosen = pickRaidReward(raidDef);
+    if (!chosen) { setStatus("No reward configured.","err"); return; }
 
-    const state=JSON.parse(JSON.stringify(raidState));
-    if(!state.rewardClaimed) state.rewardClaimed={};
-    state.rewardClaimed[pid]=true;
-    setHooks(getHooks()+reward);
-    await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
-    setStatus(`+${reward} 🪝 added!`,"ok");
-    await fetchAll();
+    raidRewardClaiming = true;
+    lastRaidRewardChoice = chosen;
+    const claimBtn = document.getElementById("claimRewardBtn");
+    if (claimBtn) {
+      claimBtn.disabled = true;
+      claimBtn.remove();
+    }
+
+    try {
+      await animateRaidRewardClaim(raidDef, chosen);
+
+      const state=JSON.parse(JSON.stringify(raidState));
+      if(!state.rewardClaimed) state.rewardClaimed={};
+      state.rewardClaimed[pid]=true;
+
+      let message = "Reward claimed!";
+      if (chosen.type === 'hooks') {
+      const amount = Math.max(0, Number(chosen.amount) || 0);
+      setHooks(getHooks() + amount);
+      message = `+${amount} 🪝 added!`;
+      state.log.push(`🪝 ${resolveName(pid)} claimed +${amount} hooks.`);
+    } else if (chosen.type === 'fish') {
+      const fishTemplate = resolveRewardFish(raidDef, chosen);
+      const fish = fishTemplate ? addFishToInventory(fishTemplate) : null;
+      const fishLabel = fish ? (fish.name || fish.type || 'Fish') : null;
+      message = fish
+        ? `+ ${fishLabel} added to inventory!`
+        : 'Fish reward claimed!';
+      if (fish) state.log.push(`🐟 ${resolveName(pid)} claimed ${fishLabel}.`);
+    }
+
+      await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
+      raidState = state;
+      renderAll();
+      syncRaidLog();
+      setStatus(message,"ok");
+      showRaidRewardPopup(chosen, raidDef);
+    } finally {
+      raidRewardClaiming = false;
+      if (claimBtn) {
+        claimBtn.disabled = true;
+        claimBtn.remove();
+      }
+    }
   }
 
   async function resetRaid() {
     const mem=getMembership(); if(!mem||!db) return;
-    await db.from(GUILDS_TABLE).update({raid_state:null}).eq("id",mem.guildId);
+    const currentScore = raidState ? { score: raidState.score, scoreMax: raidState.scoreMax, scoreRefillMs: raidState.scoreRefillMs, scoreLastRefill: raidState.scoreLastRefill } : null;
+    const newState = {
+      phase: "idle",
+      score: currentScore?.score ?? 100,
+      scoreMax: currentScore?.scoreMax ?? 100,
+      scoreRefillMs: currentScore?.scoreRefillMs ?? 60000,
+      scoreLastRefill: currentScore?.scoreLastRefill || nowIso(),
+      log: []
+    };
+    await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(newState)}).eq("id",mem.guildId);
     lastLogCount=0;
     await fetchAll();
   }
@@ -788,7 +1289,22 @@
       </div>`;
   }
 
-  function renderAll() { renderLeftPanel(); renderCenter(); }
+  function renderAll() { renderGuildScore(); renderLeftPanel(); renderCenter(); }
+
+  function renderGuildScore() {
+    const scoreSection = document.getElementById("scoreSection");
+    if (!scoreSection || !raidState) return;
+    const score = Number.isFinite(Number(raidState.score)) ? raidState.score : 100;
+    const max = raidState.scoreMax || 100;
+    const pct = Math.round((score / max) * 100);
+    const selected = selectedRaidKey && RAIDS[selectedRaidKey];
+    const costText = selected ? getRaidCost(selected) : "select a raid";
+    scoreSection.innerHTML = `
+      <div class="hero-score-label">Raid Energy</div>
+      <div class="hero-score-meter"><div class="hero-score-fill" style="width:${pct}%"></div></div>
+      <div class="hero-score-text">${score}/${max} — ${selected ? `Next raid costs ${costText} raid energy.` : `Choose a raid to see its energy cost.`}</div>
+    `;
+  }
 
   function renderLeftPanel() {
     const pid=myPid(), squadPids=getSquadPids();
@@ -835,6 +1351,7 @@
           const isLead=mpid===leaderPid;
           const isMe=mpid===pid;
           const elim=raidState?.players?.[mpid]?.eliminated;
+          const spectator = raidState?.phase === "running" && raidState.players && !raidState.players[mpid];
           return `<div class="member-card ${isLead?"is-leader":""} ${isMe?"is-me":""} ${elim?"eliminated":"active"}">
             <div>
               <div class="member-name">${escH(resolveName(mpid))}${isMe?' <span style="font-size:10px;color:#4a9eff">(you)</span>':""}</div>
@@ -842,6 +1359,7 @@
                 ${isMe?'<span class="badge badge-me">Me</span>':""}
                 ${isLead?'<span class="badge badge-leader">⚜ Leader</span>':""}
                 <span class="badge badge-joined">Online</span>
+                ${spectator?'<span class="badge badge-spectator">Spectator</span>':""}
                 ${elim?'<span class="badge badge-elim">Eliminated</span>':""}
               </div>
             </div>
@@ -849,9 +1367,6 @@
         }).join("");
       }
     }
-
-    const n=squadPids.length;
-    setStatus(`${n} player(s) in squad${n<2?" — need "+(2-n)+" more":""}`);
   }
 
   function renderStagePips(currentStageIdx) {
@@ -896,7 +1411,7 @@
               <span class="raid-choice-icon">⚔️</span>
               <div class="raid-choice-info">
                 <div class="raid-choice-name">${escH(r.name)}</div>
-                <div class="raid-choice-stats">${r.stages.length} floors · Reward: ${r.reward} 🪝 · Boss: ${escH(r.stages[r.stages.length-1].name)}</div>
+                <div class="raid-choice-stats">${r.stages.length} floors · Cost: ${getRaidCost(r)} · ${formatRaidRewardSummary(r)} · Boss: ${escH(r.stages[r.stages.length-1]?.name||'Unknown')}</div>
               </div>
             </div>`;
           }).join("")}
@@ -940,6 +1455,7 @@
     const stage=raidDef.stages[currentState.stageIndex];
     const pid=myPid();
     const myData=currentState.players[pid];
+    const isSpectator = !myData;
     const canAtk=myData&&!myData.eliminated;
     const enemyHp = Number.isFinite(currentState.enemyHp) ? currentState.enemyHp : 0;
     const enemyMaxHp = Number.isFinite(currentState.enemyMaxHp) && currentState.enemyMaxHp > 0 ? currentState.enemyMaxHp : 1;
@@ -1001,6 +1517,7 @@
           <div class="players-zone">${playerCards}</div>
         </div>
       </div>
+      ${isSpectator?`<div class="leader-waiting">👀 You are spectating this raid. You cannot claim rewards.</div>`:""}
       <div class="subtle" style="margin-top:6px;text-align:center">Raid: ${escH(raidDef.name)}</div>`;
     document.getElementById("rewardSection").style.display="none";
     startAutoBattle();
@@ -1026,24 +1543,14 @@
     const myData=state.players[pid];
     const isVic=state.result==="victory";
     const isElim=myData?.eliminated;
-    const canClaim=isVic&&!isElim&&!state.rewardClaimed?.[pid];
+    const isSpectator=isVic && !myData;
+    const canClaim=isVic && myData && !isElim && !state.rewardClaimed?.[pid];
     const claimed=state.rewardClaimed?.[pid];
     const iAmLdr=amILeader();
 
     const rewSection=document.getElementById("rewardSection");
     if(rewSection) {
-      if(isVic&&!isElim) {
-        rewSection.style.display="";
-        rewSection.innerHTML=`
-          <div class="reward-banner">
-            <div style="font-size:44px;margin-bottom:8px">🏆</div>
-            <div class="reward-title">Victory!</div>
-            <div class="reward-amount">+${raidDef.reward} 🪝</div>
-          </div>
-          ${canClaim
-            ?`<button class="btn btn-gold" onclick="claimReward()">🪝 Claim ${raidDef.reward} Hooks</button>`
-            :claimed?`<div class="status-line ok">✅ Reward claimed!</div>`:""}`;
-      } else { rewSection.style.display="none"; }
+      rewSection.style.display="none";
     }
 
     document.getElementById("centerSection").innerHTML=`
@@ -1052,7 +1559,15 @@
         ${iAmLdr?`<button class="btn btn-sm" onclick="resetRaid()">🔄 New Raid</button>`:""}
       </div>
       ${renderStagePips(isVic?raidDef.stages.length:-1)}
-      <div class="panel" style="margin-bottom:12px">
+      <div class="reward-banner" style="max-width:520px;margin:0 auto 16px;padding:22px 18px;">
+        <div style="font-size:44px;margin-bottom:8px">${isVic?"🏆":"💀"}</div>
+        <div class="reward-title">${isVic?"Raid Complete":"Raid Over"}</div>
+      </div>
+      ${canClaim
+        ?`<button id="claimRewardBtn" class="btn btn-gold" onclick="claimReward()">${getRaidClaimButtonText(raidDef)}</button>`
+        : claimed ? `<div class="status-line ok" style="text-align:center;">✅ Reward claimed!</div>` : isSpectator ? `<div class="status-line subtle" style="text-align:center;">👀 You joined after the raid started and are spectating; no reward is available.</div>` : ``}
+      <div id="raidRewardWheelHolder" style="margin:18px auto 0;max-width:840px;width:100%;"></div>
+      <div class="panel" style="margin-top:16px;margin-bottom:12px">
         <div class="panel-subtitle">Results</div>
         ${Object.entries(state.players).map(([p,pd])=>{
           const hasPlayerHp = Number.isFinite(pd.hp) && Number.isFinite(pd.maxHp);
@@ -1075,6 +1590,7 @@
       <div class="subtle" style="text-align:center">
         ${isVic?(isElim?"You were eliminated during the raid.":"Claim your reward →"):"Your entire squad was eliminated."}
       </div>`;
+    renderRaidRewardWheel(raidDef);
   }
 
   // ─── TIMERS ──────────────────────────────────────────────────────────────────

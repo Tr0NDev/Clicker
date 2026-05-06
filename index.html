@@ -314,6 +314,7 @@
     .team-reminder-slot.active.rarity-rare { border-color: #58a6ff; background: rgba(88, 166, 255, 0.14); }
     .team-reminder-slot.active.rarity-epic { border-color: #d2a8ff; background: rgba(210, 168, 255, 0.14); }
     .team-reminder-slot.active.rarity-legendary { border-color: #ffa657; background: rgba(255, 166, 87, 0.16); }
+    .team-reminder-slot.active.rarity-mythic { border-color: #ff5e5e; background: rgba(255, 94, 94, 0.16); }
 
     .team-reminder-slot-title { font-size: 11px; color: #8dc4e0; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; font-weight: bold; }
     .team-reminder-slot-name { font-size: 13px; color: #f7f0c4; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -467,6 +468,7 @@
     .rarity-rare { color: #58a6ff; }
     .rarity-epic { color: #d2a8ff; }
     .rarity-legendary { color: #ffa657; }
+    .rarity-mythic { color: #ff5e5e; }
 
     @media (max-width: 980px) {
       body { overflow: hidden; padding: 24px 16px 36px; }
@@ -730,8 +732,8 @@
         { name: "Ultimate", desc: "Ultimate rod: much better catch quality.",                  multipliers: { common: 0.35, uncommon: 1.25, rare: 3.5, epic: 6.5, legendary: 10  } }
       ];
 
-      const RARITY_MULTIPLIERS = { common: 1, uncommon: 1.35, rare: 1.9, epic: 2.8, legendary: 4.2 };
-      const RARITY_ORDER = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5 };
+      const RARITY_MULTIPLIERS = { common: 1, uncommon: 1.35, rare: 1.9, epic: 2.8, legendary: 4.2, mythic: 6.0 };
+      const RARITY_ORDER = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5, mythic: 6 };
 
       const moneyDisplay          = document.getElementById("money");
       const hooksDisplay          = document.getElementById("hooksDisplay");
@@ -1252,9 +1254,9 @@
         };
       }
 
-      function formatRarityLabel(r) { return { common:"Common", uncommon:"Uncommon", rare:"Rare", epic:"Epic", legendary:"Legendary" }[r] || r; }
-      function rarityRank(r) { return { common:1, uncommon:2, rare:3, epic:4, legendary:5 }[r] || 1; }
-      function getRarityClass(r) { return { common:"rarity-common", uncommon:"rarity-uncommon", rare:"rarity-rare", epic:"rarity-epic", legendary:"rarity-legendary" }[r] || "rarity-common"; }
+      function formatRarityLabel(r) { return { common:"Common", uncommon:"Uncommon", rare:"Rare", epic:"Epic", legendary:"Legendary", mythic:"Mythic" }[r] || r; }
+      function rarityRank(r) { return { common:1, uncommon:2, rare:3, epic:4, legendary:5, mythic:6 }[r] || 1; }
+      function getRarityClass(r) { return { common:"rarity-common", uncommon:"rarity-uncommon", rare:"rarity-rare", epic:"rarity-epic", legendary:"rarity-legendary", mythic:"rarity-mythic" }[r] || "rarity-common"; }
 
       function getAdjustedRarityWeights() {
         const tier = getRodTierInfo(rodTierLevel);

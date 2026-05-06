@@ -1,25 +1,20 @@
 {
   "raids": {
-    "raid1": {
-      "name": "Coral Assault",
-      "reward": 10,
+    "raid_1778082245720": {
+      "name": "New Raid",
+      "cost": 15,
+      "desc": "Raid test editor",
       "stages": [
-        { "name": "Floor 1", "name": "Prismatic eel", rarity: "epic" , "hp": 800, "atk": 80 },
-        { "name": "Floor 2", "name": "Royal moray", rarity: "epic" , "hp": 1000, "atk": 100 },
-        { "name": "Floor 3", "name": "Chrome triggerfish", rarity: "epic" , "hp": 1200, "atk": 120 },
-        { "name": "Floor 4", "name": "Golden shark", rarity: "legendary" , "hp": 1400, "atk": 140 },
-        { "name": "Floor 5", "name": "Sea dragon", rarity: "legendary" , "hp": 1600, "atk": 160 }
-      ]
-    },
-    "raid2": {
-      "name": "Coral War",
-      "reward": 10,
-      "stages": [
-        { "name": "Floor 1", "name": "Prismatic eel", rarity: "epic" , "hp": 800, "atk": 160 },
-        { "name": "Floor 2", "name": "Royal moray", rarity: "epic" , "hp": 2000, "atk": 1000 },
-        { "name": "Floor 3", "name": "Chrome triggerfish", rarity: "epic" , "hp": 2200, "atk": 1240 },
-        { "name": "Floor 4", "name": "Golden shark", rarity: "legendary" , "hp": 4400, "atk": 1430 },
-        { "name": "Floor 5", "name": "Sea dragon", rarity: "legendary" , "hp": 6600, "atk": 1660 }
+        { "floor": "Floor 1", "name": "Cochon", "rarity": "common", "hp": 100, "atk": 12 },
+        { "floor": "Floor 2", "name": "Te", "rarity": "epic", "hp": 5000, "atk": 80 }
+      ],
+      "rewards": [
+        { "pct": 95, "type": "fish", "fishId": "fish_1778082245720" },
+        { "pct": 5, "type": "hooks", "amount": 100 }
+      ],
+      "fishTemplates": [
+        { "id": "fish_1778082245720", "name": "Shimmer Carp", "rarity": "rare", "maxHp": 60, "atk": 10 },
+        { "id": "fish_1778082326301_e067aa43773c58", "name": "New Fish", "rarity": "common", "maxHp": 60, "atk": 8 }
       ]
     }
   }

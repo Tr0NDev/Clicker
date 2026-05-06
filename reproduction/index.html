@@ -147,6 +147,7 @@
     .rarity-rare { color: #58a6ff; }
     .rarity-epic { color: #d2a8ff; }
     .rarity-legendary { color: #ffa657; }
+    .rarity-mythic { color: #ff5e5e; }
 
     .breed-action-btn {
       cursor: pointer;
@@ -390,13 +391,13 @@
     }
 
     function rarityRank(rarity) {
-      const ranks = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5 };
+      const ranks = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5, mythic: 6 };
       return ranks[rarity] || 1;
     }
 
     function rarityByRank(rank) {
-      const map = { 1: "common", 2: "uncommon", 3: "rare", 4: "epic", 5: "legendary" };
-      return map[Math.min(5, Math.max(1, rank))] || "common";
+      const map = { 1: "common", 2: "uncommon", 3: "rare", 4: "epic", 5: "legendary", 6: "mythic" };
+      return map[Math.min(6, Math.max(1, rank))] || "common";
     }
 
     function loadInventory() {
@@ -506,7 +507,7 @@
       });
 
       const selectedOption = select.selectedOptions && select.selectedOptions[0];
-      select.classList.remove("rarity-common", "rarity-uncommon", "rarity-rare", "rarity-epic", "rarity-legendary");
+      select.classList.remove("rarity-common", "rarity-uncommon", "rarity-rare", "rarity-epic", "rarity-legendary", "rarity-mythic");
       if (selectedOption) {
         const rarityClass = selectedOption.className || "rarity-common";
         select.classList.add(rarityClass);
@@ -848,7 +849,7 @@
 
     parentASelect.addEventListener("change", () => {
       const selectedOption = parentASelect.selectedOptions && parentASelect.selectedOptions[0];
-      parentASelect.classList.remove("rarity-common", "rarity-uncommon", "rarity-rare", "rarity-epic", "rarity-legendary");
+      parentASelect.classList.remove("rarity-common", "rarity-uncommon", "rarity-rare", "rarity-epic", "rarity-legendary", "rarity-mythic");
       if (selectedOption) {
         parentASelect.classList.add(selectedOption.className || "rarity-common");
       }
@@ -857,7 +858,7 @@
 
     parentBSelect.addEventListener("change", () => {
       const selectedOption = parentBSelect.selectedOptions && parentBSelect.selectedOptions[0];
-      parentBSelect.classList.remove("rarity-common", "rarity-uncommon", "rarity-rare", "rarity-epic", "rarity-legendary");
+      parentBSelect.classList.remove("rarity-common", "rarity-uncommon", "rarity-rare", "rarity-epic", "rarity-legendary", "rarity-mythic");
       if (selectedOption) {
         parentBSelect.classList.add(selectedOption.className || "rarity-common");
       }

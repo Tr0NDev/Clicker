@@ -176,6 +176,11 @@
       border-color: #c57a2a;
     }
 
+    .fish.rarity-mythic {
+      background: #2f1313;
+      border-color: #ff5e5e;
+    }
+
     .fish-title {
       font-weight: bold;
       margin-bottom: 4px;
@@ -282,6 +287,7 @@
     .rarity-rare { color: #58a6ff; }
     .rarity-epic { color: #d2a8ff; }
     .rarity-legendary { color: #ffa657; }
+    .rarity-mythic { color: #ff5e5e; }
 
     .empty {
       margin-top: 16px;
@@ -602,6 +608,7 @@
                   <option value="rare">Rare</option>
                   <option value="epic">Epic</option>
                   <option value="legendary">Legendary</option>
+                  <option value="mythic">Mythic</option>
                 </select>
               </label>
               <button id="sellByFilter" class="btn">Sell by filters</button>
@@ -742,7 +749,8 @@
         uncommon: "Uncommon",
         rare: "Rare",
         epic: "Epic",
-        legendary: "Legendary"
+        legendary: "Legendary",
+        mythic: "Mythic"
       };
 
       return labels[rarity] || rarity;
@@ -780,7 +788,8 @@
         uncommon: 2,
         rare: 3,
         epic: 4,
-        legendary: 5
+        legendary: 5,
+        mythic: 6
       };
 
       return ranks[rarity] || 1;
