@@ -50,12 +50,11 @@
     .status-line.ok  { color: #7ee787; }
     .status-line.err { color: #ff7070; }
 
-    /* Member cards in squad list */
     .member-card { border: 1px solid #2f4d5c; border-radius: 12px; background: #0f1519; padding: 10px 12px; display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 6px; }
-    .member-card.active    { border-color: #2d6b40; background: rgba(126,231,135,.05); }
-    .member-card.is-leader { border-color: #c9a227; background: rgba(201,162,39,.06); }
+    .member-card.active     { border-color: #2d6b40; background: rgba(126,231,135,.05); }
+    .member-card.is-leader  { border-color: #c9a227; background: rgba(201,162,39,.06); }
     .member-card.eliminated { opacity: .45; border-color: #7a2020; }
-    .member-card.is-me     { border-color: #4a9eff; background: rgba(74,158,255,.06); }
+    .member-card.is-me      { border-color: #4a9eff; background: rgba(74,158,255,.06); }
     .member-name { font-size: 14px; font-weight: bold; color: #e9f6ff; }
     .member-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 4px; font-size: 11px; color: #8dc4e0; }
 
@@ -65,8 +64,9 @@
     .badge-me      { background: rgba(74,158,255,.12); color: #4a9eff; border: 1px solid #2a5a9a; }
     .badge-waiting { background: rgba(106,138,154,.12); color: #8ea3b1; border: 1px solid #365563; }
     .badge-elim    { background: rgba(192,57,43,.15); color: #ff7070; border: 1px solid #7a2020; }
+    .badge-epic    { background: rgba(179,102,255,.15); color: #d2a8ff; border: 1px solid #7a50b0; }
+    .badge-legendary { background: rgba(255,166,87,.15); color: #ffa657; border: 1px solid #8a5020; }
 
-    /* Online chips */
     .live-chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid #365563; background: #0f1519; font-size: 12px; color: #d9ecf8; }
     .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: #6a8a9a; }
@@ -74,10 +74,20 @@
     .chip.leader-chip { border-color: #7a5f18; color: #e8c060; }
     .chip.my-chip { border-color: #2a5a9a; color: #4a9eff; }
 
+    /* Raid selector cards */
+    .raid-choice-grid { display: grid; gap: 8px; margin-bottom: 14px; }
+    .raid-choice { border: 1px solid #365563; border-radius: 10px; background: #0f1519; padding: 12px 14px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: border-color .15s, background .15s; }
+    .raid-choice:hover { border-color: #5a8faa; background: rgba(74,158,255,.05); }
+    .raid-choice.selected { border-color: #c9a227; background: rgba(201,162,39,.08); }
+    .raid-choice-icon { font-size: 28px; }
+    .raid-choice-info { flex: 1; }
+    .raid-choice-name { font-size: 14px; font-weight: bold; color: #e9f6ff; }
+    .raid-choice-stats { font-size: 12px; color: #8dc4e0; margin-top: 3px; }
+
     /* Wave pips */
-    .wave-selector { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 14px; }
-    .wave-pip { border: 1px solid #365563; border-radius: 10px; background: #0f1519; padding: 8px 4px; text-align: center; font-size: 11px; font-weight: bold; color: #6a8a9a; transition: all .2s; }
-    .wave-pip .wave-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+    .wave-pips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 14px; }
+    .wave-pip { border: 1px solid #365563; border-radius: 10px; background: #0f1519; padding: 8px 4px; text-align: center; font-size: 11px; font-weight: bold; color: #6a8a9a; }
+    .wave-pip .wave-icon { font-size: 18px; display: block; margin-bottom: 3px; }
     .wave-pip.done   { border-color: #2d6b40; color: #7ee787; background: rgba(126,231,135,.06); }
     .wave-pip.active { border-color: #c9a227; color: #e8c060; background: rgba(201,162,39,.08); animation: pip-pulse 2s ease infinite; }
     .wave-pip.locked { opacity: .35; }
@@ -87,7 +97,7 @@
     .arena { border: 1px solid #2f4d5c; border-radius: 14px; background: linear-gradient(180deg, #18222a 0%, #12191f 100%); overflow: hidden; margin-bottom: 12px; }
     .arena-inner { padding: 20px; }
     .enemy-zone { text-align: center; margin-bottom: 18px; }
-    .fish-emoji { font-size: 60px; line-height: 1; display: inline-block; transition: transform .2s; }
+    .fish-emoji { font-size: 58px; line-height: 1; display: inline-block; transition: transform .2s; }
     .fish-emoji.hit  { animation: fish-hit .35s ease; }
     .fish-emoji.dead { filter: grayscale(1); opacity: .45; transform: rotate(90deg); }
     @keyframes fish-hit { 0%{transform:scale(1);filter:brightness(1)} 30%{transform:scale(1.15) rotate(-4deg);filter:brightness(2.5) saturate(4)} 100%{transform:scale(1);filter:brightness(1)} }
@@ -101,7 +111,6 @@
     .hp-bar-fill.medium { background: linear-gradient(90deg, #e07820, #f5db9b); }
     .hp-bar-fill.low    { background: linear-gradient(90deg, #c0392b, #e07070); }
 
-    /* Player cards in arena */
     .players-zone { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin-top: 14px; }
     .player-card { border: 1px solid #2f4d5c; border-radius: 10px; background: #0f1519; padding: 8px; text-align: center; position: relative; transition: border-color .2s; }
     .player-card.eliminated { opacity: .4; border-color: #7a2020; }
@@ -116,10 +125,9 @@
     .player-hp-fill.medium { background: #f5db9b; }
     .player-hp-fill.low    { background: #ff7070; }
     .player-hp-text { font-size: 9px; color: #6a8a9a; margin-top: 2px; }
-    .elim-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 9px; font-weight: bold; background: rgba(192,57,43,.85); color: #fff; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: .05em; }
+    .elim-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 9px; font-weight: bold; background: rgba(192,57,43,.85); color: #fff; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; }
 
-    /* Battle log */
-    .battle-log { border: 1px solid #365563; border-radius: 10px; background: #0f1519; height: 200px; overflow-y: auto; padding: 8px 10px; margin-top: 10px; }
+    .battle-log { border: 1px solid #365563; border-radius: 10px; background: #0f1519; height: 240px; overflow-y: auto; padding: 8px 10px; margin-top: 10px; }
     .battle-log::-webkit-scrollbar { width: 4px; }
     .battle-log::-webkit-scrollbar-thumb { background: #365563; border-radius: 2px; }
     .log-entry { font-size: 12px; color: #8dc4e0; line-height: 1.7; }
@@ -129,42 +137,29 @@
     .log-entry.system { color: #e8c060; font-style: italic; }
     .log-entry.win    { color: #e8c060; font-weight: bold; }
 
-    /* Reward */
     .reward-banner { border: 1px solid #c9a227; border-radius: 14px; background: linear-gradient(180deg, rgba(201,162,39,.12) 0%, rgba(201,162,39,.04) 100%); padding: 20px; text-align: center; margin-bottom: 12px; }
     .reward-title  { font-size: 20px; font-weight: bold; color: #e8c060; margin-bottom: 4px; }
     .reward-amount { font-size: 30px; font-weight: bold; color: #f5db9b; }
 
-    /* Rules */
     .raid-rule { border: 1px solid #365563; border-radius: 10px; background: #0f1519; padding: 10px 12px; color: #cde3ef; font-size: 13px; line-height: 1.5; margin-bottom: 6px; }
     .raid-rule strong { color: #8dc4e0; }
 
-    /* Idle */
     .idle-state { text-align: center; padding: 36px 16px; color: #6a8a9a; font-size: 14px; line-height: 1.6; }
     .idle-icon { font-size: 44px; margin-bottom: 12px; opacity: .6; display: block; }
 
-    /* Float damage */
     .floaty { position: fixed; pointer-events: none; z-index: 999; font-size: 20px; font-weight: bold; color: #e07820; animation: floatUp .9s ease forwards; }
     @keyframes floatUp { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-60px) scale(.7)} }
 
+    .leader-waiting { border: 1px solid #7a5f18; border-radius: 10px; background: rgba(201,162,39,.06); padding: 12px 14px; font-size: 13px; color: #e8c060; margin-top: 8px; text-align: center; }
     .split-stack { display: grid; gap: 14px; }
     .subtle { font-size: 12px; color: #6a8a9a; line-height: 1.5; }
     .empty-state { border: 1px dashed #4b6878; border-radius: 12px; padding: 16px; color: #6a8a9a; background: rgba(15,21,25,.8); text-align: center; font-size: 13px; }
 
-    .debug-panel { border: 1px solid #365; border-radius: 8px; background: #0a1208; padding: 8px 10px; font-size: 11px; color: #7ee787; font-family: monospace; margin-top: 8px; display: none; }
-    .debug-panel.visible { display: block; }
-
-    /* Leader waiting note */
-    .leader-waiting { border: 1px solid #7a5f18; border-radius: 10px; background: rgba(201,162,39,.06); padding: 12px 14px; font-size: 13px; color: #e8c060; margin-top: 8px; text-align: center; }
-
-    /* Wave chooser for leader */
-    .wave-chooser { display: grid; gap: 8px; margin-bottom: 14px; }
-    .wave-choice { border: 1px solid #365563; border-radius: 10px; background: #0f1519; padding: 10px 14px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: border-color .15s, background .15s; }
-    .wave-choice:hover { border-color: #5a8faa; background: rgba(74,158,255,.05); }
-    .wave-choice.selected { border-color: #c9a227; background: rgba(201,162,39,.08); }
-    .wave-choice-emoji { font-size: 24px; }
-    .wave-choice-info { flex: 1; }
-    .wave-choice-name { font-size: 14px; font-weight: bold; color: #e9f6ff; }
-    .wave-choice-stats { font-size: 12px; color: #8dc4e0; margin-top: 2px; }
+    /* Stage progress bar */
+    .stage-bar { display: flex; gap: 4px; margin-bottom: 14px; }
+    .stage-seg { flex: 1; height: 8px; border-radius: 4px; background: #1e3545; transition: background .4s; }
+    .stage-seg.done   { background: #2d6b40; }
+    .stage-seg.active { background: #c9a227; animation: pip-pulse 2s ease infinite; }
   </style>
 </head>
 <body>
@@ -175,7 +170,10 @@
       <button class="nav-button" onclick="location.href='../../inventory/'">Inventory</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../../team/'">Team</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../../shop/'">Shop</button>
-      <button class="nav-button locked-nav-button active-nav-button">Battle / Raid</button>
+      <button class="nav-button locked-nav-button" onclick="location.href='../../bestiary/'">Bestiary</button>
+      <button class="nav-button locked-nav-button" onclick="location.href='../'">Battle</button>
+      <button class="nav-button locked-nav-button active-nav-button">Raid</button>
+      <button class="nav-button locked-nav-button" onclick="location.href='../../reproduction/'">Reproduction</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../../missions/'">Missions</button>
       <button class="nav-button locked-nav-button" onclick="location.href='../../guild/'">Guild</button>
       <button class="nav-button settings-nav-button" onclick="location.href='../../settings/'">Settings</button>
@@ -183,62 +181,50 @@
   </div>
 
   <div class="shell">
-
     <section class="hero">
       <div class="hero-title">⚔️ Guild Raid</div>
-      <div class="hero-subtitle">5 waves of enemies to defeat together. The squad leader chooses the raid and launches it. Others wait. Reward: <strong style="color:#e8c060">10 🪝</strong> per survivor.</div>
+      <div class="hero-subtitle">5 floors of enemies to defeat together. The squad leader picks the raid and launches it. Others wait. Reward: <strong style="color:#e8c060">hooks</strong> per survivor.</div>
     </section>
 
     <div class="page-grid">
 
-      <!-- LEFT COLUMN -->
+      <!-- LEFT -->
       <div class="split-stack">
         <section class="section">
           <div class="section-header-row">
             <div class="section-title">Squad</div>
-            <div style="display:flex;gap:6px">
-              <button class="btn btn-sm" id="refreshBtn" onclick="refreshAll()">↻ Refresh</button>
-              <button class="btn btn-sm" onclick="toggleDebug()" style="opacity:.5">🐛</button>
-            </div>
+            <button class="btn btn-sm" id="refreshBtn" onclick="refreshAll()">↻ Refresh</button>
           </div>
 
           <div class="panel" style="margin-bottom:10px">
-            <div class="panel-subtitle">Guild members (online = in squad)</div>
+            <div class="panel-subtitle">Guild members</div>
             <div class="live-chips" id="guildChips"><span class="subtle">Loading…</span></div>
           </div>
 
           <div class="panel">
             <div class="panel-subtitle">In the squad</div>
             <div id="squadList"><div class="subtle" style="padding:4px 0">Loading…</div></div>
-
             <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-              <!-- Join/Leave toggle — label and style updated dynamically -->
-              <button class="btn btn-cyan" id="squadToggleBtn" onclick="handleSquadToggle()" disabled>
-                Join Squad
-              </button>
-              <!-- "Become Leader" only visible when in squad and no leader -->
-              <button class="btn btn-sm btn-gold" id="becomeLeaderBtn" onclick="handleBecomeLeader()" style="display:none">
-                ⚜ Become Leader
-              </button>
+              <button class="btn btn-cyan" id="squadToggleBtn" onclick="handleSquadToggle()" disabled>Join Squad</button>
+              <button class="btn btn-sm btn-gold" id="becomeLeaderBtn" onclick="handleBecomeLeader()" style="display:none">⚜ Become Leader</button>
             </div>
             <div class="status-line" id="squadStatus"></div>
-            <div class="debug-panel" id="debugPanel"></div>
           </div>
         </section>
 
         <section class="section">
           <div class="section-title">Raid Rules</div>
           <div class="raid-rule"><strong>Minimum 2 players</strong> to start a raid.</div>
-          <div class="raid-rule">The <strong>squad leader</strong> chooses the raid and launches it. Others wait.</div>
-          <div class="raid-rule"><strong>5 waves</strong> of enemies. Each player attacks by pressing the button.</div>
-          <div class="raid-rule">The enemy counter-attacks <strong>all players</strong> after every hit.</div>
-          <div class="raid-rule">After each wave, all fish recover <strong>50% HP</strong>.</div>
+          <div class="raid-rule">The <strong>squad leader</strong> picks the raid and launches it. Others wait.</div>
+          <div class="raid-rule"><strong>5 floors</strong> of enemies. Each player attacks by pressing the button.</div>
+          <div class="raid-rule">The enemy counter-attacks <strong>all players</strong> after every player hit.</div>
+          <div class="raid-rule">After each floor, all players recover <strong>50% HP</strong>.</div>
           <div class="raid-rule">If all your fish reach 0 HP → you're <strong style="color:#ff9999">eliminated</strong> (no reward).</div>
-          <div class="raid-rule" style="border-color:#c9a227;background:rgba(201,162,39,.05)">Reward if you survive: <strong style="color:#e8c060">+10 🪝</strong>.</div>
+          <div class="raid-rule" style="border-color:#c9a227;background:rgba(201,162,39,.05)">Reward if you survive: <strong style="color:#e8c060">hooks per the raid definition</strong>.</div>
         </section>
       </div>
 
-      <!-- CENTER COLUMN -->
+      <!-- CENTER -->
       <section class="section" id="centerSection">
         <div class="idle-state">
           <span class="idle-icon">🌊</span>
@@ -246,7 +232,7 @@
         </div>
       </section>
 
-      <!-- RIGHT COLUMN -->
+      <!-- RIGHT -->
       <div class="split-stack">
         <section class="section" id="rewardSection" style="display:none"></section>
         <section class="section">
@@ -264,38 +250,71 @@
   // ─── CONFIG ──────────────────────────────────────────────────────────────────
   const SUPABASE_URL      = "https://vrozpjdyqerpcrwlcdfo.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_moV-dfu5sVohSbQOR6z0zw_BSpcVCHg";
-  const GUILDS_TABLE  = "guilds";
-  const HOOKS_KEY     = "clicker_hooks";
+  const GUILDS_TABLE   = "guilds";
+  const HOOKS_KEY      = "clicker_hooks";
   const MEMBERSHIP_KEY = "clicker_guildMembership";
+  const USER_ID_KEY    = "clicker_userId";
+  const USERNAME_KEY   = "clicker_username";
 
-  // These match your guild.html
-  const USER_ID_KEY   = "clicker_userId";      // primary player id
-  const USERNAME_KEY  = "clicker_username";    // display name (local)
-
-  const SQUAD_ACTIVE_MS = 60_000;   // 60s — player counts as "in squad"
+  const SQUAD_ACTIVE_MS = 60_000;
   const HEARTBEAT_MS    = 15_000;
   const POLL_MS         = 4_000;
 
-  const WAVES = [
-    { name:"Clown Fish",      emoji:"🐠", hp: 80,  atk: 8  },
-    { name:"Wild Grouper",    emoji:"🐟", hp: 160, atk: 16 },
-    { name:"Hammerhead Shark",emoji:"🦈", hp: 280, atk: 28 },
-    { name:"Giant Octopus",   emoji:"🐙", hp: 420, atk: 45 },
-    { name:"Abyssal Kraken",  emoji:"🦑", hp: 650, atk: 70 },
-  ];
-  const WAVE_EMOJIS = WAVES.map(w => w.emoji);
+  // Rarity colours for enemy badges
+  const RARITY_COLOR = { common:"#d9d9d9", uncommon:"#7ee787", rare:"#58a6ff", epic:"#d2a8ff", legendary:"#ffa657" };
+  const RARITY_EMOJI = { common:"⚪", uncommon:"🟢", rare:"🔵", epic:"🟣", legendary:"🟠" };
+
+  // ─── RAID DATA (from raids.txt) ───────────────────────────────────────────────
+  // NOTE: raids.txt is fetched at runtime from battle/raid/raids.txt relative to this page.
+  // If the fetch fails we fall back to this inline copy.
+  const RAIDS_FALLBACK = {
+    raid1: {
+      name: "Coral Assault", reward: 10,
+      stages: [
+        { floor:"Floor 1", name:"Prismatic eel",      rarity:"epic",      hp:800,  atk:80  },
+        { floor:"Floor 2", name:"Royal moray",         rarity:"epic",      hp:1000, atk:100 },
+        { floor:"Floor 3", name:"Chrome triggerfish",  rarity:"epic",      hp:1200, atk:120 },
+        { floor:"Floor 4", name:"Golden shark",        rarity:"legendary", hp:1400, atk:140 },
+        { floor:"Floor 5", name:"Sea dragon",          rarity:"legendary", hp:1600, atk:160 },
+      ]
+    },
+    raid2: {
+      name: "Coral War", reward: 10,
+      stages: [
+        { floor:"Floor 1", name:"Prismatic eel",      rarity:"epic",      hp:800,  atk:160  },
+        { floor:"Floor 2", name:"Royal moray",         rarity:"epic",      hp:2000, atk:1000 },
+        { floor:"Floor 3", name:"Chrome triggerfish",  rarity:"epic",      hp:2200, atk:1240 },
+        { floor:"Floor 4", name:"Golden shark",        rarity:"legendary", hp:4400, atk:1430 },
+        { floor:"Floor 5", name:"Sea dragon",          rarity:"legendary", hp:6600, atk:1660 },
+      ]
+    }
+  };
+
+  let RAIDS = RAIDS_FALLBACK; // will be replaced if fetch succeeds
+
+  async function loadRaids() {
+    try {
+      const res  = await fetch("raids.txt");
+      const text = await res.text();
+      // The file has unquoted keys (rarity:) — fix it for JSON.parse
+      const fixed = text
+        .replace(/,\s*\}/g, "}").replace(/,\s*\]/g, "]")   // trailing commas
+        .replace(/(['"])?([a-zA-Z_]\w*)(['"])?:/g, '"$2":'); // unquoted keys
+      const parsed = JSON.parse(fixed);
+      if (parsed && parsed.raids) RAIDS = parsed.raids;
+    } catch (e) {
+      console.warn("Could not load raids.txt, using fallback.", e);
+    }
+  }
 
   // ─── HELPERS ─────────────────────────────────────────────────────────────────
   function safeParseArray(raw) {
     if (Array.isArray(raw)) return raw;
     try { const a = JSON.parse(raw || "[]"); return Array.isArray(a) ? a : []; } catch { return []; }
   }
-  function escH(s) {
-    return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  }
+  function escH(s) { return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
   function nowIso() { return new Date().toISOString(); }
 
-  // Deterministic fake team icons for visual only
   const CHARS = ["⚔️","🗡️","🛡️","🏹","🪄","🔱","⚡","🌀","🦅","🐉"];
   function fakeTeam(pid) {
     const h = [...(pid||"x")].reduce((a,c,i)=>a+c.charCodeAt(0)*(i+1),0);
@@ -306,391 +325,83 @@
     return 15 + (Math.abs(h) % 20);
   }
 
-  // ─── LOCAL STATE ─────────────────────────────────────────────────────────────
+  // ─── STATE ───────────────────────────────────────────────────────────────────
   let db = null;
   if (window.supabase && SUPABASE_URL.startsWith("https://")) {
     db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 
-  // PRIMARY player id — must match what guild.html stores
-  function myPid() { return localStorage.getItem(USER_ID_KEY) || ""; }
-
-  // Best available display name for self
-  function myDisplayName() {
-    return localStorage.getItem(USERNAME_KEY) || "Player";
-  }
-
-  function getMembership() {
-    try { return JSON.parse(localStorage.getItem(MEMBERSHIP_KEY) || "null"); } catch { return null; }
-  }
-  function getHooks() { return Math.max(0, Number(localStorage.getItem(HOOKS_KEY)) || 0); }
-  function setHooks(v) { localStorage.setItem(HOOKS_KEY, String(Math.max(0, Math.floor(v)))); }
+  function myPid()         { return localStorage.getItem(USER_ID_KEY) || ""; }
+  function myDisplayName() { return localStorage.getItem(USERNAME_KEY) || "Player"; }
+  function getMembership() { try { return JSON.parse(localStorage.getItem(MEMBERSHIP_KEY)||"null"); } catch { return null; } }
+  function getHooks()      { return Math.max(0, Number(localStorage.getItem(HOOKS_KEY))||0); }
+  function setHooks(v)     { localStorage.setItem(HOOKS_KEY, String(Math.max(0,Math.floor(v)))); }
 
   let guildData    = null;
   let allMembers   = [];
   let raidState    = null;
-  let nameCache    = {};   // pid → display name fetched from Supabase
+  let nameCache    = {};
   let busyFetch    = false;
   let pollTimer    = null;
   let heartbeatTimer = null;
-  let showDebug    = false;
   let lastLogCount = 0;
+  let selectedRaidKey = null; // leader's chosen raid id
 
-  // ─── DISPLAY NAME RESOLUTION ─────────────────────────────────────────────────
-  // Always try Supabase profiles first, then memberName field in guild row, then short id.
+  // ─── NAME RESOLUTION ─────────────────────────────────────────────────────────
   async function fetchNames(pids) {
     if (!db || !pids.length) return;
     const missing = pids.filter(p => p && !nameCache[p]);
     if (!missing.length) return;
     try {
-      // profiles table: player_id + display_name
       const { data: profiles } = await db.from("profiles").select("player_id,display_name").in("player_id", missing);
-      if (Array.isArray(profiles)) {
-        profiles.forEach(p => { if (p.display_name) nameCache[p.player_id] = p.display_name; });
+      if (Array.isArray(profiles)) profiles.forEach(p => { if (p.display_name) nameCache[p.player_id] = p.display_name; });
+      const still = missing.filter(p => !nameCache[p]);
+      if (still.length) {
+        const { data: accounts } = await db.from("accounts").select("user_id,username").in("user_id", still);
+        if (Array.isArray(accounts)) accounts.forEach(a => { if (a.username) nameCache[a.user_id] = a.username; });
       }
-      // accounts table fallback: user_id + username
-      const stillMissing = missing.filter(p => !nameCache[p]);
-      if (stillMissing.length) {
-        const { data: accounts } = await db.from("accounts").select("user_id,username").in("user_id", stillMissing);
-        if (Array.isArray(accounts)) {
-          accounts.forEach(a => { if (a.username) nameCache[a.user_id] = a.username; });
-        }
-      }
-    } catch { /* silently ignore */ }
+    } catch {}
   }
 
   function resolveName(pid) {
     if (!pid) return "???";
     if (pid === myPid()) return myDisplayName();
-    // From cache (Supabase)
     if (nameCache[pid]) return nameCache[pid];
-    // From the guild member object (displayName / username / name fields)
     const m = allMembers.find(mb => memberPid(mb) === pid);
-    if (m) {
-      const n = m.displayName || m.username || m.name || m.userName;
-      if (n) return n;
-    }
-    // Fallback: short id
+    if (m) { const n = m.displayName||m.username||m.name; if (n) return n; }
     return "Player·" + String(pid).slice(-4);
   }
 
-  // Extract pid from a member object regardless of which field stores it
-  function memberPid(m) {
-    return (m && (m.pid || m.userId || m.playerId || m.id)) || "";
-  }
+  function memberPid(m) { return (m && (m.pid||m.userId||m.playerId||m.id)) || ""; }
 
   // ─── SQUAD HELPERS ───────────────────────────────────────────────────────────
   function getSquadMembers() {
     const cutoff = Date.now() - SQUAD_ACTIVE_MS;
-    return allMembers.filter(m => {
-      const t = Date.parse(m.raidLastSeen || "");
-      return Number.isFinite(t) && t >= cutoff;
-    });
+    return allMembers.filter(m => { const t=Date.parse(m.raidLastSeen||""); return Number.isFinite(t) && t >= cutoff; });
   }
-  function getSquadPids() { return getSquadMembers().map(m => memberPid(m)).filter(Boolean); }
+  function getSquadPids() { return getSquadMembers().map(m=>memberPid(m)).filter(Boolean); }
   function amIInSquad()   { return getSquadPids().includes(myPid()); }
   function getLeaderPid() {
-    // Leader is the member with raidLeader:true that is still active in squad
     const sqPids = getSquadPids();
     const leader = allMembers.find(m => m.raidLeader && sqPids.includes(memberPid(m)));
     return leader ? memberPid(leader) : null;
   }
-  function amILeader() { return getLeaderPid() === myPid(); }
+  function amILeader() { return getLeaderPid() === myPid() && !!myPid(); }
 
-  // ─── STATUS / LOG ────────────────────────────────────────────────────────────
-  function setStatus(msg, type = "") {
-    const el = document.getElementById("squadStatus");
-    if (!el) return;
-    el.textContent = msg;
-    el.className   = "status-line" + (type ? " " + type : "");
-  }
-  function addLog(msg, cls = "") {
-    const log = document.getElementById("battleLog");
-    if (!log) return;
-    const d = document.createElement("div");
-    d.className  = "log-entry" + (cls ? " " + cls : "");
-    d.textContent = msg;
-    log.appendChild(d);
-    log.scrollTop = log.scrollHeight;
-  }
-  function updateDebug() {
-    const el = document.getElementById("debugPanel");
-    if (!el) return;
-    if (!showDebug) { el.classList.remove("visible"); return; }
-    el.classList.add("visible");
-    el.innerHTML = [
-      `myPid (clicker_userId): ${myPid()}`,
-      `myName (clicker_username): ${myDisplayName()}`,
-      `guildId: ${getMembership()?.guildId || "none"}`,
-      `allMembers count: ${allMembers.length}`,
-      `allMember pids: ${allMembers.map(m=>memberPid(m)).join(", ")||"—"}`,
-      `squadPids: ${getSquadPids().join(", ")||"—"}`,
-      `amIInSquad: ${amIInSquad()}`,
-      `leaderPid: ${getLeaderPid() || "none"}`,
-      `amILeader: ${amILeader()}`,
-      `raidPhase: ${raidState?.phase || "none"}`,
-    ].map(l=>`<div>${escH(l)}</div>`).join("");
-  }
-  function toggleDebug() { showDebug = !showDebug; updateDebug(); }
-
-  // ─── FETCH ───────────────────────────────────────────────────────────────────
-  async function fetchAll() {
-    if (busyFetch) return;
-    busyFetch = true;
-    try {
-      const mem = getMembership();
-      if (!db || !mem?.guildId) { renderNoGuild(); busyFetch = false; return; }
-
-      const { data: guild, error } = await db.from(GUILDS_TABLE).select("*").eq("id", mem.guildId).single();
-      if (error || !guild) { setStatus("Cannot load guild: " + (error?.message || "error"), "err"); busyFetch = false; return; }
-
-      guildData  = guild;
-      allMembers = safeParseArray(guild.members);
-
-      // Fetch display names from Supabase for all squad members
-      await fetchNames(allMembers.map(m => memberPid(m)).filter(Boolean));
-
-      try {
-        const raw = guild.raid_state;
-        raidState  = raw ? (typeof raw === "string" ? JSON.parse(raw) : raw) : null;
-      } catch { raidState = null; }
-
-      syncRaidLog();
-      renderAll();
-      updateDebug();
-    } catch (e) {
-      setStatus("Fetch error: " + e.message, "err");
-    } finally {
-      busyFetch = false;
-    }
+  // ─── STATUS / LOG ─────────────────────────────────────────────────────────────
+  function setStatus(msg, type="") {
+    const el=document.getElementById("squadStatus"); if(!el) return;
+    el.textContent=msg; el.className="status-line"+(type?" "+type:"");
   }
 
-  // ─── SQUAD JOIN / LEAVE ──────────────────────────────────────────────────────
-  async function handleSquadToggle() {
-    const btn = document.getElementById("squadToggleBtn");
-    if (btn) btn.disabled = true;
-    try {
-      if (amIInSquad()) await leaveSquad();
-      else              await joinSquad();
-    } finally {
-      if (btn) btn.disabled = false;
-    }
+  // addLog writes to the local DOM only. Battle log entries come from raidState.log (synced below).
+  function addLocalLog(msg, cls="") {
+    const log=document.getElementById("battleLog"); if(!log) return;
+    const d=document.createElement("div"); d.className="log-entry"+(cls?" "+cls:""); d.textContent=msg;
+    log.appendChild(d); log.scrollTop=log.scrollHeight;
   }
 
-  async function joinSquad() {
-    const mem = getMembership();
-    if (!db || !mem?.guildId) return;
-
-    const pid  = myPid();
-    const name = myDisplayName();
-    if (!pid) { setStatus("No player ID found. Please log in first.", "err"); return; }
-
-    const { data: guild, error: ferr } = await db.from(GUILDS_TABLE).select("members").eq("id", mem.guildId).single();
-    if (ferr || !guild) { setStatus("Error reading guild.", "err"); return; }
-
-    let members = safeParseArray(guild.members);
-    const now   = nowIso();
-    const idx   = members.findIndex(mb => memberPid(mb) === pid);
-
-    if (idx === -1) {
-      // Player not yet in guild members array — add them
-      members.push({ pid, displayName: name, role: "member", joined: now, raidJoinedAt: now, raidLastSeen: now });
-    } else {
-      members[idx] = {
-        ...members[idx],
-        displayName: name,
-        raidJoinedAt: members[idx].raidJoinedAt || now,
-        raidLastSeen: now,
-      };
-    }
-
-    const { error: uerr } = await db.from(GUILDS_TABLE)
-      .update({ members: JSON.stringify(members), member_count: members.length })
-      .eq("id", mem.guildId);
-
-    if (uerr) { setStatus("Error joining squad: " + uerr.message, "err"); return; }
-
-    setStatus("You joined the squad!", "ok");
-    addLog(`${resolveName(pid)} joined the squad.`, "system");
-    await fetchAll();
-  }
-
-  async function leaveSquad() {
-    const mem = getMembership();
-    if (!db || !mem?.guildId) return;
-    const pid = myPid();
-
-    const { data: guild, error: ferr } = await db.from(GUILDS_TABLE).select("members").eq("id", mem.guildId).single();
-    if (ferr || !guild) { setStatus("Error reading guild.", "err"); return; }
-
-    let members = safeParseArray(guild.members);
-    const idx   = members.findIndex(mb => memberPid(mb) === pid);
-    if (idx !== -1) {
-      members[idx] = { ...members[idx], raidJoinedAt: null, raidLastSeen: null, raidLeader: false };
-    }
-
-    // If this player was the leader, assign leader to next in squad
-    if (members[idx]?.raidLeader) {
-      const stillActive = members.filter((m, i) => i !== idx && m.raidLastSeen && Date.now() - Date.parse(m.raidLastSeen) < SQUAD_ACTIVE_MS);
-      if (stillActive.length) stillActive[0].raidLeader = true;
-    }
-
-    const { error: uerr } = await db.from(GUILDS_TABLE).update({ members: JSON.stringify(members) }).eq("id", mem.guildId);
-    if (uerr) { setStatus("Error leaving squad: " + uerr.message, "err"); return; }
-
-    addLog(`${resolveName(pid)} left the squad.`, "system");
-    await fetchAll();
-  }
-
-  // ─── BECOME LEADER ───────────────────────────────────────────────────────────
-  async function handleBecomeLeader() {
-    const mem = getMembership();
-    if (!db || !mem?.guildId) return;
-    const pid = myPid();
-
-    const { data: guild, error: ferr } = await db.from(GUILDS_TABLE).select("members").eq("id", mem.guildId).single();
-    if (ferr || !guild) return;
-
-    let members = safeParseArray(guild.members);
-    // Clear all leader flags, set self
-    members = members.map(m => ({ ...m, raidLeader: memberPid(m) === pid ? true : false }));
-
-    await db.from(GUILDS_TABLE).update({ members: JSON.stringify(members) }).eq("id", mem.guildId);
-    addLog(`${resolveName(pid)} became the raid leader.`, "system");
-    await fetchAll();
-  }
-
-  // ─── HEARTBEAT ───────────────────────────────────────────────────────────────
-  async function heartbeat() {
-    if (!amIInSquad()) return;
-    const mem = getMembership();
-    if (!db || !mem?.guildId) return;
-    const pid = myPid();
-
-    const { data: guild } = await db.from(GUILDS_TABLE).select("members").eq("id", mem.guildId).single();
-    if (!guild) return;
-
-    let members = safeParseArray(guild.members);
-    const idx   = members.findIndex(mb => memberPid(mb) === pid);
-    if (idx === -1) return;
-
-    members[idx] = { ...members[idx], raidLastSeen: nowIso() };
-    await db.from(GUILDS_TABLE).update({ members: JSON.stringify(members) }).eq("id", mem.guildId);
-  }
-
-  // ─── RAID ENGINE ─────────────────────────────────────────────────────────────
-  let selectedWaveIndex = 0; // leader picks before launch
-
-  async function launchRaid() {
-    const squadPids = getSquadPids();
-    if (squadPids.length < 2) { setStatus("Need at least 2 players in the squad.", "err"); return; }
-    const mem  = getMembership();
-    const wave = WAVES[selectedWaveIndex];
-
-    const players = {};
-    squadPids.forEach(p => { players[p] = { hp: 100, maxHp: 100, eliminated: false }; });
-
-    const state = {
-      phase: "running", wave: selectedWaveIndex,
-      enemyMaxHp: wave.hp, enemyHp: wave.hp,
-      players, completedWaves: [], rewardClaimed: {},
-      log: [`🌊 Raid launched! Wave ${selectedWaveIndex + 1}: ${wave.name} (${wave.hp} HP)`]
-    };
-
-    await db.from(GUILDS_TABLE).update({ raid_state: JSON.stringify(state) }).eq("id", mem.guildId);
-    addLog("🚀 Raid started!", "system");
-    await fetchAll();
-  }
-
-  async function attackEnemy() {
-    if (!raidState || raidState.phase !== "running") return;
-    const pid   = myPid();
-    const mem   = getMembership();
-    const state = JSON.parse(JSON.stringify(raidState));
-    const me    = state.players[pid];
-    if (!me || me.eliminated) return;
-
-    const dmg = computeAtk(pid);
-    state.enemyHp = Math.max(0, state.enemyHp - dmg);
-    state.log.push(`⚔️ ${resolveName(pid)} deals ${dmg} damage! (Enemy HP: ${Math.round(state.enemyHp)}/${state.enemyMaxHp})`);
-
-    if (state.enemyHp <= 0) { await advanceWave(state, mem.guildId); return; }
-
-    // Counter-attack all
-    const atkDmg = WAVES[state.wave].atk;
-    let anyAlive = false;
-    Object.keys(state.players).forEach(p => {
-      const pl = state.players[p];
-      if (pl.eliminated) return;
-      pl.hp = Math.max(0, pl.hp - atkDmg);
-      state.log.push(`🔴 ${WAVES[state.wave].emoji} hits ${resolveName(p)} for ${atkDmg}! (${Math.round(pl.hp)}/${pl.maxHp} HP)`);
-      if (pl.hp <= 0) { pl.eliminated = true; state.log.push(`💀 ${resolveName(p)} has been eliminated!`); }
-      else { anyAlive = true; }
-    });
-
-    if (!anyAlive) {
-      state.phase = "ended"; state.result = "defeat";
-      state.log.push("💀 All players eliminated. Defeat.");
-    }
-
-    await db.from(GUILDS_TABLE).update({ raid_state: JSON.stringify(state) }).eq("id", mem.guildId);
-    await fetchAll();
-  }
-
-  async function advanceWave(state, guildId) {
-    const w = WAVES[state.wave];
-    state.completedWaves = [...(state.completedWaves || []), state.wave];
-    state.log.push(`✅ Wave ${state.wave + 1} complete! ${w.name} defeated!`);
-
-    Object.keys(state.players).forEach(p => {
-      const pl   = state.players[p];
-      const heal = Math.floor(pl.maxHp * 0.5);
-      pl.hp = Math.min(pl.maxHp, pl.hp + heal);
-      pl.eliminated = false;
-      state.log.push(`💚 ${resolveName(p)} recovers ${heal} HP.`);
-    });
-
-    if (state.wave >= 4) {
-      state.phase = "ended"; state.result = "victory";
-      state.log.push("🏆 VICTORY! Survivors — claim your 10 🪝!");
-    } else {
-      state.wave++;
-      const nw = WAVES[state.wave];
-      state.enemyMaxHp = nw.hp; state.enemyHp = nw.hp;
-      state.log.push(`🌊 Wave ${state.wave + 1}: ${nw.name} (${nw.hp} HP)`);
-    }
-
-    await db.from(GUILDS_TABLE).update({ raid_state: JSON.stringify(state) }).eq("id", guildId);
-    await fetchAll();
-  }
-
-  async function claimReward() {
-    if (!raidState || raidState.result !== "victory") return;
-    const pid = myPid();
-    const mem = getMembership();
-    const me  = raidState.players[pid];
-    if (!me || me.eliminated)        { setStatus("You were eliminated — no reward.", "err"); return; }
-    if (raidState.rewardClaimed?.[pid]) { setStatus("Reward already claimed.", ""); return; }
-
-    const state = JSON.parse(JSON.stringify(raidState));
-    if (!state.rewardClaimed) state.rewardClaimed = {};
-    state.rewardClaimed[pid] = true;
-    setHooks(getHooks() + 10);
-    await db.from(GUILDS_TABLE).update({ raid_state: JSON.stringify(state) }).eq("id", mem.guildId);
-    addLog(`🪝 ${resolveName(pid)} claimed 10 🪝!`, "win");
-    setStatus("+10 🪝 added!", "ok");
-    await fetchAll();
-  }
-
-  async function resetRaid() {
-    const mem = getMembership();
-    if (!mem || !db) return;
-    await db.from(GUILDS_TABLE).update({ raid_state: null }).eq("id", mem.guildId);
-    addLog("🔄 Raid reset.", "system");
-    await fetchAll();
-  }
-
-  // ─── SYNC RAID LOG ───────────────────────────────────────────────────────────
+  // Sync shared raid log from Supabase → local battle log DOM
   function syncRaidLog() {
     const log = raidState?.log;
     if (!Array.isArray(log)) return;
@@ -701,14 +412,234 @@
         : msg.startsWith("💀") ? "death"
         : msg.startsWith("🏆")||msg.startsWith("✅") ? "win"
         : "system";
-      addLog(msg, cls);
+      addLocalLog(msg, cls);
     });
     lastLogCount = log.length;
   }
 
+  // ─── FETCH ────────────────────────────────────────────────────────────────────
+  async function fetchAll() {
+    if (busyFetch) return;
+    busyFetch = true;
+    try {
+      const mem = getMembership();
+      if (!db || !mem?.guildId) { renderNoGuild(); return; }
+
+      const { data: guild, error } = await db.from(GUILDS_TABLE).select("*").eq("id", mem.guildId).single();
+      if (error||!guild) { setStatus("Cannot load guild: "+(error?.message||"error"), "err"); return; }
+
+      guildData  = guild;
+      allMembers = safeParseArray(guild.members);
+      await fetchNames(allMembers.map(m=>memberPid(m)).filter(Boolean));
+
+      try {
+        const raw = guild.raid_state;
+        raidState = raw ? (typeof raw==="string" ? JSON.parse(raw) : raw) : null;
+      } catch { raidState=null; }
+
+      syncRaidLog();
+      renderAll();
+    } catch(e) {
+      setStatus("Fetch error: "+e.message, "err");
+    } finally { busyFetch=false; }
+  }
+
+  // ─── SQUAD ACTIONS ───────────────────────────────────────────────────────────
+  async function handleSquadToggle() {
+    const btn=document.getElementById("squadToggleBtn"); if(btn) btn.disabled=true;
+    try { if (amIInSquad()) await leaveSquad(); else await joinSquad(); }
+    finally { if(btn) btn.disabled=false; }
+  }
+
+  async function joinSquad() {
+    const mem=getMembership(); if(!db||!mem?.guildId) return;
+    const pid=myPid(), name=myDisplayName();
+    if(!pid) { setStatus("No player ID. Please log in.", "err"); return; }
+
+    const {data:guild,error:ferr} = await db.from(GUILDS_TABLE).select("members").eq("id",mem.guildId).single();
+    if(ferr||!guild) { setStatus("Error reading guild.", "err"); return; }
+
+    let members=safeParseArray(guild.members);
+    const now=nowIso();
+    const idx=members.findIndex(mb=>memberPid(mb)===pid);
+    if(idx===-1) {
+      members.push({pid,displayName:name,role:"member",joined:now,raidJoinedAt:now,raidLastSeen:now});
+    } else {
+      members[idx]={...members[idx],displayName:name,raidJoinedAt:members[idx].raidJoinedAt||now,raidLastSeen:now};
+    }
+
+    const {error:uerr}=await db.from(GUILDS_TABLE).update({members:JSON.stringify(members),member_count:members.length}).eq("id",mem.guildId);
+    if(uerr) { setStatus("Error joining: "+uerr.message,"err"); return; }
+    setStatus("You joined the squad!","ok");
+    await fetchAll();
+  }
+
+  async function leaveSquad() {
+    const mem=getMembership(); if(!db||!mem?.guildId) return;
+    const pid=myPid();
+    const {data:guild,error:ferr}=await db.from(GUILDS_TABLE).select("members").eq("id",mem.guildId).single();
+    if(ferr||!guild) { setStatus("Error reading guild.","err"); return; }
+
+    let members=safeParseArray(guild.members);
+    const idx=members.findIndex(mb=>memberPid(mb)===pid);
+    if(idx!==-1) members[idx]={...members[idx],raidJoinedAt:null,raidLastSeen:null,raidLeader:false};
+
+    if(members[idx]?.raidLeader) {
+      const still=members.filter((m,i)=>i!==idx&&m.raidLastSeen&&Date.now()-Date.parse(m.raidLastSeen)<SQUAD_ACTIVE_MS);
+      if(still.length) still[0].raidLeader=true;
+    }
+
+    await db.from(GUILDS_TABLE).update({members:JSON.stringify(members)}).eq("id",mem.guildId);
+    await fetchAll();
+  }
+
+  async function handleBecomeLeader() {
+    const mem=getMembership(); if(!db||!mem?.guildId) return;
+    const pid=myPid();
+    const {data:guild,error:ferr}=await db.from(GUILDS_TABLE).select("members").eq("id",mem.guildId).single();
+    if(ferr||!guild) return;
+    let members=safeParseArray(guild.members);
+    members=members.map(m=>({...m,raidLeader:memberPid(m)===pid}));
+    await db.from(GUILDS_TABLE).update({members:JSON.stringify(members)}).eq("id",mem.guildId);
+    await fetchAll();
+  }
+
+  // ─── HEARTBEAT ───────────────────────────────────────────────────────────────
+  async function heartbeat() {
+    if(!amIInSquad()) return;
+    const mem=getMembership(); if(!db||!mem?.guildId) return;
+    const pid=myPid();
+    const {data:guild}=await db.from(GUILDS_TABLE).select("members").eq("id",mem.guildId).single();
+    if(!guild) return;
+    let members=safeParseArray(guild.members);
+    const idx=members.findIndex(mb=>memberPid(mb)===pid);
+    if(idx===-1) return;
+    members[idx]={...members[idx],raidLastSeen:nowIso()};
+    await db.from(GUILDS_TABLE).update({members:JSON.stringify(members)}).eq("id",mem.guildId);
+  }
+
+  // ─── RAID ENGINE ─────────────────────────────────────────────────────────────
+  async function launchRaid() {
+    const squadPids=getSquadPids();
+    if(squadPids.length<2) { setStatus("Need at least 2 players.","err"); return; }
+    if(!selectedRaidKey||!RAIDS[selectedRaidKey]) { setStatus("Select a raid first.","err"); return; }
+    const mem=getMembership();
+    const raidDef=RAIDS[selectedRaidKey];
+    const firstStage=raidDef.stages[0];
+
+    const players={};
+    squadPids.forEach(p=>{ players[p]={hp:100,maxHp:100,eliminated:false}; });
+
+    const state={
+      phase:"running",
+      raidKey:selectedRaidKey,
+      raidName:raidDef.name,
+      stageIndex:0,
+      enemyMaxHp:firstStage.hp,
+      enemyHp:firstStage.hp,
+      players,
+      completedStages:[],
+      rewardClaimed:{},
+      log:[`⚔️ Raid "${raidDef.name}" launched! Floor 1: ${firstStage.name} (${firstStage.hp} HP | ${firstStage.atk} ATK) [${firstStage.rarity}]`]
+    };
+
+    await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
+    await fetchAll();
+  }
+
+  async function attackEnemy() {
+    if(!raidState||raidState.phase!=="running") return;
+    const pid=myPid(), mem=getMembership();
+    const state=JSON.parse(JSON.stringify(raidState));
+    const me=state.players[pid];
+    if(!me||me.eliminated) return;
+
+    const raidDef=RAIDS[state.raidKey];
+    const stage=raidDef.stages[state.stageIndex];
+    const dmg=computeAtk(pid);
+    state.enemyHp=Math.max(0,state.enemyHp-dmg);
+    state.log.push(`⚔️ ${resolveName(pid)} hits ${stage.name} for ${dmg} dmg! (${Math.round(state.enemyHp)}/${state.enemyMaxHp} HP)`);
+
+    if(state.enemyHp<=0) { await advanceStage(state,mem.guildId); return; }
+
+    // Counter-attack ALL players
+    const atkDmg=stage.atk;
+    let anyAlive=false;
+    Object.keys(state.players).forEach(p=>{
+      const pl=state.players[p]; if(pl.eliminated) return;
+      pl.hp=Math.max(0,pl.hp-atkDmg);
+      state.log.push(`🔴 ${stage.name} hits ${resolveName(p)} for ${atkDmg}! (${Math.round(pl.hp)}/${pl.maxHp} HP)`);
+      if(pl.hp<=0) { pl.eliminated=true; state.log.push(`💀 ${resolveName(p)} has been eliminated!`); }
+      else { anyAlive=true; }
+    });
+
+    if(!anyAlive) {
+      state.phase="ended"; state.result="defeat";
+      state.log.push("💀 All players eliminated — Defeat.");
+    }
+
+    await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
+    await fetchAll();
+  }
+
+  async function advanceStage(state, guildId) {
+    const raidDef=RAIDS[state.raidKey];
+    const stage=raidDef.stages[state.stageIndex];
+    state.completedStages=[...(state.completedStages||[]),state.stageIndex];
+    state.log.push(`✅ Floor ${state.stageIndex+1} cleared! ${stage.name} defeated!`);
+
+    // Heal all 50%
+    Object.keys(state.players).forEach(p=>{
+      const pl=state.players[p];
+      const heal=Math.floor(pl.maxHp*0.5);
+      pl.hp=Math.min(pl.maxHp,pl.hp+heal);
+      pl.eliminated=false;
+      state.log.push(`💚 ${resolveName(p)} recovers ${heal} HP.`);
+    });
+
+    if(state.stageIndex>=raidDef.stages.length-1) {
+      state.phase="ended"; state.result="victory";
+      state.log.push(`🏆 VICTORY! "${raidDef.name}" cleared! Survivors: claim your ${raidDef.reward} 🪝!`);
+    } else {
+      state.stageIndex++;
+      const ns=raidDef.stages[state.stageIndex];
+      state.enemyMaxHp=ns.hp; state.enemyHp=ns.hp;
+      state.log.push(`🌊 Floor ${state.stageIndex+1}: ${ns.name} (${ns.hp} HP | ${ns.atk} ATK) [${ns.rarity}]`);
+    }
+
+    await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",guildId);
+    await fetchAll();
+  }
+
+  async function claimReward() {
+    if(!raidState||raidState.result!=="victory") return;
+    const pid=myPid(), mem=getMembership();
+    const me=raidState.players[pid];
+    if(!me||me.eliminated) { setStatus("You were eliminated — no reward.","err"); return; }
+    if(raidState.rewardClaimed?.[pid]) { setStatus("Already claimed.",""); return; }
+
+    const raidDef=RAIDS[raidState.raidKey];
+    const reward=raidDef?.reward||10;
+
+    const state=JSON.parse(JSON.stringify(raidState));
+    if(!state.rewardClaimed) state.rewardClaimed={};
+    state.rewardClaimed[pid]=true;
+    setHooks(getHooks()+reward);
+    await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
+    setStatus(`+${reward} 🪝 added!`,"ok");
+    await fetchAll();
+  }
+
+  async function resetRaid() {
+    const mem=getMembership(); if(!mem||!db) return;
+    await db.from(GUILDS_TABLE).update({raid_state:null}).eq("id",mem.guildId);
+    lastLogCount=0;
+    await fetchAll();
+  }
+
   // ─── RENDER ──────────────────────────────────────────────────────────────────
   function renderNoGuild() {
-    document.getElementById("centerSection").innerHTML = `
+    document.getElementById("centerSection").innerHTML=`
       <div class="idle-state">
         <span class="idle-icon">⚠️</span>
         You are not in a guild.<br>
@@ -716,78 +647,61 @@
       </div>`;
   }
 
-  function renderAll() {
-    renderLeftPanel();
-    renderCenter();
-  }
+  function renderAll() { renderLeftPanel(); renderCenter(); }
 
-  // ── LEFT PANEL ──────────────────────────────────────────────────────────────
   function renderLeftPanel() {
-    const pid       = myPid();
-    const squadPids = getSquadPids();
-    const isIn      = squadPids.includes(pid);
-    const leaderPid = getLeaderPid();
-    const iAmLeader = leaderPid === pid;
-    const hasLeader = !!leaderPid;
+    const pid=myPid(), squadPids=getSquadPids();
+    const isIn=squadPids.includes(pid);
+    const leaderPid=getLeaderPid();
+    const iAmLeader=leaderPid===pid;
+    const hasLeader=!!leaderPid;
 
-    // --- Squad toggle button ---
-    const toggleBtn = document.getElementById("squadToggleBtn");
-    if (toggleBtn) {
-      if (isIn) {
-        toggleBtn.textContent  = "Leave Squad";
-        toggleBtn.className    = "btn btn-danger";
-      } else {
-        toggleBtn.textContent  = "Join Squad";
-        toggleBtn.className    = "btn btn-cyan";
-      }
-      toggleBtn.disabled = !db || !guildData;
+    const toggleBtn=document.getElementById("squadToggleBtn");
+    if(toggleBtn) {
+      toggleBtn.textContent=isIn?"Leave Squad":"Join Squad";
+      toggleBtn.className=isIn?"btn btn-danger":"btn btn-cyan";
+      toggleBtn.disabled=!db||!guildData;
     }
 
-    // --- Become Leader button: visible only when in squad and no current leader ---
-    const leaderBtn = document.getElementById("becomeLeaderBtn");
-    if (leaderBtn) {
-      leaderBtn.style.display = (isIn && !hasLeader && !iAmLeader) ? "" : "none";
-    }
+    const leaderBtn=document.getElementById("becomeLeaderBtn");
+    if(leaderBtn) leaderBtn.style.display=(isIn&&!hasLeader&&!iAmLeader)?"":"none";
 
-    // --- Guild online chips ---
-    const chips = document.getElementById("guildChips");
-    if (chips) {
-      if (!allMembers.length) {
-        chips.innerHTML = '<span class="subtle">No guild members found.</span>';
-      } else {
-        chips.innerHTML = allMembers.map(m => {
-          const mpid   = memberPid(m);
-          const active = squadPids.includes(mpid);
-          const isLead = mpid === leaderPid;
-          const isMe   = mpid === pid;
+    // Chips
+    const chips=document.getElementById("guildChips");
+    if(chips) {
+      if(!allMembers.length) { chips.innerHTML='<span class="subtle">No members.</span>'; }
+      else {
+        chips.innerHTML=allMembers.map(m=>{
+          const mpid=memberPid(m);
+          const active=squadPids.includes(mpid);
+          const isLead=mpid===leaderPid;
+          const isMe=mpid===pid;
           return `<span class="chip ${active?"online":""} ${isLead?"leader-chip":""} ${isMe?"my-chip":""}">
-            <span class="dot"></span>
-            ${escH(resolveName(mpid))}${isMe ? " (you)" : ""}${isLead ? " · Leader" : ""}
+            <span class="dot"></span>${escH(resolveName(mpid))}${isMe?" (you)":""}${isLead?" · Leader":""}
           </span>`;
         }).join("");
       }
     }
 
-    // --- Squad list ---
-    const squadList = document.getElementById("squadList");
-    if (squadList) {
-      const squadMembers = getSquadMembers();
-      if (!squadMembers.length) {
-        squadList.innerHTML = '<div class="empty-state">Nobody in the squad yet.</div>';
-      } else {
-        squadList.innerHTML = squadMembers.map(m => {
-          const mpid   = memberPid(m);
-          const isLead = mpid === leaderPid;
-          const isMe   = mpid === pid;
-          const elim   = raidState?.players?.[mpid]?.eliminated;
+    // Squad list
+    const squadList=document.getElementById("squadList");
+    if(squadList) {
+      const sq=getSquadMembers();
+      if(!sq.length) { squadList.innerHTML='<div class="empty-state">Nobody in the squad yet.</div>'; }
+      else {
+        squadList.innerHTML=sq.map(m=>{
+          const mpid=memberPid(m);
+          const isLead=mpid===leaderPid;
+          const isMe=mpid===pid;
+          const elim=raidState?.players?.[mpid]?.eliminated;
           return `<div class="member-card ${isLead?"is-leader":""} ${isMe?"is-me":""} ${elim?"eliminated":"active"}">
             <div>
               <div class="member-name">${escH(resolveName(mpid))}${isMe?' <span style="font-size:10px;color:#4a9eff">(you)</span>':""}</div>
               <div class="member-meta">
-                ${isMe    ? '<span class="badge badge-me">Me</span>' : ""}
-                ${isLead  ? '<span class="badge badge-leader">⚜ Leader</span>' : ""}
+                ${isMe?'<span class="badge badge-me">Me</span>':""}
+                ${isLead?'<span class="badge badge-leader">⚜ Leader</span>':""}
                 <span class="badge badge-joined">Online</span>
-                ${elim    ? '<span class="badge badge-elim">Eliminated</span>' : ""}
+                ${elim?'<span class="badge badge-elim">Eliminated</span>':""}
               </div>
             </div>
           </div>`;
@@ -795,132 +709,125 @@
       }
     }
 
-    const n = squadPids.length;
-    const needMore = n < 2 ? ` — need ${2 - n} more` : "";
-    setStatus(`${n} player(s) in squad${needMore}`);
+    const n=squadPids.length;
+    setStatus(`${n} player(s) in squad${n<2?" — need "+(2-n)+" more":""}`);
   }
 
-  // ── WAVE PIPS ──────────────────────────────────────────────────────────────
-  function renderWavePips(currentWave) {
-    return `<div class="wave-selector">${WAVES.map((w,i) => {
-      const done = raidState?.completedWaves?.includes(i);
-      const cur  = i === currentWave;
-      return `<div class="wave-pip ${done?"done":cur?"active":"locked"}">
-        <span class="wave-icon">${done?"✅":cur?"⚡":w.emoji}</span>W${i+1}
-      </div>`;
+  function renderStagePips(currentStageIdx) {
+    const raidDef=selectedRaidKey&&RAIDS[selectedRaidKey];
+    const stages=(raidState?.raidKey&&RAIDS[raidState.raidKey]?.stages)||(raidDef?.stages)||[];
+    if(!stages.length) return "";
+    return `<div class="stage-bar">${stages.map((_,i)=>{
+      const done=raidState?.completedStages?.includes(i);
+      const cur=i===currentStageIdx;
+      return `<div class="stage-seg ${done?"done":cur?"active":""}"></div>`;
     }).join("")}</div>`;
   }
 
-  // ── CENTER PANEL ───────────────────────────────────────────────────────────
   function renderCenter() {
-    const pid       = myPid();
-    const squadPids = getSquadPids();
-    const isIn      = squadPids.includes(pid);
-    const iAmLeader = amILeader();
-    const hasLeader = !!getLeaderPid();
-    const center    = document.getElementById("centerSection");
-    if (!center) return;
+    const pid=myPid(), squadPids=getSquadPids();
+    const isIn=squadPids.includes(pid);
+    const iAmLeader=amILeader();
+    const hasLeader=!!getLeaderPid();
+    const center=document.getElementById("centerSection");
+    if(!center) return;
 
-    if (!guildData)   { renderNoGuild(); return; }
-    if (!isIn) {
-      center.innerHTML = `
-        <div class="idle-state">
-          <span class="idle-icon">🌊</span>
-          You are not in the squad.<br>Click <strong style="color:#8dc4e0">Join Squad</strong> to participate.
-        </div>`;
-      document.getElementById("rewardSection").style.display = "none";
+    if(!guildData)   { renderNoGuild(); return; }
+    if(!isIn) {
+      center.innerHTML=`<div class="idle-state"><span class="idle-icon">🌊</span>You are not in the squad.<br>Click <strong style="color:#8dc4e0">Join Squad</strong> to participate.</div>`;
+      document.getElementById("rewardSection").style.display="none";
       return;
     }
 
-    if (raidState?.phase === "ended")   { renderEndState();   return; }
-    if (raidState?.phase === "running") { renderArena();       return; }
+    if(raidState?.phase==="ended")   { renderEndState(); return; }
+    if(raidState?.phase==="running") { renderArena();    return; }
 
     // ── LOBBY ──
-    const canLaunch = iAmLeader && squadPids.length >= 2;
-
-    // Wave chooser for leader
-    const waveChooser = iAmLeader ? `
+    const raidKeys=Object.keys(RAIDS);
+    const raidChooser=iAmLeader?`
       <div style="margin-bottom:14px">
-        <div class="panel-subtitle" style="margin-bottom:8px">Choose Starting Wave</div>
-        <div class="wave-chooser" id="waveChooser">
-          ${WAVES.map((w,i) => `
-            <div class="wave-choice ${selectedWaveIndex===i?"selected":""}" onclick="selectWave(${i})">
-              <span class="wave-choice-emoji">${w.emoji}</span>
-              <div class="wave-choice-info">
-                <div class="wave-choice-name">${w.name}</div>
-                <div class="wave-choice-stats">${w.hp} HP · ${w.atk} ATK/hit</div>
+        <div class="panel-subtitle" style="margin-bottom:8px">Choose Raid</div>
+        <div class="raid-choice-grid" id="raidChoiceGrid">
+          ${raidKeys.map(key=>{
+            const r=RAIDS[key];
+            const sel=selectedRaidKey===key;
+            return `<div class="raid-choice ${sel?"selected":""}" onclick="selectRaid('${escH(key)}')">
+              <span class="raid-choice-icon">⚔️</span>
+              <div class="raid-choice-info">
+                <div class="raid-choice-name">${escH(r.name)}</div>
+                <div class="raid-choice-stats">${r.stages.length} floors · Reward: ${r.reward} 🪝 · Boss: ${escH(r.stages[r.stages.length-1].name)}</div>
               </div>
-            </div>`).join("")}
+            </div>`;
+          }).join("")}
         </div>
-      </div>` : "";
+      </div>`:"";
 
-    const launchBlock = iAmLeader
-      ? `${waveChooser}
-         <button class="btn btn-gold" ${canLaunch?"":"disabled"} onclick="launchRaid()">
-           ⚔️ Launch Raid — ${squadPids.length} players (Wave ${selectedWaveIndex+1}: ${WAVES[selectedWaveIndex].name})
-         </button>`
-      : hasLeader
-        ? `<div class="leader-waiting">⏳ Waiting for the leader to launch the raid…</div>`
-        : `<div class="leader-waiting">⚠️ No leader assigned. First to join can click <strong>Become Leader</strong>.</div>`;
+    const canLaunch=iAmLeader&&squadPids.length>=2&&!!selectedRaidKey;
+    const launchBlock=iAmLeader
+      ?`${raidChooser}
+        <button class="btn btn-gold" ${canLaunch?"":"disabled"} onclick="launchRaid()">
+          ⚔️ Launch — ${selectedRaidKey?RAIDS[selectedRaidKey].name:"Select a raid first"}
+        </button>`
+      :hasLeader
+        ?`<div class="leader-waiting">⏳ Waiting for the leader to launch the raid…</div>`
+        :`<div class="leader-waiting">⚠️ No leader. Click <strong>Become Leader</strong> to take command.</div>`;
 
-    center.innerHTML = `
+    center.innerHTML=`
       <div class="section-header-row" style="margin-bottom:12px">
         <div class="section-title">⚔️ Ready to Fight</div>
       </div>
-      ${renderWavePips(-1)}
-      <div class="idle-state" style="padding:16px 0">
+      <div class="idle-state" style="padding:14px 0">
         <span class="idle-icon">⚔️</span>
-        ${squadPids.length} player(s) in the squad.
-        ${!canLaunch && !iAmLeader ? "" : squadPids.length < 2 ? "Need at least <strong style='color:#e8c060'>2 players</strong> to launch." : ""}
+        ${squadPids.length} player(s) in squad.
+        ${squadPids.length<2?"<br>Need at least <strong style='color:#e8c060'>2 players</strong> to launch.":""}
       </div>
       ${launchBlock}`;
-    document.getElementById("rewardSection").style.display = "none";
+    document.getElementById("rewardSection").style.display="none";
   }
 
-  function selectWave(idx) {
-    selectedWaveIndex = idx;
-    // Just re-render center without full fetch
-    renderCenter();
-  }
+  function selectRaid(key) { selectedRaidKey=key; renderCenter(); }
 
-  // ── ARENA ──────────────────────────────────────────────────────────────────
   function renderArena() {
-    const state  = raidState;
-    const wave   = WAVES[state.wave];
-    const pid    = myPid();
-    const myData = state.players[pid];
-    const canAtk = myData && !myData.eliminated;
-    const hpPct  = Math.max(0, state.enemyHp / state.enemyMaxHp * 100);
-    const hpCls  = hpPct > 50 ? "high" : hpPct > 20 ? "medium" : "low";
-    const iAmLdr = amILeader();
+    const state=raidState;
+    const raidDef=RAIDS[state.raidKey];
+    const stage=raidDef.stages[state.stageIndex];
+    const pid=myPid();
+    const myData=state.players[pid];
+    const canAtk=myData&&!myData.eliminated;
+    const hpPct=Math.max(0,state.enemyHp/state.enemyMaxHp*100);
+    const hpCls=hpPct>50?"high":hpPct>20?"medium":"low";
+    const iAmLdr=amILeader();
+    const rarityColor=RARITY_COLOR[stage.rarity]||"#fff";
+    const rarityEmoji=RARITY_EMOJI[stage.rarity]||"";
 
-    const playerCards = Object.entries(state.players).map(([p, pd]) => {
-      const hp  = Math.max(0, pd.hp / pd.maxHp * 100);
-      const hc  = hp > 50 ? "high" : hp > 20 ? "medium" : "low";
-      const team= fakeTeam(p);
-      const isMe= p === pid;
+    const playerCards=Object.entries(state.players).map(([p,pd])=>{
+      const hp=Math.max(0,pd.hp/pd.maxHp*100);
+      const hc=hp>50?"high":hp>20?"medium":"low";
+      const team=fakeTeam(p);
+      const isMe=p===pid;
       return `<div class="player-card ${pd.eliminated?"eliminated":"active"} ${isMe?"me-card":""}">
         <div class="player-fish-icons">${team.join("")}</div>
         <div class="player-card-name">${escH(resolveName(p))}${isMe?" ✦":""}</div>
         <div class="player-hp-bar"><div class="player-hp-fill ${hc}" style="width:${hp}%"></div></div>
         <div class="player-hp-text">${Math.round(pd.hp)}/${pd.maxHp}</div>
-        ${pd.eliminated ? '<div class="elim-overlay">Eliminated</div>' : ""}
+        ${pd.eliminated?'<div class="elim-overlay">Eliminated</div>':""}
       </div>`;
     }).join("");
 
-    document.getElementById("centerSection").innerHTML = `
-      <div class="section-header-row" style="margin-bottom:12px">
-        <div class="section-title">⚔️ Battle in Progress</div>
-        ${iAmLdr ? `<button class="btn btn-sm btn-danger" onclick="resetRaid()">Abandon</button>` : ""}
+    document.getElementById("centerSection").innerHTML=`
+      <div class="section-header-row" style="margin-bottom:8px">
+        <div class="section-title">⚔️ Floor ${state.stageIndex+1} / ${raidDef.stages.length}</div>
+        ${iAmLdr?`<button class="btn btn-sm btn-danger" onclick="resetRaid()">Abandon</button>`:""}
       </div>
-      ${renderWavePips(state.wave)}
+      ${renderStagePips(state.stageIndex)}
       <div class="arena">
         <div class="arena-inner">
           <div class="enemy-zone">
-            <div class="fish-emoji" id="fishEmoji">${wave.emoji}</div>
-            <div class="enemy-name">${wave.name}</div>
-            <div class="hp-bar-wrap" style="margin-top:8px">
-              <div class="hp-bar-label"><span>Enemy HP</span><span>${Math.round(state.enemyHp)} / ${state.enemyMaxHp}</span></div>
+            <div class="fish-emoji" id="fishEmoji">🐟</div>
+            <div class="enemy-name" style="color:${rarityColor}">${rarityEmoji} ${escH(stage.name)}</div>
+            <div style="font-size:11px;color:#6a8a9a;margin-bottom:6px">${escH(stage.floor||"")} · ${escH(stage.rarity)} · ATK ${stage.atk}</div>
+            <div class="hp-bar-wrap">
+              <div class="hp-bar-label"><span>HP</span><span>${Math.round(state.enemyHp)} / ${state.enemyMaxHp}</span></div>
               <div class="hp-bar-track"><div class="hp-bar-fill ${hpCls}" style="width:${hpPct}%"></div></div>
             </div>
           </div>
@@ -928,124 +835,111 @@
         </div>
       </div>
       <button class="btn btn-gold" id="attackBtn" ${canAtk?"":"disabled"} onclick="doAttack()">
-        ${myData?.eliminated ? "❌ Eliminated" : `⚔️ Attack — ${computeAtk(pid)} damage`}
+        ${myData?.eliminated?"❌ Eliminated":`⚔️ Attack — ${computeAtk(pid)} damage`}
       </button>
-      <div class="subtle" style="margin-top:6px;text-align:center">Wave ${state.wave+1}/5</div>`;
-    document.getElementById("rewardSection").style.display = "none";
+      <div class="subtle" style="margin-top:6px;text-align:center">Raid: ${escH(raidDef.name)}</div>`;
+    document.getElementById("rewardSection").style.display="none";
   }
 
   async function doAttack() {
-    const btn = document.getElementById("attackBtn");
-    if (btn) btn.disabled = true;
-    const fe = document.getElementById("fishEmoji");
-    if (fe) { fe.classList.remove("hit"); void fe.offsetWidth; fe.classList.add("hit"); }
-    spawnFloaty(fe, `-${computeAtk(myPid())}`);
+    const btn=document.getElementById("attackBtn"); if(btn) btn.disabled=true;
+    const fe=document.getElementById("fishEmoji");
+    if(fe) { fe.classList.remove("hit"); void fe.offsetWidth; fe.classList.add("hit"); }
+    spawnFloaty(fe,`-${computeAtk(myPid())}`);
     await attackEnemy();
   }
 
-  function spawnFloaty(anchor, text) {
-    if (!anchor) return;
-    const r  = anchor.getBoundingClientRect();
-    const el = document.createElement("div");
-    el.className  = "floaty"; el.textContent = text;
-    el.style.left = (r.left + r.width/2 - 16) + "px";
-    el.style.top  = (r.top - 10) + "px";
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 950);
+  function spawnFloaty(anchor,text) {
+    if(!anchor) return;
+    const r=anchor.getBoundingClientRect();
+    const el=document.createElement("div");
+    el.className="floaty"; el.textContent=text;
+    el.style.left=(r.left+r.width/2-16)+"px"; el.style.top=(r.top-10)+"px";
+    document.body.appendChild(el); setTimeout(()=>el.remove(),950);
   }
 
-  // ── END STATE ──────────────────────────────────────────────────────────────
   function renderEndState() {
-    const state  = raidState;
-    const pid    = myPid();
-    const myData = state.players[pid];
-    const isVic  = state.result === "victory";
-    const isElim = myData?.eliminated;
-    const canClaim = isVic && !isElim && !state.rewardClaimed?.[pid];
-    const claimed  = state.rewardClaimed?.[pid];
-    const iAmLdr   = amILeader();
+    const state=raidState;
+    const pid=myPid();
+    const raidDef=RAIDS[state.raidKey]||{name:"Raid",reward:10,stages:[]};
+    const myData=state.players[pid];
+    const isVic=state.result==="victory";
+    const isElim=myData?.eliminated;
+    const canClaim=isVic&&!isElim&&!state.rewardClaimed?.[pid];
+    const claimed=state.rewardClaimed?.[pid];
+    const iAmLdr=amILeader();
 
-    const rewSection = document.getElementById("rewardSection");
-    if (rewSection) {
-      if (isVic && !isElim) {
-        rewSection.style.display = "";
-        rewSection.innerHTML = `
+    const rewSection=document.getElementById("rewardSection");
+    if(rewSection) {
+      if(isVic&&!isElim) {
+        rewSection.style.display="";
+        rewSection.innerHTML=`
           <div class="reward-banner">
             <div style="font-size:44px;margin-bottom:8px">🏆</div>
             <div class="reward-title">Victory!</div>
-            <div class="reward-amount">+10 🪝</div>
+            <div class="reward-amount">+${raidDef.reward} 🪝</div>
           </div>
           ${canClaim
-            ? `<button class="btn btn-gold" onclick="claimReward()">🪝 Claim 10 Hooks</button>`
-            : claimed ? `<div class="status-line ok">✅ Reward claimed!</div>` : ""}`;
-      } else { rewSection.style.display = "none"; }
+            ?`<button class="btn btn-gold" onclick="claimReward()">🪝 Claim ${raidDef.reward} Hooks</button>`
+            :claimed?`<div class="status-line ok">✅ Reward claimed!</div>`:""}`;
+      } else { rewSection.style.display="none"; }
     }
 
-    document.getElementById("centerSection").innerHTML = `
+    document.getElementById("centerSection").innerHTML=`
       <div class="section-header-row" style="margin-bottom:12px">
-        <div class="section-title">${isVic ? "🏆 Victory!" : "💀 Defeat"}</div>
-        ${iAmLdr ? `<button class="btn btn-sm" onclick="resetRaid()">🔄 New Raid</button>` : ""}
+        <div class="section-title">${isVic?"🏆 Victory!":"💀 Defeat"} — ${escH(raidDef.name)}</div>
+        ${iAmLdr?`<button class="btn btn-sm" onclick="resetRaid()">🔄 New Raid</button>`:""}
       </div>
-      ${renderWavePips(isVic ? 5 : -1)}
+      ${renderStagePips(isVic?raidDef.stages.length:-1)}
       <div class="panel" style="margin-bottom:12px">
         <div class="panel-subtitle">Results</div>
-        ${Object.entries(state.players).map(([p,pd]) => `
+        ${Object.entries(state.players).map(([p,pd])=>`
           <div class="member-card ${pd.eliminated?"eliminated":"active"}">
             <div>
               <div class="member-name">${escH(resolveName(p))}${p===pid?' <span style="font-size:10px;color:#4a9eff">(you)</span>':""}</div>
               <div class="member-meta">
                 <span class="badge ${pd.eliminated?"badge-elim":"badge-joined"}">${pd.eliminated?"Eliminated":"Survivor"}</span>
                 <span>${Math.round(pd.hp)}/${pd.maxHp} HP</span>
-                ${state.rewardClaimed?.[p] ? '<span class="badge badge-leader">🪝 Claimed</span>' : ""}
+                ${state.rewardClaimed?.[p]?'<span class="badge badge-leader">🪝 Claimed</span>':""}
               </div>
             </div>
           </div>`).join("")}
       </div>
       <div class="subtle" style="text-align:center">
-        ${isVic
-          ? (isElim ? "You were eliminated during the raid." : "Claim your reward on the right.")
-          : "Your entire squad was eliminated."}
+        ${isVic?(isElim?"You were eliminated during the raid.":"Claim your reward →"):"Your entire squad was eliminated."}
       </div>`;
   }
 
   // ─── TIMERS ──────────────────────────────────────────────────────────────────
   async function refreshAll() {
-    const btn = document.getElementById("refreshBtn");
-    if (btn) btn.textContent = "…";
+    const btn=document.getElementById("refreshBtn"); if(btn) btn.textContent="…";
     await fetchAll();
-    if (btn) btn.textContent = "↻ Refresh";
+    if(btn) btn.textContent="↻ Refresh";
   }
 
   function startTimers() {
     clearInterval(pollTimer); clearInterval(heartbeatTimer);
-    pollTimer      = setInterval(() => fetchAll().catch(() => {}), POLL_MS);
-    heartbeatTimer = setInterval(async () => {
-      await heartbeat().catch(() => {});
-      await fetchAll().catch(() => {});
-    }, HEARTBEAT_MS);
+    pollTimer=setInterval(()=>fetchAll().catch(()=>{}),POLL_MS);
+    heartbeatTimer=setInterval(async()=>{ await heartbeat().catch(()=>{}); await fetchAll().catch(()=>{}); },HEARTBEAT_MS);
   }
 
   // ─── BOOT ────────────────────────────────────────────────────────────────────
-  if (localStorage.getItem("clicker_upgradesUnlocked") !== "true")
-    document.body.classList.add("limited-nav-mode");
+  if(localStorage.getItem("clicker_upgradesUnlocked")!=="true") document.body.classList.add("limited-nav-mode");
 
-  const _mem = getMembership();
-  if (!_mem) {
-    document.getElementById("centerSection").innerHTML = `
-      <div class="idle-state">
-        <span class="idle-icon">⚠️</span>
-        You are not in a guild.<br>
-        <a href="../../guild/" style="color:#8dc4e0">Join a guild</a> to access raids.
-      </div>`;
-    setStatus("No guild membership found.", "err");
-  } else if (!myPid()) {
-    setStatus("No player ID found (clicker_userId). Please log in.", "err");
+  const _mem=getMembership();
+  if(!_mem) {
+    document.getElementById("centerSection").innerHTML=`
+      <div class="idle-state"><span class="idle-icon">⚠️</span>You are not in a guild.<br>
+      <a href="../../guild/" style="color:#8dc4e0">Join a guild</a> to access raids.</div>`;
+    setStatus("No guild membership found.","err");
+  } else if(!myPid()) {
+    setStatus("No player ID (clicker_userId). Please log in.","err");
   } else {
-    fetchAll().then(startTimers).catch(e => setStatus(e?.message || "Error", "err"));
+    loadRaids().then(()=>fetchAll().then(startTimers).catch(e=>setStatus(e?.message||"Error","err")));
   }
 
-  window.addEventListener("focus",        () => fetchAll().catch(() => {}));
-  window.addEventListener("beforeunload", () => { clearInterval(pollTimer); clearInterval(heartbeatTimer); });
+  window.addEventListener("focus",()=>fetchAll().catch(()=>{}));
+  window.addEventListener("beforeunload",()=>{ clearInterval(pollTimer); clearInterval(heartbeatTimer); });
   </script>
 </body>
 </html>
