@@ -764,7 +764,10 @@
 
     const canLaunch=iAmLeader&&squadPids.length>=2&&!!selectedRaidKey;
     const launchBlock=iAmLeader
-      ? raidChooser
+      ?`${raidChooser}
+        <button class="btn btn-gold" ${canLaunch?"":"disabled"} onclick="launchRaid()">
+          ⚔️ Launch — ${selectedRaidKey?RAIDS[selectedRaidKey].name:"Select a raid first"}
+        </button>`
       :hasLeader
         ?`<div class="leader-waiting">⏳ Waiting for the leader to launch the raid…</div>`
         :`<div class="leader-waiting">⚠️ No leader. Click <strong>Become Leader</strong> to take command.</div>`;
@@ -782,7 +785,7 @@
     document.getElementById("rewardSection").style.display="none";
   }
 
-  function selectRaid(key) { selectedRaidKey=key; renderCenter(); if(amILeader()) launchRaid(); }
+  function selectRaid(key) { selectedRaidKey=key; renderCenter(); }
 
   function renderArena() {
     const state=raidState;
