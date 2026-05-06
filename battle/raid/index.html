@@ -901,8 +901,8 @@
   function selectRaid(key) { selectedRaidKey=key; renderCenter(); }
 
   function renderArena() {
-    console.log("Rendering arena, stageIndex:", state.stageIndex, "enemyHp:", state.enemyHp, "enemyMaxHp:", state.enemyMaxHp);
     const state=raidState;
+    console.log("Rendering arena, stageIndex:", state.stageIndex, "enemyHp:", state.enemyHp, "enemyMaxHp:", state.enemyMaxHp);
     const raidDef=RAIDS[state.raidKey];
     const stage=raidDef.stages[state.stageIndex];
     const pid=myPid();
