@@ -71,28 +71,39 @@
       <div class="hero-title">🛠 Raid Editor</div>
       <div class="hero-subtitle">Create, customize and save standalone raid definitions locally. Add floors, enemy details, hooks and fish rewards with percentage chances, all in a single intuitive editor.</div>
     </section>
-    <div class="page-grid">
-      <section class="section">
-        <div class="section-header-row">
-          <div class="section-title">Saved Raids</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <button class="btn btn-sm btn-cyan" onclick="createNewRaid()">+ New Raid</button>
-            <button class="btn btn-sm btn-cyan" onclick="importRaidsTxt()">Load raids.txt</button>
-            <button class="btn btn-sm btn-cyan" onclick="triggerRaidFileImport()">Import JSON</button>
-            <input type="file" id="raidFileInput" accept=".txt,.json" style="display:none" onchange="handleRaidFile(event)" />
+    <div class="page-grid" style="grid-template-columns: minmax(300px, 360px) 1fr;">
+      <!-- LEFT COLUMN -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <section class="section">
+          <div class="section-header-row">
+            <div class="section-title">Saved Raids</div>
+            <button class="btn btn-sm btn-cyan" onclick="createNewRaid()">+ New</button>
           </div>
-        </div>
-        <div class="panel" id="raidList"></div>
-        <div class="status-line" id="saveStatus"></div>
-      </section>
-      <section class="section">
-        <div class="section-header-row">
-          <div class="section-title">Raid Builder</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <button class="btn btn-cyan" id="saveBtn" onclick="saveRaid()">Save Raid</button>
-            <button class="btn btn-danger btn-sm" id="deleteBtn" onclick="deleteRaid()" style="display:none">Delete</button>
+          <div class="panel" id="raidList"></div>
+          <div class="status-line" id="saveStatus"></div>
+        </section>
+        
+        <section class="section">
+          <div class="section-title">Import Raids</div>
+          <div class="panel">
+            <label class="input-label">Paste JSON or raids.txt</label>
+            <textarea class="textarea-field" id="importText" placeholder="Paste raid definitions here..." style="min-height: 120px;"></textarea>
+            <button class="btn btn-cyan" onclick="importFromTextarea()" style="width:100%; margin-top:8px;">Import</button>
           </div>
-        </div>
+          <div class="status-line" id="importStatus"></div>
+        </section>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <section class="section">
+          <div class="section-header-row">
+            <div class="section-title">Raid Builder</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <button class="btn btn-cyan" id="saveBtn" onclick="saveRaid()">Save</button>
+              <button class="btn btn-danger btn-sm" id="deleteBtn" onclick="deleteRaid()" style="display:none">Delete</button>
+            </div>
+          </div>
         <div class="panel">
           <div class="form-row">
             <label class="input-label">Raid name</label>
@@ -119,6 +130,7 @@
           <button class="inline-button" onclick="setStageCount(5)">5 Floors</button>
         </div>
       </section>
+
       <section class="section">
         <div class="section-title">Rewards</div>
         <div class="panel">
@@ -136,15 +148,17 @@
           <button class="btn btn-sm btn-cyan" onclick="addFishTemplate()">Add Fish Template</button>
         </div>
       </section>
+      </div>
     </div>
-    <div class="section">
+
+    <section class="section">
       <div class="section-header-row">
         <div class="section-title">Preview & Export</div>
-        <button class="btn btn-sm btn-gold" onclick="exportRaid()">Export Raid JSON</button>
+        <button class="btn btn-sm btn-gold" onclick="exportRaid()">📥 Export</button>
       </div>
       <div class="panel preview-block" id="previewPanel"></div>
       <pre id="jsonOutput"></pre>
-    </div>
+    </section>
   </div>
   <script>
     const STORAGE_KEY = 'raidEditorSavedRaids';
@@ -273,7 +287,7 @@
       const container = document.getElementById('rewardList');
       const totalPct = currentRaid.rewards.reduce((sum,r)=>sum + (Number(r.pct)||0), 0);
       container.innerHTML = currentRaid.rewards.map((reward, idx) => {
-        const fishOptions = currentRaid.fishTemplates.map(f => `<option value='${escapeHtml(f.id)}' ${reward.fishId===f.id?'selected':''}>${escapeHtml(f.name)}</option>`).join('');
+        const fishOptions = currentRaid.fishTemplates.map(f => `<option value='${escapeHtml(f.id)}' ${reward.fishId===f.id?'selected':''}>${escapeHtml(f.name)} (${f.rarity}, ${f.maxHp}HP, ${f.atk}ATK)</option>`).join('');
         return `
           <div class="reward-card">
             <div class="card-title">Reward ${idx + 1}</div>
@@ -468,6 +482,7 @@
       renderFishTemplates();
       renderRewards();
       renderPreview();
+      saveRaid();
     }
 
     function updateFish(id, field, value) {
@@ -489,6 +504,7 @@
       renderFishTemplates();
       renderRewards();
       renderPreview();
+      saveRaid();
     }
 
     function saveRaid() {
@@ -531,6 +547,24 @@
       URL.revokeObjectURL(url);
     }
 
+    function importFromTextarea() {
+      const textarea = document.getElementById('importText');
+      const text = textarea?.value?.trim();
+      if (!text) {
+        showStatusImport('Paste some raid content first.', 'err');
+        return;
+      }
+      loadRaidConfigText(text, 'pasted content', true);
+      textarea.value = '';
+    }
+
+    function showStatusImport(msg, type = '') {
+      const el = document.getElementById('importStatus');
+      if (!el) return;
+      el.textContent = msg;
+      el.className = 'status-line' + (type ? ' ' + type : '');
+    }
+
     function triggerRaidFileImport() {
       document.getElementById('raidFileInput').click();
     }
@@ -559,26 +593,49 @@
       }
     }
 
-    function loadRaidConfigText(text, label = 'config') {
+    function loadRaidConfigText(text, label = 'config', useImportStatus = false) {
       try {
         const fixed = text
           .replace(/,\s*\}/g, '}')
           .replace(/,\s*\]/g, ']')
           .replace(/(['"])?([a-zA-Z_]\w*)(['"])?\s*:/g, '"$2":');
         const parsed = JSON.parse(fixed);
-        const rawRaidDefs = parsed && typeof parsed === 'object' ? (parsed.raids || parsed) : null;
+        
+        let rawRaidDefs = null;
+        
+        // Détecte le format
+        if (parsed && typeof parsed === 'object') {
+          // Si c'est un objet avec propriété "raids", utilise ça
+          if (parsed.raids && typeof parsed.raids === 'object') {
+            rawRaidDefs = parsed.raids;
+          }
+          // Si c'est un raid unique (a key, name, stages)
+          else if (parsed.key && parsed.name && Array.isArray(parsed.stages)) {
+            rawRaidDefs = { [parsed.key]: parsed };
+          }
+          // Sinon traite comme un objet raids
+          else {
+            rawRaidDefs = parsed;
+          }
+        }
+        
         const normalized = normalizeRaidDefs(rawRaidDefs);
         const loadedKeys = Object.keys(normalized);
         if (!loadedKeys.length) {
-          showStatus(`No raid definitions found in ${label}.`, 'err');
+          if (useImportStatus) showStatusImport(`No raid definitions found in ${label}.`, 'err');
+          else showStatus(`No raid definitions found in ${label}.`, 'err');
           return;
         }
         savedRaids = { ...savedRaids, ...normalized };
         saveAllRaids();
         renderAll();
-        showStatus(`Loaded ${loadedKeys.length} raid(s) from ${label}.`, 'ok');
+        const msg = `Loaded ${loadedKeys.length} raid(s) from ${label}.`;
+        if (useImportStatus) showStatusImport(msg, 'ok');
+        else showStatus(msg, 'ok');
       } catch (e) {
-        showStatus(`Invalid raid config: ${e.message}`, 'err');
+        const msg = `Invalid raid config: ${e.message}`;
+        if (useImportStatus) showStatusImport(msg, 'err');
+        else showStatus(msg, 'err');
       }
     }
 

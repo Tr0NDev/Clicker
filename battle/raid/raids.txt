@@ -1,21 +1,90 @@
 {
   "raids": {
     "raid_1778082245720": {
-      "name": "New Raid",
-      "cost": 15,
-      "desc": "Raid test editor",
+      "key": "raid_1778082245720",
+      "name": "Aquarium",
+      "desc": "⭐ - Easy",
+      "cost": 8,
       "stages": [
-        { "floor": "Floor 1", "name": "Cochon", "rarity": "common", "hp": 100, "atk": 12 },
-        { "floor": "Floor 2", "name": "Te", "rarity": "epic", "hp": 5000, "atk": 80 }
-      ],
-      "rewards": [
-        { "pct": 95, "type": "fish", "fishId": "fish_1778082245720" },
-        { "pct": 5, "type": "hooks", "amount": 100 }
-      ],
-      "fishTemplates": [
-        { "id": "fish_1778082245720", "name": "Shimmer Carp", "rarity": "rare", "maxHp": 60, "atk": 10 },
-        { "id": "fish_1778082326301_e067aa43773c58", "name": "New Fish", "rarity": "common", "maxHp": 60, "atk": 8 }
-      ]
+      {
+        "floor": "Floor 1",
+        "name": "Swift roach",
+        "rarity": "common",
+        "hp": 4040,
+        "atk": 240
+      },
+      {
+        "floor": "Floor 2",
+        "name": "Dark tench",
+        "rarity": "uncommon",
+        "hp": 5905,
+        "atk": 540
+      },
+      {
+        "floor": "Floor 3",
+        "name": "Noble salmon",
+        "rarity": "uncommon",
+        "hp": 5405,
+        "atk": 845
+      },
+      {
+        "floor": "Floor 4",
+        "name": "Wild pike",
+        "rarity": "rare",
+        "hp": 8520,
+        "atk": 1402
+      }
+    ],
+    "rewards": [
+      {
+        "pct": 5,
+        "type": "fish",
+        "fishId": "fish_1778089175967_cfe3117bb2d088"
+      },
+      {
+        "pct": 20,
+        "type": "hooks",
+        "amount": 100
+      },
+      {
+        "pct": 40,
+        "type": "hooks",
+        "amount": 50
+      },
+      {
+        "pct": 15,
+        "type": "fish",
+        "fishId": "fish_1778082326301_e067aa43773c58"
+      },
+      {
+        "pct": 20,
+        "type": "fish",
+        "fishId": "fish_1778089175967_cfe3117bb2d088"
+      }
+    ],
+    "fishTemplates": [
+      {
+        "id": "fish_1778082245720",
+        "name": "Wild pike",
+        "rarity": "rare",
+        "maxHp": 4270,
+        "atk": 751
+      },
+      {
+        "id": "fish_1778082326301_e067aa43773c58",
+        "name": "Wild pike",
+        "rarity": "rare",
+        "maxHp": 3154,
+        "atk": 459
+      },
+      {
+        "id": "fish_1778089175967_cfe3117bb2d088",
+        "name": "Wild pike",
+        "rarity": "rare",
+        "maxHp": 2857,
+        "atk": 424
+      }
+    ]
     }
   }
 }

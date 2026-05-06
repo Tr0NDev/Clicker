@@ -293,30 +293,6 @@
   // NOTE: raids.txt is fetched at runtime from battle/raid/raids.txt relative to this page.
   // If the fetch fails we fall back to this inline copy.
   const RAIDS_FALLBACK = {
-    raid1: {
-      name: "Coral Assault",
-      cost: 20,
-      rewards: [{ pct:100, type: "hooks", amount: 10 }],
-      stages: [
-        { floor:"Floor 1", name:"Prismatic eel",      rarity:"epic",      hp:80,  atk:8  },
-        { floor:"Floor 2", name:"Royal moray",         rarity:"epic",      hp:100, atk:10 },
-        { floor:"Floor 3", name:"Chrome triggerfish",  rarity:"epic",      hp:120, atk:12 },
-        { floor:"Floor 4", name:"Golden shark",        rarity:"legendary", hp:140, atk:14 },
-        { floor:"Floor 5", name:"Sea dragon",          rarity:"legendary", hp:160, atk:16 },
-      ]
-    },
-    raid2: {
-      name: "Coral War",
-      cost: 35,
-      rewards: [{ pct:100, type: "hooks", amount: 10 }],
-      stages: [
-        { floor:"Floor 1", name:"Prismatic eel",      rarity:"epic",      hp:80,  atk:16  },
-        { floor:"Floor 2", name:"Royal moray",         rarity:"epic",      hp:200, atk:100 },
-        { floor:"Floor 3", name:"Chrome triggerfish",  rarity:"epic",      hp:220, atk:124 },
-        { floor:"Floor 4", name:"Golden shark",        rarity:"legendary", hp:440, atk:143 },
-        { floor:"Floor 5", name:"Sea dragon",          rarity:"legendary", hp:660, atk:166 },
-      ]
-    }
   };
 
   let RAIDS = RAIDS_FALLBACK; // will be replaced if fetch succeeds
@@ -334,8 +310,7 @@
     } catch (e) {
       console.warn("Could not load raids.txt, using fallback.", e);
     }
-    const editorRaids = loadEditorRaids();
-    if (editorRaids) RAIDS = {...RAIDS, ...editorRaids};
+    // Auto-import from editor disabled
     RAIDS = normalizeRaidDefs(RAIDS);
   }
 
@@ -1053,13 +1028,15 @@
     });
     if (totalAtk === 0) { setStatus("No attack power in squad — select fish first.","err"); return; }
 
+    const numPlayers = squadPids.length;
+    const scaledBossHp = firstStage.hp * numPlayers;
     const state={
       phase:"running",
       raidKey:selectedRaidKey,
       raidName:raidDef.name,
       stageIndex:0,
-      enemyMaxHp:firstStage.hp,
-      enemyHp:firstStage.hp,
+      enemyMaxHp:scaledBossHp,
+      enemyHp:scaledBossHp,
       players,
       completedStages:[],
       rewardClaimed:{},
@@ -1068,7 +1045,7 @@
       scoreRefillMs: raidState.scoreRefillMs,
       scoreLastRefill: raidState.scoreLastRefill,
       currentRaidCost: raidCost,
-      log:[`⚔️ Raid "${raidDef.name}" launched! Floor 1: ${firstStage.name} (${firstStage.hp} HP | ${firstStage.atk} ATK) [${firstStage.rarity}] — Cost ${raidCost} score.`]
+      log:[`⚔️ Raid "${raidDef.name}" launched! Floor 1: ${firstStage.name} (${scaledBossHp} HP × ${numPlayers} players | ${firstStage.atk} ATK) [${firstStage.rarity}] — Cost ${raidCost} score.`]
     };
 
     await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
@@ -1112,7 +1089,8 @@
     state.log.push(`⚔️ Players deal ${totalDmg} damage. Boss HP: ${state.enemyHp}/${state.enemyMaxHp}`);
 
     // Boss attacks all active fish
-    const bossDmg = stage.atk;
+    const numPlayers = Object.keys(state.players).length;
+    const bossDmg = stage.atk * numPlayers;
     let anyAlive = false;
     Object.entries(state.players).forEach(([p, pd]) => {
       if (pd.eliminated) return;
@@ -1178,8 +1156,10 @@
     } else {
       state.stageIndex++;
       const ns=raidDef.stages[state.stageIndex];
-      state.enemyMaxHp=ns.hp; state.enemyHp=ns.hp;
-      state.log.push(`🌊 Floor ${state.stageIndex+1}: ${ns.name} (${ns.hp} HP | ${ns.atk} ATK) [${ns.rarity}]`);
+      const numPlayers = Object.keys(state.players).length;
+      const scaledBossHp = ns.hp * numPlayers;
+      state.enemyMaxHp=scaledBossHp; state.enemyHp=scaledBossHp;
+      state.log.push(`🌊 Floor ${state.stageIndex+1}: ${ns.name} (${scaledBossHp} HP × ${numPlayers} players | ${ns.atk} ATK) [${ns.rarity}]`);
     }
 
     await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",guildId);
