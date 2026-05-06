@@ -270,21 +270,21 @@
     raid1: {
       name: "Coral Assault", reward: 10,
       stages: [
-        { floor:"Floor 1", name:"Prismatic eel",      rarity:"epic",      hp:800,  atk:80  },
-        { floor:"Floor 2", name:"Royal moray",         rarity:"epic",      hp:1000, atk:100 },
-        { floor:"Floor 3", name:"Chrome triggerfish",  rarity:"epic",      hp:1200, atk:120 },
-        { floor:"Floor 4", name:"Golden shark",        rarity:"legendary", hp:1400, atk:140 },
-        { floor:"Floor 5", name:"Sea dragon",          rarity:"legendary", hp:1600, atk:160 },
+        { floor:"Floor 1", name:"Prismatic eel",      rarity:"epic",      hp:80,  atk:8  },
+        { floor:"Floor 2", name:"Royal moray",         rarity:"epic",      hp:100, atk:10 },
+        { floor:"Floor 3", name:"Chrome triggerfish",  rarity:"epic",      hp:120, atk:12 },
+        { floor:"Floor 4", name:"Golden shark",        rarity:"legendary", hp:140, atk:14 },
+        { floor:"Floor 5", name:"Sea dragon",          rarity:"legendary", hp:160, atk:16 },
       ]
     },
     raid2: {
       name: "Coral War", reward: 10,
       stages: [
-        { floor:"Floor 1", name:"Prismatic eel",      rarity:"epic",      hp:800,  atk:160  },
-        { floor:"Floor 2", name:"Royal moray",         rarity:"epic",      hp:2000, atk:1000 },
-        { floor:"Floor 3", name:"Chrome triggerfish",  rarity:"epic",      hp:2200, atk:1240 },
-        { floor:"Floor 4", name:"Golden shark",        rarity:"legendary", hp:4400, atk:1430 },
-        { floor:"Floor 5", name:"Sea dragon",          rarity:"legendary", hp:6600, atk:1660 },
+        { floor:"Floor 1", name:"Prismatic eel",      rarity:"epic",      hp:80,  atk:16  },
+        { floor:"Floor 2", name:"Royal moray",         rarity:"epic",      hp:200, atk:100 },
+        { floor:"Floor 3", name:"Chrome triggerfish",  rarity:"epic",      hp:220, atk:124 },
+        { floor:"Floor 4", name:"Golden shark",        rarity:"legendary", hp:440, atk:143 },
+        { floor:"Floor 5", name:"Sea dragon",          rarity:"legendary", hp:660, atk:166 },
       ]
     }
   };
@@ -626,26 +626,30 @@
   }
 
   async function attackEnemy() {
+    console.log("attackEnemy called, raidState.phase:", raidState?.phase);
     if(!raidState||raidState.phase!=="running") return;
     const pid=myPid(), mem=getMembership();
 
     // Fetch current state to avoid race conditions
     const {data:guild} = await db.from(GUILDS_TABLE).select("raid_state").eq("id",mem.guildId).single();
-    if(!guild) return;
+    if(!guild) { console.log("No guild data"); return; }
     let state = guild.raid_state ? JSON.parse(guild.raid_state) : null;
+    if(!state) { console.log("No raid_state in guild"); return; }
+    console.log("Fetched state phase:", state.phase);
     if(!state || state.phase !== "running") return;
 
     const me=state.players[pid];
-    if(!me||me.eliminated) return;
+    if(!me||me.eliminated) { console.log("Player eliminated or not in state"); return; }
 
     const raidDef=RAIDS[state.raidKey];
     const stage=raidDef.stages[state.stageIndex];
     const dmg=computeAtk(pid, state);
     console.log(`Player ${pid} attacks with ${dmg} dmg, enemy HP ${state.enemyHp} -> ${Math.max(0, state.enemyHp - dmg)}`);
+    console.log("Team:", me.team);
     state.enemyHp=Math.max(0,state.enemyHp-dmg);
     state.log.push(`⚔️ ${resolveName(pid)} hits ${stage.name} for ${dmg} dmg! (${Math.round(state.enemyHp)}/${state.enemyMaxHp} HP)`);
 
-    if(state.enemyHp<=0) { await advanceStage(state,mem.guildId); return; }
+    if(state.enemyHp<=0) { console.log("Enemy defeated, advancing stage"); await advanceStage(state,mem.guildId); return; }
 
     const atkDmg=stage.atk;
     let anyAlive=false;
@@ -678,6 +682,7 @@
   }
 
   async function advanceStage(state, guildId) {
+    console.log("Advancing stage from", state.stageIndex, "to", state.stageIndex + 1);
     const raidDef=RAIDS[state.raidKey];
     const stage=raidDef.stages[state.stageIndex];
     state.completedStages=[...(state.completedStages||[]),state.stageIndex];
@@ -896,6 +901,7 @@
   function selectRaid(key) { selectedRaidKey=key; renderCenter(); }
 
   function renderArena() {
+    console.log("Rendering arena, stageIndex:", state.stageIndex, "enemyHp:", state.enemyHp, "enemyMaxHp:", state.enemyMaxHp);
     const state=raidState;
     const raidDef=RAIDS[state.raidKey];
     const stage=raidDef.stages[state.stageIndex];
