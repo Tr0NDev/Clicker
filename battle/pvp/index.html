@@ -1868,11 +1868,8 @@
 
         if(result.playerWon&&!isCustom){
           localStorage.setItem(MONEY_KEY, String(Math.max(0,Number(localStorage.getItem(MONEY_KEY))||0)+reward));
-          const hooks=10+(isBossTier(currentTier)?30:0)+(currentTier>=500?50:currentTier>=300?20:0);
-          addHooks(hooks,"Battle Hooks",
-            currentTier>=500?`Tier ${currentTier} — OBLIVION CLEARED! Massive reward.`:
-            currentTier>=300?`Tier ${currentTier} — Abyssal cleared!`:
-            isBossTier(currentTier)?`Tier ${currentTier} clear + boss bonus`:`Tier ${currentTier} clear`);
+          const hooks=10;
+          addHooks(hooks,"Battle Hooks",`Tier ${currentTier} clear`);
           battleTier=currentTier+1; saveBattleTier();
           renderTierInfoBar();
         } else if (result.playerWon && isQueueBattle) {

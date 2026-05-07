@@ -168,7 +168,7 @@
       <div class="modal-actions">
         <button class="close-btn modal-close-bottom" id="closeGachaBtn">Close</button>
         <button class="action-btn" id="startDrawBtn">Start Draw</button>
-        <button class="action-btn" id="startDraw10Btn">Draw 10 (+1 Free)</button>
+        <button class="action-btn" id="startDraw10ModalBtn">Draw 10 (+1 Free)</button>
         <button class="action-btn" id="sellDrawBtn" style="display:none">Sell</button>
       </div>
     </div>
@@ -237,10 +237,14 @@
     // Load data from files
     loadDataFiles().then(() => {
       // Initialize the shop after data is loaded
-      updateMoneyDisplay();
-      updateReserveDisplay();
-      updatePityDisplay();
-      updateDrawButtons();
+      console.log('[DEBUG] Data files loaded, initializing shop');
+      console.log('[DEBUG] baitPool:', baitPool.length, 'characterPool:', characterPool.length);
+      refreshSummary();
+      buildDropTable();
+      buildBaitDropTable();
+      console.log('[DEBUG] Shop initialized');
+    }).catch(e => {
+      console.error('[DEBUG] Error loading data files:', e);
     });
 
     function getPity() { return Math.max(0, Math.min(PITY_MAX, Number(localStorage.getItem(PITY_KEY)) || 0)); }
@@ -388,6 +392,9 @@
     let baitSpinning = false;
     let lastRewardChar   = null;
     let lastRewardTalent = null;
+
+    console.log('[DEBUG INIT] DRAW_10_COST:', DRAW_10_COST, 'DRAW_10_TOTAL_DRAWS:', DRAW_10_TOTAL_DRAWS, 'RESERVE_MAX:', RESERVE_MAX);
+    console.log('[DEBUG INIT] Initial spinning:', spinning, 'baitSpinning:', baitSpinning);
 
     function getHooks()  { return Math.max(0, Number(localStorage.getItem(HOOKS_KEY)) || 0); }
     function setHooks(v) { localStorage.setItem(HOOKS_KEY, String(Math.max(0, Math.floor(v)))); }
@@ -539,7 +546,21 @@
       startBaitDrawBtn.disabled = !canAfford || getBaitReserveCount() >= RESERVE_MAX || baitSpinning;
       const canAfford10 = hooks >= DRAW_10_COST;
       const hasRoomForDraw10 = getReserveCount() + DRAW_10_TOTAL_DRAWS <= RESERVE_MAX;
-      document.getElementById("startDraw10Btn").disabled = !canAfford10 || !hasRoomForDraw10 || spinning;
+      console.log('[DEBUG refreshSummary] hooks:', hooks, 'DRAW_10_COST:', DRAW_10_COST, 'canAfford10:', canAfford10);
+      console.log('[DEBUG refreshSummary] getReserveCount():', getReserveCount(), 'DRAW_10_TOTAL_DRAWS:', DRAW_10_TOTAL_DRAWS, 'RESERVE_MAX:', RESERVE_MAX, 'hasRoomForDraw10:', hasRoomForDraw10);
+      console.log('[DEBUG refreshSummary] spinning:', spinning, 'will disable:', !canAfford10 || !hasRoomForDraw10 || spinning);
+      const draw10Btn = document.getElementById("startDraw10ModalBtn");
+      if (draw10Btn) {
+        const isDisabled = !canAfford10 || !hasRoomForDraw10 || spinning;
+        draw10Btn.disabled = isDisabled;
+        if (!hasRoomForDraw10) {
+          draw10Btn.title = `Not enough space in reserve (${getReserveCount()}/${RESERVE_MAX})`;
+        } else if (!canAfford10) {
+          draw10Btn.title = `Not enough hooks (need ${DRAW_10_COST})`;
+        } else {
+          draw10Btn.title = `Draw 10 characters + 1 free`;
+        }
+      }
     }
 
     function createRollItem(c) {
@@ -645,10 +666,16 @@
     }
 
     async function startDraw10() {
-      if (spinning || getReserveCount() + DRAW_10_TOTAL_DRAWS > RESERVE_MAX || getHooks() < DRAW_10_COST) return;
+      console.log('[DEBUG startDraw10] Button clicked!');
+      console.log('[DEBUG] spinning:', spinning, 'reserve:', getReserveCount(), 'hooks:', getHooks());
+      if (spinning || getReserveCount() + DRAW_10_TOTAL_DRAWS > RESERVE_MAX || getHooks() < DRAW_10_COST) {
+        console.log('[DEBUG] Conditions failed, returning');
+        return;
+      }
+      console.log('[DEBUG] Starting Draw 10...');
       spinning = true;
       startDrawBtn.disabled = true;
-      document.getElementById("startDraw10Btn").disabled = true;
+      document.getElementById("startDraw10ModalBtn").disabled = true;
       openGachaBtn.disabled = true;
       drawRecap.classList.remove("visible");
       rollArea.classList.add("visible");
@@ -709,7 +736,14 @@
     openBaitBtn.addEventListener("click", openBaitModal);
     closeGachaBtn.addEventListener("click", closeGachaModal);
     startDrawBtn.addEventListener("click", startDraw);
-    document.getElementById("startDraw10Btn").addEventListener("click", startDraw10);
+    const draw10Btn = document.getElementById("startDraw10ModalBtn");
+    console.log('[DEBUG] draw10Btn element:', draw10Btn);
+    if (draw10Btn) {
+      draw10Btn.addEventListener("click", startDraw10);
+      console.log('[DEBUG] Event listener attached to startDraw10ModalBtn');
+    } else {
+      console.error('[DEBUG] startDraw10ModalBtn element not found!');
+    }
     closeBaitBtn.addEventListener("click", closeBaitModal);
     startBaitDrawBtn.addEventListener("click", startBaitDraw);
 
@@ -728,10 +762,6 @@
       lastRewardChar = null; lastRewardTalent = null;
       refreshSummary();
     });
-
-    refreshSummary();
-    buildDropTable();
-    buildBaitDropTable();
 
     if (localStorage.getItem("clicker_upgradesUnlocked") !== "true") {
       document.body.classList.add("limited-nav-mode");

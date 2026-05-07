@@ -123,6 +123,13 @@
       flex-wrap: wrap;
     }
 
+    .reserve-count {
+      font-size: 14px;
+      font-weight: bold;
+      color: #f5db9b;
+      margin-left: 8px;
+    }
+
     .reserve-sort {
       display: inline-flex;
       align-items: center;
@@ -1101,7 +1108,7 @@
 
     <div class="reserve-section">
       <div class="reserve-title">
-        <span>Character Reserve</span>
+        <span>Character Reserve <span class="reserve-count" id="reserveCount">0/50</span></span>
         <label class="reserve-sort" for="reserveSortSelect">
           Sort:
           <select id="reserveSortSelect">
@@ -2446,6 +2453,7 @@
     function renderCharacters() {
       const teamContainer = document.getElementById('charactersContainer');
       const reserveContainer = document.getElementById('reserveContainer');
+      const reserveCount = document.getElementById('reserveCount');
       
       teamContainer.innerHTML = '';
       reserveContainer.innerHTML = '';
@@ -2470,6 +2478,9 @@
       const teamCharacters = allCharacters.filter(c => c.teamSlot !== null);
       const filterFn = window._reserveFilterFn || (() => true);
       const reserveCharacters = allCharacters.filter(c => c.unlocked && c.teamSlot === null && filterFn(c));
+      if (reserveCount) {
+        reserveCount.textContent = `${reserveCharacters.length}/${MAX_RESERVE_SIZE}`;
+      }
       const reserveGroups = new Map();
 
       reserveCharacters.forEach((char) => {

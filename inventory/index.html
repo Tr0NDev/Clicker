@@ -1149,7 +1149,7 @@
 
       const totalValue = inventory.reduce((sum, fish) => sum + getFishValue(fish), 0);
       moneyDisplay.textContent = String(money);
-      countDisplay.textContent = String(inventory.length);
+      countDisplay.textContent = String(inventory.length) + "/50";
       valueDisplay.textContent = String(totalValue);
       autoSellMaxPriceInput.value = String(autoSellMaxPrice);
       autoSellMaxRaritySelect.value = autoSellMaxRarity;
