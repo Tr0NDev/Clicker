@@ -280,6 +280,7 @@
   const MEMBERSHIP_KEY = "clicker_guildMembership";
   const USER_ID_KEY    = "clicker_userId";
   const USERNAME_KEY   = "clicker_username";
+  const TEAM_STATE_KEY = "clicker_teamState";
 
   const SQUAD_ACTIVE_MS = 60_000;
   const HEARTBEAT_MS    = 15_000;
@@ -697,6 +698,39 @@
       empty: !(hp || atk)
     };
   }
+  function loadRaidTeamStats() {
+    try {
+      const raw = localStorage.getItem(TEAM_STATE_KEY);
+      if (!raw) return { sizeBonus: 0, weightBonus: 0 };
+      const parsed = JSON.parse(raw);
+      if (!parsed || !parsed.totals) return { sizeBonus: 0, weightBonus: 0 };
+      return {
+        sizeBonus: Number(parsed.totals.sizeBonus) || 0,
+        weightBonus: Number(parsed.totals.weightBonus) || 0
+      };
+    } catch {
+      return { sizeBonus: 0, weightBonus: 0 };
+    }
+  }
+  function boostRaidFishStats(fish, teamStats) {
+    if (!fish || fish.empty) return fish;
+    const hpMult = 1 + ((Number(teamStats?.sizeBonus) || 0) * 0.005);
+    const atkMult = 1 + ((Number(teamStats?.weightBonus) || 0) * 0.005);
+    const boostedMaxHp = Math.max(1, Math.round((Number(fish.maxHp) || Number(fish.hp) || 0) * hpMult));
+    const boostedHp = Math.max(0, Math.min(boostedMaxHp, Math.round((Number(fish.hp) || 0) * hpMult)));
+    const boostedAtk = Math.max(1, Math.round((Number(fish.atk) || 0) * atkMult));
+    return {
+      ...fish,
+      hp: boostedHp,
+      maxHp: boostedMaxHp,
+      atk: boostedAtk,
+      empty: !(boostedHp || boostedAtk)
+    };
+  }
+  function boostRaidTeam(team) {
+    const teamStats = loadRaidTeamStats();
+    return padRaidTeam(team).map((fish) => boostRaidFishStats(fish, teamStats));
+  }
   function loadRaidInventory() {
     try {
       const raw = localStorage.getItem(INVENTORY_KEY);
@@ -724,13 +758,13 @@
     const inventory = loadRaidInventory();
     const selection = loadRaidSelection();
     const team = selection.map(uid => inventory.find(f => f.uid === uid)).filter(Boolean);
-    return padRaidTeam(team);
+    return boostRaidTeam(team);
   }
   function getRaidTeamFromMember(member) {
+    if (memberPid(member) === myPid()) return getLocalRaidTeam();
     if (member?.raidTeam && Array.isArray(member.raidTeam) && member.raidTeam.length) {
       return padRaidTeam(member.raidTeam);
     }
-    if (memberPid(member) === myPid()) return getLocalRaidTeam();
     return padRaidTeam([]);
   }
   function fakeTeam(pid) {
@@ -748,6 +782,32 @@
     if (total) return total;
     const h = [...(pid||"x")].reduce((a,c,i)=>a+c.charCodeAt(0)*(i+1),0);
     return 15 + (Math.abs(h) % 20);
+  }
+  function syncLocalRaidTeamInState(state) {
+    if (!state?.players) return false;
+    const pid = myPid();
+    const me = state.players[pid];
+    if (!me || !Array.isArray(me.team) || !me.team.length) return false;
+
+    const boostedTeam = boostRaidTeam(me.team);
+    const teamChanged = JSON.stringify(boostedTeam) !== JSON.stringify(me.team);
+    if (!teamChanged) return false;
+
+    const previousFishHp = Array.isArray(me.fishHp) ? me.fishHp.slice(0, boostedTeam.length) : [];
+    while (previousFishHp.length < boostedTeam.length) previousFishHp.push(0);
+    const adjustedFishHp = boostedTeam.map((fish, index) => {
+      const currentHp = Number(previousFishHp[index]) || 0;
+      const previousMaxHp = Math.max(1, Number(me.team[index]?.maxHp) || 1);
+      const ratio = Math.max(0, Math.min(1, currentHp / previousMaxHp));
+      return Math.max(0, Math.min(fish.maxHp, Math.round(fish.maxHp * ratio)));
+    });
+
+    state.players[pid] = {
+      ...me,
+      team: boostedTeam,
+      fishHp: adjustedFishHp
+    };
+    return true;
   }
 
   // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -901,7 +961,8 @@
       } catch { raidState={ phase: "idle", score: 100, scoreMax: 100, scoreRefillMs: 60000, scoreLastRefill: nowIso(), log: [] }; }
       const scoreStateChanged = ensureRaidScoreState(raidState);
       const scoreRefilled = applyScoreRefill(raidState);
-      if (scoreStateChanged || scoreRefilled) {
+      const teamStateChanged = raidState?.phase === "running" && syncLocalRaidTeamInState(raidState);
+      if (scoreStateChanged || scoreRefilled || teamStateChanged) {
         await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(raidState)}).eq("id",mem.guildId);
       }
 
@@ -1052,6 +1113,11 @@
     if(!state) { console.log("No raid_state in guild"); return; }
     console.log("Fetched state phase:", state.phase);
     if(!state || state.phase !== "running") return;
+
+    const localTeamChanged = syncLocalRaidTeamInState(state);
+    if (localTeamChanged) {
+      await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
+    }
 
     const me=state.players[pid];
     if(!me||me.eliminated) { console.log("Player eliminated or not in state"); return; }
