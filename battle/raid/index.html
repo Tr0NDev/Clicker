@@ -1082,9 +1082,8 @@
   async function launchRaid() {
     localStorage.setItem("clicker_battleSpeedLock", "true");
     const squadPids=getSquadPids();
-    const debugSoloLaunch = isRaidDebugMode();
-    if(squadPids.length < (debugSoloLaunch ? 1 : 2)) {
-      setStatus(debugSoloLaunch ? "Need at least 1 player in debug mode." : "Need at least 2 players.","err");
+    if (squadPids.length < 2) {
+      setStatus("Need at least 2 players.", "err");
       return;
     }
     if(!selectedRaidKey||!RAIDS[selectedRaidKey]) { setStatus("Select a raid first.","err"); return; }
@@ -1545,8 +1544,7 @@
         </div>
       </div>`:"";
 
-    const debugSoloLaunch = isRaidDebugMode();
-    const canLaunch=iAmLeader&&!!selectedRaidKey&&(squadPids.length>=(debugSoloLaunch?1:2));
+    const canLaunch=iAmLeader&&!!selectedRaidKey&&(squadPids.length>=2);
     const launchBlock=iAmLeader
       ?`${raidChooser}
         <button class="btn btn-gold" ${canLaunch?"":"disabled"} onclick="launchRaid()">
@@ -1563,7 +1561,7 @@
       <div class="idle-state" style="padding:14px 0">
         <span class="idle-icon">⚔️</span>
         ${squadPids.length} player(s) in squad.
-        ${debugSoloLaunch ? "<br><strong>Debug solo launch enabled.</strong>" : (squadPids.length<2?"<br>Need at least <strong style='color:#e8c060'>2 players</strong> to launch.":"")}
+        ${squadPids.length<2?"<br>Need at least <strong style='color:#e8c060'>2 players</strong> to launch.":""}
         ${selectedRaidKey ? `<br><strong>Raid selected:</strong> ${escH(RAIDS[selectedRaidKey]?.name||'Unknown')}` : ""}
       </div>
       ${launchBlock}`;
