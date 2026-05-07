@@ -679,16 +679,32 @@
       return "Member";
     }
 
-    // ── RENDU FISH SLOT (couleur + taille/poids) ──────────────────────────────
-    function renderFishSlot(f) {
+    function getBoostedFishStats(size, weight) {
+      const teamStats = getPlayerTeamStats() || {};
+      const hpMult = 1 + (Number(teamStats.sizeBonus) || 0) * 0.005;
+      const atkMult = 1 + (Number(teamStats.weightBonus) || 0) * 0.005;
+      const incMult = Number(teamStats.incomeMultiplier) || 1;
+      return {
+        hp: Math.max(1, Math.round((Number(size) || 0) * hpMult * incMult)),
+        atk: Math.max(1, Math.round((Number(weight) || 0) * atkMult * incMult))
+      };
+    }
+
+    // ── RENDU FISH SLOT (couleur + stats PVP-like) ───────────────────────────
+    function renderFishSlot(f, boosted = false) {
       const r = f.rarity || "common";
       const name = escHtml((f.type || "Fish").slice(0, 14));
-      const size   = f.size   != null ? `${Number(f.size).toFixed(1)} cm`  : null;
-      const weight = f.weight != null ? `${Number(f.weight).toFixed(2)} kg` : null;
-      const statsHtml = (size || weight)
+      const size = Number(f.size);
+      const weight = Number(f.weight);
+      const boostedStats = boosted ? getBoostedFishStats(size, weight) : null;
+      const statsHtml = Number.isFinite(size) || Number.isFinite(weight)
         ? `<div class="fish-slot-stats">
-            ${size   ? `<span class="fish-slot-stat">${size}</span>` : ""}
-            ${weight ? `<span class="fish-slot-stat">${weight}</span>` : ""}
+            ${Number.isFinite(size)
+              ? `<span class="fish-slot-stat">Size: ${size.toFixed(1)} cm${boostedStats ? ` → HP ${boostedStats.hp}` : ""}</span>`
+              : ""}
+            ${Number.isFinite(weight)
+              ? `<span class="fish-slot-stat">Weight: ${weight.toFixed(2)} kg${boostedStats ? ` → ATK ${boostedStats.atk}` : ""}</span>`
+              : ""}
            </div>`
         : "";
       return `<div class="fish-slot rarity-${r}" title="${name} — ${rarityLabel(r)}">
@@ -929,11 +945,12 @@
             const rarity = f.rarity || "common";
             const color = rarityColors[rarity] || "#c0c0c0";
             const borderColor = rarityBgs[rarity] || "#4a5a5a";
+            const boosted = getBoostedFishStats(f.size, f.weight);
             return `
             <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
               <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
-              <div style="font-size:11px;color:#8dc4e0">Size: ${Number(f.size).toFixed(1)} cm</div>
-              <div style="font-size:11px;color:#8dc4e0">Weight: ${Number(f.weight).toFixed(2)} kg</div>
+              <div style="font-size:11px;color:#8dc4e0">Size: ${Number(f.size).toFixed(1)} cm → HP ${fmtNum(boosted.hp)}</div>
+              <div style="font-size:11px;color:#8dc4e0">Weight: ${Number(f.weight).toFixed(2)} kg → ATK ${fmtNum(boosted.atk)}</div>
               <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
             </div>`;
           }).join("")
@@ -1040,11 +1057,12 @@
             const rarity = f.rarity || "common";
             const color = rarityColors[rarity] || "#c0c0c0";
             const borderColor = rarityBgs[rarity] || "#4a5a5a";
+            const boosted = getBoostedFishStats(f.size, f.weight);
             return `
             <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
               <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
-              <div style="font-size:11px;color:#8dc4e0">Size: ${Number(f.size).toFixed(1)} cm</div>
-              <div style="font-size:11px;color:#8dc4e0">Weight: ${Number(f.weight).toFixed(2)} kg</div>
+              <div style="font-size:11px;color:#8dc4e0">Size: ${Number(f.size).toFixed(1)} cm → HP ${fmtNum(boosted.hp)}</div>
+              <div style="font-size:11px;color:#8dc4e0">Weight: ${Number(f.weight).toFixed(2)} kg → ATK ${fmtNum(boosted.atk)}</div>
               <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
             </div>`;
           }).join("")
@@ -1217,7 +1235,7 @@
 
         // Fish slots avec couleurs + taille/poids
         const fishHtml = mem.fish.length > 0
-          ? mem.fish.map(f => renderFishSlot(f)).join("")
+          ? mem.fish.map(f => renderFishSlot(f, isMe)).join("")
           : `<span class="team-slot-empty">No fish</span>`;
 
         // Char slots avec couleurs par étoiles

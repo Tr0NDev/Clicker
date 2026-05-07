@@ -697,32 +697,35 @@
       hp,
       maxHp,
       atk,
+      raidBoosted: Boolean(f.raidBoosted),
       empty: !(hp || atk)
     };
   }
   function loadRaidTeamStats() {
     try {
       const raw = localStorage.getItem(TEAM_STATE_KEY);
-      if (!raw) return { sizeBonus: 0, weightBonus: 0 };
+      if (!raw) return { incomeMultiplier: 1, sizeBonus: 0, weightBonus: 0 };
       const parsed = JSON.parse(raw);
-      if (!parsed || !parsed.totals) return { sizeBonus: 0, weightBonus: 0 };
+      if (!parsed || !parsed.totals) return { incomeMultiplier: 1, sizeBonus: 0, weightBonus: 0 };
       return {
+        incomeMultiplier: Number(parsed.totals.incomeMultiplier) || 1,
         sizeBonus: Number(parsed.totals.sizeBonus) || 0,
         weightBonus: Number(parsed.totals.weightBonus) || 0
       };
     } catch {
-      return { sizeBonus: 0, weightBonus: 0 };
+      return { incomeMultiplier: 1, sizeBonus: 0, weightBonus: 0 };
     }
   }
   function boostRaidFishStats(fish, teamStats) {
-    if (!fish || fish.empty) return fish;
+    if (!fish || fish.empty || fish.raidBoosted) return fish;
     const rawSize = Number(fish.size) || Number(fish.maxHp) || 0;
     const rawWeight = Number(fish.weight) || Number(fish.atk) || 0;
     const hpMult = 1 + ((Number(teamStats?.sizeBonus) || 0) * 0.005);
     const atkMult = 1 + ((Number(teamStats?.weightBonus) || 0) * 0.005);
-    const boostedMaxHp = Math.max(1, Math.round((Number(fish.maxHp) || Number(fish.hp) || 0) * hpMult));
-    const boostedHp = Math.max(0, Math.min(boostedMaxHp, Math.round((Number(fish.hp) || 0) * hpMult)));
-    const boostedAtk = Math.max(1, Math.round((Number(fish.atk) || 0) * atkMult));
+    const incMult = Number(teamStats?.incomeMultiplier) || 1;
+    const boostedMaxHp = Math.max(1, Math.round((Number(fish.maxHp) || Number(fish.hp) || 0) * hpMult * incMult));
+    const boostedHp = Math.max(0, Math.min(boostedMaxHp, Math.round((Number(fish.hp) || 0) * hpMult * incMult)));
+    const boostedAtk = Math.max(1, Math.round((Number(fish.atk) || 0) * atkMult * incMult));
     return {
       ...fish,
       size: rawSize,
@@ -730,6 +733,7 @@
       hp: boostedHp,
       maxHp: boostedMaxHp,
       atk: boostedAtk,
+      raidBoosted: true,
       empty: !(boostedHp || boostedAtk)
     };
   }
@@ -828,6 +832,7 @@
   function getMembership() { try { return JSON.parse(localStorage.getItem(MEMBERSHIP_KEY)||"null"); } catch { return null; } }
   function getHooks()      { return Math.max(0, Number(localStorage.getItem(HOOKS_KEY))||0); }
   function setHooks(v)     { localStorage.setItem(HOOKS_KEY, String(Math.max(0,Math.floor(v)))); }
+  function isRaidDebugMode() { return localStorage.getItem("clicker_cheater") === "true"; }
 
   let guildData    = null;
   let allMembers   = [];
@@ -1060,7 +1065,11 @@
   async function launchRaid() {
     localStorage.setItem("clicker_battleSpeedLock", "true");
     const squadPids=getSquadPids();
-    if(squadPids.length<2) { setStatus("Need at least 2 players.","err"); return; }
+    const debugSoloLaunch = isRaidDebugMode();
+    if(squadPids.length < (debugSoloLaunch ? 1 : 2)) {
+      setStatus(debugSoloLaunch ? "Need at least 1 player in debug mode." : "Need at least 2 players.","err");
+      return;
+    }
     if(!selectedRaidKey||!RAIDS[selectedRaidKey]) { setStatus("Select a raid first.","err"); return; }
     const mem=getMembership();
     const raidDef=RAIDS[selectedRaidKey];
@@ -1081,8 +1090,9 @@
     });
     if (totalAtk === 0) { setStatus("No attack power in squad — select fish first.","err"); return; }
 
-    const numPlayers = squadPids.length;
+    const numPlayers = Math.max(1, squadPids.length);
     const scaledBossHp = firstStage.hp * numPlayers;
+    const spentScore = Math.max(0, raidState.score - raidCost);
     const state={
       phase:"running",
       raidKey:selectedRaidKey,
@@ -1093,7 +1103,7 @@
       players,
       completedStages:[],
       rewardClaimed:{},
-      score: raidState.score,
+      score: spentScore,
       scoreMax: raidState.scoreMax,
       scoreRefillMs: raidState.scoreRefillMs,
       scoreLastRefill: raidState.scoreLastRefill,
@@ -1175,9 +1185,8 @@
 
     if(!anyAlive) {
       state.phase="ended"; state.result="defeat";
-      state.score = 0;
       state.log.push("💀 All players eliminated — Defeat.");
-      state.log.push("💥 Raid energy drained to 0.");
+      state.log.push(`💥 Raid energy already spent: ${state.currentRaidCost}.`);
     }
 
     await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
@@ -1216,9 +1225,7 @@
 
     if(state.stageIndex>=raidDef.stages.length-1) {
       state.phase="ended"; state.result="victory";
-      const victoryCost = Math.ceil(getRaidCost(raidDef) / 2);
-      state.score = Math.max(0, state.score - victoryCost);
-      state.log.push(`🏅 Victory! Raid energy reduced by ${victoryCost}.`);
+      state.log.push(`🏅 Victory! Raid energy was spent on launch (${state.currentRaidCost}).`);
       state.log.push(`🏆 VICTORY! "${raidDef.name}" cleared! Survivors: claim your reward.`);
     } else {
       state.stageIndex++;
@@ -1472,7 +1479,8 @@
         </div>
       </div>`:"";
 
-    const canLaunch=iAmLeader&&squadPids.length>=2&&!!selectedRaidKey;
+    const debugSoloLaunch = isRaidDebugMode();
+    const canLaunch=iAmLeader&&!!selectedRaidKey&&(squadPids.length>=(debugSoloLaunch?1:2));
     const launchBlock=iAmLeader
       ?`${raidChooser}
         <button class="btn btn-gold" ${canLaunch?"":"disabled"} onclick="launchRaid()">
@@ -1489,7 +1497,7 @@
       <div class="idle-state" style="padding:14px 0">
         <span class="idle-icon">⚔️</span>
         ${squadPids.length} player(s) in squad.
-        ${squadPids.length<2?"<br>Need at least <strong style='color:#e8c060'>2 players</strong> to launch.":""}
+        ${debugSoloLaunch ? "<br><strong>Debug solo launch enabled.</strong>" : (squadPids.length<2?"<br>Need at least <strong style='color:#e8c060'>2 players</strong> to launch.":"")}
         ${selectedRaidKey ? `<br><strong>Raid selected:</strong> ${escH(RAIDS[selectedRaidKey]?.name||'Unknown')}` : ""}
       </div>
       ${launchBlock}`;
@@ -1540,7 +1548,8 @@
         const size = isActive ? "larger" : "normal";
         const rawSize = Number(f.size) || 0;
         const rawWeight = Number(f.weight) || 0;
-        const boostText = f.empty ? "" : `<div style="margin-top:2px;font-size:9px;color:#92c8e7;line-height:1.1;">Size: ${fmt1(rawSize)} cm → <span style="color:#7ee787;font-weight:bold;">${fmt1(f.maxHp)} HP</span><br>Weight: ${fmt1(rawWeight)} kg → <span style="color:#ffa657;font-weight:bold;">${fmt1(f.atk)} ATK</span></div>`;
+        const rarityText = f.empty ? "" : `<div style="font-size:10px;color:${RARITY_COLOR[f.rarity]||'#8dc4e0'};font-weight:bold;margin-top:4px;">Rarity: ${escH(String(f.rarity || 'common').replace(/^./, c => c.toUpperCase()))}</div>`;
+        const boostText = f.empty ? "" : `<div style="margin-top:2px;font-size:9px;color:#92c8e7;line-height:1.1;">Size: ${fmt1(rawSize)} cm → <span style="color:#7ee787;font-weight:bold;">${fmt1(f.maxHp)} HP</span><br>Weight: ${fmt1(rawWeight)} kg → <span style="color:#ffa657;font-weight:bold;">${fmt1(f.atk)} ATK</span></div>${rarityText}`;
         return `<div class="fish-slot ${size}" style="min-width:72px;padding:8px;border:1px solid #2f4d5c;border-radius:10px;background:rgba(255,255,255,.03);font-size:10px;line-height:1.2;">
           <div style="margin-bottom:4px;">${label}</div>
           <div style="color:${color};font-weight:bold;">${hpText}</div>
