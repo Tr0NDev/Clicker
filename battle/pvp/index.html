@@ -1368,7 +1368,7 @@
       startBattleButton.disabled=fish.length!==3||isBattleAnimating;
       const goesFirst = importedBattle && importedBattle.exportedTeamStats
         ? teamStats.fishingSpeed >= (Number(importedBattle.exportedTeamStats.fishingSpeed) || 1)
-        : playerStartsFirst();
+        : shouldPlayerStartFirst(teamStats.fishingSpeed, getEnemyFishingSpeed(battleTier));
       actionNote.textContent=fish.length===3
         ?(isBattleAnimating?"Battle in progress...":(importedBattle
             ? `Imported battle ready. ${goesFirst ? "You go first." : "Opponent goes first."}`
@@ -1732,9 +1732,16 @@
     });
 
     if (toggleQueueBtn) {
-      toggleQueueBtn.addEventListener("click", () => {
-        const action = queueJoined ? leaveQueue() : joinQueue();
-        action.catch((e) => setQueueStatus(`Queue error: ${e.message || e}`));
+      toggleQueueBtn.addEventListener("click", async () => {
+        try {
+          if (queueJoined) {
+            await leaveQueue();
+          } else {
+            await joinQueue();
+          }
+        } catch (e) {
+          setQueueStatus(`Queue error: ${e.message || e}`);
+        }
       });
     }
 
