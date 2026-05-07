@@ -6,85 +6,170 @@
       "desc": "⭐ - Easy - 4 Floors - 8 Energy",
       "cost": 8,
       "stages": [
-      {
-        "floor": "Floor 1",
-        "name": "Swift roach",
-        "rarity": "common",
-        "hp": 2040,
-        "atk": 240
-      },
-      {
-        "floor": "Floor 2",
-        "name": "Dark tench",
-        "rarity": "uncommon",
-        "hp": 2905,
-        "atk": 540
-      },
-      {
-        "floor": "Floor 3",
-        "name": "Noble salmon",
-        "rarity": "uncommon",
-        "hp": 3405,
-        "atk": 545
-      },
-      {
-        "floor": "Floor 4",
-        "name": "Wild pike",
-        "rarity": "rare",
-        "hp": 4520,
-        "atk": 802
-      }
-    ],
-    "rewards": [
-      {
-        "pct": 5,
-        "type": "fish",
-        "fishId": "fish_1778089175967_cfe3117bb2d088"
-      },
-      {
-        "pct": 20,
-        "type": "hooks",
-        "amount": 100
-      },
-      {
-        "pct": 40,
-        "type": "hooks",
-        "amount": 50
-      },
-      {
-        "pct": 15,
-        "type": "fish",
-        "fishId": "fish_1778082326301_e067aa43773c58"
-      },
-      {
-        "pct": 20,
-        "type": "fish",
-        "fishId": "fish_1778089175967_cfe3117bb2d088"
-      }
-    ],
-    "fishTemplates": [
-      {
-        "id": "fish_1778082245720",
-        "name": "Wild pike",
-        "rarity": "rare",
-        "maxHp": 2270,
-        "atk": 451
-      },
-      {
-        "id": "fish_1778082326301_e067aa43773c58",
-        "name": "Wild pike",
-        "rarity": "rare",
-        "maxHp": 1454,
-        "atk": 424
-      },
-      {
-        "id": "fish_1778089175967_cfe3117bb2d088",
-        "name": "Wild pike",
-        "rarity": "rare",
-        "maxHp": 1257,
-        "atk": 415
-      }
-    ]
+        {
+          "floor": "Floor 1",
+          "name": "Swift roach",
+          "rarity": "common",
+          "hp": 2040,
+          "atk": 240
+        },
+        {
+          "floor": "Floor 2",
+          "name": "Dark tench",
+          "rarity": "uncommon",
+          "hp": 2905,
+          "atk": 540
+        },
+        {
+          "floor": "Floor 3",
+          "name": "Noble salmon",
+          "rarity": "uncommon",
+          "hp": 3405,
+          "atk": 545
+        },
+        {
+          "floor": "Floor 4",
+          "name": "Wild pike",
+          "rarity": "rare",
+          "hp": 4520,
+          "atk": 802
+        }
+      ],
+      "rewards": [
+        {
+          "pct": 5,
+          "type": "fish",
+          "fishId": "fish_1778089175967_cfe3117bb2d088"
+        },
+        {
+          "pct": 20,
+          "type": "hooks",
+          "amount": 100
+        },
+        {
+          "pct": 40,
+          "type": "hooks",
+          "amount": 50
+        },
+        {
+          "pct": 15,
+          "type": "fish",
+          "fishId": "fish_1778082326301_e067aa43773c58"
+        },
+        {
+          "pct": 20,
+          "type": "fish",
+          "fishId": "fish_1778089175967_cfe3117bb2d088"
+        }
+      ],
+      "fishTemplates": [
+        {
+          "id": "fish_1778082245720",
+          "name": "Wild pike",
+          "rarity": "rare",
+          "maxHp": 2270,
+          "atk": 451
+        },
+        {
+          "id": "fish_1778082326301_e067aa43773c58",
+          "name": "Wild pike",
+          "rarity": "rare",
+          "maxHp": 1454,
+          "atk": 424
+        },
+        {
+          "id": "fish_1778089175967_cfe3117bb2d088",
+          "name": "Wild pike",
+          "rarity": "rare",
+          "maxHp": 1257,
+          "atk": 415
+        }
+      ]
+    },
+    "raid_1778145905428": {
+      "key": "raid_1778145905428",
+      "name": "Celestial Sea",
+      "desc": "⭐⭐⭐⭐ - Hard - 8 Floors - 20 Energy",
+      "cost": 20,
+      "stages": [
+        {
+          "floor": "Floor 1",
+          "name": "Mahi-mahi",
+          "rarity": "epic",
+          "hp": 8503,
+          "atk": 2450
+        },
+        {
+          "floor": "Floor 2",
+          "name": "Rainbow ray",
+          "rarity": "epic",
+          "hp": 10420,
+          "atk": 1984
+        },
+        {
+          "floor": "Floor 3",
+          "name": "Giant grouper",
+          "rarity": "epic",
+          "hp": 6084,
+          "atk": 4230
+        },
+        {
+          "floor": "Floor 4",
+          "name": "Prismatic eel",
+          "rarity": "common",
+          "hp": 14202,
+          "atk": 3205
+        },
+        {
+          "floor": "Floor 5",
+          "name": "Royal moray",
+          "rarity": "epic",
+          "hp": 12523,
+          "atk": 3592
+        },
+        {
+          "floor": "Floor 6",
+          "name": "Golden shark",
+          "rarity": "legendary",
+          "hp": 23401,
+          "atk": 8530
+        },
+        {
+          "floor": "Floor 7",
+          "name": "Sea dragon",
+          "rarity": "common",
+          "hp": 34059,
+          "atk": 5432
+        },
+        {
+          "floor": "Floor 8",
+          "name": "Celestial Leviathan",
+          "rarity": "mythic",
+          "hp": 63244,
+          "atk": 18593
+        }
+      ],
+      "rewards": [
+        {
+          "pct": 95,
+          "type": "hooks",
+          "amount": 200
+        },
+        {
+          "pct": 5,
+          "type": "fish",
+          "fishId": "fish_1778145905428"
+        }
+      ],
+      "fishTemplates": [
+        {
+          "id": "fish_1778145905428",
+          "name": "Celestial Leviathan",
+          "rarity": "mythic",
+          "maxHp": 7530,
+          "atk": 3528
+        }
+      ]
     }
   }
 }
