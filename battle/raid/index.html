@@ -876,6 +876,14 @@
     if (guildData && guildData.id === guildId) {
       guildData.guildPoints = next;
     }
+    
+    // 💾 Sauvegarder aussi sur Supabase en arrière-plan
+    if (db && guildId) {
+      db.from("guilds").update({ guild_points: next }).eq("id", guildId)
+        .then(() => console.log(`✅ Guild points (${next}) synchronisés sur Supabase`))
+        .catch(err => console.error(`❌ Erreur sync guild_points:`, err));
+    }
+    
     return next;
   }
 
@@ -1295,6 +1303,21 @@
         const added = addGuildPoints(guildId, state.currentRaidCost || 0);
         state.guildPointsAwarded = true;
         state.log.push(`🏅 Guild earned +${added} points from the raid energy cost.`);
+        
+        // 💾 Sauvegarder les points sur Supabase
+        console.log("💾 Sauvegarde des guild_points sur Supabase:", added);
+        try {
+          const { error: updateErr } = await db.from(GUILDS_TABLE).update({
+            guild_points: added
+          }).eq("id", guildId);
+          if (updateErr) {
+            console.error("❌ Erreur sauvegarde guild_points:", updateErr.message);
+          } else {
+            console.log("✅ Guild points sauvegardés sur Supabase!");
+          }
+        } catch (err) {
+          console.error("❌ Exception sauvegarde guild_points:", err);
+        }
       }
     } else {
       state.stageIndex++;
@@ -1371,7 +1394,13 @@
       if (fish) state.log.push(`🐟 ${resolveName(pid)} claimed ${fishLabel}.`);
     }
 
-      await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
+      console.log("💾 Sauvegarde du raid avec reward claiming - Guild Points:", raidState.guildPointsAwarded);
+      const { error: saveErr } = await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
+      if (saveErr) {
+        console.error("❌ Erreur lors de la sauvegarde du reward:", saveErr.message);
+      } else {
+        console.log("✅ Reward claim sauvegardé avec succès!");
+      }
       raidState = state;
       renderAll();
       syncRaidLog();

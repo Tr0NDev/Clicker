@@ -1742,17 +1742,24 @@
       const saveBtn = document.getElementById('saveTeamBtn');
       if (!db) {
         console.error("Supabase not configured");
+        alert("❌ Erreur: Supabase non configuré");
         return;
       }
 
       const pid = getPlayerId();
       if (!pid) {
         console.error("No user ID found");
+        alert("❌ Erreur: Pas d'ID utilisateur trouvé");
         return;
       }
 
+      console.log("🔄 Début de la sauvegarde pour l'utilisateur:", pid);
+
       const myFish = getPlayerFishTeam();
       const myChars = getPlayerCharTeam();
+      
+      console.log("📦 Poissons à sauvegarder:", myFish);
+      console.log("📦 Personnages à sauvegarder:", myChars);
 
       const teamData = {
         fish_team: myFish,
@@ -1764,6 +1771,8 @@
       saveBtn.disabled = true;
 
       try {
+        console.log("💾 Envoi des données à Supabase:", teamData);
+        
         const { error: updateErr } = await db.from("profiles").update({
           fish_team: teamData.fish_team,
           char_team: teamData.char_team,
@@ -1771,21 +1780,26 @@
         }).eq("player_id", pid);
 
         if (updateErr) {
-          console.error("Error saving team:", updateErr.message);
+          console.error("❌ Erreur lors de la sauvegarde:", updateErr.message);
           saveBtn.textContent = "Save Team";
           saveBtn.disabled = false;
+          alert("❌ Erreur lors de la sauvegarde: " + updateErr.message);
           return;
         }
 
+        console.log("✅ Sauvegarde réussie!");
         saveBtn.textContent = "✓ Saved";
+        alert("✅ Profil sauvegardé avec succès!");
+        
         setTimeout(() => {
           saveBtn.textContent = "Save Team";
           saveBtn.disabled = false;
         }, 2000);
       } catch (err) {
-        console.error("Exception:", err);
+        console.error("❌ Exception lors de la sauvegarde:", err);
         saveBtn.textContent = "Save Team";
         saveBtn.disabled = false;
+        alert("❌ Erreur: " + err.message);
       }
     }
 
@@ -3581,6 +3595,9 @@
       const saveTeamBtn = document.getElementById('saveTeamBtn');
       if (saveTeamBtn) {
         saveTeamBtn.style.display = 'inline-flex';
+        // Add click handler for save team button
+        saveTeamBtn.addEventListener('click', savePlayerTeamToSupabase);
+        console.log("✅ Click handler attaché au bouton Save Team");
       }
     }
   </script>

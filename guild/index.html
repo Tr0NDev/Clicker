@@ -915,7 +915,12 @@
           }
           return sum + computeMemberFallbackScore(mem.pid, idx);
         }, 0);
-        return { ...g, score: Math.round(score), guildPoints: getGuildPoints(g.id) };
+        // 💾 Charger les guild_points depuis Supabase, fallback à localStorage
+        const supabasePoints = Number(g.guild_points) || 0;
+        const localPoints = getGuildPoints(g.id);
+        const finalPoints = supabasePoints > 0 ? supabasePoints : localPoints;
+        console.log(`📍 Guild ${g.name}: Supabase=${supabasePoints}, Local=${localPoints}, Final=${finalPoints}`);
+        return { ...g, score: Math.round(score), guildPoints: finalPoints };
       });
       allGuilds.sort((a,b) => b.score - a.score);
 
