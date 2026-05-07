@@ -476,11 +476,22 @@
         const idx = RARITY_BANDS.indexOf(targetRarity);
         targetRarity = RARITY_BANDS[Math.min(idx + 1, RARITY_BANDS.length - 1)];
       }
-      const pool = FISH_SPECIES.filter(s => s.rarity === targetRarity);
+      let pool = FISH_SPECIES.filter(s => s.rarity === targetRarity);
+      if (!pool.length) {
+        for (let i = RARITY_BANDS.indexOf(targetRarity) - 1; i >= 0 && !pool.length; i--) {
+          pool = FISH_SPECIES.filter(s => s.rarity === RARITY_BANDS[i]);
+        }
+      }
+      if (!pool.length) {
+        pool = FISH_SPECIES.slice();
+      }
       return [0, 1, 2].map(i => pool[(t + i) % pool.length]);
     }
 
     function speciesStatsAtTier(species, tier) {
+      if (!species) {
+        species = FISH_SPECIES[0] || { rarity: "common", type: "Fish" };
+      }
       const boss      = isBossTier(tier);
       const ATK_RATIO = 0.55;          // was 0.40
       const BOSS_HP   = 1.25;          // was 1.20
@@ -557,6 +568,9 @@
       const characterTeam = generateEnemyCharacterTeam(tier);
       const bonuses = calculateEnemyTeamBonuses(characterTeam);
       return templates.map((tmpl, i) => {
+        if (!tmpl) {
+          return createTierEnemyFromTemplate(FISH_SPECIES[0] || { type: "Fish", rarity: "common" }, i, tier);
+        }
         const enemy = createTierEnemyFromTemplate(tmpl, i, tier);
         // +12% HP de base via characters, + rampe par étoile (+7%/étoile)
         const hpBonus  = 0.12 + (bonuses.sizeBonus   * 0.005);
@@ -1011,17 +1025,21 @@
     }
 
     async function joinQueue() {
+      console.log('[DEBUG] joinQueue called, queueJoined:', queueJoined);
       if (!db) {
         setQueueStatus("Supabase not configured.");
+        console.log('[DEBUG] No db');
         return;
       }
       const pid = getPlayerIdOrNull();
       if (!pid) {
         setQueueStatus("Please log in first.");
+        console.log('[DEBUG] No player id');
         return;
       }
       const playerName = getPlayerNameOrDefault();
       const payload = buildBattlePayload();
+      console.log('[DEBUG] Payload:', payload ? {lineup: payload.lineup?.length} : 'null');
       if (!payload || !Array.isArray(payload.lineup) || payload.lineup.length !== 3) {
         setQueueStatus("Select 3 fish before joining queue.");
         return;
@@ -1313,9 +1331,11 @@
     function isSelected(uid) { return selectedFishUids.includes(uid); }
 
     function toggleSelection(uid) {
+      console.log('[DEBUG] toggleSelection:', uid, 'Currently selected:', selectedFishUids.length);
       if(isSelected(uid)) selectedFishUids=selectedFishUids.filter(u=>u!==uid);
       else if(getSelectedFish().length<3) selectedFishUids.push(uid);
       else { setDetailMessage("You already have 3 fish selected."); return; }
+      console.log('[DEBUG] After toggle:', selectedFishUids.length, 'fish selected');
       saveSelection(); render();
     }
 
@@ -1733,13 +1753,17 @@
 
     if (toggleQueueBtn) {
       toggleQueueBtn.addEventListener("click", async () => {
+        console.log('[DEBUG] toggleQueueBtn clicked, queueJoined:', queueJoined);
         try {
           if (queueJoined) {
+            console.log('[DEBUG] Calling leaveQueue');
             await leaveQueue();
           } else {
+            console.log('[DEBUG] Calling joinQueue');
             await joinQueue();
           }
         } catch (e) {
+          console.log('[DEBUG] Queue error caught:', e);
           setQueueStatus(`Queue error: ${e.message || e}`);
         }
       });
@@ -1779,17 +1803,21 @@
     });
 
     startBattleButton.addEventListener("click",()=>{
+      console.log('[DEBUG] Start Battle clicked');
       const fish=getSelectedFish();
-      if(fish.length!==3){ setDetailMessage("You need 3 fish selected before starting battle."); return; }
-      if(isBattleAnimating) return;
+      console.log('[DEBUG] Selected fish:', fish.length, fish.map(f => f.type));
+      if(fish.length!==3){ setDetailMessage("You need 3 fish selected before starting battle."); console.log('[DEBUG] Not 3 fish'); return; }
+      if(isBattleAnimating) { console.log('[DEBUG] Already animating'); return; }
       if(battleTimerId){ clearTimeout(battleTimerId); battleTimerId=null; }
       battleScorePanel.classList.remove("visible");
 
       const isCustom=Boolean(importedBattle), isQueueBattle=Boolean(importedBattle&&importedBattle.source==="queue"), currentTier=battleTier, reward=getTierReward(currentTier);
       const allies=fish.map((f,i)=>createBattleantFromFish(f,"ally",i,true));
+      console.log('[DEBUG] Battle type:', {isCustom, isQueueBattle, currentTier});
 
       let enemies;
       if(importedBattle){
+        console.log('[DEBUG] Using imported battle');
         const enemyStats = importedBattle.teamStats || importedBattle.exportedTeamStats || { sizeBonus: 0, weightBonus: 0, incomeMultiplier: 1, fishingSpeed: 1 };
         const enemyIncomeMult = Number(enemyStats.incomeMultiplier || 1);
         enemies=importedBattle.lineup.map((f,i)=>({
@@ -1803,7 +1831,9 @@
           descriptor:fishDescriptors(f)
         }));
       } else {
+        console.log('[DEBUG] Using tier battle for tier', currentTier);
         enemies=createTierEnemyRoster(currentTier);
+        console.log('[DEBUG] Generated tier enemies:', enemies.length, enemies.map(e => e.name));
       }
 
       const allyGoesFirst = shouldPlayerStartFirst(teamStats.fishingSpeed, getOpponentFishingSpeed());
