@@ -600,10 +600,11 @@
       }
     }
 
-    function applyTeamBoostsToFishStats(size, weight) {
-      const hpMult  = 1 + (teamStats.sizeBonus   * 0.005);
-      const atkMult = 1 + (teamStats.weightBonus  * 0.005);
-      const incMult = teamStats.incomeMultiplier;
+    function applyTeamBoostsToFishStats(size, weight, teamStatsOverride = null) {
+      const stats = teamStatsOverride || teamStats;
+      const hpMult  = 1 + ((stats.sizeBonus || 0)   * 0.005);
+      const atkMult = 1 + ((stats.weightBonus || 0)  * 0.005);
+      const incMult = stats.incomeMultiplier || 1;
       const boostedHp  = Math.max(1, Math.round(size   * hpMult  * incMult));
       const boostedAtk = Math.max(1, Math.round(weight * atkMult * incMult));
       return { hp: boostedHp, atk: boostedAtk };
@@ -1359,7 +1360,8 @@
       const rawAtk = Math.max(1, Math.round(Number(fish.weight) || 1));
       let finalHp  = rawHp, finalAtk = rawAtk;
       if (applyTeamBonus) {
-        const boosted = applyTeamBoostsToFishStats(rawHp, rawAtk);
+        const teamStatsForBoost = teamLabel === "enemy" ? importedBattle?.teamStats : null;
+        const boosted = applyTeamBoostsToFishStats(rawHp, rawAtk, teamStatsForBoost);
         finalHp  = boosted.hp; finalAtk = boosted.atk;
       }
       return {
@@ -1592,8 +1594,9 @@
       const stars=getCharacterStars(char.templateId||char.id);
       const name=char.name||getCharacterName(char.templateId||char.id);
       const level=char.level||1;
-      const talentId=char.talentId||null;
-      const talentName=char.talentName||'No Talent';
+      const talentId = char.talentId || (Array.isArray(char.talents) && char.talents.length > 0 ? char.talents[0] : null);
+      const talentName = char.talentName || (Array.isArray(char.talents) && char.talents.length > 0 ? char.talents[0] : 'No Talent');
+      console.log('[DEBUG] renderCharacterCard:', isEnemy ? 'enemy' : 'player', 'char:', char, 'talentId:', talentId, 'talentName:', talentName);
       const card=document.createElement("div");
       card.className=`character-team-card character-team-card-clickable stars-${stars}`;
       card.setAttribute("role","button"); card.setAttribute("tabindex","0");
@@ -1671,6 +1674,9 @@
       let enemyTeam = (importedBattle&&Array.isArray(importedBattle.exportedTeamChars)&&importedBattle.exportedTeamChars.length>0)
         ? importedBattle.exportedTeamChars.slice()
         : generateEnemyCharacterTeam(battleTier);
+      console.log('[DEBUG] renderEnemyCharacterTeam: importedBattle:', importedBattle ? 'exists' : 'null');
+      console.log('[DEBUG] renderEnemyCharacterTeam: exportedTeamChars:', importedBattle?.exportedTeamChars);
+      console.log('[DEBUG] renderEnemyCharacterTeam: enemyTeam:', enemyTeam);
       enemyTeam.sort((a,b) => {
         const aSlot = Number.isFinite(Number(a.teamSlot)) ? Number(a.teamSlot) : 999;
         const bSlot = Number.isFinite(Number(b.teamSlot)) ? Number(b.teamSlot) : 999;
@@ -1884,6 +1890,24 @@
     });
 
     // ── PVP BATTLE DETECTION ──────────────────────────────────────────────────
+    function applyOrderedBonus(currentValue, addValue, multValue) {
+      return (currentValue + addValue) * multValue;
+    }
+
+    function calculateTeamStatsFromChars(chars) {
+      let incomeMultiplier = 1, clickMultiplier = 1, sizeBonus = 0, weightBonus = 0, chanceBonus = 0, resaleBonus = 0, fishingSpeed = 1;
+      chars.forEach(char => {
+        incomeMultiplier *= Number(char.incomeMultiplier) || 1;
+        clickMultiplier *= Number(char.clickMultiplier) || 1;
+        sizeBonus = applyOrderedBonus(sizeBonus, Number(char.sizeAdd) || 0, Number(char.sizeMult) || 1);
+        weightBonus = applyOrderedBonus(weightBonus, Number(char.weightAdd) || 0, Number(char.weightMult) || 1);
+        chanceBonus = applyOrderedBonus(chanceBonus, Number(char.chanceAdd) || 0, Number(char.chanceMult) || 1);
+        resaleBonus = applyOrderedBonus(resaleBonus, Number(char.resaleAdd) || 0, Number(char.resaleMult) || 1);
+        fishingSpeed *= Number(char.fishingSpeed) || 1;
+      });
+      return { incomeMultiplier, clickMultiplier, sizeBonus, weightBonus, chanceBonus, resaleBonus, fishingSpeed };
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('pvp') === 'true') {
       const opponentId = urlParams.get('opponentId');
@@ -1896,7 +1920,12 @@
         try {
           const fishTeam = JSON.parse(fishTeamStr);
           const charTeam = JSON.parse(charTeamStr);
-          const teamStats = (teamStatsStr && JSON.parse(teamStatsStr)) || null;
+          const calculatedTeamStats = calculateTeamStatsFromChars(charTeam);
+          const teamStats = calculatedTeamStats;
+          console.log('[DEBUG] PVP URL import: opponentId:', opponentId, 'opponentName:', opponentName);
+          console.log('[DEBUG] PVP URL import: fishTeam:', fishTeam);
+          console.log('[DEBUG] PVP URL import: charTeam:', charTeam);
+          console.log('[DEBUG] PVP URL import: calculatedTeamStats:', calculatedTeamStats);
 
           // Create imported battle data for PVP
           const defaultFishingSpeed = (() => {
@@ -1919,7 +1948,9 @@
             teamStats: teamStats || { fishingSpeed: defaultFishingSpeed },
             source: "pvp"
           };
+          console.log('[DEBUG] PVP URL import: importedBattle set:', importedBattle);
           setBattleSpeedLock(false);
+          render();
 
           // Update UI to show PVP mode
           document.querySelector('.section-title').textContent = `PVP Battle vs ${opponentName}`;

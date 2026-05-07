@@ -184,6 +184,26 @@
     }
     @keyframes shimmer { to { background-position: -200% 0; } }
 
+    /* ── SCROLLABLE SECTIONS ── */
+    .scroll-container {
+      max-height: 500px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    .scroll-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .scroll-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .scroll-container::-webkit-scrollbar-thumb {
+      background: #3a5f7a;
+      border-radius: 3px;
+    }
+    .scroll-container::-webkit-scrollbar-thumb:hover {
+      background: #4a7a9a;
+    }
+
     /* ── CENTER COLUMN ── */
     .center-col { display: grid; gap: 12px; align-content: start; }
 
@@ -421,10 +441,25 @@
             <button class="btn btn-sm" id="refreshBtn" onclick="refreshGuilds()">↻ Refresh</button>
           </div>
           <input class="search-input" id="searchInput" type="text" placeholder="Search guilds…" oninput="filterGuilds()">
-          <div class="guild-list" id="guildList">
-            <div class="shimmer"></div>
-            <div class="shimmer" style="opacity:.6"></div>
-            <div class="shimmer" style="opacity:.3"></div>
+          <div class="scroll-container">
+            <div class="guild-list" id="guildList">
+              <div class="shimmer"></div>
+              <div class="shimmer" style="opacity:.6"></div>
+              <div class="shimmer" style="opacity:.3"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header-row">
+            <div class="section-title">Leaderboard</div>
+          </div>
+          <div class="scroll-container">
+            <div class="members-list" id="leaderboard">
+              <div class="shimmer"></div>
+              <div class="shimmer" style="opacity:.6"></div>
+              <div class="shimmer" style="opacity:.3"></div>
+            </div>
           </div>
         </div>
 
@@ -691,21 +726,22 @@
     }
 
     // ── RENDU FISH SLOT (couleur + stats PVP-like) ───────────────────────────
-    function renderFishSlot(f, boosted = false) {
+    function renderFishSlot(f, showArrows = false) {
       const r = f.rarity || "common";
       const name = escHtml((f.type || "Fish").slice(0, 14));
       const size = Number(f.size);
       const weight = Number(f.weight);
-      const boostedStats = boosted ? getBoostedFishStats(size, weight) : null;
-      const statsHtml = Number.isFinite(size) || Number.isFinite(weight)
-        ? `<div class="fish-slot-stats">
-            ${Number.isFinite(size)
-              ? `<span class="fish-slot-stat">Size: ${size.toFixed(1)} cm${boostedStats ? ` → HP ${boostedStats.hp}` : ""}</span>`
-              : ""}
-            ${Number.isFinite(weight)
-              ? `<span class="fish-slot-stat">Weight: ${weight.toFixed(2)} kg${boostedStats ? ` → ATK ${boostedStats.atk}` : ""}</span>`
-              : ""}
-           </div>`
+      const boostedStats = getBoostedFishStats(size, weight);
+      const statsHtml = boostedStats
+        ? showArrows
+          ? `<div class="fish-slot-stats">
+              <span class="fish-slot-stat">Size: ${size.toFixed(1)} cm → HP ${boostedStats.hp}</span>
+              <span class="fish-slot-stat">Weight: ${weight.toFixed(2)} kg → ATK ${boostedStats.atk}</span>
+             </div>`
+          : `<div class="fish-slot-stats">
+              <span class="fish-slot-stat">HP ${boostedStats.hp}</span>
+              <span class="fish-slot-stat">ATK ${boostedStats.atk}</span>
+             </div>`
         : "";
       return `<div class="fish-slot rarity-${r}" title="${name} — ${rarityLabel(r)}">
         <span class="fish-slot-name fish-name-${r}">${name}</span>
@@ -725,6 +761,103 @@
     }
 
     // ── SIDEBAR ───────────────────────────────────────────────────────────────
+    async function refreshGuilds() {
+      const btn = document.getElementById("refreshBtn");
+      btn.textContent = "↻ …";
+      await loadGuilds();
+      btn.textContent = "↻ Refresh";
+    }
+
+    async function loadLeaderboard() {
+      const lb = document.getElementById("leaderboard");
+      if (!lb) return;
+      
+      lb.innerHTML = '<div class="shimmer"></div><div class="shimmer" style="opacity:.6"></div><div class="shimmer" style="opacity:.3"></div>';
+
+      if (!db) {
+        lb.innerHTML = '<div style="color:#6a8a9a;font-size:13px;padding:16px">Configure Supabase to load leaderboard.</div>';
+        return;
+      }
+
+      try {
+        const { data: profiles, error } = await db
+          .from("profiles")
+          .select("player_id, display_name, fish_team, char_team")
+          .limit(500);
+
+        if (error) {
+          lb.innerHTML = `<div style="color:#ff7070;font-size:13px;padding:16px">Error: ${escHtml(error.message)}</div>`;
+          return;
+        }
+
+        const leaderboardData = [];
+        const currentPlayerId = getPlayerId();
+
+        profiles.forEach((profile) => {
+          if (!profile || !profile.player_id) return;
+
+          const fish = normalizeTeamArray(profile.fish_team);
+          const chars = normalizeTeamArray(profile.char_team);
+          const score = computePlayerScore(fish, chars);
+
+          // Get guild info from all guilds
+          let guildName = "—";
+          for (const guild of allGuilds) {
+            const members = safeParseMembers(guild.members);
+            if (members.find(m => m.pid === profile.player_id)) {
+              guildName = guild.name;
+              break;
+            }
+          }
+
+          leaderboardData.push({
+            playerName: profile.display_name || "Player",
+            playerId: profile.player_id,
+            score: score,
+            guildName: guildName,
+            isMe: profile.player_id === currentPlayerId
+          });
+        });
+
+        // Sort by score descending
+        leaderboardData.sort((a, b) => b.score - a.score);
+
+        // Add ranks after sorting
+        leaderboardData.forEach((p, idx) => {
+          p.rank = idx + 1;
+        });
+
+        if (!leaderboardData.length) {
+          lb.innerHTML = '<div style="color:#6a8a9a;font-size:13px;padding:16px">No players found.</div>';
+          return;
+        }
+
+        lb.innerHTML = leaderboardData.map(p => `
+          <div class="member-row ${p.isMe ? "is-me" : ""}" onclick="viewLeaderboardPlayer('${p.playerId}', '${p.guildName}')" style="cursor:pointer">
+            <div class="member-rank-num">#${p.rank}</div>
+            <div class="member-body">
+              <div class="member-top">
+                <span class="member-name">${escHtml(p.playerName)}</span>
+                ${p.isMe ? '<span class="me-tag">You</span>' : ''}
+              </div>
+              <div style="font-size:11px;color:#8dc4e0">Guild: <b>${escHtml(p.guildName)}</b></div>
+            </div>
+            <div class="member-score-col">
+              <div class="score-big">${fmtNum(p.score)}</div>
+              <div class="score-sub">Score</div>
+            </div>
+          </div>
+        `).join("");
+      } catch (err) {
+        console.error("Leaderboard error:", err);
+        lb.innerHTML = '<div style="color:#ff7070;font-size:13px;padding:16px">Error loading leaderboard.</div>';
+      }
+    }
+
+    async function viewLeaderboardPlayer(playerId, guildName) {
+      viewMemberProfile(playerId);
+    }
+
     async function refreshGuilds() {
       const btn = document.getElementById("refreshBtn");
       btn.textContent = "↻ …";
@@ -811,6 +944,7 @@
 
       renderSidebar();
       updateCreateSection();
+      await loadLeaderboard();
       if (m) {
         const mine = allGuilds.find(g => g.id === m.guildId);
         if (mine) { selectedGuildId = mine.id; renderSidebar(); renderGuildView(mine, true).catch(console.error); }
@@ -935,6 +1069,14 @@
       const myChars = getPlayerCharTeam();
       const myScore = computePlayerScore(myFish, myChars);
 
+      // Initialize viewingProfileData for your own profile
+      viewingProfileData = {
+        player_id: playerProfile.player_id,
+        display_name: playerProfile.display_name || "Player",
+        fish_team: myFish,
+        char_team: myChars
+      };
+
       const rarityColors = { common: "#c0c0c0", uncommon: "#7ee787", rare: "#58a6ff", epic: "#d2a8ff", legendary: "#ffa657", mythic: "#ff5e5e" };
       const starColors = { 1: "#c0c0c0", 2: "#7ee787", 3: "#58a6ff", 4: "#d2a8ff", 5: "#ffa657" };
       const rarityBgs = { common: "#4a5a5a", uncommon: "#2a5a2a", rare: "#1a3a7a", epic: "#4a2a7a", legendary: "#7a4a10", mythic: "#5a1515" };
@@ -945,12 +1087,11 @@
             const rarity = f.rarity || "common";
             const color = rarityColors[rarity] || "#c0c0c0";
             const borderColor = rarityBgs[rarity] || "#4a5a5a";
-            const boosted = getBoostedFishStats(f.size, f.weight);
             return `
             <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
               <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
-              <div style="font-size:11px;color:#8dc4e0">Size: ${Number(f.size).toFixed(1)} cm → HP ${fmtNum(boosted.hp)}</div>
-              <div style="font-size:11px;color:#8dc4e0">Weight: ${Number(f.weight).toFixed(2)} kg → ATK ${fmtNum(boosted.atk)}</div>
+              <div style="font-size:11px;color:#8dc4e0">Size: ${Number(f.size).toFixed(1)} cm</div>
+              <div style="font-size:11px;color:#8dc4e0">Weight: ${Number(f.weight).toFixed(2)} kg</div>
               <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
             </div>`;
           }).join("")
@@ -1006,6 +1147,7 @@
 
       // First, get the player's name from profiles or accounts
       let displayName = "Player";
+      let guildName = "—";
       const { data: profile, error: profileError } = await db.from("profiles").select("player_id, display_name, fish_team, char_team").eq("player_id", memberId).single();
 
       if (profile && !profileError) {
@@ -1018,6 +1160,15 @@
         }
       }
 
+      // Get guild info
+      for (const guild of allGuilds) {
+        const members = safeParseMembers(guild.members);
+        if (members.find(m => m.pid === memberId)) {
+          guildName = guild.name;
+          break;
+        }
+      }
+
       viewingProfileId = memberId;
       const cachedProfile = memberProfilesCache[memberId] || null;
       const normalizedProfile = profile && profile.player_id
@@ -1027,7 +1178,15 @@
             char_team: normalizeTeamArray(profile.char_team)
           }
         : cachedProfile;
-      viewingProfileData = normalizedProfile; // Store for PVP function
+      
+      // Ensure viewingProfileData is always an object with valid arrays
+      viewingProfileData = normalizedProfile || {
+        player_id: memberId,
+        display_name: displayName,
+        fish_team: [],
+        char_team: []
+      };
+      
       const fish_team = (normalizedProfile && normalizedProfile.fish_team) || [];
       const char_team = (normalizedProfile && normalizedProfile.char_team) || [];
 
@@ -1053,12 +1212,12 @@
             const rarity = f.rarity || "common";
             const color = rarityColors[rarity] || "#c0c0c0";
             const borderColor = rarityBgs[rarity] || "#4a5a5a";
-            const boosted = getBoostedFishStats(f.size, f.weight);
+            const boostedStats = getBoostedFishStats(Number(f.size), Number(f.weight));
             return `
             <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
               <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
-              <div style="font-size:11px;color:#8dc4e0">Size: ${Number(f.size).toFixed(1)} cm → HP ${fmtNum(boosted.hp)}</div>
-              <div style="font-size:11px;color:#8dc4e0">Weight: ${Number(f.weight).toFixed(2)} kg → ATK ${fmtNum(boosted.atk)}</div>
+              <div style="font-size:11px;color:#8dc4e0">Size: ${Number(f.size).toFixed(1)} cm → HP ${boostedStats.hp}</div>
+              <div style="font-size:11px;color:#8dc4e0">Weight: ${Number(f.weight).toFixed(2)} kg → ATK ${boostedStats.atk}</div>
               <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
             </div>`;
           }).join("")
@@ -1088,16 +1247,17 @@
           <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #1e3040">
             <div style="font-size:16px;font-weight:bold;color:#e8c060">${displayNameWithBadge}</div>
             <div style="font-size:12px;color:#6a8a9a;margin-top:6px">ID: ${escHtml(memberId.slice(-8))}</div>
+            <div style="font-size:12px;color:#8dc4e0;margin-top:4px">Guild: <b>${escHtml(guildName)}</b></div>
           </div>
 
           <div style="margin-bottom:14px">
-            <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Fish Team</div>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${fishHtml}</div>
+            <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Character Team</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${charHtml}</div>
           </div>
 
           <div style="margin-bottom:14px;border-top:1px solid #1e3040;padding-top:14px">
-            <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Character Team</div>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${charHtml}</div>
+            <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Fish Team</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${fishHtml}</div>
           </div>
 
           <div style="text-align:center;padding-top:12px;border-top:1px solid #1e3040">
@@ -1129,7 +1289,7 @@
         fishTeam: JSON.stringify(fishTeam),
         charTeam: JSON.stringify(charTeam)
       });
-      window.location.href = '../battle/?' + params.toString();
+      window.location.href = '../battle/pvp/?' + params.toString();
     }
 
     function filterGuilds() { renderSidebar(); }
@@ -1231,7 +1391,7 @@
 
         // Fish slots avec couleurs + taille/poids
         const fishHtml = mem.fish.length > 0
-          ? mem.fish.map(f => renderFishSlot(f, isMe)).join("")
+          ? mem.fish.map(f => renderFishSlot(f, false)).join("")
           : `<span class="team-slot-empty">No fish</span>`;
 
         // Char slots avec couleurs par étoiles
@@ -1305,8 +1465,10 @@
 
           <div class="sort-bar">${sortBtns}</div>
 
-          <div class="members-list">
-            ${rows || '<div style="color:#6a8a9a;font-size:13px;padding:8px">No member data.</div>'}
+          <div class="scroll-container">
+            <div class="members-list">
+              ${rows || '<div style="color:#6a8a9a;font-size:13px;padding:8px">No member data.</div>'}
+            </div>
           </div>
           <div class="status-line" id="actionStatus"></div>
         </div>`;
