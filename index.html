@@ -1466,7 +1466,7 @@
 
       clicker.addEventListener("click", () => {
         const now = Date.now();
-        if (now - lastManualCatchMs < 100) return;
+        if (now - lastManualCatchMs < 50) return;
         lastManualCatchMs = now;
         const fishPerClick = Math.max(1, Math.round((1 + tripleHookLevel) * Math.max(1, teamBonuses.clickMultiplier)));
         const batch = [];
