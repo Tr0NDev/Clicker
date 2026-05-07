@@ -152,7 +152,6 @@
     .speed-ticks { margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: #b8d4e3; font-size: 13px; }
     .speed-tick { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
     .speed-tick input { cursor: pointer; accent-color: #8dc4e0; }
-    body.limited-nav-mode .locked-nav-button { display: none; }
     .hook-notification-layer { position: fixed; right: 14px; top: 86px; z-index: 260; display: grid; gap: 8px; pointer-events: none; max-width: min(92vw,420px); }
     .hook-notification { border: 1px solid #4f89a8; border-radius: 10px; background: linear-gradient(135deg,#123244 0%,#0d2431 100%); color: #dcf3ff; font-size: 13px; line-height: 1.4; padding: 10px 12px; box-shadow: 0 10px 25px rgba(0,0,0,.4); opacity: 0; transform: translateX(12px); animation: hookToastIn .18s ease forwards; }
     .hook-notification.fade-out { animation: hookToastOut .25s ease forwards; }
@@ -1963,8 +1962,6 @@
         }
       }
     }
-
-    if(localStorage.getItem("clicker_upgradesUnlocked")!=="true") document.body.classList.add("limited-nav-mode");
   </script>
 </body>
 </html>

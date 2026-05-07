@@ -86,7 +86,6 @@
     .talent-help::after { content: attr(data-tooltip); position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%) translateY(4px); background: #0f1519; color: #d9ecf8; border: 1px solid #4b6878; border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.35; min-width: 220px; max-width: 320px; white-space: normal; box-shadow: 0 10px 24px rgba(0,0,0,0.45); pointer-events: none; opacity: 0; visibility: hidden; z-index: 120; transition: opacity 0.06s ease, transform 0.06s ease, visibility 0.06s ease; }
     .talent-help:hover::after, .talent-help:focus-visible::after { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
     @media (max-width: 760px) { .roll-item { width: 120px; min-width: 120px; } }
-    body.limited-nav-mode .locked-nav-button { display: none; }
   </style>
 </head>
 <body>
@@ -763,9 +762,6 @@
       refreshSummary();
     });
 
-    if (localStorage.getItem("clicker_upgradesUnlocked") !== "true") {
-      document.body.classList.add("limited-nav-mode");
-    }
   </script>
 </body>
 </html>

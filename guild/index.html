@@ -39,7 +39,6 @@
     .nav-button:hover { background: #3a4c59; border-color: #7f95a3; }
     .nav-button.active-nav-button { background: #dbe3e8; color: #1d2a33; border-color: #dbe3e8; font-weight: bold; }
     .settings-nav-button { margin-left: auto; margin-right: 16px; }
-    body.limited-nav-mode .locked-nav-button { display: none; }
 
     .guild-online-indicator {
       display: inline-flex;
@@ -1706,9 +1705,6 @@
     // ── BOOT ──────────────────────────────────────────────────────────────────
     if (!localStorage.getItem('clicker_userId')) {
       window.location.href = '../login/';
-    }
-    if (localStorage.getItem("clicker_upgradesUnlocked") !== "true") {
-      document.body.classList.add("limited-nav-mode");
     }
     updateMyPresence().catch(() => {});
     if (presenceIntervalId) clearInterval(presenceIntervalId);

@@ -567,10 +567,6 @@
       color: #8dc4e0;
     }
 
-    /* Limited navigation mode (after 30 fish, before 10k money) */
-    body.limited-nav-mode .locked-nav-button {
-      display: none;
-    }
   </style>
 </head>
 <body>
@@ -1328,11 +1324,6 @@
       render();
     }, 500);
 
-    // Apply limited navigation mode if upgrades not unlocked
-    const upgradesUnlocked = localStorage.getItem("clicker_upgradesUnlocked") === "true";
-    if (!upgradesUnlocked) {
-      document.body.classList.add("limited-nav-mode");
-    }
   </script>
 </body>
 </html>

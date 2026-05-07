@@ -34,7 +34,6 @@
     .talent-help { position: relative; width: 16px; height: 16px; border-radius: 999px; border: 1px solid #84a9be; color: #d9ecf8; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; background: #203240; cursor: help; line-height: 1; flex: 0 0 auto; }
     .talent-help::after { content: attr(data-tooltip); position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%) translateY(4px); background: #0f1519; color: #d9ecf8; border: 1px solid #4b6878; border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.35; min-width: 220px; max-width: 320px; white-space: normal; box-shadow: 0 10px 24px rgba(0,0,0,0.45); pointer-events: none; opacity: 0; visibility: hidden; z-index: 120; transition: opacity 0.06s ease, transform 0.06s ease, visibility 0.06s ease; }
     .talent-help:hover::after, .talent-help:focus-visible::after { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
-    body.limited-nav-mode .locked-nav-button { display: none; }
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 100; padding: 20px; box-sizing: border-box; align-items: center; justify-content: center; }
     .modal.visible { display: flex; }
     .modal-card { width: min(600px, 100%); background: #18222a; border: 1px solid #3f6075; border-radius: 14px; padding: 16px; box-sizing: border-box; max-height: 80vh; overflow-y: auto; }
@@ -286,10 +285,6 @@
     document.getElementById("detailModal").addEventListener("click", (e) => {
       if (e.target === document.getElementById("detailModal")) closeDetailModal();
     });
-
-    if (localStorage.getItem("clicker_upgradesUnlocked") !== "true") {
-      document.body.classList.add("limited-nav-mode");
-    }
   </script>
 </body>
 </html>
