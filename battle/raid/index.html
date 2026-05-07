@@ -851,6 +851,54 @@
   function setHooks(v)     { localStorage.setItem(HOOKS_KEY, String(Math.max(0,Math.floor(v)))); }
   function isRaidDebugMode() { return localStorage.getItem("clicker_cheater") === "true"; }
 
+  function getGuildPoints(guildId) {
+    try {
+      if (!guildId) return 0;
+      const key = "clicker_guildPoints_" + guildId;
+      return Math.max(0, Number(localStorage.getItem(key)) || 0);
+    } catch {
+      return 0;
+    }
+  }
+
+  function setGuildPoints(guildId, amount) {
+    try {
+      if (!guildId) return;
+      const key = "clicker_guildPoints_" + guildId;
+      localStorage.setItem(key, String(Math.max(0, Math.floor(Number(amount) || 0))));
+    } catch {}
+  }
+
+  function addGuildPoints(guildId, amount) {
+    if (!guildId || !Number.isFinite(Number(amount))) return 0;
+    const current = getGuildPoints(guildId);
+    const next = current + Math.max(0, Math.floor(Number(amount) || 0));
+    setGuildPoints(guildId, next);
+    if (guildData && guildData.id === guildId) {
+      guildData.guildPoints = next;
+    }
+    return next;
+  }
+
+  function startGuildRealtime(guildId) {
+    if (!db || !guildId || !window.supabase) return;
+    try {
+      if (guildChannel) {
+        guildChannel.unsubscribe();
+        guildChannel = null;
+      }
+    } catch (err) {
+      console.warn('Error unsubscribing old guild channel', err);
+    }
+
+    guildChannel = db.channel(`guild-updates-${guildId}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: GUILDS_TABLE, filter: `id=eq.${guildId}` }, payload => {
+        console.log('[DEBUG] Guild update event received', payload);
+        fetchAll().catch(() => {});
+      })
+      .subscribe();
+  }
+
   let guildData    = null;
   let allMembers   = [];
   let raidState    = null;
@@ -858,6 +906,7 @@
   let nameCache    = {};
   let busyFetch    = false;
   let pollTimer    = null;
+  let guildChannel = null;
   let heartbeatTimer = null;
   let rewardPopupOpen = false;
   let lastLogCount = 0;
@@ -1243,6 +1292,11 @@
       state.phase="ended"; state.result="victory";
       state.log.push(`🏅 Victory! Raid energy was spent on launch (${state.currentRaidCost}).`);
       state.log.push(`🏆 VICTORY! "${raidDef.name}" cleared! Survivors: claim your reward.`);
+      if (!state.guildPointsAwarded) {
+        const added = addGuildPoints(guildId, state.currentRaidCost || 0);
+        state.guildPointsAwarded = true;
+        state.log.push(`🏅 Guild earned +${added} points from the raid energy cost.`);
+      }
     } else {
       state.stageIndex++;
       const ns=raidDef.stages[state.stageIndex];
@@ -1752,11 +1806,21 @@
   } else if(!myPid()) {
     setStatus("No player ID (clicker_userId). Please log in.","err");
   } else {
-    loadRaids().then(()=>fetchAll().then(startTimers).catch(e=>setStatus(e?.message||"Error","err")));
+    loadRaids().then(()=>fetchAll().then(()=>{
+      startTimers();
+      const mem = getMembership();
+      if (mem?.guildId) startGuildRealtime(mem.guildId);
+    }).catch(e=>setStatus(e?.message||"Error","err")));
   }
 
   window.addEventListener("focus",()=>fetchAll().catch(()=>{}));
-  window.addEventListener("beforeunload",()=>{ clearInterval(pollTimer); clearInterval(heartbeatTimer); });
+  window.addEventListener("beforeunload",()=>{
+    clearInterval(pollTimer);
+    clearInterval(heartbeatTimer);
+    if (guildChannel) {
+      try { guildChannel.unsubscribe(); } catch (err) { console.warn('Error unsubscribing guild channel', err); }
+    }
+  });
   </script>
 </body>
 </html>

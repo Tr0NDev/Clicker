@@ -205,7 +205,7 @@
     }
 
     /* ── CENTER COLUMN ── */
-    .center-col { display: grid; gap: 12px; align-content: start; }
+    .center-col { display: grid; gap: 12px; align-content: start; min-width: 760px; max-width: 760px; }
 
     /* ── RIGHT COLUMN (PROFILE) ── */
     .right-col { display: grid; gap: 12px; align-content: start; }
@@ -1337,7 +1337,7 @@
       const memberProfiles = await getMemberProfiles(members.map(mem => mem.pid));
       memberProfilesCache = memberProfiles;
       const totalScore = guild.score || computeGuildTotalScore(members);
-      const guildPoints = guild.guildPoints || 0;
+      const guildPoints = guild.guildPoints || getGuildPoints(guild.id) || 0;
       const created = guild.created_at
         ? new Date(guild.created_at).toLocaleDateString("en-GB", {day:"numeric",month:"short",year:"numeric"})
         : "—";
