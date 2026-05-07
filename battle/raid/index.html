@@ -877,7 +877,6 @@
     state.scoreLastRefill = new Date(last + ticks * state.scoreRefillMs).toISOString();
     if (state.score >= state.scoreMax) return false;
     state.score = Math.min(state.scoreMax, state.score + refill);
-    state.log.push(`⏱️ Raid energy restored +${refill}. Raid energy is now ${state.score}/${state.scoreMax}.`);
     return true;
   }
 
