@@ -456,7 +456,10 @@
         autoWaitReductionLevel: Number(localStorage.getItem("clicker_autoWaitReductionLevel")) || 0,
         autoSellEnabled: localStorage.getItem("clicker_autoSellEnabled") || "false",
         autoSellMode: localStorage.getItem("clicker_autoSellMode") || "price",
-        autoSellMaxPrice: Number(localStorage.getItem("clicker_autoSellMaxPrice")) || 25,
+        autoSellMaxPrice: (() => {
+          const stored = Number(localStorage.getItem("clicker_autoSellMaxPrice"));
+          return Number.isNaN(stored) ? 25 : stored;
+        })(),
         autoSellMaxRarity: localStorage.getItem("clicker_autoSellMaxRarity") || "common",
         tutorialCompleted: localStorage.getItem("clicker_tutorialCompleted") || "false",
         upgradesUnlocked: localStorage.getItem("clicker_upgradesUnlocked") || "false",
@@ -575,7 +578,7 @@
 
       localStorage.setItem("clicker_autoSellEnabled", paramAutoSellEnabled.value === "true" ? "true" : "false");
       localStorage.setItem("clicker_autoSellMode", paramAutoSellMode.value === "rarity" ? "rarity" : "price");
-      localStorage.setItem("clicker_autoSellMaxPrice", String(clampInt(paramAutoSellMaxPrice.value, 0, 25)));
+      localStorage.setItem("clicker_autoSellMaxPrice", String(clampInt(paramAutoSellMaxPrice.value, 0, 0)));
       localStorage.setItem("clicker_autoSellMaxRarity", paramAutoSellMaxRarity.value || "common");
       localStorage.setItem("clicker_tutorialCompleted", paramTutorialCompleted.value === "true" ? "true" : "false");
       localStorage.setItem("clicker_upgradesUnlocked", paramUpgradesUnlocked.value === "true" ? "true" : "false");

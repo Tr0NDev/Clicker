@@ -1522,7 +1522,7 @@
 
         autoSellEnabledInput.checked       = autoSellEnabled;
         autoSellModeSelect.value           = autoSellMode;
-        autoSellMaxPriceInput.value        = formatNumber(autoSellMaxPrice);
+        autoSellMaxPriceInput.value        = String(autoSellMaxPrice);
         autoSellMaxRaritySelect.value      = autoSellMaxRarity;
         autoSellModeSelect.disabled        = !autoSellEnabled;
         const isPriceMode  = autoSellMode === "price";

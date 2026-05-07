@@ -850,6 +850,10 @@
       return localStorage.getItem("clicker_userId") || null;
     }
 
+    async function getQueuePlayerIdOrNull() {
+      return getPlayerIdOrNull();
+    }
+
     function getPlayerNameOrDefault() {
       return localStorage.getItem("clicker_username") || "Player";
     }
@@ -946,9 +950,9 @@
         setQueueStatus("Supabase not configured.");
         return;
       }
-      const pid = getPlayerIdOrNull();
+      const pid = await getQueuePlayerIdOrNull();
       if (!pid) {
-        setQueueStatus("Please log in first.");
+        setQueueStatus("Queue auth unavailable.");
         return;
       }
       const { error } = await db.from(BATTLE_QUEUE_TABLE).delete().eq("player_id", pid);
@@ -964,7 +968,7 @@
 
     async function pollQueueMatch() {
       if (!db) return;
-      const pid = getPlayerIdOrNull();
+      const pid = await getQueuePlayerIdOrNull();
       if (!pid) return;
 
       const { data: myRows, error: myErr } = await db.from(BATTLE_QUEUE_TABLE)
@@ -1001,10 +1005,10 @@
         await refreshQueueCount();
         return;
       }
-      const pid = getPlayerIdOrNull();
+      const pid = await getQueuePlayerIdOrNull();
       if (!pid) {
         setQueueJoinedState(false);
-        setQueueStatus("Please log in first.");
+        setQueueStatus("Queue auth unavailable.");
         await refreshQueueCount();
         return;
       }
@@ -1031,10 +1035,10 @@
         console.log('[DEBUG] No db');
         return;
       }
-      const pid = getPlayerIdOrNull();
+      const pid = await getQueuePlayerIdOrNull();
       if (!pid) {
-        setQueueStatus("Please log in first.");
-        console.log('[DEBUG] No player id');
+        setQueueStatus("Queue auth unavailable.");
+        console.log('[DEBUG] No queue auth user id');
         return;
       }
       const playerName = getPlayerNameOrDefault();
