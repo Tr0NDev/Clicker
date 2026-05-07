@@ -219,6 +219,13 @@
       gap: 10px;
     }
 
+    .selection-panel {
+      border: 1px solid rgba(141, 196, 224, 0.15);
+      border-radius: 16px;
+      background: rgba(15, 21, 25, 0.95);
+      padding: 16px;
+    }
+
     .slot-card, .fish-card {
       border: 1px solid #365563;
       border-radius: 12px;
@@ -234,10 +241,10 @@
     .slot-card.rarity-mythic, .fish-card.rarity-mythic { background: #2f1313; border-color: #ff5e5e; }
 
     .slot-card {
-      min-height: 170px;
+      min-height: 240px;
       display: grid;
-      gap: 8px;
-      align-content: center;
+      gap: 10px;
+      align-content: start;
       text-align: center;
     }
 
@@ -1345,12 +1352,12 @@
     <!-- Top section: Selected Fish (left) + Selected Characters (right) -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; max-width: 1080px; margin-left: auto; margin-right: auto;">
       <!-- Selected Fish -->
-      <div>
+      <div class="selection-panel">
         <div style="font-size: 16px; font-weight: bold; color: #8dc4e0; margin-bottom: 12px;">Selected Fish</div>
         <div class="selection-grid" id="selectedFishSlots" style="grid-template-columns: repeat(3, 1fr);"></div>
       </div>
       <!-- Selected Characters -->
-      <div>
+      <div class="selection-panel">
         <div style="font-size: 16px; font-weight: bold; color: #8dc4e0; margin-bottom: 12px;">Selected Characters</div>
         <div class="characters-grid" id="charactersContainer" style="grid-template-columns: repeat(3, 1fr);"></div>
       </div>
@@ -3306,7 +3313,7 @@
           card.innerHTML = `
             <div class="slot-label">Fish ${index + 1}</div>
             <div class="slot-name" style="color:${FISH_RARITY_COLOR[fish.rarity] || '#fff'}">${fish.type}</div>
-            <div class="slot-meta">${fishDescriptors(fish)}<br>Rarity: ${fish.rarity}<br>Value: ${getFishValue(fish)}</div>
+            <div class="slot-meta">Rarity: ${fish.rarity}<br>Value: ${getFishValue(fish)}</div>
             ${statsHtml}
             <div class="slot-actions"><button class="nav-button btn-danger" style="padding: 6px 10px; font-size: 12px; margin-top: 6px;" type="button" data-remove-fish="${fish.uid}">Remove</button></div>`;
         } else {
