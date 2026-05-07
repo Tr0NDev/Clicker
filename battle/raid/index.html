@@ -146,6 +146,12 @@
     .log-entry.system { color: #e8c060; font-style: italic; }
     .log-entry.win    { color: #e8c060; font-weight: bold; }
 
+    .drop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
+    .drop-card { border: 1px solid #365563; border-radius: 12px; background: #0f1519; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+    .drop-card-icon { font-size: 22px; }
+    .drop-card-title { font-size: 12px; color: #8dc4e0; text-transform: uppercase; letter-spacing: .04em; }
+    .drop-card-value { font-size: 16px; font-weight: bold; color: #e8c060; }
+
     .reward-banner { border: 1px solid #c9a227; border-radius: 14px; background: linear-gradient(180deg, rgba(201,162,39,.18) 0%, rgba(255,230,146,.12) 45%, rgba(201,162,39,.04) 100%); padding: 20px; text-align: center; margin-bottom: 12px; }
     .reward-title  { font-size: 20px; font-weight: bold; color: #e8c060; margin-bottom: 4px; }
     .reward-amount { font-size: 30px; font-weight: bold; color: #824c0d; text-shadow: 0 0 10px rgba(255,235,170,.55); }
@@ -675,6 +681,17 @@
   }
   function escH(s) { return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
   function fmt1(n) { return Number.isFinite(n) ? Number(n).toFixed(1) : "0.0"; }
+  function fmtNum(n) { const value = Number(n) || 0; return value >= 1000000 ? (value/1000000).toFixed(1) + "M" : value >= 1000 ? (value/1000).toFixed(1) + "k" : String(Math.round(value)); }
+  function getRaidBoostedStats(size, weight) {
+    const teamStats = loadRaidTeamStats();
+    const hpMult = 1 + ((Number(teamStats?.sizeBonus) || 0) * 0.005);
+    const atkMult = 1 + ((Number(teamStats?.weightBonus) || 0) * 0.005);
+    const incMult = Number(teamStats?.incomeMultiplier) || 1;
+    return {
+      hp: Math.max(1, Math.round((Number(size) || 0) * hpMult * incMult)),
+      atk: Math.max(1, Math.round((Number(weight) || 0) * atkMult * incMult))
+    };
+  }
   function nowIso() { return new Date().toISOString(); }
 
   const CHARS = ["⚔️","🗡️","🛡️","🏹","🪄","🔱","⚡","🌀","🦅","🐉"];
@@ -1343,7 +1360,7 @@
       </div>`;
   }
 
-  function renderAll() { renderGuildScore(); renderLeftPanel(); renderCenter(); }
+  function renderAll() { renderGuildScore(); renderLeftPanel(); renderCenter(); renderRaidDrops(); }
 
   function renderGuildScore() {
     const scoreSection = document.getElementById("scoreSection");
@@ -1365,6 +1382,55 @@
       <div class="hero-score-text">${score}/${max} — ${selected ? `Next raid costs ${costText} raid energy.` : `Choose a raid to see its energy cost.`}</div>
       <div class="hero-score-text" style="font-size:12px;opacity:.85">${refillText}</div>
     `;
+  }
+
+  function renderRaidDrops() {
+    const dropSection = document.getElementById("rewardSection");
+    if (!dropSection) return;
+    const raidDef = selectedRaidKey && RAIDS[selectedRaidKey];
+    if (!raidDef) {
+      dropSection.style.display = "none";
+      return;
+    }
+    const rewards = Array.isArray(raidDef.rewards) ? raidDef.rewards : [];
+    dropSection.style.display = "block";
+    dropSection.innerHTML = `
+      <div class="section-title">Raid Drops</div>
+      ${rewards.length ? `<div class="drop-grid">${rewards.map(r => renderRaidDropCard(raidDef, r)).join("")}</div>` : `<div class="empty-state">No drops configured for this raid.</div>`}
+    `;
+  }
+
+  function renderRaidDropCard(raidDef, reward) {
+    const fish = reward.type === 'fish' ? resolveRewardFish(raidDef, reward) : null;
+    const chance = Number.isFinite(Number(reward.pct)) ? `${Math.max(0, Number(reward.pct))}%` : '';
+    if (reward.type === 'hooks') {
+      const amount = Math.max(0, Number(reward.amount) || 0);
+      return `
+        <div class="drop-card">
+          <div class="drop-card-icon">💰</div>
+          <div class="drop-card-title">${chance ? escH(chance + " chance") : "Hooks"}</div>
+          <div class="drop-card-value">+${amount} hooks</div>
+        </div>`;
+    }
+    if (reward.type === 'fish') {
+      const rarityColor = fish && fish.rarity ? (RARITY_COLOR[fish.rarity] || '#e8c060') : '#e8c060';
+      const hpStat = fish && Number.isFinite(Number(fish.maxHp)) ? `HP ${fmt1(Number(fish.maxHp))}` : '';
+      const atkStat = fish && Number.isFinite(Number(fish.atk)) ? `ATK ${fmt1(Number(fish.atk))}` : '';
+      const statLine = [hpStat, atkStat].filter(Boolean).join(' · ');
+      return `
+        <div class="drop-card">
+          <div class="drop-card-icon">🐟</div>
+          <div class="drop-card-title">${chance ? escH(chance + " chance") : "Fish"}</div>
+          <div class="drop-card-value" style="color:${rarityColor};">${escH(fish?.name || 'Unknown Fish')}</div>
+          ${statLine ? `<div class="drop-card-title" style="color:#d9ecf8;margin-top:4px;font-size:11px;">${escH(statLine)}</div>` : ''}
+        </div>`;
+    }
+    return `
+      <div class="drop-card">
+        <div class="drop-card-icon">🎁</div>
+        <div class="drop-card-title">${chance ? escH(chance + " chance") : "Reward"}</div>
+        <div class="drop-card-value">${escH(String(reward.type || 'Unknown'))}</div>
+      </div>`;
   }
 
   function renderLeftPanel() {
@@ -1504,7 +1570,7 @@
     document.getElementById("rewardSection").style.display="none";
   }
 
-  function selectRaid(key) { selectedRaidKey=key; renderCenter(); }
+  function selectRaid(key) { selectedRaidKey = key; renderCenter(); renderRaidDrops(); }
 
   function renderArena() {
     if (!raidState) {
@@ -1544,16 +1610,18 @@
         const label = f.empty ? "Empty" : `Fish ${idx+1}`;
         const hpText = f.empty ? "" : `${fmt1(hpVal)}/${fmt1(f.maxHp)}`;
         const atkText = f.empty ? "" : `ATK ${fmt1(f.atk)}`;
-        const color = f.empty ? "#6a8a9a" : hpVal>0 ? "#7ee787" : "#ff7070";
+        const textColor = f.empty ? "#6a8a9a" : hpVal>0 ? "#7ee787" : "#ff7070";
+        const nameColor = f.empty ? textColor : (RARITY_COLOR[f.rarity] || "#e8c060");
         const size = isActive ? "larger" : "normal";
         const rawSize = Number(f.size) || 0;
         const rawWeight = Number(f.weight) || 0;
-        const rarityText = f.empty ? "" : `<div style="font-size:10px;color:${RARITY_COLOR[f.rarity]||'#8dc4e0'};font-weight:bold;margin-top:4px;">Rarity: ${escH(String(f.rarity || 'common').replace(/^./, c => c.toUpperCase()))}</div>`;
-        const boostText = f.empty ? "" : `${rarityText}<div style="margin-top:2px;font-size:9px;color:#92c8e7;line-height:1.1;">Size: ${rawSize.toFixed(1)} cm → <span style="color:#7ee787;font-weight:bold;">${fmt1(f.maxHp)} HP</span><br>Weight: ${rawWeight.toFixed(2)} kg → <span style="color:#ffa657;font-weight:bold;">${fmt1(f.atk)} ATK</span></div>`;
+        const displayStats = getRaidBoostedStats(rawSize, rawWeight);
+        const rarityText = f.empty ? "" : `<div style="font-size:10px;color:${RARITY_COLOR[f.rarity]||'#8dc4e0'};font-weight:bold;margin-top:4px;">${escH(String(f.rarity || 'common').replace(/^./, c => c.toUpperCase()))}</div>`;
+        const boostText = f.empty ? "" : `${rarityText}<div style="margin-top:2px;font-size:9px;color:#92c8e7;line-height:1.1;">Size: ${rawSize.toFixed(1)} cm → <span style="color:#7ee787;font-weight:bold;">${fmtNum(displayStats.hp)} HP</span><br>Weight: ${rawWeight.toFixed(2)} kg → <span style="color:#ffa657;font-weight:bold;">${fmtNum(displayStats.atk)} ATK</span></div>`;
         return `<div class="fish-slot ${size}" style="min-width:72px;padding:8px;border:1px solid #2f4d5c;border-radius:10px;background:rgba(255,255,255,.03);font-size:10px;line-height:1.2;">
           <div style="margin-bottom:4px;">${label}</div>
-          <div style="color:${color};font-weight:bold;">${f.empty ? "" : escH(f.name)}</div>
-          <div style="color:${color};font-weight:bold;">${hpText}</div>
+          <div style="color:${nameColor};font-weight:bold;">${f.empty ? "" : escH(f.name)}</div>
+          <div style="color:${textColor};font-weight:bold;">${hpText}</div>
           ${isActive ? `<div style="color:#fff;font-weight:bold;">${atkText}</div>` : ""}
           ${boostText}
         </div>`;
