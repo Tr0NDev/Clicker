@@ -103,16 +103,25 @@
         fishScript.onload = () => {
           fishPool = window.allFish;
 
-          // Load characters
-          const charScript = document.createElement('script');
-          charScript.src = '../data/characters.txt';
-          charScript.onload = () => {
-            allCharacters = window.allCharacters;
-            characterPool = allCharacters.map(c => ({ id: c.id, name: c.name, stars: c.stars }));
-            resolve();
+          // Load not droppable fish
+          const notDropScript = document.createElement('script');
+          notDropScript.src = '../data/notdropablefish.txt';
+          notDropScript.onload = () => {
+            fishPool = fishPool.concat(window.notDroppableFish);
+
+            // Load characters
+            const charScript = document.createElement('script');
+            charScript.src = '../data/characters.txt';
+            charScript.onload = () => {
+              allCharacters = window.allCharacters;
+              characterPool = allCharacters.map(c => ({ id: c.id, name: c.name, stars: c.stars }));
+              resolve();
+            };
+            charScript.onerror = reject;
+            document.head.appendChild(charScript);
           };
-          charScript.onerror = reject;
-          document.head.appendChild(charScript);
+          notDropScript.onerror = reject;
+          document.head.appendChild(notDropScript);
         };
         fishScript.onerror = reject;
         document.head.appendChild(fishScript);
@@ -183,7 +192,7 @@
     function renderFishGrid() {
       const grid = document.getElementById("fishGrid");
       grid.innerHTML = fishPool.map(fish => `
-        <div class="card" onclick="showFishDetail('${fish.name}', '${fish.rarity}')">
+        <div class="card" onclick="showFishDetail('${fish.name}', '${fish.rarity}', ${fish.droppable})">
           <div class="card-title ${getRarityClass(fish.rarity)}">${fish.name}</div>
           <div class="card-details">
             Rarity: ${fish.rarity}<br>
@@ -217,7 +226,7 @@
       `).join("");
     }
 
-    function showFishDetail(type, rarity, size, weight) {
+    function showFishDetail(type, rarity, droppable) {
       const modal = document.getElementById("detailModal");
       const title = document.getElementById("detailTitle");
       const content = document.getElementById("detailContent");
@@ -227,9 +236,8 @@
 
       content.innerHTML = `
         <strong>Rarity:</strong> ${rarity}<br>
-        <strong>Size:</strong> ${size} cm<br>
-        <strong>Weight:</strong> ${weight} kg<br>
-        <strong>Description:</strong> A ${rarity} fish with impressive size and weight.
+        <strong>Droppable:</strong> ${droppable ? 'Yes' : 'No'}<br>
+        <strong>Description:</strong> A ${rarity} fish.
       `;
 
       modal.classList.add("visible");
@@ -243,17 +251,20 @@
       title.textContent = name;
       title.className = `modal-title stars-${stars}`;
 
-      const possibleTalents = TALENT_POOL.filter(t => true); // All talents are possible
+      const char = allCharacters.find(c => c.id === id);
+      if (!char) {
+        content.innerHTML = "Character not found.";
+        modal.classList.add("visible");
+        return;
+      }
 
       content.innerHTML = `
         <strong>Stars:</strong> ${getStarsString(stars)}<br>
         <strong>ID:</strong> ${id}<br>
-        <strong>Base Stats:</strong> Characters gain talents and bonuses when drawn.<br>
-        <strong>Possible Talents:</strong><br>
-        <ul>
-          ${possibleTalents.slice(0, 5).map(t => `<li>${renderTalentWithHelp(t.name, t.id)}</li>`).join('')}
-        </ul>
-        ${possibleTalents.length > 5 ? '<em>... and more</em>' : ''}
+        <strong>Income Multiplier:</strong> x${char.incomeMultiplier}<br>
+        <strong>Click Multiplier:</strong> x${char.clickMultiplier}<br>
+        <strong>Size Add:</strong> +${char.sizeAdd} cm<br>
+        <strong>Weight Add:</strong> +${char.weightAdd} kg
       `;
 
       modal.classList.add("visible");

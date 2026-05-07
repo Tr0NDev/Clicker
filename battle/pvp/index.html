@@ -223,52 +223,26 @@
     <div class="page-grid">
 
       <div class="left-column" style="order:1;">
-        <div class="section">
-          <div class="section-header-row">
-            <div class="section-title">Your Battle Lineup</div>
-          </div>
-          <div class="selection-grid" id="selectedSlots"></div>
-          <div class="battle-panel" id="battlePanel" style="display:none;">
-            <div class="battle-help">Share the generated text with another player. They can import it to fight your lineup asynchronously.</div>
-            <textarea id="battleTextArea" class="battle-textarea" placeholder="Battle text appears here when generated, or paste a text to import..."></textarea>
-            <div class="battle-row">
-              <button class="btn" id="importBattleBtn" type="button">Import Battle Text</button>
-              <button class="btn btn-secondary" id="exportBattleBtn" type="button">Export Battle Text</button>
-              <button class="btn btn-secondary" id="clearBattleBtn" type="button">Clear Imported Battle</button>
+        <div class="section character-team-section" id="characterTeamSection" style="display:block;">
+          <div class="section-title">Character Team</div>
+          <div class="character-team-split">
+            <div class="character-team-box">
+              <div class="character-team-box-title">Your Characters</div>
+              <div class="character-team-grid" id="playerCharacterGrid"></div>
+            </div>
+            <div class="character-team-box">
+              <div class="character-team-box-title">Enemy Characters</div>
+              <div class="character-team-grid" id="enemyCharacterGrid"></div>
             </div>
           </div>
         </div>
 
-        <div class="section">
-          <div class="section-title">Collection</div>
-          <div class="sort-panel">
-            <span class="sort-label">Sort:</span>
-            <button class="btn btn-secondary sort-btn active" data-sort="default" type="button">Default</button>
-            <button class="btn btn-secondary sort-btn" data-sort="rarity"  type="button">Rarity</button>
-            <button class="btn btn-secondary sort-btn" data-sort="price"   type="button">Price</button>
-            <button class="btn btn-secondary sort-btn" data-sort="size"    type="button">Size</button>
-            <button class="btn btn-secondary sort-btn" data-sort="weight"  type="button">Weight</button>
-            <button class="btn btn-secondary sort-btn" data-sort="name"    type="button">Name</button>
-          </div>
-          <div class="collection-scroll">
-            <div id="collectionList" class="fish-collection"></div>
-            <div id="emptyState" class="empty-state" style="display:none;">You do not have any fish in your collection.</div>
-          </div>
+        <div class="section" style="margin-top: 16px;">
+          <div class="section-title">Fish Team</div>
+          <div class="selection-grid" id="selectedSlots"></div>
+          <div class="action-note" style="margin-top: 10px;">To change your fish team, go to the Team menu.</div>
         </div>
 
-        <div class="section">
-          <div class="section-title">Bait Slots</div>
-          <div class="bait-strip">
-            <div class="bait-card"><div class="slot-label">Bait 1</div><div class="slot-empty">No bait available yet.</div></div>
-            <div class="bait-card"><div class="slot-label">Bait 2</div><div class="slot-empty">No bait available yet.</div></div>
-          </div>
-          <div class="bait-note" style="margin-top:10px;">Bait will be added later. For now, only fish selection is active.</div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Bait Filter</div>
-          <div class="bait-scroll"><div class="empty-state">No bait available yet.</div></div>
-        </div>
       </div>
 
       <div class="center-column" style="order:2;">
@@ -317,9 +291,6 @@
           <div class="section action-panel">
             <div class="section-title">Action</div>
             <button class="btn action-button" id="startBattleButton" type="button" disabled>Start Battle</button>
-            <div class="action-tools">
-              <button class="btn btn-secondary" id="customBattleBtn" type="button">Custom Battle</button>
-            </div>
             <div class="auto-battle-toggle">
               <label class="switch">
                 <input type="checkbox" id="autoBattleToggle">
@@ -348,20 +319,6 @@
                 <span class="count-pill" id="queueCountPill">Queue: 0</span>
               </div>
               <div class="queue-status" id="queueStatus">Queue inactive.</div>
-            </div>
-          </div>
-
-          <div class="section character-team-section" id="characterTeamSection" style="display:block;">
-            <div class="section-title">Character Team</div>
-            <div class="character-team-split">
-              <div class="character-team-box">
-                <div class="character-team-box-title">Your Characters</div>
-                <div class="character-team-grid" id="playerCharacterGrid"></div>
-              </div>
-              <div class="character-team-box">
-                <div class="character-team-box-title">Enemy Characters</div>
-                <div class="character-team-grid" id="enemyCharacterGrid"></div>
-              </div>
             </div>
           </div>
 
@@ -1355,6 +1312,7 @@
     }
 
     function renderSelectedSlots() {
+      if (!selectedSlots) return;
       const fish=getSelectedFish(); selectedSlots.innerHTML="";
       for(let i=0;i<3;i++){
         const f=fish[i], slot=document.createElement("div");
@@ -1365,16 +1323,12 @@
           slot.innerHTML=`
             <div class="slot-label">Fish ${i+1}</div>
             <div class="slot-name" style="color:${getRarityColor(f.rarity)}">${f.type}</div>
-            <div class="slot-meta">${fishDescriptors(f)}<br>Rarity: ${rarityLabel(f.rarity)}<br>Size: ${f.size} cm → <strong style="color:#7ee787">${boosted.hp} HP</strong><br>Weight: ${f.weight} kg → <strong style="color:#ffa657">${boosted.atk} ATK</strong></div>
-            <div class="slot-actions"><button class="btn btn-danger" type="button" data-remove="${f.uid}">Remove</button></div>`;
+            <div class="slot-meta">${fishDescriptors(f)}<br>Rarity: ${rarityLabel(f.rarity)}<br>Size: ${f.size} cm → <strong style="color:#7ee787">${boosted.hp} HP</strong><br>Weight: ${f.weight} kg → <strong style="color:#ffa657">${boosted.atk} ATK</strong></div>`;
         } else {
           slot.innerHTML=`<div class="slot-label">Fish ${i+1}</div><div class="slot-empty">Empty slot</div><div class="slot-meta">Choose a fish from your collection.</div>`;
         }
         selectedSlots.appendChild(slot);
       }
-      selectedSlots.querySelectorAll("button[data-remove]").forEach(btn=>{
-        btn.addEventListener("click",()=>{ selectedFishUids=selectedFishUids.filter(u=>u!==btn.getAttribute("data-remove")); saveSelection(); render(); });
-      });
     }
 
     function renderSummary() {
@@ -1491,6 +1445,7 @@
     }
 
     function renderCollection() {
+      if (!collectionList || !emptyState) return;
       const sorted=sortInventory(inventory); collectionList.innerHTML="";
       if(!sorted.length){ emptyState.style.display="block"; return; }
       emptyState.style.display="none";
@@ -1744,16 +1699,18 @@
     if(normalizeSelectedFishUids()) saveSelection();
     render();
 
-    customBattleBtn.addEventListener("click",()=>{
-      const hidden=battlePanel.style.display==="none";
-      battlePanel.style.display=hidden?"grid":"none";
-      if(hidden){
-        const p=buildBattlePayload();
-        if(p){ battleTextArea.value=encodeBattlePayload(p); battleTextArea.select(); setDetailMessage("Battle text generated. Share it with another player."); }
-        else setDetailMessage("Custom battle opened. Select 3 fish to generate battle text, or paste one to import.");
-        battleTextArea.focus();
-      } else { setDetailMessage(importedBattle?"Imported battle ready. Press Start Battle.":"Battle panel closed."); }
-    });
+    if (customBattleBtn && battlePanel && battleTextArea) {
+      customBattleBtn.addEventListener("click",()=>{
+        const hidden=battlePanel.style.display==="none";
+        battlePanel.style.display=hidden?"grid":"none";
+        if(hidden){
+          const p=buildBattlePayload();
+          if(p){ battleTextArea.value=encodeBattlePayload(p); battleTextArea.select(); setDetailMessage("Battle text generated. Share it with another player."); }
+          else setDetailMessage("Custom battle opened. Select 3 fish to generate battle text, or paste one to import.");
+          battleTextArea.focus();
+        } else { setDetailMessage(importedBattle?"Imported battle ready. Press Start Battle.":"Battle panel closed."); }
+      });
+    }
 
     if (toggleQueueBtn) {
       toggleQueueBtn.addEventListener("click", async () => {
@@ -1775,24 +1732,30 @@
 
     syncQueueStateOnLoad().catch((e) => setQueueStatus(`Queue init error: ${e.message || e}`));
 
-    importBattleBtn.addEventListener("click",()=>{
-      const p=parseImportedBattleText(battleTextArea.value);
-      if(!p){ setDetailMessage("Invalid battle text. Paste a valid exported text."); return; }
-      importedBattle=p;
-      setBattleSpeedLock(false);
-      const oppFs=p.exportedTeamStats?Number(p.exportedTeamStats.fishingSpeed).toFixed(2):"?";
-      setDetailMessage(`Battle imported (opponent Fishing Speed: ${oppFs}x). Press Start Battle.`);
-      updateTeamHud(); renderSummary(); renderEnemyCharacterTeam();
-    });
+    if (importBattleBtn && battleTextArea) {
+      importBattleBtn.addEventListener("click",()=>{
+        const p=parseImportedBattleText(battleTextArea.value);
+        if(!p){ setDetailMessage("Invalid battle text. Paste a valid exported text."); return; }
+        importedBattle=p;
+        setBattleSpeedLock(false);
+        const oppFs=p.exportedTeamStats?Number(p.exportedTeamStats.fishingSpeed).toFixed(2):"?";
+        setDetailMessage(`Battle imported (opponent Fishing Speed: ${oppFs}x). Press Start Battle.`);
+        updateTeamHud(); renderSummary(); renderEnemyCharacterTeam();
+      });
+    }
 
-    exportBattleBtn.addEventListener("click",()=>{
-      const p=buildBattlePayload();
-      if(!p){ setDetailMessage("Select exactly 3 fish before exporting."); return; }
-      battlePanel.style.display="grid"; battleTextArea.value=encodeBattlePayload(p); battleTextArea.focus(); battleTextArea.select();
-      setDetailMessage("Battle text exported. Share it with another player.");
-    });
+    if (exportBattleBtn && battleTextArea && battlePanel) {
+      exportBattleBtn.addEventListener("click",()=>{
+        const p=buildBattlePayload();
+        if(!p){ setDetailMessage("Select exactly 3 fish before exporting."); return; }
+        battlePanel.style.display="grid"; battleTextArea.value=encodeBattlePayload(p); battleTextArea.focus(); battleTextArea.select();
+        setDetailMessage("Battle text exported. Share it with another player.");
+      });
+    }
 
-    clearBattleBtn.addEventListener("click",()=>{ importedBattle=null; battleTextArea.value=""; setBattleSpeedLock(false); setDetailMessage("Imported battle cleared."); renderSummary(); renderEnemyCharacterTeam(); });
+    if (clearBattleBtn && battleTextArea) {
+      clearBattleBtn.addEventListener("click",()=>{ importedBattle=null; battleTextArea.value=""; setBattleSpeedLock(false); setDetailMessage("Imported battle cleared."); renderSummary(); renderEnemyCharacterTeam(); });
+    }
 
     document.querySelectorAll('input[name="battleSpeed"]').forEach(input=>{
       input.addEventListener("change",()=>{
@@ -1961,7 +1924,7 @@
           // Update UI to show PVP mode
           document.querySelector('.section-title').textContent = `PVP Battle vs ${opponentName}`;
           setDetailMessage(`PVP Battle against ${opponentName}. Select your 3 fish to fight!`);
-          battlePanel.style.display = 'none'; // Hide custom battle panel
+          if (battlePanel) battlePanel.style.display = 'none'; // Hide custom battle panel
 
         } catch (error) {
           console.error('Error parsing PVP data:', error);

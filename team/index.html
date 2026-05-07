@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Team - Clicker</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --sidebar-width: 420px;
@@ -14,8 +15,8 @@
       color: white;
       margin: 0;
       padding: 24px calc(var(--sidebar-width) + 20px) 36px 16px;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
+      overflow-y: auto;
     }
 
     .top-bar {
@@ -77,7 +78,6 @@
     .shell {
       max-width: 1080px;
       margin: 0 auto;
-      height: calc(100vh - 72px);
       display: flex;
       flex-direction: column;
     }
@@ -128,6 +128,246 @@
       font-weight: bold;
       color: #f5db9b;
       margin-left: 8px;
+    }
+
+    .fish-selection-section {
+      margin-top: 20px;
+      padding: 20px;
+      background: #0f1519;
+      border: 1px solid #2f4d5c;
+      border-radius: 16px;
+      max-width: 1080px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .fish-selection-note {
+      font-size: 13px;
+      color: #b8d4e3;
+      text-align: right;
+    }
+
+    .sort-panel {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .sort-label {
+      color: #cfe0ea;
+      font-size: 14px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      margin-right: 4px;
+    }
+
+    .sort-btn {
+      background: #31414d;
+      border: 1px solid #667a86;
+      color: #eef5f9;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .sort-btn:hover {
+      background: #3a4c59;
+      border-color: #7f95a3;
+    }
+
+    .sort-btn.active {
+      background: #3a5f7a;
+      border-color: #5a8faa;
+    }
+
+    .btn-secondary {
+      background: #1d2a33;
+      border-color: #49687b;
+    }
+
+    .btn-secondary:hover {
+      background: #243541;
+    }
+
+    .btn-danger {
+      background: #4a2730;
+      border-color: #9a5a68;
+    }
+
+    .btn-warning {
+      background: #d8a80b;
+      border-color: #f3d15f;
+      color: #1e1a05;
+    }
+
+    .btn-warning:hover {
+      background: #f7c409;
+    }
+
+    .btn-danger:hover {
+      background: #5b3140;
+    }
+
+    .selection-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .slot-card, .fish-card {
+      border: 1px solid #365563;
+      border-radius: 12px;
+      background: #0f1519;
+      padding: 12px;
+    }
+
+    .slot-card.rarity-common, .fish-card.rarity-common { background: #17191c; border-color: #5a5a5a; }
+    .slot-card.rarity-uncommon, .fish-card.rarity-uncommon { background: #132019; border-color: #3f7b4b; }
+    .slot-card.rarity-rare, .fish-card.rarity-rare { background: #13202e; border-color: #335f94; }
+    .slot-card.rarity-epic, .fish-card.rarity-epic { background: #1b1428; border-color: #7a5bb3; }
+    .slot-card.rarity-legendary, .fish-card.rarity-legendary { background: #2a1d0f; border-color: #c57a2a; }
+    .slot-card.rarity-mythic, .fish-card.rarity-mythic { background: #2f1313; border-color: #ff5e5e; }
+
+    .slot-card {
+      min-height: 170px;
+      display: grid;
+      gap: 8px;
+      align-content: center;
+      text-align: center;
+    }
+
+    .slot-empty {
+      color: #8da3b0;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .slot-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #88a8b9;
+      margin-bottom: 4px;
+    }
+
+    .slot-name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .slot-meta, .fish-meta {
+      font-size: 13px;
+      color: #cfe0ea;
+      line-height: 1.4;
+    }
+
+    .slot-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .fish-collection {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .collection-scroll {
+      max-height: 520px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .fish-card {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+    }
+
+    .fish-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .fish-name {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .fish-status {
+      font-size: 12px;
+      color: #f5db9b;
+    }
+
+    .fish-stats-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #cfe0ea;
+      margin-top: 6px;
+    }
+
+    .fish-stat-label {
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 11px;
+      color: #a6c3d5;
+    }
+
+    .fish-stat-value {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .fish-stat-base {
+      color: #d9d9d9;
+    }
+
+    .fish-stat-arrow {
+      color: #8dc4e0;
+      font-weight: bold;
+    }
+
+    .fish-stat-boosted {
+      color: #7ee787;
+      font-weight: bold;
+    }
+
+    .count-pill {
+      background: #1b2a33;
+      color: #cfe0ea;
+      border: 1px solid #355063;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      white-space: nowrap;
+      height: fit-content;
+    }
+
+    .empty-state {
+      border: 1px dashed #4b6878;
+      border-radius: 12px;
+      padding: 16px;
+      color: #93aab8;
+      background: rgba(15,21,25,.8);
+    }
+
+    .selected-highlight {
+      outline: 2px solid #5a8faa;
+      box-shadow: 0 0 0 2px rgba(90,143,170,.15);
     }
 
     .reserve-sort {
@@ -1037,7 +1277,7 @@
 
     @media (max-width: 980px) {
       body {
-        overflow: hidden;
+        overflow-y: auto;
         padding: 24px 16px 36px;
       }
 
@@ -1100,13 +1340,31 @@
   </div>
 
   <div class="shell">
-    <div class="content-grid">
-      <div class="characters-grid" id="charactersContainer">
-        <!-- Characters will be generated here -->
+    <h1>Team</h1>
+
+    <!-- Top section: Selected Fish (left) + Selected Characters (right) -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; max-width: 1080px; margin-left: auto; margin-right: auto;">
+      <!-- Selected Fish -->
+      <div>
+        <div style="font-size: 16px; font-weight: bold; color: #8dc4e0; margin-bottom: 12px;">Selected Fish</div>
+        <div class="selection-grid" id="selectedFishSlots" style="grid-template-columns: repeat(3, 1fr);"></div>
+      </div>
+      <!-- Selected Characters -->
+      <div>
+        <div style="font-size: 16px; font-weight: bold; color: #8dc4e0; margin-bottom: 12px;">Selected Characters</div>
+        <div class="characters-grid" id="charactersContainer" style="grid-template-columns: repeat(3, 1fr);"></div>
       </div>
     </div>
 
-    <div class="reserve-section">
+    <!-- Toggle Buttons for Reserves -->
+    <div style="display: flex; gap: 10px; justify-content: center; margin: 30px auto; max-width: 1080px; align-items: center;">
+      <button class="nav-button active-nav-button" id="toggleCharacterReserveBtn" style="flex: 1; width: 220px; min-width: 220px; max-width: 220px;">Character Reserve</button>
+      <button class="nav-button" id="toggleFishReserveBtn" style="flex: 1; width: 220px; min-width: 220px; max-width: 220px;">Fish Reserve</button>
+      <button class="nav-button btn-warning" id="saveTeamBtn" style="display:none; min-width: 150px;">Save Team</button>
+    </div>
+
+    <!-- Character Reserve Section -->
+    <div id="characterReserveContainer" class="reserve-section" style="margin-top: 0;">
       <div class="reserve-title">
         <span>Character Reserve <span class="reserve-count" id="reserveCount">0/50</span></span>
         <label class="reserve-sort" for="reserveSortSelect">
@@ -1119,6 +1377,29 @@
       </div>
       <div class="reserve-grid" id="reserveContainer">
         <!-- Reserve characters will be generated here -->
+      </div>
+    </div>
+
+    <!-- Fish Reserve Section -->
+    <div id="fishReserveContainer" class="fish-selection-section" style="display: none;">
+      <div class="reserve-title" style="margin-bottom: 0; justify-content: space-between; display: flex; align-items: center; gap: 10px;">
+        <div>
+          <div style="font-weight: bold; font-size: 15px;">Fish Inventory</div>
+          <div class="fish-selection-note" id="fishSelectionNote">Choose 3 fish for battle.</div>
+        </div>
+      </div>
+      <div class="sort-panel">
+        <span class="sort-label">Sort:</span>
+        <button class="nav-button" data-fish-sort="default" type="button" style="padding: 8px 12px; font-size: 13px;">Default</button>
+        <button class="nav-button" data-fish-sort="rarity" type="button" style="padding: 8px 12px; font-size: 13px;">Rarity</button>
+        <button class="nav-button" data-fish-sort="price" type="button" style="padding: 8px 12px; font-size: 13px;">Price</button>
+        <button class="nav-button" data-fish-sort="size" type="button" style="padding: 8px 12px; font-size: 13px;">Size</button>
+        <button class="nav-button" data-fish-sort="weight" type="button" style="padding: 8px 12px; font-size: 13px;">Weight</button>
+        <button class="nav-button" data-fish-sort="name" type="button" style="padding: 8px 12px; font-size: 13px;">Name</button>
+      </div>
+      <div class="collection-scroll">
+        <div id="fishCollection" class="fish-collection"></div>
+        <div id="fishEmptyState" class="empty-state" style="display:none;">You do not have any fish in your inventory.</div>
       </div>
     </div>
 
@@ -1260,6 +1541,27 @@
     const MAX_RESERVE_SIZE = 50;
     let reserveSortDirection = 'desc';
 
+    const FISH_INVENTORY_KEY = 'clicker_inventory';
+    const FISH_SELECTION_KEY = 'clicker_battleSelection';
+    const MAX_FISH_SELECTION = 3;
+    const FISH_RARITY_COLOR = {
+      common: '#d9d9d9',
+      uncommon: '#7ee787',
+      rare: '#58a6ff',
+      epic: '#d2a8ff',
+      legendary: '#ffa657',
+      mythic: '#ff5e5e'
+    };
+
+    const fishSelectionNote = document.getElementById('fishSelectionNote');
+    const selectedFishSlots = document.getElementById('selectedFishSlots');
+    const fishCollection = document.getElementById('fishCollection');
+    const fishEmptyState = document.getElementById('fishEmptyState');
+
+    let fishInventory = [];
+    let selectedFishUids = [];
+    let fishSortMode = 'default';
+
     const TALENT_POOL = [
       { id: 'avant-garde', name: 'Avant-Garde' },
       { id: 'relais', name: 'Relais' },
@@ -1374,6 +1676,114 @@
       window.addEventListener('resize', () => {
         setTeamStatsWidth(teamStatsWidth, false);
       });
+    }
+
+    function getTalentNameById(talentId) {
+      return TALENT_NAME_BY_ID.get(talentId) || 'Unknown Talent';
+    }
+
+    // ── SUPABASE SETUP ────────────────────────────────────────────────────────
+    let db = null;
+    const SUPABASE_URL = "https://vrozpjdyqerpcrwlcdfo.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_moV-dfu5sVohSbQOR6z0zw_BSpcVCHg";
+    
+    if (window.supabase && SUPABASE_URL !== "YOUR_SUPABASE_URL") {
+      db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    function getPlayerId() {
+      return localStorage.getItem('clicker_userId') || null;
+    }
+
+    function getPlayerFishTeam() {
+      const selectedFishUids = getSelectedFish();
+      return selectedFishUids.map(fish => ({
+        uid: fish.uid,
+        type: fish.type,
+        rarity: fish.rarity,
+        size: Number(fish.size) || 0,
+        weight: Number(fish.weight) || 0
+      }));
+    }
+
+    function getPlayerCharTeam() {
+      return [0, 1, 2]
+        .map(slot => allCharacters.find(char => char.teamSlot === slot))
+        .filter(Boolean)
+        .map(c => ({
+          id: c.id,
+          templateId: c.templateId || c.id,
+          instanceId: c.instanceId || null,
+          name: c.name,
+          stars: c.stars,
+          level: c.level || 1,
+          teamSlot: Number.isInteger(c.teamSlot) ? c.teamSlot : null,
+          talentId: c.talentId || null,
+          talentName: c.talentName || null,
+          talents: Array.isArray(c.talents) ? c.talents : [],
+          incomeMultiplier: Number(c.incomeMultiplier) || 1,
+          clickMultiplier: Number(c.clickMultiplier) || 1,
+          sizeAdd: Number(c.sizeAdd) || 0,
+          sizeMult: Number(c.sizeMult) || 1,
+          weightAdd: Number(c.weightAdd) || 0,
+          weightMult: Number(c.weightMult) || 1,
+          chanceAdd: Number(c.chanceAdd) || 0,
+          chanceMult: Number(c.chanceMult) || 1,
+          resaleAdd: Number(c.resaleAdd) || 0,
+          resaleMult: Number(c.resaleMult) || 1,
+          fishingSpeed: Number(c.fishingSpeed) || 1
+        }));
+    }
+
+    async function savePlayerTeamToSupabase() {
+      const saveBtn = document.getElementById('saveTeamBtn');
+      if (!db) {
+        console.error("Supabase not configured");
+        return;
+      }
+
+      const pid = getPlayerId();
+      if (!pid) {
+        console.error("No user ID found");
+        return;
+      }
+
+      const myFish = getPlayerFishTeam();
+      const myChars = getPlayerCharTeam();
+
+      const teamData = {
+        fish_team: myFish,
+        char_team: myChars,
+        updated_at: new Date().toISOString()
+      };
+
+      saveBtn.textContent = "Saving…";
+      saveBtn.disabled = true;
+
+      try {
+        const { error: updateErr } = await db.from("profiles").update({
+          fish_team: teamData.fish_team,
+          char_team: teamData.char_team,
+          updated_at: teamData.updated_at
+        }).eq("player_id", pid);
+
+        if (updateErr) {
+          console.error("Error saving team:", updateErr.message);
+          saveBtn.textContent = "Save Team";
+          saveBtn.disabled = false;
+          return;
+        }
+
+        saveBtn.textContent = "✓ Saved";
+        setTimeout(() => {
+          saveBtn.textContent = "Save Team";
+          saveBtn.disabled = false;
+        }, 2000);
+      } catch (err) {
+        console.error("Exception:", err);
+        saveBtn.textContent = "Save Team";
+        saveBtn.disabled = false;
+      }
     }
 
     function getTalentNameById(talentId) {
@@ -2551,10 +2961,12 @@
                 // From reserve to empty team slot
                 draggedChar.teamSlot = i;
                 renderCharacters();
+                renderSelectedFishSlots();
               } else if (dragSource === 'team') {
                 // Move team member to empty slot (swap)
                 draggedChar.teamSlot = i;
                 renderCharacters();
+                renderSelectedFishSlots();
               }
             }
           });
@@ -2605,6 +3017,7 @@
                 draggedChar.teamSlot = slotIndex;
               }
               renderCharacters();
+              renderSelectedFishSlots();
             } else if (dragSource === 'team') {
               // Swap between team slots
               const targetChar = allCharacters.find(c => c.teamSlot === slotIndex);
@@ -2614,6 +3027,7 @@
                 draggedChar.teamSlot = targetChar.teamSlot;
                 targetChar.teamSlot = tempSlot;
                 renderCharacters();
+                renderSelectedFishSlots();
               }
             }
           }
@@ -2647,6 +3061,7 @@
         if (draggedChar && dragSource === 'team') {
           draggedChar.teamSlot = null;
           renderCharacters();
+          renderSelectedFishSlots();
         }
       });
 
@@ -2739,6 +3154,259 @@
       displayProgression('chanceProgression', progressions.chance);
       displayProgression('resaleProgression', progressions.resale);
       displayProgression('fishingProgression', progressions.fishing);
+    }
+
+    function loadFishInventory() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(FISH_INVENTORY_KEY) || '[]');
+        if (!Array.isArray(parsed)) return [];
+        return parsed.map((fish) => {
+          if (!fish || typeof fish !== 'object') return null;
+          return {
+            uid: typeof fish.uid === 'string' && fish.uid ? fish.uid : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+            type: typeof fish.type === 'string' && fish.type ? fish.type : 'Fish',
+            rarity: typeof fish.rarity === 'string' && fish.rarity ? fish.rarity : 'common',
+            size: Number(fish.size) || 0,
+            weight: Number(fish.weight) || 0,
+            price: Number(fish.price) || 0,
+            basePrice: Number(fish.basePrice) || Number(fish.price) || 0,
+            currentValue: Number.isFinite(Number(fish.currentValue)) ? Number(fish.currentValue) : (Number(fish.basePrice) || Number(fish.price) || 0)
+          };
+        }).filter(Boolean);
+      } catch {
+        return [];
+      }
+    }
+
+    function loadFishSelection() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(FISH_SELECTION_KEY) || '[]');
+        selectedFishUids = Array.isArray(parsed) ? parsed.filter((uid) => typeof uid === 'string') : [];
+      } catch {
+        selectedFishUids = [];
+      }
+      selectedFishUids = selectedFishUids.slice(0, MAX_FISH_SELECTION);
+    }
+
+    function saveFishSelection() {
+      localStorage.setItem(FISH_SELECTION_KEY, JSON.stringify(selectedFishUids.slice(0, MAX_FISH_SELECTION)));
+    }
+
+    function getSelectedFish() {
+      const fishByUid = new Map(fishInventory.map((fish) => [fish.uid, fish]));
+      return selectedFishUids.map((uid) => fishByUid.get(uid)).filter(Boolean);
+    }
+
+    function normalizeSelectedFishUids() {
+      const validUids = new Set(fishInventory.map((fish) => fish.uid));
+      const deduped = [];
+      for (const uid of selectedFishUids) {
+        if (!validUids.has(uid) || deduped.includes(uid)) continue;
+        deduped.push(uid);
+      }
+      const changed = deduped.length !== selectedFishUids.length || deduped.some((uid, index) => uid !== selectedFishUids[index]);
+      selectedFishUids = deduped.slice(0, MAX_FISH_SELECTION);
+      return changed;
+    }
+
+    function fishRarityRank(rarity) {
+      return { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5, mythic: 6 }[rarity] || 1;
+    }
+
+    function getFishValue(fish) {
+      return Math.max(0, Math.round(Number(fish.currentValue) || Number(fish.basePrice) || Number(fish.price) || 0));
+    }
+
+    function fishDescriptors(fish) {
+      const pieces = [];
+      if (Number(fish.size)) pieces.push(`${Math.round(Number(fish.size))} cm`);
+      if (Number(fish.weight)) pieces.push(`${Math.round(Number(fish.weight))} kg`);
+      return pieces.length ? pieces.join(' | ') : 'No stats';
+    }
+
+    function sortFishInventory(items) {
+      const list = [...items];
+      if (fishSortMode === 'rarity') list.sort((a, b) => fishRarityRank(b.rarity) - fishRarityRank(a.rarity) || getFishValue(b) - getFishValue(a));
+      else if (fishSortMode === 'price') list.sort((a, b) => getFishValue(b) - getFishValue(a));
+      else if (fishSortMode === 'size') list.sort((a, b) => (Number(b.size) || 0) - (Number(a.size) || 0));
+      else if (fishSortMode === 'weight') list.sort((a, b) => (Number(b.weight) || 0) - (Number(a.weight) || 0));
+      else if (fishSortMode === 'name') list.sort((a, b) => String(a.type || '').localeCompare(String(b.type || '')));
+      return list;
+    }
+
+    function toggleFishSelection(uid) {
+      if (selectedFishUids.includes(uid)) {
+        selectedFishUids = selectedFishUids.filter((currentUid) => currentUid !== uid);
+      } else if (selectedFishUids.length < MAX_FISH_SELECTION) {
+        selectedFishUids.push(uid);
+      } else {
+        if (fishSelectionNote) fishSelectionNote.textContent = 'You already have 3 fish selected.';
+        return;
+      }
+      saveFishSelection();
+      renderFishSelection();
+    }
+
+    function getTeamBonusesForFish() {
+      const teamChars = [0, 1, 2]
+        .map(slot => allCharacters.find(char => char.teamSlot === slot))
+        .filter(Boolean);
+      
+      let sizeBonus = 0, weightBonus = 0, chanceBonus = 0;
+      let incomeMultiplier = 1;
+      
+      teamChars.forEach(char => {
+        sizeBonus += Number(char.sizeAdd || 0);
+        weightBonus += Number(char.weightAdd || 0);
+        chanceBonus += Number(char.chanceAdd || 0);
+        incomeMultiplier *= Number(char.incomeMultiplier || 1);
+      });
+      
+      return { sizeBonus, weightBonus, chanceBonus, incomeMultiplier };
+    }
+
+    function renderSelectedFishSlots() {
+      if (!selectedFishSlots) return;
+      const selectedFish = getSelectedFish();
+      const teamBonuses = getTeamBonusesForFish();
+      selectedFishSlots.innerHTML = '';
+
+      for (let index = 0; index < MAX_FISH_SELECTION; index++) {
+        const fish = selectedFish[index];
+        const card = document.createElement('div');
+        card.className = 'slot-card';
+
+        if (fish) {
+          card.classList.add(`rarity-${fish.rarity}`, 'selected-highlight');
+          
+          // Calculate stats with bonuses
+          const baseSize = Number(fish.size || 0);
+          const baseWeight = Number(fish.weight || 0);
+          const baseChance = Number(fish.chance || 0);
+          
+          const hpMult = 1 + (teamBonuses.sizeBonus * 0.005);
+          const atkMult = 1 + (teamBonuses.weightBonus * 0.005);
+          
+          const boostedHp = Math.max(1, Math.round(baseSize * hpMult * teamBonuses.incomeMultiplier));
+          const boostedAtk = Math.max(1, Math.round(baseWeight * atkMult * teamBonuses.incomeMultiplier));
+          const boostedChance = Math.max(0, Math.round(baseChance + teamBonuses.chanceBonus));
+          
+          const baseHp = Math.max(1, Math.round(baseSize * teamBonuses.incomeMultiplier));
+          const baseAtk = Math.max(1, Math.round(baseWeight * teamBonuses.incomeMultiplier));
+          
+          let statsHtml = '<div style="margin-top: 8px; display: grid; gap: 6px;">';
+          if (baseHp > 0) {
+            statsHtml += `<div class="fish-stats-row"><span class="fish-stat-label">HP</span><span class="fish-stat-value"><span class="fish-stat-base">${baseHp}</span><span class="fish-stat-arrow">→</span><span class="fish-stat-boosted">${boostedHp}</span></span></div>`;
+          }
+          if (baseAtk > 0) {
+            statsHtml += `<div class="fish-stats-row"><span class="fish-stat-label">ATK</span><span class="fish-stat-value"><span class="fish-stat-base">${baseAtk}</span><span class="fish-stat-arrow">→</span><span class="fish-stat-boosted">${boostedAtk}</span></span></div>`;
+          }
+          statsHtml += '</div>';
+          
+          card.innerHTML = `
+            <div class="slot-label">Fish ${index + 1}</div>
+            <div class="slot-name" style="color:${FISH_RARITY_COLOR[fish.rarity] || '#fff'}">${fish.type}</div>
+            <div class="slot-meta">${fishDescriptors(fish)}<br>Rarity: ${fish.rarity}<br>Value: ${getFishValue(fish)}</div>
+            ${statsHtml}
+            <div class="slot-actions"><button class="nav-button btn-danger" style="padding: 6px 10px; font-size: 12px; margin-top: 6px;" type="button" data-remove-fish="${fish.uid}">Remove</button></div>`;
+        } else {
+          card.innerHTML = `
+            <div class="slot-label">Fish ${index + 1}</div>
+            <div class="slot-empty">Empty slot</div>
+            <div class="slot-meta">Choose a fish from your inventory.</div>`;
+        }
+
+        selectedFishSlots.appendChild(card);
+      }
+
+      selectedFishSlots.querySelectorAll('button[data-remove-fish]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const uid = button.getAttribute('data-remove-fish');
+          selectedFishUids = selectedFishUids.filter((currentUid) => currentUid !== uid);
+          saveFishSelection();
+          renderFishSelection();
+        });
+      });
+    }
+
+    function renderFishCollection() {
+      if (!fishCollection || !fishEmptyState) return;
+      const sortedFish = sortFishInventory(fishInventory);
+      const teamBonuses = getTeamBonusesForFish();
+      fishCollection.innerHTML = '';
+
+      if (!sortedFish.length) {
+        fishEmptyState.style.display = 'block';
+        return;
+      }
+
+      fishEmptyState.style.display = 'none';
+      const selectedSet = new Set(selectedFishUids);
+
+      sortedFish.forEach((fish) => {
+        const card = document.createElement('div');
+        card.className = `fish-card rarity-${fish.rarity}`;
+        if (selectedSet.has(fish.uid)) card.classList.add('selected-highlight');
+        
+        // Calculate stats
+        const baseSize = Number(fish.size || 0);
+        const baseWeight = Number(fish.weight || 0);
+        const baseChance = Number(fish.chance || 0);
+        
+        const hpMult = 1 + (teamBonuses.sizeBonus * 0.005);
+        const atkMult = 1 + (teamBonuses.weightBonus * 0.005);
+        
+        const boostedHp = Math.max(1, Math.round(baseSize * hpMult * teamBonuses.incomeMultiplier));
+        const boostedAtk = Math.max(1, Math.round(baseWeight * atkMult * teamBonuses.incomeMultiplier));
+        const boostedChance = Math.max(0, Math.round(baseChance + teamBonuses.chanceBonus));
+        
+        const baseHp = Math.max(1, Math.round(baseSize * teamBonuses.incomeMultiplier));
+        const baseAtk = Math.max(1, Math.round(baseWeight * teamBonuses.incomeMultiplier));
+        
+        let statsHtml = '';
+        if (baseHp > 0 || baseAtk > 0) {
+          statsHtml = '<div style="margin-top: 6px; display: grid; gap: 4px; font-size: 11px;">';
+          if (baseHp > 0) {
+            statsHtml += `<div class="fish-stats-row"><span class="fish-stat-label">HP</span><span class="fish-stat-value"><span class="fish-stat-base">${baseHp}</span><span class="fish-stat-arrow">→</span><span class="fish-stat-boosted">${boostedHp}</span></span></div>`;
+          }
+          if (baseAtk > 0) {
+            statsHtml += `<div class="fish-stats-row"><span class="fish-stat-label">ATK</span><span class="fish-stat-value"><span class="fish-stat-base">${baseAtk}</span><span class="fish-stat-arrow">→</span><span class="fish-stat-boosted">${boostedAtk}</span></span></div>`;
+          }
+          statsHtml += '</div>';
+        }
+        
+        const isSelected = selectedSet.has(fish.uid);
+        card.innerHTML = `
+          <div class="fish-header">
+            <div>
+              <div class="fish-name" style="color:${FISH_RARITY_COLOR[fish.rarity] || '#fff'}">${fish.type}</div>
+              <div class="fish-status">${isSelected ? 'Selected for battle' : 'Available in inventory'}</div>
+            </div>
+            <div class="count-pill">${getFishValue(fish)} value</div>
+          </div>
+          <div class="fish-meta">${fishDescriptors(fish)}<br>Rarity: ${fish.rarity}<br>Size: ${Math.round(Number(fish.size) || 0)} cm<br>Weight: ${Math.round(Number(fish.weight) || 0)} kg</div>
+          ${statsHtml}
+          <button class="nav-button${isSelected ? ' btn-danger' : ''}" style="width: 100%; padding: 8px 12px; font-size: 13px; margin-top: 6px;" type="button" data-toggle-fish="${fish.uid}">${isSelected ? 'Remove' : 'Select'}</button>`;
+        fishCollection.appendChild(card);
+      });
+
+      fishCollection.querySelectorAll('button[data-toggle-fish]').forEach((button) => {
+        button.addEventListener('click', () => toggleFishSelection(button.getAttribute('data-toggle-fish')));
+      });
+    }
+
+    function renderFishSelection() {
+      renderSelectedFishSlots();
+      renderFishCollection();
+      if (fishSelectionNote) {
+        const selectedCount = selectedFishUids.length;
+        fishSelectionNote.textContent = selectedCount === MAX_FISH_SELECTION
+          ? 'Ready for battle.'
+          : `Choose ${MAX_FISH_SELECTION - selectedCount} more fish for battle.`;
+      }
+      document.querySelectorAll('.sort-btn[data-fish-sort]').forEach((button) => {
+        button.classList.toggle('active', button.getAttribute('data-fish-sort') === fishSortMode);
+      });
     }
 
     function formatBonusValue(add, mult) {
@@ -2861,14 +3529,62 @@
       renderCharacters();
     });
 
+    // Toggle buttons for reserves
+    const toggleCharacterReserveBtn = document.getElementById('toggleCharacterReserveBtn');
+    const toggleFishReserveBtn = document.getElementById('toggleFishReserveBtn');
+    const characterReserveContainer = document.getElementById('characterReserveContainer');
+    const fishReserveContainer = document.getElementById('fishReserveContainer');
+
+    function showCharacterReserve() {
+      characterReserveContainer.style.display = 'block';
+      fishReserveContainer.style.display = 'none';
+      toggleCharacterReserveBtn.classList.add('active-nav-button');
+      toggleFishReserveBtn.classList.remove('active-nav-button');
+    }
+
+    function showFishReserve() {
+      characterReserveContainer.style.display = 'none';
+      fishReserveContainer.style.display = 'block';
+      toggleCharacterReserveBtn.classList.remove('active-nav-button');
+      toggleFishReserveBtn.classList.add('active-nav-button');
+    }
+
+    toggleCharacterReserveBtn.addEventListener('click', showCharacterReserve);
+    toggleFishReserveBtn.addEventListener('click', showFishReserve);
+
+    // Fish sort buttons
+    document.querySelectorAll('button[data-fish-sort]').forEach((button) => {
+      button.addEventListener('click', function() {
+        document.querySelectorAll('button[data-fish-sort]').forEach(b => b.classList.remove('active-nav-button'));
+        this.classList.add('active-nav-button');
+        fishSortMode = this.getAttribute('data-fish-sort') || 'default';
+        renderFishSelection();
+      });
+    });
+
+    fishInventory = loadFishInventory();
+    loadFishSelection();
+    if (normalizeSelectedFishUids()) saveFishSelection();
+
     applyReserveCharactersFromSave();
     applyTeamStateFromSave();
     renderCharacters();
+    renderSelectedFishSlots();
+    renderFishSelection();
 
     // Apply limited navigation mode if upgrades not unlocked
     const upgradesUnlocked = localStorage.getItem("clicker_upgradesUnlocked") === "true";
     if (!upgradesUnlocked) {
       document.body.classList.add("limited-nav-mode");
+    }
+
+    // Show Save Team button if user is connected
+    const userId = localStorage.getItem('clicker_userId');
+    if (userId) {
+      const saveTeamBtn = document.getElementById('saveTeamBtn');
+      if (saveTeamBtn) {
+        saveTeamBtn.style.display = 'inline-flex';
+      }
     }
   </script>
 
