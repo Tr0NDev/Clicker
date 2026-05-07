@@ -1393,7 +1393,7 @@
               <span class="raid-choice-icon">⚔️</span>
               <div class="raid-choice-info">
                 <div class="raid-choice-name">${escH(r.name)}</div>
-                <div class="raid-choice-stats">${r.stages.length} floors · Cost: ${getRaidCost(r)} · ${formatRaidRewardSummary(r)} · Boss: ${escH(r.stages[r.stages.length-1]?.name||'Unknown')}</div>
+                <div class="raid-choice-stats">${escH(String(r.desc || r.description || "").trim() || "No description")}</div>
               </div>
             </div>`;
           }).join("")}

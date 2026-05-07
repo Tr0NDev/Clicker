@@ -3,7 +3,7 @@
     "raid_1778082245720": {
       "key": "raid_1778082245720",
       "name": "Aquarium",
-      "desc": "⭐ - Easy",
+      "desc": "⭐ - Easy - 4 Floors - 8 Energy",
       "cost": 8,
       "stages": [
       {
