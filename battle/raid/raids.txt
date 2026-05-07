@@ -10,29 +10,29 @@
         "floor": "Floor 1",
         "name": "Swift roach",
         "rarity": "common",
-        "hp": 4040,
+        "hp": 2040,
         "atk": 240
       },
       {
         "floor": "Floor 2",
         "name": "Dark tench",
         "rarity": "uncommon",
-        "hp": 5905,
+        "hp": 2905,
         "atk": 540
       },
       {
         "floor": "Floor 3",
         "name": "Noble salmon",
         "rarity": "uncommon",
-        "hp": 5405,
-        "atk": 845
+        "hp": 3405,
+        "atk": 545
       },
       {
         "floor": "Floor 4",
         "name": "Wild pike",
         "rarity": "rare",
-        "hp": 8520,
-        "atk": 1402
+        "hp": 4520,
+        "atk": 802
       }
     ],
     "rewards": [
@@ -67,22 +67,22 @@
         "id": "fish_1778082245720",
         "name": "Wild pike",
         "rarity": "rare",
-        "maxHp": 4270,
-        "atk": 751
+        "maxHp": 2270,
+        "atk": 451
       },
       {
         "id": "fish_1778082326301_e067aa43773c58",
         "name": "Wild pike",
         "rarity": "rare",
-        "maxHp": 3154,
-        "atk": 459
+        "maxHp": 1454,
+        "atk": 424
       },
       {
         "id": "fish_1778089175967_cfe3117bb2d088",
         "name": "Wild pike",
         "rarity": "rare",
-        "maxHp": 2857,
-        "atk": 424
+        "maxHp": 1257,
+        "atk": 415
       }
     ]
     }

@@ -503,26 +503,6 @@
       </div>`;
   }
 
-  function renderRaidRewardWheel(raidDef) {
-    const anchor = document.getElementById("raidRewardWheelHolder") || document.getElementById("centerSection");
-    if (!anchor) return;
-    const rewards = Array.isArray(raidDef.rewards) ? raidDef.rewards.filter(Boolean) : [];
-    const previewHtml = rewards.length
-      ? rewards.map(r => createRaidRewardRollItem(r, raidDef)).join('')
-      : '<div class="idle-state">No reward pool configured.</div>';
-    const wrapper = anchor.querySelector('.reward-wheel-preview');
-    const html = `
-      <div class="reward-wheel-preview">
-        <div class="reward-wheel-header">Reward wheel preview</div>
-        <div class="reward-roll-track preview">${previewHtml}</div>
-      </div>`;
-    if (wrapper) {
-      wrapper.outerHTML = html;
-    } else {
-      anchor.insertAdjacentHTML('beforeend', html);
-    }
-  }
-
   async function animateRaidRewardClaim(raidDef, chosen) {
     const anchor = document.getElementById("raidRewardWheelHolder") || document.getElementById("centerSection");
     if (!anchor) return;
@@ -873,12 +853,17 @@
   }
 
   function ensureRaidScoreState(state) {
-    if (!state) return;
+    if (!state) return false;
+    let changed = false;
     state.scoreMax = 100;
     state.scoreRefillMs = 60000;
     state.score = Number.isFinite(Number(state.score)) ? Math.min(state.scoreMax, Number(state.score)) : state.scoreMax;
-    state.scoreLastRefill = state.scoreLastRefill || nowIso();
+    if (!state.scoreLastRefill) {
+      state.scoreLastRefill = nowIso();
+      changed = true;
+    }
     state.log = Array.isArray(state.log) ? state.log : [];
+    return changed;
   }
 
   function applyScoreRefill(state) {
@@ -915,8 +900,9 @@
         const raw = guild.raid_state;
         raidState = raw ? (typeof raw==="string" ? JSON.parse(raw) : raw) : { phase: "idle", score: 100, scoreMax: 100, scoreRefillMs: 60000, scoreLastRefill: nowIso(), log: [] };
       } catch { raidState={ phase: "idle", score: 100, scoreMax: 100, scoreRefillMs: 60000, scoreLastRefill: nowIso(), log: [] }; }
-      ensureRaidScoreState(raidState);
-      if (applyScoreRefill(raidState)) {
+      const scoreStateChanged = ensureRaidScoreState(raidState);
+      const scoreRefilled = applyScoreRefill(raidState);
+      if (scoreStateChanged || scoreRefilled) {
         await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(raidState)}).eq("id",mem.guildId);
       }
 
@@ -1135,15 +1121,24 @@
 
     Object.keys(state.players).forEach(p=>{
       const pl=state.players[p];
+      const hasAliveFish = pl.team.some((fish, idx) => fish && fish.maxHp > 0 && Number(pl.fishHp[idx] || 0) > 0);
+      if (!hasAliveFish) {
+        pl.eliminated = true;
+        pl.fishHp = pl.team.map(() => 0);
+        state.log.push(`💀 ${resolveName(p)} has no surviving fish and stays eliminated.`);
+        return;
+      }
+
       let healed=0;
       pl.team.forEach((fish, idx) => {
         if (!fish || fish.maxHp <= 0) return;
-        const before = pl.fishHp[idx];
-        pl.fishHp[idx] = Math.min(fish.maxHp, Math.max(0, pl.fishHp[idx]) + Math.floor(fish.maxHp * 0.5));
-        healed += pl.fishHp[idx] - before;
+        const before = Number(pl.fishHp[idx]) || 0;
+        const after = Math.min(fish.maxHp, Math.max(0, before) + Math.floor(fish.maxHp * 0.5));
+        pl.fishHp[idx] = after;
+        healed += after - before;
       });
-      pl.currentFish = 0; // Reset to first fish
-      pl.eliminated = false; // Revive if possible
+      pl.currentFish = 0; // Reset to first fish for the next floor
+      pl.eliminated = false;
       state.log.push(`💚 ${resolveName(p)} recovers ${healed} HP.`);
     });
 
@@ -1279,10 +1274,17 @@
     const pct = Math.round((score / max) * 100);
     const selected = selectedRaidKey && RAIDS[selectedRaidKey];
     const costText = selected ? getRaidCost(selected) : "select a raid";
+    const refillMs = Number(raidState.scoreRefillMs) || 60000;
+    const lastRefillTs = Date.parse(raidState.scoreLastRefill || "");
+    const nextRefillTs = Number.isFinite(lastRefillTs) ? lastRefillTs + refillMs : null;
+    const refillText = Number.isFinite(nextRefillTs)
+      ? `Last regen: ${new Date(lastRefillTs).toLocaleString()} · Next +1 in ${Math.max(0, Math.ceil((nextRefillTs - Date.now()) / 1000))}s`
+      : `Last regen: ${raidState.scoreLastRefill || "unknown"}`;
     scoreSection.innerHTML = `
       <div class="hero-score-label">Raid Energy</div>
       <div class="hero-score-meter"><div class="hero-score-fill" style="width:${pct}%"></div></div>
       <div class="hero-score-text">${score}/${max} — ${selected ? `Next raid costs ${costText} raid energy.` : `Choose a raid to see its energy cost.`}</div>
+      <div class="hero-score-text" style="font-size:12px;opacity:.85">${refillText}</div>
     `;
   }
 
@@ -1570,7 +1572,6 @@
       <div class="subtle" style="text-align:center">
         ${isVic?(isElim?"You were eliminated during the raid.":"Claim your reward →"):"Your entire squad was eliminated."}
       </div>`;
-    renderRaidRewardWheel(raidDef);
   }
 
   // ─── TIMERS ──────────────────────────────────────────────────────────────────
