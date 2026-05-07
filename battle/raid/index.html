@@ -687,13 +687,13 @@
     const hp = Math.max(0, Number.isFinite(rawHp) ? rawHp : maxHp);
     const rawWeight = Number(f.weight);
     const rawAtk = Number(f.atk);
-    const atk = Math.max(0, Number.isFinite(rawWeight) ? rawWeight : (Number.isFinite(rawAtk) ? rawAtk : 0));
+    const atk = Math.max(0, Number.isFinite(rawAtk) ? rawAtk : (Number.isFinite(rawWeight) ? rawWeight : 0));
     return {
       uid: String(f.uid || ""),
       name: String(f.name || f.type || "Fish"),
       rarity: String(f.rarity || "common"),
       size: rawSize > 0 ? rawSize : maxHp,
-      weight: rawWeight > 0 ? rawWeight : atk,
+      weight: rawWeight > 0 ? rawWeight : (rawAtk > 0 ? rawAtk : 0),
       hp,
       maxHp,
       atk,
@@ -780,7 +780,8 @@
   function computeAtk(pid, state) {
     const player = state.players[pid];
     if (player?.team && Array.isArray(player.team)) {
-      return player.team.reduce((sum, fish) => sum + (fish.hp > 0 ? fish.atk : 0), 0);
+      const teamToUse = pid === myPid() ? boostRaidTeam(player.team) : player.team;
+      return teamToUse.reduce((sum, fish) => sum + (fish.hp > 0 ? fish.atk : 0), 0);
     }
     const member = allMembers.find(m => memberPid(m) === pid);
     const team = getRaidTeamFromMember(member);
@@ -1522,13 +1523,14 @@
       const team = Array.isArray(pd.team) ? pd.team : [];
       const fishHp = Array.isArray(pd.fishHp) ? pd.fishHp : [];
       const activeIdx = Number.isInteger(pd.currentFish) ? pd.currentFish : 0;
-      const activeFish = team[activeIdx] || { maxHp: 1, atk: 0, empty: true, name: "Empty", rarity: "common" };
+      const isMe=p===pid;
+      const displayTeam = isMe ? boostRaidTeam(team) : team;
+      const activeFish = displayTeam[activeIdx] || { maxHp: 1, atk: 0, empty: true, name: "Empty", rarity: "common" };
       const activeHp = Number.isFinite(fishHp[activeIdx]) ? fishHp[activeIdx] : 0;
       const activeMaxHp = Number.isFinite(activeFish.maxHp) && activeFish.maxHp > 0 ? activeFish.maxHp : 1;
       const hpPctPlayer = Math.max(0, activeHp/activeMaxHp*100);
       const hc=hpPctPlayer>50?"high":hpPctPlayer>20?"medium":"low";
-      const isMe=p===pid;
-      const teamHtml = team.map((f, idx)=>{
+      const teamHtml = displayTeam.map((f, idx)=>{
         const isActive = idx === activeIdx && !pd.eliminated;
         const hpVal = Number.isFinite(fishHp[idx]) ? fishHp[idx] : 0;
         const label = f.empty ? "Empty" : `${idx+1}. ${escH(f.name)}`;
