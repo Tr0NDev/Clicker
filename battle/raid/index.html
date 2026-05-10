@@ -194,6 +194,7 @@
 </head>
 <body>
 
+  <script defer src="../../guild-badge.js"></script>
   <div class="top-bar">
     <div class="top-nav">
       <button class="nav-button" onclick="location.href='../../'">Game</button>
@@ -499,7 +500,7 @@
         : 'Reward';
     const icon = reward.type === 'hooks' ? '🪝' : reward.type === 'fish' ? '🐟' : '🎁';
     const label = Number.isFinite(Number(reward.pct)) ? `${Math.max(0, Number(reward.pct))}%` : 'Chance';
-    const fishMeta = fish ? `<div class="reward-roll-subtext">${escH(String(fish.size || fish.maxHp || ''))} cm · ${escH(String(fish.weight || fish.atk || ''))} kg</div>` : '';
+    const fishMeta = fish ? `<div class="reward-roll-subtext">HP ${escH(String(fish.size || fish.maxHp || ''))} → ${escH(String(fish.maxHp || fish.size || ''))} · ATK ${escH(String(fish.weight || fish.atk || ''))} → ${escH(String(fish.atk || fish.weight || ''))}</div>` : '';
     return `
       <div class="reward-roll-item">
         <div class="reward-roll-icon">${icon}</div>
@@ -577,7 +578,7 @@
     const icon = chosen.type === 'hooks' ? '🪝' : chosen.type === 'fish' ? '🐟' : '🎁';
     const rewardFish = chosen.type === 'fish' ? resolveRewardFish(raidDef, chosen) : null;
     const fishName = rewardFish?.name || rewardFish?.type || 'Fish reward';
-    const fishDetails = rewardFish ? ` (${escH(String(rewardFish.size || rewardFish.maxHp || ''))} cm, ${escH(String(rewardFish.weight || rewardFish.atk || ''))} kg)` : '';
+    const fishDetails = rewardFish ? ` (HP ${escH(String(rewardFish.size || rewardFish.maxHp || ''))} → ${escH(String(rewardFish.maxHp || rewardFish.size || ''))}, ATK ${escH(String(rewardFish.weight || rewardFish.atk || ''))} → ${escH(String(rewardFish.atk || rewardFish.weight || ''))})` : '';
     const label = chosen.type === 'hooks'
       ? `+${Math.max(0, Number(chosen.amount) || 0)} Hooks`
       : chosen.type === 'fish'
@@ -683,9 +684,9 @@
   function fmtNum(n) { const value = Number(n) || 0; return value >= 1000000 ? (value/1000000).toFixed(1) + "M" : value >= 1000 ? (value/1000).toFixed(1) + "k" : String(Math.round(value)); }
   function getRaidBoostedStats(size, weight) {
     const teamStats = loadRaidTeamStats();
-    const hpMult = 1 + ((Number(teamStats?.sizeBonus) || 0) * 0.005);
-    const atkMult = 1 + ((Number(teamStats?.weightBonus) || 0) * 0.005);
-    const incMult = Number(teamStats?.incomeMultiplier) || 1;
+    const hpMult = 1 + ((Number(teamStats?.sizeBonus) || 0) / 10);
+    const atkMult = 1 + ((Number(teamStats?.weightBonus) || 0) / 10);
+    const incMult = (Number(teamStats?.incomeMultiplier) || 1) / 10;
     return {
       hp: Math.max(1, Math.round((Number(size) || 0) * hpMult * incMult)),
       atk: Math.max(1, Math.round((Number(weight) || 0) * atkMult * incMult))
@@ -736,9 +737,9 @@
     if (!fish || fish.empty || fish.raidBoosted) return fish;
     const rawSize = Number(fish.size) || Number(fish.maxHp) || 0;
     const rawWeight = Number(fish.weight) || Number(fish.atk) || 0;
-    const hpMult = 1 + ((Number(teamStats?.sizeBonus) || 0) * 0.005);
-    const atkMult = 1 + ((Number(teamStats?.weightBonus) || 0) * 0.005);
-    const incMult = Number(teamStats?.incomeMultiplier) || 1;
+    const hpMult = 1 + ((Number(teamStats?.sizeBonus) || 0) / 10);
+    const atkMult = 1 + ((Number(teamStats?.weightBonus) || 0) / 10);
+    const incMult = (Number(teamStats?.incomeMultiplier) || 1) / 10;
     const boostedMaxHp = Math.max(1, Math.round((Number(fish.maxHp) || Number(fish.hp) || 0) * hpMult * incMult));
     const boostedHp = Math.max(0, Math.min(boostedMaxHp, Math.round((Number(fish.hp) || 0) * hpMult * incMult)));
     const boostedAtk = Math.max(1, Math.round((Number(fish.atk) || 0) * atkMult * incMult));

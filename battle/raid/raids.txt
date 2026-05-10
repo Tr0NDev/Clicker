@@ -116,7 +116,7 @@
         {
           "floor": "Floor 4",
           "name": "Prismatic eel",
-          "rarity": "common",
+          "rarity": "epic",
           "hp": 14202,
           "atk": 3205
         },
@@ -137,7 +137,7 @@
         {
           "floor": "Floor 7",
           "name": "Sea dragon",
-          "rarity": "common",
+          "rarity": "legendary",
           "hp": 34059,
           "atk": 5432
         },

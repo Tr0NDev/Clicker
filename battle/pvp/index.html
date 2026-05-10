@@ -203,6 +203,7 @@
 </head>
 <body>
   <div class="top-bar">
+  <script defer src="../../guild-badge.js"></script>
     <div class="top-nav">
       <button class="nav-button" onclick="window.location.href='../../'">Game</button>
       <button class="nav-button" onclick="window.location.href='../../inventory/'">Inventory</button>
@@ -444,63 +445,45 @@
       return [0, 1, 2].map(i => pool[(t + i) % pool.length]);
     }
 
-    function speciesStatsAtTier(species, tier) {
+    function rollEnemyFishSizeWeight(species, tier) {
       if (!species) {
-        species = FISH_SPECIES[0] || { rarity: "common", type: "Fish" };
+        species = FISH_SPECIES[0] || { rarity: "common", type: "Fish", sizeMin: 1, sizeMax: 1, weightMin: 0.1, weightMax: 0.1 };
       }
-      const boss      = isBossTier(tier);
-      const ATK_RATIO = 0.55;          // was 0.40
-      const BOSS_HP   = 1.25;          // was 1.20
-      const BOSS_ATK  = 1.25;          // was 1.30
+      const sizeMin = Math.max(1, Number(species.sizeMin) || 1);
+      const sizeMax = Math.max(sizeMin, Number(species.sizeMax) || sizeMin);
+      const weightMin = Math.max(0.1, Number(species.weightMin) || 0.1);
+      const weightMax = Math.max(weightMin, Number(species.weightMax) || weightMin);
 
-      // Segments calibrés pour HP total ×3 :
-      //   t=100→500  t=200→2000  t=300→10000  t=500→50000  t=700→80000  t=1000→130000
-      const S1_END = 100, S2_END = 200;
-      const BASE_HP   = 5;
-      const S1_SLOPE  = 0.47,  S1_POW = 1.10;
-      const S2_SLOPE  = 0.80,  S2_POW = 1.60;
-
-      // Valeurs aux charnières (par poisson individuel, avant mult rareté)
-      const hp_at_s1 = BASE_HP + S1_SLOPE * Math.pow(S1_END - 1, S1_POW);
-      const hp_at_s2 = hp_at_s1 + S2_SLOPE * Math.pow(S2_END - S1_END, S2_POW);
-
-      // Pente S3 : cible t=1000 → 130 000 HP total / 3 poissons = 43 333 par poisson
-      // (avant mult rareté moyenne ≈ 1.0 pour calcul de référence "uncommon")
-      // S3_SLOPE = (43333 - hp_at_s2) / (1000 - 200)
-      const TARGET_1000_PER_FISH = 130000 / 3;
-      const S3_SLOPE = (TARGET_1000_PER_FISH - hp_at_s2) / (1000 - S2_END);
-
-      let base;
-      if (tier <= S1_END) {
-        base = BASE_HP + S1_SLOPE * Math.pow(Math.max(0, tier - 1), S1_POW);
-      } else if (tier <= S2_END) {
-        base = hp_at_s1 + S2_SLOPE * Math.pow(tier - S1_END, S2_POW);
-      } else {
-        base = hp_at_s2 + S3_SLOPE * (tier - S2_END);
-      }
-
-      const rarityMult = { common: 0.85, uncommon: 1.0, rare: 1.2, epic: 1.45, legendary: 1.80, mythic: 2.40 };
-      const mult = rarityMult[species.rarity] || 1.0;
-
-      const hp  = Math.max(1, Math.round(base * mult * (boss ? BOSS_HP  : 1)));
-      const atk = Math.max(1, Math.round(base * mult * ATK_RATIO * (boss ? BOSS_ATK : 1)));
-      return { hp, atk };
+      const tierFactor = Math.min(1, Math.max(0, (Number(tier) || 1) / 200));
+      const sizeBase = sizeMin + (sizeMax - sizeMin) * (0.35 + 0.65 * tierFactor);
+      const weightBase = weightMin + (weightMax - weightMin) * (0.35 + 0.65 * tierFactor);
+      const rawSize = Math.max(1, Math.round(sizeBase * (0.9 + Math.random() * 0.2)));
+      const rawWeight = Number((weightBase * (0.85 + Math.random() * 0.3)).toFixed(2));
+      return { rawSize, rawWeight };
     }
 
     function getTierScaling(t) { return { hp: 1, atk: 1 }; }
 
     function createTierEnemyFromTemplate(species, index, tier) {
       const isBoss = isBossTier(tier);
-      const base = speciesStatsAtTier(species, tier);
+      const { rawSize, rawWeight } = rollEnemyFishSizeWeight(species, tier);
+      const BOSS_HP = 1.25;
+      const BOSS_ATK = 1.25;
       const jH = 0.85 + Math.random() * 0.30;
       const jA = 0.85 + Math.random() * 0.30;
-      const hp  = Math.max(1, Math.round(base.hp  * jH));
-      const atk = Math.max(1, Math.round(base.atk * jA));
+      const hp = Math.max(1, Math.round(rawSize * (isBoss ? BOSS_HP : 1) * jH));
+      const atk = Math.max(1, Math.round(rawWeight * (isBoss ? BOSS_ATK : 1) * jA));
       return {
         id: `enemy-tier-${tier}-${index}-${Date.now()}`,
         name: species.type,
         rarity: species.rarity,
-        maxHp: hp, hp, attack: atk,
+        size: rawSize,
+        weight: rawWeight,
+        sizeRaw: rawSize,
+        weightRaw: rawWeight,
+        maxHp: hp,
+        hp,
+        attack: atk,
         alive: true,
         descriptor: `(tier ${tier}${isBoss ? " BOSS" : ""})`,
         isBoss
@@ -529,8 +512,8 @@
         }
         const enemy = createTierEnemyFromTemplate(tmpl, i, tier);
         // +12% HP de base via characters, + rampe par étoile (+7%/étoile)
-        const hpBonus  = 0.12 + (bonuses.sizeBonus   * 0.005);
-        const atkBonus = 0.12 + (bonuses.weightBonus  * 0.005);
+        const hpBonus  = 0.12 + (bonuses.sizeBonus   / 10);
+        const atkBonus = 0.12 + ((Number(bonuses.weightBonus) || 0) / 10);
         enemy.maxHp  = Math.max(1, Math.round(enemy.maxHp  * (1 + hpBonus)));
         enemy.hp     = enemy.maxHp;
         enemy.attack = Math.max(1, Math.round(enemy.attack * (1 + atkBonus)));
@@ -539,20 +522,44 @@
     }
 
     function previewEnemyRoster(tier) {
-      const t = Math.max(1, Number(tier) || 1);
-      const templates = getEnemyTemplatesForTier(t);
-      return templates.map((species) => {
-        const stats = speciesStatsAtTier(species, t);
-        return { name: species.type, rarity: species.rarity, hp: stats.hp, atk: stats.atk, isBoss: isBossTier(t) };
+      return createTierEnemyRoster(tier);
+    }
+
+    function calculateFishBonusesFromChars(chars) {
+      let sizeBonus = 0;
+      let weightBonus = 0;
+      let chanceBonus = 0;
+      let incomeMultiplier = 1;
+
+      (Array.isArray(chars) ? chars : []).forEach((char) => {
+        sizeBonus += Number(char && char.sizeAdd || 0);
+        weightBonus += Number(char && char.weightAdd || 0);
+        chanceBonus += Number(char && char.chanceAdd || 0);
+        incomeMultiplier *= Number(char && char.incomeMultiplier || 1);
       });
+
+      return { sizeBonus, weightBonus, chanceBonus, incomeMultiplier };
     }
 
     function loadTeamStats() {
       try {
+        const localChars = loadPlayerCharacterTeam();
+        if (Array.isArray(localChars) && localChars.length > 0) {
+          const fishBonuses = calculateFishBonusesFromChars(localChars);
+          const detailedStats = calculateTeamStatsFromChars(localChars);
+          const teamStatsFromChars = {
+            ...detailedStats,
+            ...fishBonuses
+          };
+          console.log('[DEBUG][PVP] loadTeamStats derived from local team chars:', teamStatsFromChars);
+          return teamStatsFromChars;
+        }
+
         const raw = localStorage.getItem(TEAM_STATE_KEY);
         if (!raw) return null;
         const parsed = JSON.parse(raw);
         if (!parsed || !parsed.totals) return null;
+        console.log('[DEBUG][PVP] loadTeamStats raw totals fallback:', parsed.totals);
         return {
           incomeMultiplier: Number(parsed.totals.incomeMultiplier) || 1,
           clickMultiplier:  Number(parsed.totals.clickMultiplier)  || 1,
@@ -599,14 +606,48 @@
       }
     }
 
+    function syncCurrentLocalTeam(reason = 'render') {
+      console.log(`[DEBUG][PVP] syncCurrentLocalTeam(${reason}) start`);
+      loadInventory();
+      loadSelection();
+      const normalizedChanged = normalizeSelectedFishUids();
+      if (normalizedChanged) saveSelection();
+      const freshStats = loadTeamStats();
+      if (freshStats) teamStats = freshStats;
+      const selectedFish = getSelectedFish();
+      console.log('[DEBUG][PVP] current inventory size:', inventory.length);
+      console.log('[DEBUG][PVP] current selected fish uids:', selectedFishUids);
+      console.log('[DEBUG][PVP] current selected fish snapshot:', selectedFish.map(f => ({
+        uid: f.uid,
+        type: f.type,
+        size: f.size,
+        weight: f.weight,
+        rarity: f.rarity
+      })));
+      console.log('[DEBUG][PVP] current team stats:', teamStats);
+      return { inventory, selectedFishUids, teamStats };
+    }
+
     function applyTeamBoostsToFishStats(size, weight, teamStatsOverride = null) {
       const stats = teamStatsOverride || teamStats;
-      const hpMult  = 1 + ((stats.sizeBonus || 0)   * 0.005);
-      const atkMult = 1 + ((stats.weightBonus || 0)  * 0.005);
-      const incMult = stats.incomeMultiplier || 1;
+      const hpMult  = 1 + ((stats.sizeBonus || 0)   / 10);
+      const atkMult = 1 + ((Number(stats.weightBonus) || 0) / 10);
+      const incMult = (Number(stats.incomeMultiplier) || 1) / 10;
       const boostedHp  = Math.max(1, Math.round(size   * hpMult  * incMult));
       const boostedAtk = Math.max(1, Math.round(weight * atkMult * incMult));
       return { hp: boostedHp, atk: boostedAtk };
+    }
+
+    function getTeamFishStats(size, weight, teamStatsOverride = null) {
+      const stats = teamStatsOverride || teamStats;
+      const hpMult  = 1 + ((stats.sizeBonus || 0)   / 10);
+      const atkMult = 1 + ((Number(stats.weightBonus) || 0) / 10);
+      const incMult = (Number(stats.incomeMultiplier) || 1) / 10;
+      const baseHp    = Math.max(1, Math.round(size));
+      const boostedHp = Math.max(1, Math.round(size * hpMult * incMult));
+      const baseAtk   = Math.max(1, Math.round(weight));
+      const boostedAtk= Math.max(1, Math.round(weight * atkMult * incMult));
+      return { baseHp, boostedHp, baseAtk, boostedAtk };
     }
 
     /**
@@ -708,10 +749,10 @@
 
       const selectedFish = getSelectedFish();
       const teamHtml = selectedFish.length > 0 ? selectedFish.map((f, i) => {
-        const boosted = applyTeamBoostsToFishStats(f.size, f.weight);
+        const stats = getTeamFishStats(Number(f.size)||0, Number(f.weight)||0);
         return `<div class="enemy-fish-row">
           <div class="enemy-fish-row-name" style="color:${RARITY_COLOR[f.rarity]||"#fff"}">Slot ${i+1}: ${f.type}</div>
-          <div class="enemy-fish-row-stats">Size: ${f.size} → HP: ${boosted.hp} &nbsp;|&nbsp; Weight: ${f.weight} → ATK: ${boosted.atk} &nbsp;|&nbsp; ${rarityLabel(f.rarity)}</div>
+          <div class="enemy-fish-row-stats">HP ${stats.baseHp} → ${stats.boostedHp} &nbsp;|&nbsp; ATK ${stats.baseAtk} → ${stats.boostedAtk} &nbsp;|&nbsp; ${rarityLabel(f.rarity)}</div>
         </div>`;
       }).join("") : '<div style="color:#8db4c8; font-size:12px;">Select 3 fish above to see your team</div>';
 
@@ -873,10 +914,10 @@
           uid: `queue-${i}-${Date.now()}`,
           type: f.type || f.name || `Enemy Fish ${i+1}`,
           rarity: f.rarity || "common",
-          size: Math.max(1, Math.round(Number(f.size) || 1)),
-          weight: Math.max(1, Math.round(Number(f.weight) || 1)),
-          sizeRaw: Math.max(1, Math.round(Number(f.sizeRaw || f.size) || 1)),
-          weightRaw: Math.max(1, Math.round(Number(f.weightRaw || f.weight) || 1)),
+          size: Math.max(1, Number(f.size) || 1),
+          weight: Math.max(1, Number(f.weight) || 1),
+          sizeRaw: Math.max(1, Number(f.sizeRaw || f.size) || 1),
+          weightRaw: Math.max(1, Number(f.weightRaw || f.weight) || 1),
           currentValue: 0,
           basePrice: 0,
           price: 0
@@ -890,6 +931,7 @@
       setQueueStatus(`Match found vs ${opponentName}. Start Battle!`);
       setBattleSpeedLock(true);
       setQueueJoinedState(false);
+      renderSelectedSlots(); // Display Supabase team
       renderEnemyCharacterTeam();
       renderSummary();
       if (!isBattleAnimating && getSelectedFish().length === 3) {
@@ -998,6 +1040,11 @@
         console.log('[DEBUG] No queue auth user id');
         return;
       }
+      
+      // Load team from Supabase for queue
+      console.log('[DEBUG] Loading team from Supabase for queue');
+      await loadPlayerTeamFromSupabase();
+      
       const playerName = getPlayerNameOrDefault();
       const payload = buildBattlePayload();
       console.log('[DEBUG] Payload:', payload ? {lineup: payload.lineup?.length} : 'null');
@@ -1095,6 +1142,7 @@
     let battleTimerId      = null;
     let battleTickRescheduler = null;
     let importedBattle     = null;
+    let supabasePlayerTeam = null; // Store player's Supabase team for display
     let battleSpeedMultiplier = 2;
     let battleTier = Math.max(1, Number(localStorage.getItem(BATTLE_TIER_KEY)) || 1);
     let autoBattleActive = false;
@@ -1212,6 +1260,77 @@
     function saveSelection() { localStorage.setItem(BATTLE_SELECTION_KEY, JSON.stringify(selectedFishUids)); }
     function getSelectedFish() { return selectedFishUids.map(uid=>inventory.find(f=>f.uid===uid)).filter(Boolean); }
 
+    async function loadPlayerTeamFromSupabase() {
+      try {
+        if (!db) {
+          console.log('[DEBUG] Supabase not configured, using localStorage selection');
+          return;
+        }
+        
+        const playerId = getPlayerIdOrNull();
+        if (!playerId) {
+          console.log('[DEBUG] No player ID, using localStorage selection');
+          return;
+        }
+        
+        console.log('[DEBUG] Fetching team from Supabase for player:', playerId);
+        const { data, error } = await db
+          .from('profiles')
+          .select('fish_team, team_stats')
+          .eq('player_id', playerId)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('[DEBUG] Supabase fetch error:', error);
+          return;
+        }
+        
+        if (!data || !data.fish_team || !Array.isArray(data.fish_team)) {
+          console.log('[DEBUG] No team found in Supabase, using localStorage selection');
+          return;
+        }
+        
+        console.log('[DEBUG] Team fetched from Supabase:', data.fish_team.length, 'fish');
+        
+        // Convert Supabase team data to inventory format
+        const supabaseTeamFish = data.fish_team.map(f => ({
+          uid: f.uid || `fish-${Date.now()}-${Math.random().toString(36).slice(2,10)}`,
+          type: f.type || "Fish",
+          rarity: f.rarity || "common",
+          size: Number(f.size) || 0,
+          weight: Number(f.weight) || 0,
+          price: 0,
+          basePrice: 0,
+          currentValue: 0,
+          priceReductionVersion: 1,
+          storageState: "team",
+          spoiled: false
+        }));
+        
+        // Store Supabase team for display in queue mode
+        supabasePlayerTeam = supabaseTeamFish;
+        
+        // Replace inventory with Supabase team fish
+        inventory = supabaseTeamFish;
+        selectedFishUids = supabaseTeamFish.map(f => f.uid).slice(0, 3);
+        
+        // Load team stats from Supabase if available
+        if (data.team_stats) {
+          teamStats = {
+            sizeBonus: Number(data.team_stats.sizeBonus) || 0,
+            weightBonus: Number(data.team_stats.weightBonus) || 0,
+            incomeMultiplier: Number(data.team_stats.incomeMultiplier) || 1,
+            fishingSpeed: Number(data.team_stats.fishingSpeed) || 1
+          };
+          console.log('[DEBUG] Team stats loaded from Supabase:', teamStats);
+        }
+        
+        console.log('[DEBUG] Team loaded from Supabase successfully');
+      } catch (e) {
+        console.error('[DEBUG] Error loading team from Supabase:', e);
+      }
+    }
+
     function normalizeSelectedFishUids() {
       const valid=new Set(inventory.map(f=>f.uid)), deduped=[];
       for(const uid of selectedFishUids){ if(!valid.has(uid)||deduped.includes(uid)) continue; deduped.push(uid); }
@@ -1232,18 +1351,26 @@
     }
     function buildBattlePayload() {
       const f=getSelectedFish(); if(f.length!==3) return null;
+      console.log('[DEBUG][PVP] buildBattlePayload selected fish:', f.map(x => ({
+        uid: x.uid,
+        type: x.type,
+        size: x.size,
+        weight: x.weight,
+        rarity: x.rarity
+      })));
+      console.log('[DEBUG][PVP] buildBattlePayload teamStats:', teamStats);
       const lineup = f.map(x=>{
         const boosted = applyTeamBoostsToFishStats(
-          Math.max(1,Math.round(Number(x.size)||1)),
-          Math.max(1,Math.round(Number(x.weight)||1))
+          Math.max(1, Number(x.size) || 1),
+          Math.max(1, Number(x.weight) || 1)
         );
         return {
           name:   x.type||"Fish",
           rarity: x.rarity||"common",
           size:   boosted.hp,
           weight: boosted.atk,
-          sizeRaw:   Math.max(1,Math.round(Number(x.size)||1)),
-          weightRaw: Math.max(1,Math.round(Number(x.weight)||1))
+          sizeRaw:   Math.max(1, Number(x.size) || 1),
+          weightRaw: Math.max(1, Number(x.weight) || 1)
         };
       });
       const teamChars = loadPlayerCharacterTeam();
@@ -1268,10 +1395,10 @@
         uid:`import-${i}-${Date.now()}`,
         type:typeof e?.name==="string"&&e.name.trim()?e.name.trim():`Enemy ${i+1}`,
         rarity:typeof e?.rarity==="string"?e.rarity:"common",
-        size:   Math.max(1,Math.round(Number(e?.size)||1)),
-        weight: Math.max(1,Math.round(Number(e?.weight)||1)),
-        sizeRaw: Math.max(1,Math.round(Number(e?.sizeRaw||e?.size)||1)),
-        weightRaw: Math.max(1,Math.round(Number(e?.weightRaw||e?.weight)||1)),
+        size:   Math.max(1, Number(e?.size) || 1),
+        weight: Math.max(1, Number(e?.weight) || 1),
+        sizeRaw: Math.max(1, Number(e?.sizeRaw||e?.size) || 1),
+        weightRaw: Math.max(1, Number(e?.weightRaw||e?.weight) || 1),
         currentValue:0, basePrice:0, price:0
       }));
       const exportedTeamStats = p.teamStats || null;
@@ -1313,17 +1440,27 @@
 
     function renderSelectedSlots() {
       if (!selectedSlots) return;
-      const fish=getSelectedFish(); selectedSlots.innerHTML="";
+      
+      // If in queue match, show Supabase team; otherwise show local team
+      let fish;
+      if (importedBattle && importedBattle.source === "queue" && supabasePlayerTeam) {
+        console.log('[DEBUG] Displaying Supabase team in Fish Team section');
+        fish = supabasePlayerTeam.slice(0, 3);
+      } else {
+        fish = getSelectedFish();
+      }
+      
+      selectedSlots.innerHTML = "";
       for(let i=0;i<3;i++){
         const f=fish[i], slot=document.createElement("div");
         slot.className="slot-card";
         if(f){
           slot.classList.add(`rarity-${f.rarity}`,"selected-highlight");
-          const boosted = applyTeamBoostsToFishStats(f.size, f.weight);
+          const stats = getTeamFishStats(Number(f.size)||0, Number(f.weight)||0);
           slot.innerHTML=`
             <div class="slot-label">Fish ${i+1}</div>
             <div class="slot-name" style="color:${getRarityColor(f.rarity)}">${f.type}</div>
-            <div class="slot-meta">${fishDescriptors(f)}<br>Rarity: ${rarityLabel(f.rarity)}<br>Size: ${f.size} cm → <strong style="color:#7ee787">${boosted.hp} HP</strong><br>Weight: ${f.weight} kg → <strong style="color:#ffa657">${boosted.atk} ATK</strong></div>`;
+            <div class="slot-meta">${fishDescriptors(f)}<br>Rarity: ${rarityLabel(f.rarity)}<br>HP ${stats.baseHp} → <strong style="color:#7ee787">${stats.boostedHp}</strong><br>ATK ${stats.baseAtk} → <strong style="color:#ffa657">${stats.boostedAtk}</strong></div>`;
         } else {
           slot.innerHTML=`<div class="slot-label">Fish ${i+1}</div><div class="slot-empty">Empty slot</div><div class="slot-meta">Choose a fish from your collection.</div>`;
         }
@@ -1355,8 +1492,8 @@
     }
 
     function createBattleantFromFish(fish, teamLabel, index, applyTeamBonus) {
-      const rawHp  = Math.max(1, Math.round(Number(fish.size)   || 1));
-      const rawAtk = Math.max(1, Math.round(Number(fish.weight) || 1));
+      const rawHp  = Math.max(1, Number(fish.size)   || 1);
+      const rawAtk = Math.max(1, Number(fish.weight) || 1);
       let finalHp  = rawHp, finalAtk = rawAtk;
       if (applyTeamBonus) {
         const teamStatsForBoost = teamLabel === "enemy" ? importedBattle?.teamStats : null;
@@ -1454,7 +1591,7 @@
         const card=document.createElement("div");
         card.className=`fish-card rarity-${fish.rarity}`;
         if(isSelected(fish.uid)) card.classList.add("selected-highlight");
-        const boosted = applyTeamBoostsToFishStats(fish.size, fish.weight);
+        const stats = getTeamFishStats(Number(fish.size)||0, Number(fish.weight)||0);
         card.innerHTML=`
           <div class="fish-header">
             <div>
@@ -1463,7 +1600,7 @@
             </div>
             <div class="count-pill">${getFishValue(fish)} value</div>
           </div>
-          <div class="fish-meta">${fishDescriptors(fish)}<br>Rarity: ${rarityLabel(fish.rarity)}<br>Size: ${fish.size} cm → <span style="color:#7ee787">${boosted.hp} HP</span><br>Weight: ${fish.weight} kg → <span style="color:#ffa657">${boosted.atk} ATK</span></div>
+          <div class="fish-meta">${fishDescriptors(fish)}<br>Rarity: ${rarityLabel(fish.rarity)}<br>HP ${stats.baseHp} → <span style="color:#7ee787">${stats.boostedHp}</span><br>ATK ${stats.baseAtk} → <span style="color:#ffa657">${stats.boostedAtk}</span></div>
           <button class="btn ${isSelected(fish.uid)?"btn-danger":""}" type="button" data-toggle="${fish.uid}">${isSelected(fish.uid)?"Remove":"Select"}</button>`;
         collectionList.appendChild(card);
       });
@@ -1535,10 +1672,13 @@
 
     function loadPlayerCharacterTeam() {
       try {
+        console.log('[DEBUG][PVP] loadPlayerCharacterTeam() raw clicker_teamState:', localStorage.getItem('clicker_teamState'));
+        console.log('[DEBUG][PVP] loadPlayerCharacterTeam() raw clicker_teamRoster:', localStorage.getItem('clicker_teamRoster'));
         const stateRaw=localStorage.getItem("clicker_teamState");
         if(stateRaw){
           const state=JSON.parse(stateRaw);
           if(state&&Array.isArray(state.teamChars)){
+            console.log('[DEBUG][PVP] loadPlayerCharacterTeam() using clicker_teamState teamChars:', state.teamChars);
             return state.teamChars.filter(c=>c&&c.teamSlot!=null).sort((a,b)=>Number(a.teamSlot)-Number(b.teamSlot));
           }
         }
@@ -1546,12 +1686,14 @@
         if(rosterRaw){
           const roster=JSON.parse(rosterRaw);
           if(roster&&Array.isArray(roster.slots)){
+            console.log('[DEBUG][PVP] loadPlayerCharacterTeam() using clicker_teamRoster slots:', roster.slots);
             return roster.slots.filter(c=>c&&c.slot!=null).map(c=>({...(getCharacterFromPool(c.templateId||c.id)||{}),...c,teamSlot:c.slot,level:c.level||1})).sort((a,b)=>Number(a.teamSlot)-Number(b.teamSlot));
           }
         }
         const raw=localStorage.getItem(CHARACTER_RESERVE_KEY);
         if(!raw) return [];
         const reserve=JSON.parse(raw);
+        console.log('[DEBUG][PVP] loadPlayerCharacterTeam() fallback reserve size:', Array.isArray(reserve)?reserve.length:0);
         return reserve.filter(c=>c.teamSlot!=null).sort((a,b)=>a.teamSlot-b.teamSlot);
       } catch(e){ return []; }
     }
@@ -1687,7 +1829,7 @@
     }
 
     function render() {
-      const fresh=loadTeamStats(); if(fresh) teamStats=fresh;
+      syncCurrentLocalTeam('render');
       updateTeamHud(); renderTierInfoBar();
       renderSelectedSlots(); renderSummary(); renderCollection(); renderSortButtons();
       renderPlayerCharacterTeam(); renderEnemyCharacterTeam();
@@ -1776,6 +1918,7 @@
 
     startBattleButton.addEventListener("click",()=>{
       console.log('[DEBUG] Start Battle clicked');
+      syncCurrentLocalTeam('start-battle');
       const fish=getSelectedFish();
       console.log('[DEBUG] Selected fish:', fish.length, fish.map(f => f.type));
       if(fish.length!==3){ setDetailMessage("You need 3 fish selected before starting battle."); console.log('[DEBUG] Not 3 fish'); return; }
@@ -1786,6 +1929,10 @@
       const isCustom=Boolean(importedBattle), isQueueBattle=Boolean(importedBattle&&importedBattle.source==="queue"), currentTier=battleTier, reward=getTierReward(currentTier);
       const allies=fish.map((f,i)=>createBattleantFromFish(f,"ally",i,true));
       console.log('[DEBUG] Battle type:', {isCustom, isQueueBattle, currentTier});
+      console.log('[DEBUG] Battle snapshot:', {
+        teamStats,
+        selectedFish: fish.map(f => ({ uid: f.uid, type: f.type, size: f.size, weight: f.weight, rarity: f.rarity }))
+      });
 
       let enemies;
       if(importedBattle){
@@ -1796,9 +1943,9 @@
           id:`enemy-import-${i}-${Date.now()}`,
           name:f.type||`Enemy ${i+1}`,
           rarity:f.rarity||"common",
-          maxHp: Math.max(1, Math.round((Number(f.sizeRaw||f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) * 0.005) * enemyIncomeMult)),
-          hp:    Math.max(1, Math.round((Number(f.sizeRaw||f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) * 0.005) * enemyIncomeMult)),
-          attack: Math.max(1, Math.round((Number(f.weightRaw||f.weight)||1) * (1 + Number(enemyStats.weightBonus||0) * 0.005) * enemyIncomeMult)),
+          maxHp: Math.max(1, Math.round((Number(f.sizeRaw||f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) / 10) * enemyIncomeMult)),
+          hp:    Math.max(1, Math.round((Number(f.sizeRaw||f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) / 10) * enemyIncomeMult)),
+          attack: Math.max(1, Math.round((Number(f.weightRaw||f.weight)||1) * (1 + Number(enemyStats.weightBonus||0) / 10) * enemyIncomeMult)),
           alive:true,
           descriptor:fishDescriptors(f)
         }));

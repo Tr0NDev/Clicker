@@ -640,6 +640,29 @@
 
     function getPlayerTeamStats() {
       try {
+        const playerChars = getPlayerCharTeam();
+        if (Array.isArray(playerChars) && playerChars.length > 0) {
+          let incomeMultiplier = 1;
+          let clickMultiplier = 1;
+          let sizeBonus = 0;
+          let weightBonus = 0;
+          let chanceBonus = 0;
+          let resaleBonus = 0;
+          let fishingSpeed = 1;
+
+          playerChars.forEach((char) => {
+            incomeMultiplier *= Number(char.incomeMultiplier || 1);
+            clickMultiplier *= Number(char.clickMultiplier || 1);
+            sizeBonus += Number(char.sizeAdd || 0);
+            weightBonus += Number(char.weightAdd || 0);
+            chanceBonus += Number(char.chanceAdd || 0);
+            resaleBonus += Number(char.resaleAdd || 0);
+            fishingSpeed *= Number(char.fishingSpeed || 1);
+          });
+
+          return { incomeMultiplier, clickMultiplier, sizeBonus, weightBonus, chanceBonus, resaleBonus, fishingSpeed };
+        }
+
         const stateRaw = localStorage.getItem(TEAM_STATE_KEY);
         if (!stateRaw) return null;
         const state = JSON.parse(stateRaw);
@@ -715,9 +738,9 @@
 
     function getBoostedFishStats(size, weight) {
       const teamStats = getPlayerTeamStats() || {};
-      const hpMult = 1 + (Number(teamStats.sizeBonus) || 0) * 0.005;
-      const atkMult = 1 + (Number(teamStats.weightBonus) || 0) * 0.005;
-      const incMult = Number(teamStats.incomeMultiplier) || 1;
+      const hpMult = 1 + ((Number(teamStats.sizeBonus) || 0) / 10);
+      const atkMult = 1 + ((Number(teamStats.weightBonus) || 0) / 10);
+      const incMult = (Number(teamStats.incomeMultiplier) || 1) / 10;
       return {
         hp: Math.max(1, Math.round((Number(size) || 0) * hpMult * incMult)),
         atk: Math.max(1, Math.round((Number(weight) || 0) * atkMult * incMult))
@@ -733,9 +756,9 @@
       const boostedStats = getBoostedFishStats(size, weight);
       const statsHtml = boostedStats
         ? showArrows
-          ? `<div class="fish-slot-stats">
-              <span class="fish-slot-stat">Size: ${size.toFixed(1)} cm → HP ${boostedStats.hp}</span>
-              <span class="fish-slot-stat">Weight: ${weight.toFixed(2)} kg → ATK ${boostedStats.atk}</span>
+            ? `<div class="fish-slot-stats">
+              <span class="fish-slot-stat">HP ${size.toFixed(1)} → ${boostedStats.hp}</span>
+              <span class="fish-slot-stat">ATK ${weight.toFixed(2)} → ${boostedStats.atk}</span>
              </div>`
           : `<div class="fish-slot-stats">
               <span class="fish-slot-stat">HP ${boostedStats.hp}</span>
@@ -962,8 +985,9 @@
       const countEl = document.getElementById("guildOnlineCount");
       if (!indicator || !countEl) return;
 
+      const pid = getPlayerId();
       const membership = getMembership();
-      if (!db || !membership || !membership.guildId) {
+      if (!pid || !db || !membership || !membership.guildId) {
         indicator.classList.add("hidden");
         return;
       }
@@ -1063,89 +1087,95 @@
 
     // ── RENDER PLAYER PROFILE ────────────────────────────────────────────────
     function renderPlayerProfile() {
-      if (!playerProfile) {
-        document.getElementById("rightCol").innerHTML = `<div class="section"><div class="empty-state">Loading profile…</div></div>`;
-        return;
-      }
-
-      viewingProfileId = playerProfile.player_id;
-      const myFish = getPlayerFishTeam();
-      const myChars = getPlayerCharTeam();
-      const myScore = computePlayerScore(myFish, myChars);
-
-      // Initialize viewingProfileData for your own profile
-      viewingProfileData = {
-        player_id: playerProfile.player_id,
-        display_name: playerProfile.display_name || "Player",
-        fish_team: myFish,
-        char_team: myChars
-      };
-
-      const rarityColors = { common: "#c0c0c0", uncommon: "#7ee787", rare: "#58a6ff", epic: "#d2a8ff", legendary: "#ffa657", mythic: "#ff5e5e" };
-      const starColors = { 1: "#c0c0c0", 2: "#7ee787", 3: "#58a6ff", 4: "#d2a8ff", 5: "#ffa657" };
-      const rarityBgs = { common: "#4a5a5a", uncommon: "#2a5a2a", rare: "#1a3a7a", epic: "#4a2a7a", legendary: "#7a4a10", mythic: "#5a1515" };
-      const starBgs = { 1: "#4a5a5a", 2: "#2a5a2a", 3: "#1a3a7a", 4: "#4a2a7a", 5: "#7a4a10" };
-
-      const fishHtml = myFish.length > 0
-        ? myFish.map(f => {
-            const rarity = f.rarity || "common";
-            const color = rarityColors[rarity] || "#c0c0c0";
-            const borderColor = rarityBgs[rarity] || "#4a5a5a";
-            return `
-            <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
-              <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
-              <div style="font-size:11px;color:#8dc4e0">Size: ${Number(f.size).toFixed(1)} cm</div>
-              <div style="font-size:11px;color:#8dc4e0">Weight: ${Number(f.weight).toFixed(2)} kg</div>
-              <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
-            </div>`;
-          }).join("")
-        : '<div style="padding:16px;text-align:center;color:#6a8a9a">No fish team</div>';
-
-      const charHtml = myChars.length > 0
-        ? myChars.map(c => {
-            const stars = Math.min(5, Math.max(1, c.stars || c.level || 1));
-            const starsStr = "★".repeat(stars) + "☆".repeat(5 - stars);
-            const name = escHtml((c.name || "?").slice(0, 14));
-            const color = starColors[stars];
-            const borderColor = starBgs[stars];
-            return `
-            <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
-              <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${name}</div>
-              <div style="font-size:11px;color:${color};font-weight:bold">${starsStr}</div>
-              ${(c.talents || []).length > 0 ? `<div style="font-size:10px;color:#e8c060;margin-top:4px">${(c.talents || []).slice(0,2).join(", ")}</div>` : ""}
-            </div>`;
-          }).join("")
-        : '<div style="padding:16px;text-align:center;color:#6a8a9a">No characters</div>';
-
-      const profileHtml = `
-        <div class="section anim-in">
-          <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #1e3040">
-            <div style="font-size:16px;font-weight:bold;color:#e8c060">Your Profile</div>
-            <div style="font-size:12px;color:#6a8a9a;margin-top:6px">ID: ${escHtml(getPlayerId().slice(-8))}</div>
-          </div>
-
-          <div style="margin-bottom:14px">
-            <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Fish Team</div>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${fishHtml}</div>
-          </div>
-
-          <div style="margin-bottom:14px;border-top:1px solid #1e3040;padding-top:14px">
-            <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Character Team</div>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${charHtml}</div>
-          </div>
-
-          <div style="text-align:center;padding-top:12px;border-top:1px solid #1e3040">
-            <div style="font-size:12px;color:#8dc4e0;margin-bottom:12px">Score: <b style="color:#e8c060;font-size:16px">${fmtNum(myScore)}</b></div>
-          </div>
-        </div>`;
-
-      document.getElementById("rightCol").innerHTML = profileHtml;
+      const pid = getPlayerId();
+      if (!pid) return;
+      viewMemberProfile(pid).catch(console.error);
     }
 
     // ── VIEW OTHER MEMBER PROFILE ─────────────────────────────────────────────
     async function viewMemberProfile(memberId) {
       if (!db) {
-        renderPlayerProfile();
+        const localPlayerId = getPlayerId();
+        if (memberId !== localPlayerId) {
+          renderPlayerProfile();
+          return;
+        }
+
+        const displayName = localStorage.getItem("clicker_username") || "Player";
+        const guildName = "—";
+        const fish_team = getPlayerFishTeam();
+        const char_team = getPlayerCharTeam();
+
+        viewingProfileId = memberId;
+        viewingProfileData = {
+          player_id: memberId,
+          display_name: displayName,
+          fish_team,
+          char_team
+        };
+
+        let score = computePlayerScore(fish_team, char_team);
+        const rarityColors = { common: "#c0c0c0", uncommon: "#7ee787", rare: "#58a6ff", epic: "#d2a8ff", legendary: "#ffa657", mythic: "#ff5e5e" };
+        const starColors = { 1: "#c0c0c0", 2: "#7ee787", 3: "#58a6ff", 4: "#d2a8ff", 5: "#ffa657" };
+        const rarityBgs = { common: "#4a5a5a", uncommon: "#2a5a2a", rare: "#1a3a7a", epic: "#4a2a7a", legendary: "#7a4a10", mythic: "#5a1515" };
+        const starBgs = { 1: "#4a5a5a", 2: "#2a5a2a", 3: "#1a3a7a", 4: "#4a2a7a", 5: "#7a4a10" };
+
+        const fishHtml = fish_team.length > 0
+          ? fish_team.map(f => {
+              const rarity = f.rarity || "common";
+              const color = rarityColors[rarity] || "#c0c0c0";
+              const borderColor = rarityBgs[rarity] || "#4a5a5a";
+              const boostedStats = getBoostedFishStats(Number(f.size), Number(f.weight));
+              return `
+              <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
+                <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
+                <div style="font-size:11px;color:#8dc4e0">HP ${Number(f.size).toFixed(1)} → ${boostedStats.hp}</div>
+                <div style="font-size:11px;color:#8dc4e0">ATK ${Number(f.weight).toFixed(2)} → ${boostedStats.atk}</div>
+                <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
+              </div>`;
+            }).join("")
+          : '<div style="padding:16px;text-align:center;color:#6a8a9a">No fish team</div>';
+
+        const charHtml = char_team.length > 0
+          ? char_team.map(c => {
+              const stars = Math.min(5, Math.max(1, c.stars || 1));
+              const starsStr = "★".repeat(stars) + "☆".repeat(5 - stars);
+              const name = escHtml((c.name || "?").slice(0, 14));
+              const color = starColors[stars];
+              const borderColor = starBgs[stars];
+              return `
+              <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
+                <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${name}</div>
+                <div style="font-size:11px;color:${color};font-weight:bold">${starsStr}</div>
+                ${(c.talents || []).length > 0 ? `<div style="font-size:10px;color:#e8c060;margin-top:4px">${(c.talents || []).slice(0,2).join(", ")}</div>` : ""}
+              </div>`;
+            }).join("")
+          : '<div style="padding:16px;text-align:center;color:#6a8a9a">No characters</div>';
+
+        const profileHtml = `
+          <div class="section anim-in">
+            <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #1e3040">
+              <div style="font-size:16px;font-weight:bold;color:#e8c060">${escHtml(displayName)} (You)</div>
+              <div style="font-size:12px;color:#6a8a9a;margin-top:6px">ID: ${escHtml(memberId.slice(-8))}</div>
+              <div style="font-size:12px;color:#8dc4e0;margin-top:4px">Guild: <b>${escHtml(guildName)}</b></div>
+            </div>
+
+            <div style="margin-bottom:14px">
+              <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Character Team</div>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${charHtml}</div>
+            </div>
+
+            <div style="margin-bottom:14px;border-top:1px solid #1e3040;padding-top:14px">
+              <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Fish Team</div>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${fishHtml}</div>
+            </div>
+
+            <div style="text-align:center;padding-top:12px;border-top:1px solid #1e3040">
+              <div style="font-size:12px;color:#8dc4e0;margin-bottom:12px">Score: <b style="color:#e8c060;font-size:16px">${fmtNum(score)}</b></div>
+            </div>
+          </div>`;
+
+        document.getElementById("rightCol").innerHTML = profileHtml;
         return;
       }
 
@@ -1220,8 +1250,8 @@
             return `
             <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
               <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
-              <div style="font-size:11px;color:#8dc4e0">Size: ${Number(f.size).toFixed(1)} cm → HP ${boostedStats.hp}</div>
-              <div style="font-size:11px;color:#8dc4e0">Weight: ${Number(f.weight).toFixed(2)} kg → ATK ${boostedStats.atk}</div>
+              <div style="font-size:11px;color:#8dc4e0">HP ${Number(f.size).toFixed(1)} → ${boostedStats.hp}</div>
+              <div style="font-size:11px;color:#8dc4e0">ATK ${Number(f.weight).toFixed(2)} → ${boostedStats.atk}</div>
               <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
             </div>`;
           }).join("")

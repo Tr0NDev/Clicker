@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Team - Clicker</title>
+  <script defer src="../guild-badge.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -688,7 +689,7 @@
       line-height: 1.35;
       min-width: 220px;
       max-width: 320px;
-      white-space: normal;
+      white-space: pre-line;
       box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
       pointer-events: none;
       opacity: 0;
@@ -702,6 +703,12 @@
       opacity: 1;
       visibility: visible;
       transform: translateX(-50%) translateY(0);
+    }
+
+    .stat-label-with-help {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .modal-talent-value {
@@ -1232,6 +1239,20 @@
       font-weight: bold;
     }
 
+    .notification-title {
+      font-size: 18px;
+      color: #f2fbff;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .notification-text {
+      color: #cde3ef;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
     .fusion-preview {
       margin-bottom: 10px;
       padding: 9px;
@@ -1343,7 +1364,9 @@
   </div>
 
   <div class="shell">
-    <h1>Team</h1>
+    <h1 style="display:flex; align-items:center; gap:8px;">Team <span class="talent-help" tabindex="0" data-tooltip="Formula
+  HP = round(size × (1 + sizeBonus/10) × incomeMultiplier/10)
+  ATK = round(weight × (1 + weightBonus/10) × incomeMultiplier/10)">?</span></h1>
 
     <!-- Top section: Selected Fish (left) + Selected Characters (right) -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; max-width: 1080px; margin-left: auto; margin-right: auto;">
@@ -1486,6 +1509,16 @@
       <div class="sell-confirm-actions">
         <button class="sell-confirm-btn" id="sellCancelBtn" type="button">Annuler</button>
         <button class="sell-confirm-btn primary" id="sellConfirmBtn" type="button">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="notificationModal" class="sell-confirm-modal">
+    <div class="sell-confirm-card">
+      <div class="notification-title">Notification</div>
+      <div class="notification-text" id="notificationText"></div>
+      <div class="sell-confirm-actions">
+        <button class="sell-confirm-btn primary" id="notificationOkBtn" type="button">OK</button>
       </div>
     </div>
   </div>
@@ -1698,15 +1731,42 @@
       return localStorage.getItem('clicker_userId') || null;
     }
 
+    function showNotificationModal(message, title = "Notification") {
+      const modal = document.getElementById('notificationModal');
+      const textEl = document.getElementById('notificationText');
+      const titleEl = modal.querySelector('.notification-title');
+      const okBtn = document.getElementById('notificationOkBtn');
+      
+      titleEl.textContent = title;
+      textEl.textContent = message;
+      modal.classList.add('visible');
+      
+      const closeModal = () => {
+        modal.classList.remove('visible');
+        okBtn.removeEventListener('click', closeModal);
+      };
+      
+      okBtn.addEventListener('click', closeModal);
+    }
+
     function getPlayerFishTeam() {
       const selectedFishUids = getSelectedFish();
-      return selectedFishUids.map(fish => ({
-        uid: fish.uid,
-        type: fish.type,
-        rarity: fish.rarity,
-        size: Number(fish.size) || 0,
-        weight: Number(fish.weight) || 0
-      }));
+      console.log("🐟 UIDs sélectionnés:", selectedFishUids.map(f => f.uid));
+      console.log("📦 Inventaire poissons:", fishInventory.length, "poissons");
+      
+      const teamFish = selectedFishUids.map(fish => {
+        console.log("🐟 Poisson trouvé:", fish.type, "size:", fish.size, "weight:", fish.weight);
+        return {
+          uid: fish.uid,
+          type: fish.type,
+          rarity: fish.rarity,
+          size: Number(fish.size) || 0,
+          weight: Number(fish.weight) || 0
+        };
+      });
+      
+      console.log("✅ Team poissons préparée:", teamFish);
+      return teamFish;
     }
 
     function getPlayerCharTeam() {
@@ -1742,14 +1802,14 @@
       const saveBtn = document.getElementById('saveTeamBtn');
       if (!db) {
         console.error("Supabase not configured");
-        alert("❌ Erreur: Supabase non configuré");
+        showNotificationModal("❌ Erreur: Supabase non configuré", "Erreur de configuration");
         return;
       }
 
       const pid = getPlayerId();
       if (!pid) {
         console.error("No user ID found");
-        alert("❌ Erreur: Pas d'ID utilisateur trouvé");
+        showNotificationModal("❌ Erreur: Pas d'ID utilisateur trouvé", "Erreur d'identification");
         return;
       }
 
@@ -1772,24 +1832,56 @@
 
       try {
         console.log("💾 Envoi des données à Supabase:", teamData);
-        
-        const { error: updateErr } = await db.from("profiles").update({
-          fish_team: teamData.fish_team,
-          char_team: teamData.char_team,
-          updated_at: teamData.updated_at
-        }).eq("player_id", pid);
+        const { data: existingProfile, error: fetchErr } = await db
+          .from("profiles")
+          .select("id, player_id, display_name")
+          .eq("player_id", pid)
+          .maybeSingle();
 
-        if (updateErr) {
-          console.error("❌ Erreur lors de la sauvegarde:", updateErr.message);
+        if (fetchErr) {
+          console.error("❌ Erreur lors de la vérification du profil:", fetchErr.message);
           saveBtn.textContent = "Save Team";
           saveBtn.disabled = false;
-          alert("❌ Erreur lors de la sauvegarde: " + updateErr.message);
+          showNotificationModal("❌ Erreur lors de la sauvegarde: " + fetchErr.message, "Erreur de sauvegarde");
           return;
+        }
+
+        if (existingProfile) {
+          const { error: updateErr } = await db.from("profiles").update({
+            fish_team: teamData.fish_team,
+            char_team: teamData.char_team,
+            updated_at: teamData.updated_at
+          }).eq("player_id", pid);
+
+          if (updateErr) {
+            console.error("❌ Erreur lors de la sauvegarde:", updateErr.message);
+            saveBtn.textContent = "Save Team";
+            saveBtn.disabled = false;
+            showNotificationModal("❌ Erreur lors de la sauvegarde: " + updateErr.message, "Erreur de sauvegarde");
+            return;
+          }
+        } else {
+          const defaultName = localStorage.getItem("clicker_username") || "Player";
+          const { error: insertErr } = await db.from("profiles").insert({
+            player_id: pid,
+            display_name: defaultName,
+            fish_team: teamData.fish_team,
+            char_team: teamData.char_team,
+            updated_at: teamData.updated_at
+          });
+
+          if (insertErr) {
+            console.error("❌ Erreur lors de l'insertion du profil:", insertErr.message);
+            saveBtn.textContent = "Save Team";
+            saveBtn.disabled = false;
+            showNotificationModal("❌ Erreur lors de la sauvegarde: " + insertErr.message, "Erreur de sauvegarde");
+            return;
+          }
         }
 
         console.log("✅ Sauvegarde réussie!");
         saveBtn.textContent = "✓ Saved";
-        alert("✅ Profil sauvegardé avec succès!");
+        showNotificationModal("✅ Profil sauvegardé avec succès!", "Sauvegarde réussie");
         
         setTimeout(() => {
           saveBtn.textContent = "Save Team";
@@ -1799,7 +1891,7 @@
         console.error("❌ Exception lors de la sauvegarde:", err);
         saveBtn.textContent = "Save Team";
         saveBtn.disabled = false;
-        alert("❌ Erreur: " + err.message);
+        showNotificationModal("❌ Erreur: " + err.message, "Erreur de sauvegarde");
       }
     }
 
@@ -3211,7 +3303,14 @@
 
     function getSelectedFish() {
       const fishByUid = new Map(fishInventory.map((fish) => [fish.uid, fish]));
-      return selectedFishUids.map((uid) => fishByUid.get(uid)).filter(Boolean);
+      const selected = selectedFishUids.map((uid) => fishByUid.get(uid)).filter(Boolean);
+      console.log("🎯 Poissons sélectionnés:", selected.length, "sur", selectedFishUids.length, "UIDs");
+      if (selected.length !== selectedFishUids.length) {
+        console.warn("⚠️ Certains poissons sélectionnés ne sont pas dans l'inventaire!");
+        console.log("UIDs sélectionnés:", selectedFishUids);
+        console.log("UIDs dans inventaire:", Array.from(fishByUid.keys()));
+      }
+      return selected;
     }
 
     function normalizeSelectedFishUids() {
@@ -3301,15 +3400,16 @@
           const baseWeight = Number(fish.weight || 0);
           const baseChance = Number(fish.chance || 0);
           
-          const hpMult = 1 + (teamBonuses.sizeBonus * 0.005);
-          const atkMult = 1 + (teamBonuses.weightBonus * 0.005);
+          const hpMult = 1 + (teamBonuses.sizeBonus / 10);
+          const atkMult = 1 + (Number(teamBonuses.weightBonus) || 0) / 10;
           
-          const boostedHp = Math.max(1, Math.round(baseSize * hpMult * teamBonuses.incomeMultiplier));
-          const boostedAtk = Math.max(1, Math.round(baseWeight * atkMult * teamBonuses.incomeMultiplier));
+          const incomeMult = (Number(teamBonuses.incomeMultiplier) || 1) / 10;
+          const boostedHp = Math.max(1, Math.round(baseSize * hpMult * incomeMult));
+          const boostedAtk = Math.max(1, Math.round(baseWeight * atkMult * incomeMult));
           const boostedChance = Math.max(0, Math.round(baseChance + teamBonuses.chanceBonus));
           
-          const baseHp = Math.max(1, Math.round(baseSize * teamBonuses.incomeMultiplier));
-          const baseAtk = Math.max(1, Math.round(baseWeight * teamBonuses.incomeMultiplier));
+          const baseHp = Math.max(1, Math.round(baseSize));
+          const baseAtk = Math.max(1, Math.round(baseWeight));
           
           let statsHtml = '<div style="margin-top: 8px; display: grid; gap: 6px;">';
           if (baseHp > 0) {
@@ -3370,15 +3470,16 @@
         const baseWeight = Number(fish.weight || 0);
         const baseChance = Number(fish.chance || 0);
         
-        const hpMult = 1 + (teamBonuses.sizeBonus * 0.005);
-        const atkMult = 1 + (teamBonuses.weightBonus * 0.005);
+        const hpMult = 1 + (teamBonuses.sizeBonus / 10);
+        const atkMult = 1 + (Number(teamBonuses.weightBonus) || 0) / 10;
         
-        const boostedHp = Math.max(1, Math.round(baseSize * hpMult * teamBonuses.incomeMultiplier));
-        const boostedAtk = Math.max(1, Math.round(baseWeight * atkMult * teamBonuses.incomeMultiplier));
+        const incomeMult = (Number(teamBonuses.incomeMultiplier) || 1) / 10;
+        const boostedHp = Math.max(1, Math.round(baseSize * hpMult * incomeMult));
+        const boostedAtk = Math.max(1, Math.round(baseWeight * atkMult * incomeMult));
         const boostedChance = Math.max(0, Math.round(baseChance + teamBonuses.chanceBonus));
         
-        const baseHp = Math.max(1, Math.round(baseSize * teamBonuses.incomeMultiplier));
-        const baseAtk = Math.max(1, Math.round(baseWeight * teamBonuses.incomeMultiplier));
+        const baseHp = Math.max(1, Math.round(baseSize));
+        const baseAtk = Math.max(1, Math.round(baseWeight));
         
         let statsHtml = '';
         if (baseHp > 0 || baseAtk > 0) {
