@@ -779,6 +779,62 @@
       return "(" + tags.join(", ") + ")";
     }
 
+    const FISH_MUTATION_LABELS = {
+      frozen: "Frozen",
+      plasma: "Plasma",
+      venomous: "Venomous",
+      celestial: "Celestial",
+      abyssal: "Abyssal",
+      primal: "Primal"
+    };
+
+    const FISH_MUTATION_COLORS = {
+      frozen: "#4da6ff",      // Blue
+      plasma: "#ff6b35",      // Orange-red
+      venomous: "#7cb342",    // Green
+      celestial: "#ce93d8",   // Purple
+      abyssal: "#1a237e",     // Dark blue
+      primal: "#ff1744"       // Bright red
+    };
+
+    function getMutationColor(id) {
+      return FISH_MUTATION_COLORS[id] || "#888";
+    }
+
+    function normalizeFishMutations(mutations) {
+      if (!Array.isArray(mutations)) return [];
+      const seen = new Set();
+      return mutations
+        .map((id) => String(id || "").trim().toLowerCase())
+        .filter((id) => FISH_MUTATION_LABELS[id] && !seen.has(id) && seen.add(id));
+    }
+
+    function getFishMutationText(fish) {
+      const ids = normalizeFishMutations(fish && fish.mutations);
+      if (!ids.length) return "";
+      return ids.map((id) => FISH_MUTATION_LABELS[id]).join(", ");
+    }
+
+    function getFishMutationHtml(fish) {
+      const ids = normalizeFishMutations(fish && fish.mutations);
+      if (!ids.length) return "";
+      return ids.map((id) => {
+        const color = getMutationColor(id);
+        const label = FISH_MUTATION_LABELS[id];
+        return `<span style="display:inline-block;background:${color};color:white;padding:4px 10px;border-radius:20px;font-size:12px;margin:2px;font-weight:bold;">${label}</span>`;
+      }).join("");
+    }
+
+    function getFishMutationHtml(fish) {
+      const ids = normalizeFishMutations(fish && fish.mutations);
+      if (!ids.length) return "";
+      return ids.map((id) => {
+        const color = getMutationColor(id);
+        const label = FISH_MUTATION_LABELS[id];
+        return `<span style="display:inline-block;background:${color};color:white;padding:4px 10px;border-radius:20px;font-size:12px;margin:2px;font-weight:bold;">${label}</span>`;
+      }).join("");
+    }
+
     function rarityRank(rarity) {
       const ranks = {
         common: 1,
@@ -870,6 +926,7 @@
         rarity: fish && fish.rarity ? fish.rarity : "common",
         size: Number(fish && fish.size) || 0,
         weight: Number(fish && fish.weight) || 0,
+        mutations: normalizeFishMutations(fish && fish.mutations),
         basePrice: basePrice,
         currentValue: Number.isNaN(currentValue) ? basePrice : currentValue,
         spoiledValue: spoiledValue,
@@ -1039,6 +1096,10 @@
     }
 
     function shouldAutoSell(fish) {
+      // Never auto-sell fish with mutations
+      const hasMutations = Array.isArray(fish.mutations) && fish.mutations.length > 0;
+      if (hasMutations) return false;
+      
       const price = getFishValue(fish);
       const isUnderPrice = price <= autoSellMaxPrice;
       const isUnderRarity = rarityRank(fish.rarity) <= rarityRank(autoSellMaxRarity);
@@ -1117,6 +1178,7 @@
           "<div class='fish-detail-item'><div class='fish-detail-item-label'>Outings</div><div class='fish-detail-item-value'>" + (Math.max(0, Number(selectedFish.outCount) || 0)) + "</div></div>" +
           "<div class='fish-detail-item'><div class='fish-detail-item-label'>Out of fridge</div><div class='fish-detail-item-value'>" + getTotalOutSeconds(selectedFish, now).toFixed(1) + " s</div></div>" +
           "<div class='fish-detail-item'><div class='fish-detail-item-label'>Rarity</div><div class='fish-detail-item-value " + rarityClass + "'>" + rarityLabel(selectedFish.rarity || "common") + "</div></div>" +
+          "<div class='fish-detail-item'><div class='fish-detail-item-label'>Mutations</div><div class='fish-detail-item-value'>" + (getFishMutationHtml(selectedFish) || "None") + "</div></div>" +
           "<div class='fish-detail-item'><div class='fish-detail-item-label'>Size</div><div class='fish-detail-item-value'>" + (selectedFish.size || 0) + " cm</div></div>" +
           "<div class='fish-detail-item'><div class='fish-detail-item-label'>Weight</div><div class='fish-detail-item-value'>" + (selectedFish.weight || 0) + " kg</div></div>" +
           "<div class='fish-detail-item'><div class='fish-detail-item-label'>Value</div><div class='fish-detail-item-value'>" + getFishValue(selectedFish) + "</div></div>" +
@@ -1178,6 +1240,8 @@
         const originalIndex = inventory.indexOf(fish);
         const item = document.createElement("div");
         const descriptorText = fishDescriptors(fish);
+        const mutationText = getFishMutationText(fish);
+        const mutationHtml = getFishMutationHtml(fish);
         const fishValue = getFishValue(fish);
         const elapsedMs = getElapsedOutMs(fish, now);
         const durationMs = getCurrentOutDurationMs(fish);
@@ -1193,6 +1257,7 @@
         item.innerHTML =
           "<div class='fish-left'>" +
             "<div class='fish-title'>" + (fish.type || "Fish") + " " + descriptorText + "</div>" +
+            (mutationHtml ? "<div class='fish-meta' style='margin-top:6px;'><strong>" + mutationHtml + "</strong></div>" : "") +
             "<div class='fish-meta'>Rarity: <span class='rarity-" + (fish.rarity || "common") + "'>" + rarityLabel(fish.rarity || "common") + "</span> | Size: " + (fish.size || 0) + " cm | Weight: " + (fish.weight || 0) + " kg</div>" +
             "<div class='fish-state'>State: <span class='" + (fish.spoiled ? 'spoiled' : '') + "'>" + getFishStateLabel(fish) + "</span></div>" +
             "<div class='fish-state'>Outings: " + outCount + " | Out of fridge: " + totalOutSeconds + " s</div>" +

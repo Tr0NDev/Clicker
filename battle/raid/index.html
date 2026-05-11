@@ -630,6 +630,9 @@
     if (!fish || typeof fish !== 'object') return null;
     const type = String(fish.type || fish.name || 'Fish');
     const rarity = String(fish.rarity || 'common');
+    const mutations = Array.isArray(fish.mutations)
+      ? fish.mutations.map((id) => String(id || '').trim().toLowerCase()).filter(Boolean)
+      : [];
     const size = Math.max(1, Number(fish.size) || Number(fish.maxHp) || 1);
     const weight = Math.max(0.1, Number(fish.weight) || Number(fish.atk) || 1);
     const RARITY_MULTIPLIERS = { common: 1, uncommon: 1.35, rare: 1.9, epic: 2.8, legendary: 4.2, mythic: 6.0 };
@@ -641,6 +644,7 @@
       uid: String(fish.uid || fish.id || createFishUid()),
       type,
       rarity,
+      mutations,
       size,
       weight,
       basePrice,
@@ -709,6 +713,7 @@
       uid: String(f.uid || ""),
       name: String(f.name || f.type || "Fish"),
       rarity: String(f.rarity || "common"),
+      mutations: Array.isArray(f.mutations) ? f.mutations.map((id) => String(id || '').trim().toLowerCase()).filter(Boolean) : [],
       size: rawSize > 0 ? rawSize : maxHp,
       weight: rawWeight > 0 ? rawWeight : (rawAtk > 0 ? rawAtk : 0),
       hp,

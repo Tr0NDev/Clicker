@@ -1207,7 +1207,59 @@
         return tags.length ? `(${tags.join(", ")})` : "(average)";
       }
 
+      const FISH_MUTATIONS = [
+        { id: "frozen", name: "Frozen", multiplier: 1.2, chanceDenominator: 100000, color: "#4da6ff" },
+        { id: "plasma", name: "Plasma", multiplier: 1.3, chanceDenominator: 300000, color: "#ff6b35" },
+        { id: "venomous", name: "Venomous", multiplier: 1.4, chanceDenominator: 500000, color: "#7cb342" },
+        { id: "celestial", name: "Celestial", multiplier: 1.5, chanceDenominator: 1000000, color: "#ce93d8" },
+        { id: "abyssal", name: "Abyssal", multiplier: 1.6, chanceDenominator: 2000000, color: "#1a237e" },
+        { id: "primal", name: "Primal", multiplier: 1.7, chanceDenominator: 3000000, color: "#ff1744" }
+      ];
+      const FISH_MUTATION_BY_ID = Object.fromEntries(FISH_MUTATIONS.map((m) => [m.id, m]));
+
+      function normalizeFishMutations(mutations) {
+        if (!Array.isArray(mutations)) return [];
+        const seen = new Set();
+        return mutations
+          .map((id) => String(id || "").trim().toLowerCase())
+          .filter((id) => FISH_MUTATION_BY_ID[id] && !seen.has(id) && seen.add(id));
+      }
+
+      function rollFishMutations() {
+        const rolled = [];
+        FISH_MUTATIONS.forEach((mutation) => {
+          if (Math.random() < (1 / mutation.chanceDenominator)) rolled.push(mutation.id);
+        });
+        return rolled;
+      }
+
+      function getFishMutationMultiplier(mutations) {
+        return normalizeFishMutations(mutations).reduce((mult, id) => mult * (FISH_MUTATION_BY_ID[id].multiplier || 1), 1);
+      }
+
+      function getFishMutationLabel(fish) {
+        const ids = normalizeFishMutations(fish && fish.mutations);
+        if (!ids.length) return "";
+        const names = ids.map((id) => FISH_MUTATION_BY_ID[id].name).join(", ");
+        const totalMult = getFishMutationMultiplier(ids);
+        return `Mutations: ${names} (x${totalMult.toFixed(2)})`;
+      }
+
+      function getFishMutationHtmlBubbles(fish) {
+        const ids = normalizeFishMutations(fish && fish.mutations);
+        if (!ids.length) return "";
+        return ids.map((id) => {
+          const mut = FISH_MUTATION_BY_ID[id];
+          if (!mut) return "";
+          return `<span style="display:inline-block;background:${mut.color};color:white;padding:4px 10px;border-radius:20px;font-size:12px;margin:2px;font-weight:bold;">${mut.name}</span>`;
+        }).filter(Boolean).join("");
+      }
+
       function shouldAutoSell(fish) {
+        // Never auto-sell fish with mutations
+        const hasMutations = Array.isArray(fish.mutations) && fish.mutations.length > 0;
+        if (hasMutations) return false;
+        
         if (!autoSellEnabled) return false;
         if (autoSellMode === "all") return true;
         if (autoSellMode === "rarity") return rarityRank(fish.rarity) <= rarityRank(autoSellMaxRarity);
@@ -1218,16 +1270,20 @@
         const rarity   = pickWeighted(getAdjustedRarityWeights());
         const species  = pickRandom(FISH_SPECIES.filter(f => f.rarity === rarity));
         const sp       = pickTernaryProfile(), wp = pickTernaryProfile();
+        const mutations = rollFishMutations();
+        const mutationMultiplier = getFishMutationMultiplier(mutations);
         const baseSize   = pickSegmentValue(species.sizeMin,   species.sizeMax,   1, sp);
         const baseWeight = pickSegmentValue(species.weightMin, species.weightMax, 2, wp);
+        const mutatedBaseSize = Number((baseSize * mutationMultiplier).toFixed(1));
+        const mutatedBaseWeight = Number((baseWeight * mutationMultiplier).toFixed(2));
         const sizeMult   = (1 + sizeBoostLevel   * 0.01) * (1 + teamBonuses.sizeBonus   * 0.01);
         const weightMult = (1 + weightBoostLevel * 0.01) * (1 + teamBonuses.weightBonus * 0.01);
-        const size   = Number((baseSize   * sizeMult).toFixed(1));
-        const weight = Number((baseWeight * weightMult).toFixed(2));
+        const size   = Number((mutatedBaseSize   * sizeMult).toFixed(1));
+        const weight = Number((mutatedBaseWeight * weightMult).toFixed(2));
         const basePrice   = Math.max(1, Math.round((size * 0.315 + weight * 9) * RARITY_MULTIPLIERS[rarity]));
         const reducedBase = Math.max(1, Math.round(basePrice * 2 / 3));
         const price       = Math.max(1, Math.round(reducedBase * teamBonuses.incomeMultiplier * (1 + teamBonuses.resaleBonus * 0.01)));
-        return { type: species.type, rarity, size, weight, price, baseSize, baseWeight, basePrice: reducedBase, currentValue: price, priceReductionVersion: 1, sizeProfile: sp, weightProfile: wp };
+        return { type: species.type, rarity, size, weight, price, baseSize, baseWeight, basePrice: reducedBase, currentValue: price, priceReductionVersion: 1, sizeProfile: sp, weightProfile: wp, mutations, mutationMultiplier };
       }
 
       function loadCurrentFish() {
@@ -1236,7 +1292,10 @@
         try {
           const parsed = JSON.parse(stored);
           if (!parsed || typeof parsed.type !== "string") return createFish();
-          return applyFishPriceReduction(normalizeFishProfiles(parsed));
+          const normalized = applyFishPriceReduction(normalizeFishProfiles(parsed));
+          normalized.mutations = normalizeFishMutations(normalized.mutations);
+          normalized.mutationMultiplier = getFishMutationMultiplier(normalized.mutations);
+          return normalized;
         } catch { return createFish(); }
       }
 
@@ -1292,6 +1351,8 @@
           basePrice:    Math.max(1, Math.round(currentFish.basePrice    || currentFish.price)),
           currentValue: Math.max(1, Math.round(currentFish.currentValue || currentFish.price)),
           sizeProfile: currentFish.sizeProfile, weightProfile: currentFish.weightProfile,
+          mutations: normalizeFishMutations(currentFish.mutations),
+          mutationMultiplier: getFishMutationMultiplier(currentFish.mutations),
           priceReductionVersion: 1, caughtAt: new Date().toISOString()
         };
         if (shouldAutoSell(fish)) { money += fish.price; } else { inventory.push(fish); }
@@ -1390,8 +1451,9 @@
         const fish = bestCaughtFishDisplay || currentFish;
         fishButtonLabel.textContent = fish.type + " " + getFishDescriptors(fish);
         fishButtonLabel.className   = "fish-title " + getRarityClass(fish.rarity);
+        const mutationText = getFishMutationLabel(fish);
         fishDescription.textContent = (!tutorialCompleted && caughtCount < 30) ? ""
-          : `Rarity: ${formatRarityLabel(fish.rarity)} | Size: ${fish.size} cm | Weight: ${fish.weight} kg | Price: ${fish.price}`;
+          : `${mutationText ? mutationText + " | " : ""}Rarity: ${formatRarityLabel(fish.rarity)} | Size: ${fish.size} cm | Weight: ${fish.weight} kg | Price: ${fish.price}`;
         fishPrice.textContent = formatNumber(fish.price);
       }
 

@@ -1760,6 +1760,7 @@
           uid: fish.uid,
           type: fish.type,
           rarity: fish.rarity,
+          mutations: Array.isArray(fish.mutations) ? fish.mutations.map((id) => String(id || '').trim().toLowerCase()).filter(Boolean) : [],
           size: Number(fish.size) || 0,
           weight: Number(fish.weight) || 0
         };
@@ -3271,12 +3272,16 @@
         if (!Array.isArray(parsed)) return [];
         return parsed.map((fish) => {
           if (!fish || typeof fish !== 'object') return null;
+          const normalizedMutations = Array.isArray(fish.mutations)
+            ? fish.mutations.map((id) => String(id || '').trim().toLowerCase()).filter(Boolean)
+            : [];
           return {
             uid: typeof fish.uid === 'string' && fish.uid ? fish.uid : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
             type: typeof fish.type === 'string' && fish.type ? fish.type : 'Fish',
             rarity: typeof fish.rarity === 'string' && fish.rarity ? fish.rarity : 'common',
             size: Number(fish.size) || 0,
             weight: Number(fish.weight) || 0,
+            mutations: normalizedMutations,
             price: Number(fish.price) || 0,
             basePrice: Number(fish.basePrice) || Number(fish.price) || 0,
             currentValue: Number.isFinite(Number(fish.currentValue)) ? Number(fish.currentValue) : (Number(fish.basePrice) || Number(fish.price) || 0)
@@ -3338,6 +3343,46 @@
       if (Number(fish.size)) pieces.push(`${Math.round(Number(fish.size))} cm`);
       if (Number(fish.weight)) pieces.push(`${Math.round(Number(fish.weight))} kg`);
       return pieces.length ? pieces.join(' | ') : 'No stats';
+    }
+
+    const FISH_MUTATION_LABELS = {
+      frozen: 'Frozen',
+      plasma: 'Plasma',
+      venomous: 'Venomous',
+      celestial: 'Celestial',
+      abyssal: 'Abyssal',
+      primal: 'Primal'
+    };
+
+    const FISH_MUTATION_COLORS = {
+      frozen: '#4da6ff',
+      plasma: '#ff6b35',
+      venomous: '#7cb342',
+      celestial: '#ce93d8',
+      abyssal: '#1a237e',
+      primal: '#ff1744'
+    };
+
+    function getFishMutationText(fish) {
+      const ids = Array.isArray(fish && fish.mutations) ? fish.mutations : [];
+      const labels = ids
+        .map((id) => FISH_MUTATION_LABELS[String(id || '').toLowerCase()])
+        .filter(Boolean);
+      return labels.length ? labels.join(', ') : '';
+    }
+
+    function getFishMutationHtml(fish) {
+      const ids = Array.isArray(fish && fish.mutations) ? fish.mutations : [];
+      return ids
+        .map((id) => {
+          const idStr = String(id || '').toLowerCase();
+          const label = FISH_MUTATION_LABELS[idStr];
+          const color = FISH_MUTATION_COLORS[idStr];
+          if (!label || !color) return '';
+          return `<span style="display:inline-block;background:${color};color:white;padding:4px 10px;border-radius:20px;font-size:12px;margin:2px;font-weight:bold;">${label}</span>`;
+        })
+        .filter(Boolean)
+        .join('');
     }
 
     function sortFishInventory(items) {
@@ -3426,6 +3471,8 @@
           const baseHp = Math.max(1, Math.round(baseSize));
           const baseAtk = Math.max(1, Math.round(baseWeight));
           const calcTooltip = buildFishCalcTooltip(baseHp, baseAtk, teamBonuses);
+          const mutationText = getFishMutationText(fish);
+          const mutationHtml = getFishMutationHtml(fish);
           
           let statsHtml = '<div style="margin-top: 8px; display: grid; gap: 6px;">';
           if (baseHp > 0) {
@@ -3439,6 +3486,7 @@
           card.innerHTML = `
             <div class="slot-label">Fish ${index + 1}</div>
             <div class="slot-name" style="color:${FISH_RARITY_COLOR[fish.rarity] || '#fff'}; display:inline-flex; align-items:center; justify-content:center; gap:6px;">${fish.type}<span class="talent-help" tabindex="0" data-tooltip="${calcTooltip}" aria-label="Fish stat calculation">?</span></div>
+            ${mutationHtml ? `<div class="slot-meta" style="margin-top:4px;">${mutationHtml}</div>` : ''}
             <div class="slot-meta">Rarity: ${fish.rarity}<br>Value: ${getFishValue(fish)}</div>
             ${statsHtml}
             <div class="slot-actions"><button class="nav-button btn-danger" style="padding: 6px 10px; font-size: 12px; margin-top: 6px;" type="button" data-remove-fish="${fish.uid}">Remove</button></div>`;
@@ -3496,6 +3544,8 @@
         const baseHp = Math.max(1, Math.round(baseSize));
         const baseAtk = Math.max(1, Math.round(baseWeight));
         const calcTooltip = buildFishCalcTooltip(baseHp, baseAtk, teamBonuses);
+        const mutationText = getFishMutationText(fish);
+        const mutationHtml = getFishMutationHtml(fish);
         
         let statsHtml = '';
         if (baseHp > 0 || baseAtk > 0) {
@@ -3514,6 +3564,7 @@
           <div class="fish-header">
             <div>
               <div class="fish-name" style="color:${FISH_RARITY_COLOR[fish.rarity] || '#fff'}; display:inline-flex; align-items:center; gap:6px;">${fish.type}<span class="talent-help" tabindex="0" data-tooltip="${calcTooltip}" aria-label="Fish stat calculation">?</span></div>
+              ${mutationHtml ? `<div class="fish-status">${mutationHtml}</div>` : ''}
               <div class="fish-status">${isSelected ? 'Selected for battle' : 'Available in inventory'}</div>
             </div>
             <div class="count-pill">${getFishValue(fish)} value</div>

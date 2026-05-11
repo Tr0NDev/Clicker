@@ -730,6 +730,46 @@
       return {common:"Common",uncommon:"Uncommon",rare:"Rare",epic:"Epic",legendary:"Legendary",mythic:"Mythic"}[r] || r;
     }
 
+    const FISH_MUTATION_LABELS = {
+      frozen: "Frozen",
+      plasma: "Plasma",
+      venomous: "Venomous",
+      celestial: "Celestial",
+      abyssal: "Abyssal",
+      primal: "Primal"
+    };
+
+    const FISH_MUTATION_COLORS = {
+      frozen: "#4da6ff",
+      plasma: "#ff6b35",
+      venomous: "#7cb342",
+      celestial: "#ce93d8",
+      abyssal: "#1a237e",
+      primal: "#ff1744"
+    };
+
+    function getFishMutationText(fish) {
+      const ids = Array.isArray(fish && fish.mutations) ? fish.mutations : [];
+      const labels = ids
+        .map((id) => FISH_MUTATION_LABELS[String(id || "").toLowerCase()])
+        .filter(Boolean);
+      return labels.length ? labels.join(", ") : "";
+    }
+
+    function getFishMutationHtml(fish) {
+      const ids = Array.isArray(fish && fish.mutations) ? fish.mutations : [];
+      return ids
+        .map((id) => {
+          const idStr = String(id || "").toLowerCase();
+          const label = FISH_MUTATION_LABELS[idStr];
+          const color = FISH_MUTATION_COLORS[idStr];
+          if (!label || !color) return '';
+          return `<span style="display:inline-block;background:${color};color:white;padding:4px 10px;border-radius:20px;font-size:12px;margin:2px;font-weight:bold;">${label}</span>`;
+        })
+        .filter(Boolean)
+        .join('');
+    }
+
     function getGuildRankLabel(role, posInRoster) {
       if (role === "owner") return "Guild Master";
       if (posInRoster <= 2) return "Officer";
@@ -751,6 +791,8 @@
     function renderFishSlot(f, showArrows = false) {
       const r = f.rarity || "common";
       const name = escHtml((f.type || "Fish").slice(0, 14));
+      const mutationText = getFishMutationText(f);
+      const mutationHtml = getFishMutationHtml(f);
       const size = Number(f.size);
       const weight = Number(f.weight);
       const boostedStats = getBoostedFishStats(size, weight);
@@ -767,6 +809,7 @@
         : "";
       return `<div class="fish-slot rarity-${r}" title="${name} — ${rarityLabel(r)}">
         <span class="fish-slot-name fish-name-${r}">${name}</span>
+        ${mutationHtml ? `<div class="fish-slot-stat" style="margin-top:4px;">${mutationHtml}</div>` : ""}
         ${statsHtml}
       </div>`;
     }
@@ -1126,9 +1169,12 @@
               const color = rarityColors[rarity] || "#c0c0c0";
               const borderColor = rarityBgs[rarity] || "#4a5a5a";
               const boostedStats = getBoostedFishStats(Number(f.size), Number(f.weight));
+              const mutationText = getFishMutationText(f);
+              const mutationHtml = getFishMutationHtml(f);
               return `
               <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
                 <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
+                ${mutationHtml ? `<div style="font-size:10px;margin-bottom:4px">${mutationHtml}</div>` : ""}
                 <div style="font-size:11px;color:#8dc4e0">HP ${Number(f.size).toFixed(1)} → ${boostedStats.hp}</div>
                 <div style="font-size:11px;color:#8dc4e0">ATK ${Number(f.weight).toFixed(2)} → ${boostedStats.atk}</div>
                 <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
@@ -1247,9 +1293,12 @@
             const color = rarityColors[rarity] || "#c0c0c0";
             const borderColor = rarityBgs[rarity] || "#4a5a5a";
             const boostedStats = getBoostedFishStats(Number(f.size), Number(f.weight));
+            const mutationText = getFishMutationText(f);
+            const mutationHtml = getFishMutationHtml(f);
             return `
             <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
               <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
+              ${mutationHtml ? `<div style="font-size:10px;margin-bottom:4px">${mutationHtml}</div>` : ""}
               <div style="font-size:11px;color:#8dc4e0">HP ${Number(f.size).toFixed(1)} → ${boostedStats.hp}</div>
               <div style="font-size:11px;color:#8dc4e0">ATK ${Number(f.weight).toFixed(2)} → ${boostedStats.atk}</div>
               <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
