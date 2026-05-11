@@ -740,7 +740,7 @@
       const teamStats = getPlayerTeamStats() || {};
       const hpMult = 1 + ((Number(teamStats.sizeBonus) || 0) / 10);
       const atkMult = 1 + ((Number(teamStats.weightBonus) || 0) / 10);
-      const incMult = (Number(teamStats.incomeMultiplier) || 1) / 10;
+      const incMult = Number(teamStats.incomeMultiplier) || 1;
       return {
         hp: Math.max(1, Math.round((Number(size) || 0) * hpMult * incMult)),
         atk: Math.max(1, Math.round((Number(weight) || 0) * atkMult * incMult))

@@ -543,8 +543,27 @@
 
     function loadTeamStats() {
       try {
+        const raw = localStorage.getItem(TEAM_STATE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.totals) {
+            const fromTeamTotals = {
+              incomeMultiplier: Number(parsed.totals.incomeMultiplier) || 1,
+              clickMultiplier:  Number(parsed.totals.clickMultiplier)  || 1,
+              sizeBonus:        Number(parsed.totals.sizeBonus)        || 0,
+              weightBonus:      Number(parsed.totals.weightBonus)      || 0,
+              chanceBonus:      Number(parsed.totals.chanceBonus)      || 0,
+              resaleBonus:      Number(parsed.totals.resaleBonus)      || 0,
+              fishingSpeed:     Number(parsed.totals.fishingSpeed)     || 1
+            };
+            console.log('[DEBUG][PVP] loadTeamStats from TEAM_STATE totals:', fromTeamTotals);
+            return fromTeamTotals;
+          }
+        }
+
         const localChars = loadPlayerCharacterTeam();
-        if (Array.isArray(localChars) && localChars.length > 0) {
+        if (Array.isArray(localChars)) {
+          // Fallback when TEAM_STATE is unavailable
           const fishBonuses = calculateFishBonusesFromChars(localChars);
           const detailedStats = calculateTeamStatsFromChars(localChars);
           const teamStatsFromChars = {
@@ -555,20 +574,7 @@
           return teamStatsFromChars;
         }
 
-        const raw = localStorage.getItem(TEAM_STATE_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        if (!parsed || !parsed.totals) return null;
-        console.log('[DEBUG][PVP] loadTeamStats raw totals fallback:', parsed.totals);
-        return {
-          incomeMultiplier: Number(parsed.totals.incomeMultiplier) || 1,
-          clickMultiplier:  Number(parsed.totals.clickMultiplier)  || 1,
-          sizeBonus:        Number(parsed.totals.sizeBonus)        || 0,
-          weightBonus:      Number(parsed.totals.weightBonus)      || 0,
-          chanceBonus:      Number(parsed.totals.chanceBonus)      || 0,
-          resaleBonus:      Number(parsed.totals.resaleBonus)      || 0,
-          fishingSpeed:     Number(parsed.totals.fishingSpeed)     || 1
-        };
+        return null;
       } catch(e) { return null; }
     }
 
@@ -630,24 +636,38 @@
 
     function applyTeamBoostsToFishStats(size, weight, teamStatsOverride = null) {
       const stats = teamStatsOverride || teamStats;
-      const hpMult  = 1 + ((stats.sizeBonus || 0)   / 10);
-      const atkMult = 1 + ((Number(stats.weightBonus) || 0) / 10);
-      const incMult = (Number(stats.incomeMultiplier) || 1) / 10;
-      const boostedHp  = Math.max(1, Math.round(size   * hpMult  * incMult));
-      const boostedAtk = Math.max(1, Math.round(weight * atkMult * incMult));
+      const sizeBonus = Number(stats.sizeBonus) || 0;
+      const weightBonus = Number(stats.weightBonus) || 0;
+      const incMult = Number(stats.incomeMultiplier) || 1;
+      const boostedHp  = Math.max(1, Math.round(size + (size * sizeBonus / 10) + (size * (incMult - 1))));
+      const boostedAtk = Math.max(1, Math.round(weight + (weight * weightBonus / 10) + (weight * (incMult - 1))));
       return { hp: boostedHp, atk: boostedAtk };
     }
 
     function getTeamFishStats(size, weight, teamStatsOverride = null) {
       const stats = teamStatsOverride || teamStats;
-      const hpMult  = 1 + ((stats.sizeBonus || 0)   / 10);
-      const atkMult = 1 + ((Number(stats.weightBonus) || 0) / 10);
-      const incMult = (Number(stats.incomeMultiplier) || 1) / 10;
+      const sizeBonus = Number(stats.sizeBonus) || 0;
+      const weightBonus = Number(stats.weightBonus) || 0;
+      const incMult = Number(stats.incomeMultiplier) || 1;
       const baseHp    = Math.max(1, Math.round(size));
-      const boostedHp = Math.max(1, Math.round(size * hpMult * incMult));
+      const boostedHp = Math.max(1, Math.round(size + (size * sizeBonus / 10) + (size * (incMult - 1))));
       const baseAtk   = Math.max(1, Math.round(weight));
-      const boostedAtk= Math.max(1, Math.round(weight * atkMult * incMult));
+      const boostedAtk= Math.max(1, Math.round(weight + (weight * weightBonus / 10) + (weight * (incMult - 1))));
       return { baseHp, boostedHp, baseAtk, boostedAtk };
+    }
+
+    function buildFishCalcTooltip(baseHp, baseAtk, statsOverride = null) {
+      const stats = statsOverride || teamStats;
+      const sizeBonus = Number(stats.sizeBonus) || 0;
+      const weightBonus = Number(stats.weightBonus) || 0;
+      const incomeMult = Number(stats.incomeMultiplier) || 1;
+      const hpFromSize = baseHp * sizeBonus / 10;
+      const hpFromIncome = baseHp * (incomeMult - 1);
+      const atkFromWeight = baseAtk * weightBonus / 10;
+      const atkFromIncome = baseAtk * (incomeMult - 1);
+      const finalHp = Math.max(1, Math.round(baseHp + hpFromSize + hpFromIncome));
+      const finalAtk = Math.max(1, Math.round(baseAtk + atkFromWeight + atkFromIncome));
+      return `HP = ${baseHp} + (${baseHp} x ${sizeBonus.toFixed(1)} / 10) + (${baseHp} x (${incomeMult.toFixed(2)} - 1)) = ${finalHp} | ATK = ${baseAtk} + (${baseAtk} x ${weightBonus.toFixed(1)} / 10) + (${baseAtk} x (${incomeMult.toFixed(2)} - 1)) = ${finalAtk}`;
     }
 
     /**
@@ -1457,9 +1477,10 @@
         if(f){
           slot.classList.add(`rarity-${f.rarity}`,"selected-highlight");
           const stats = getTeamFishStats(Number(f.size)||0, Number(f.weight)||0);
+          const calcTooltip = buildFishCalcTooltip(stats.baseHp, stats.baseAtk);
           slot.innerHTML=`
             <div class="slot-label">Fish ${i+1}</div>
-            <div class="slot-name" style="color:${getRarityColor(f.rarity)}">${f.type}</div>
+            <div class="slot-name" style="color:${getRarityColor(f.rarity)}; display:inline-flex; align-items:center; justify-content:center; gap:6px;">${f.type}<span class="talent-help" tabindex="0" data-tooltip="${calcTooltip}" aria-label="Fish stat calculation">?</span></div>
             <div class="slot-meta">${fishDescriptors(f)}<br>Rarity: ${rarityLabel(f.rarity)}<br>HP ${stats.baseHp} → <strong style="color:#7ee787">${stats.boostedHp}</strong><br>ATK ${stats.baseAtk} → <strong style="color:#ffa657">${stats.boostedAtk}</strong></div>`;
         } else {
           slot.innerHTML=`<div class="slot-label">Fish ${i+1}</div><div class="slot-empty">Empty slot</div><div class="slot-meta">Choose a fish from your collection.</div>`;
@@ -1592,10 +1613,11 @@
         card.className=`fish-card rarity-${fish.rarity}`;
         if(isSelected(fish.uid)) card.classList.add("selected-highlight");
         const stats = getTeamFishStats(Number(fish.size)||0, Number(fish.weight)||0);
+        const calcTooltip = buildFishCalcTooltip(stats.baseHp, stats.baseAtk);
         card.innerHTML=`
           <div class="fish-header">
             <div>
-              <div class="fish-name" style="color:${getRarityColor(fish.rarity)}">${fish.type}</div>
+              <div class="fish-name" style="color:${getRarityColor(fish.rarity)}; display:inline-flex; align-items:center; gap:6px;">${fish.type}<span class="talent-help" tabindex="0" data-tooltip="${calcTooltip}" aria-label="Fish stat calculation">?</span></div>
               <div class="fish-status">${isSelected(fish.uid)?"Selected for battle":"Available in collection"}</div>
             </div>
             <div class="count-pill">${getFishValue(fish)} value</div>

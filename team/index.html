@@ -1365,8 +1365,8 @@
 
   <div class="shell">
     <h1 style="display:flex; align-items:center; gap:8px;">Team <span class="talent-help" tabindex="0" data-tooltip="Formula
-  HP = round(size × (1 + sizeBonus/10) × incomeMultiplier/10)
-  ATK = round(weight × (1 + weightBonus/10) × incomeMultiplier/10)">?</span></h1>
+  HP = round(size + size*sizeBonus/10 + size*(incomeMultiplier-1))
+  ATK = round(weight + weight*weightBonus/10 + weight*(incomeMultiplier-1))">?</span></h1>
 
     <!-- Top section: Selected Fish (left) + Selected Characters (right) -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; max-width: 1080px; margin-left: auto; margin-right: auto;">
@@ -3070,12 +3070,12 @@
                 // From reserve to empty team slot
                 draggedChar.teamSlot = i;
                 renderCharacters();
-                renderSelectedFishSlots();
+                renderFishSelection();
               } else if (dragSource === 'team') {
                 // Move team member to empty slot (swap)
                 draggedChar.teamSlot = i;
                 renderCharacters();
-                renderSelectedFishSlots();
+                renderFishSelection();
               }
             }
           });
@@ -3126,7 +3126,7 @@
                 draggedChar.teamSlot = slotIndex;
               }
               renderCharacters();
-              renderSelectedFishSlots();
+              renderFishSelection();
             } else if (dragSource === 'team') {
               // Swap between team slots
               const targetChar = allCharacters.find(c => c.teamSlot === slotIndex);
@@ -3136,7 +3136,7 @@
                 draggedChar.teamSlot = targetChar.teamSlot;
                 targetChar.teamSlot = tempSlot;
                 renderCharacters();
-                renderSelectedFishSlots();
+                renderFishSelection();
               }
             }
           }
@@ -3170,7 +3170,7 @@
         if (draggedChar && dragSource === 'team') {
           draggedChar.teamSlot = null;
           renderCharacters();
-          renderSelectedFishSlots();
+          renderFishSelection();
         }
       });
 
@@ -3364,21 +3364,37 @@
     }
 
     function getTeamBonusesForFish() {
-      const teamChars = [0, 1, 2]
+      const orderedTeam = [0, 1, 2]
         .map(slot => allCharacters.find(char => char.teamSlot === slot))
         .filter(Boolean);
-      
-      let sizeBonus = 0, weightBonus = 0, chanceBonus = 0;
+      const effectiveTeam = applyTalentEffects(orderedTeam);
+
+      let sizeBonus = 0;
+      let weightBonus = 0;
+      let chanceBonus = 0;
       let incomeMultiplier = 1;
-      
-      teamChars.forEach(char => {
-        sizeBonus += Number(char.sizeAdd || 0);
-        weightBonus += Number(char.weightAdd || 0);
-        chanceBonus += Number(char.chanceAdd || 0);
-        incomeMultiplier *= Number(char.incomeMultiplier || 1);
+
+      effectiveTeam.forEach((char) => {
+        sizeBonus = applyOrderedBonus(sizeBonus, char.sizeAdd, char.sizeMult);
+        weightBonus = applyOrderedBonus(weightBonus, char.weightAdd, char.weightMult);
+        chanceBonus = applyOrderedBonus(chanceBonus, char.chanceAdd, char.chanceMult);
+        incomeMultiplier *= Number(char.incomeMultiplier) || 1;
       });
-      
+
       return { sizeBonus, weightBonus, chanceBonus, incomeMultiplier };
+    }
+
+    function buildFishCalcTooltip(baseHp, baseAtk, teamBonuses) {
+      const sizeBonus = Number(teamBonuses.sizeBonus) || 0;
+      const weightBonus = Number(teamBonuses.weightBonus) || 0;
+      const incomeMult = Number(teamBonuses.incomeMultiplier) || 1;
+      const hpFromSize = baseHp * sizeBonus / 10;
+      const hpFromIncome = baseHp * (incomeMult - 1);
+      const atkFromWeight = baseAtk * weightBonus / 10;
+      const atkFromIncome = baseAtk * (incomeMult - 1);
+      const finalHp = Math.max(1, Math.round(baseHp + hpFromSize + hpFromIncome));
+      const finalAtk = Math.max(1, Math.round(baseAtk + atkFromWeight + atkFromIncome));
+      return `HP = ${baseHp} + (${baseHp} x ${sizeBonus.toFixed(1)} / 10) + (${baseHp} x (${incomeMult.toFixed(2)} - 1)) = ${finalHp} | ATK = ${baseAtk} + (${baseAtk} x ${weightBonus.toFixed(1)} / 10) + (${baseAtk} x (${incomeMult.toFixed(2)} - 1)) = ${finalAtk}`;
     }
 
     function renderSelectedFishSlots() {
@@ -3400,16 +3416,16 @@
           const baseWeight = Number(fish.weight || 0);
           const baseChance = Number(fish.chance || 0);
           
-          const hpMult = 1 + (teamBonuses.sizeBonus / 10);
-          const atkMult = 1 + (Number(teamBonuses.weightBonus) || 0) / 10;
-          
-          const incomeMult = (Number(teamBonuses.incomeMultiplier) || 1) / 10;
-          const boostedHp = Math.max(1, Math.round(baseSize * hpMult * incomeMult));
-          const boostedAtk = Math.max(1, Math.round(baseWeight * atkMult * incomeMult));
+          const sizeBonus = Number(teamBonuses.sizeBonus) || 0;
+          const weightBonus = Number(teamBonuses.weightBonus) || 0;
+          const incomeMult = Number(teamBonuses.incomeMultiplier) || 1;
+          const boostedHp = Math.max(1, Math.round(baseSize + (baseSize * sizeBonus / 10) + (baseSize * (incomeMult - 1))));
+          const boostedAtk = Math.max(1, Math.round(baseWeight + (baseWeight * weightBonus / 10) + (baseWeight * (incomeMult - 1))));
           const boostedChance = Math.max(0, Math.round(baseChance + teamBonuses.chanceBonus));
           
           const baseHp = Math.max(1, Math.round(baseSize));
           const baseAtk = Math.max(1, Math.round(baseWeight));
+          const calcTooltip = buildFishCalcTooltip(baseHp, baseAtk, teamBonuses);
           
           let statsHtml = '<div style="margin-top: 8px; display: grid; gap: 6px;">';
           if (baseHp > 0) {
@@ -3422,7 +3438,7 @@
           
           card.innerHTML = `
             <div class="slot-label">Fish ${index + 1}</div>
-            <div class="slot-name" style="color:${FISH_RARITY_COLOR[fish.rarity] || '#fff'}">${fish.type}</div>
+            <div class="slot-name" style="color:${FISH_RARITY_COLOR[fish.rarity] || '#fff'}; display:inline-flex; align-items:center; justify-content:center; gap:6px;">${fish.type}<span class="talent-help" tabindex="0" data-tooltip="${calcTooltip}" aria-label="Fish stat calculation">?</span></div>
             <div class="slot-meta">Rarity: ${fish.rarity}<br>Value: ${getFishValue(fish)}</div>
             ${statsHtml}
             <div class="slot-actions"><button class="nav-button btn-danger" style="padding: 6px 10px; font-size: 12px; margin-top: 6px;" type="button" data-remove-fish="${fish.uid}">Remove</button></div>`;
@@ -3470,16 +3486,16 @@
         const baseWeight = Number(fish.weight || 0);
         const baseChance = Number(fish.chance || 0);
         
-        const hpMult = 1 + (teamBonuses.sizeBonus / 10);
-        const atkMult = 1 + (Number(teamBonuses.weightBonus) || 0) / 10;
-        
-        const incomeMult = (Number(teamBonuses.incomeMultiplier) || 1) / 10;
-        const boostedHp = Math.max(1, Math.round(baseSize * hpMult * incomeMult));
-        const boostedAtk = Math.max(1, Math.round(baseWeight * atkMult * incomeMult));
+        const sizeBonus = Number(teamBonuses.sizeBonus) || 0;
+        const weightBonus = Number(teamBonuses.weightBonus) || 0;
+        const incomeMult = Number(teamBonuses.incomeMultiplier) || 1;
+        const boostedHp = Math.max(1, Math.round(baseSize + (baseSize * sizeBonus / 10) + (baseSize * (incomeMult - 1))));
+        const boostedAtk = Math.max(1, Math.round(baseWeight + (baseWeight * weightBonus / 10) + (baseWeight * (incomeMult - 1))));
         const boostedChance = Math.max(0, Math.round(baseChance + teamBonuses.chanceBonus));
         
         const baseHp = Math.max(1, Math.round(baseSize));
         const baseAtk = Math.max(1, Math.round(baseWeight));
+        const calcTooltip = buildFishCalcTooltip(baseHp, baseAtk, teamBonuses);
         
         let statsHtml = '';
         if (baseHp > 0 || baseAtk > 0) {
@@ -3497,7 +3513,7 @@
         card.innerHTML = `
           <div class="fish-header">
             <div>
-              <div class="fish-name" style="color:${FISH_RARITY_COLOR[fish.rarity] || '#fff'}">${fish.type}</div>
+              <div class="fish-name" style="color:${FISH_RARITY_COLOR[fish.rarity] || '#fff'}; display:inline-flex; align-items:center; gap:6px;">${fish.type}<span class="talent-help" tabindex="0" data-tooltip="${calcTooltip}" aria-label="Fish stat calculation">?</span></div>
               <div class="fish-status">${isSelected ? 'Selected for battle' : 'Available in inventory'}</div>
             </div>
             <div class="count-pill">${getFishValue(fish)} value</div>

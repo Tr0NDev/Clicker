@@ -684,12 +684,12 @@
   function fmtNum(n) { const value = Number(n) || 0; return value >= 1000000 ? (value/1000000).toFixed(1) + "M" : value >= 1000 ? (value/1000).toFixed(1) + "k" : String(Math.round(value)); }
   function getRaidBoostedStats(size, weight) {
     const teamStats = loadRaidTeamStats();
-    const hpMult = 1 + ((Number(teamStats?.sizeBonus) || 0) / 10);
-    const atkMult = 1 + ((Number(teamStats?.weightBonus) || 0) / 10);
-    const incMult = (Number(teamStats?.incomeMultiplier) || 1) / 10;
+    const sizeBonus = Number(teamStats?.sizeBonus) || 0;
+    const weightBonus = Number(teamStats?.weightBonus) || 0;
+    const incMult = Number(teamStats?.incomeMultiplier) || 1;
     return {
-      hp: Math.max(1, Math.round((Number(size) || 0) * hpMult * incMult)),
-      atk: Math.max(1, Math.round((Number(weight) || 0) * atkMult * incMult))
+      hp: Math.max(1, Math.round((Number(size) || 0) + ((Number(size) || 0) * sizeBonus / 10) + ((Number(size) || 0) * (incMult - 1)))),
+      atk: Math.max(1, Math.round((Number(weight) || 0) + ((Number(weight) || 0) * weightBonus / 10) + ((Number(weight) || 0) * (incMult - 1))))
     };
   }
   function nowIso() { return new Date().toISOString(); }
@@ -737,12 +737,15 @@
     if (!fish || fish.empty || fish.raidBoosted) return fish;
     const rawSize = Number(fish.size) || Number(fish.maxHp) || 0;
     const rawWeight = Number(fish.weight) || Number(fish.atk) || 0;
-    const hpMult = 1 + ((Number(teamStats?.sizeBonus) || 0) / 10);
-    const atkMult = 1 + ((Number(teamStats?.weightBonus) || 0) / 10);
-    const incMult = (Number(teamStats?.incomeMultiplier) || 1) / 10;
-    const boostedMaxHp = Math.max(1, Math.round((Number(fish.maxHp) || Number(fish.hp) || 0) * hpMult * incMult));
-    const boostedHp = Math.max(0, Math.min(boostedMaxHp, Math.round((Number(fish.hp) || 0) * hpMult * incMult)));
-    const boostedAtk = Math.max(1, Math.round((Number(fish.atk) || 0) * atkMult * incMult));
+    const sizeBonus = Number(teamStats?.sizeBonus) || 0;
+    const weightBonus = Number(teamStats?.weightBonus) || 0;
+    const incMult = Number(teamStats?.incomeMultiplier) || 1;
+    const baseMaxHp = Number(fish.maxHp) || Number(fish.hp) || 0;
+    const baseHp = Number(fish.hp) || 0;
+    const baseAtk = Number(fish.atk) || 0;
+    const boostedMaxHp = Math.max(1, Math.round(baseMaxHp + (baseMaxHp * sizeBonus / 10) + (baseMaxHp * (incMult - 1))));
+    const boostedHp = Math.max(0, Math.min(boostedMaxHp, Math.round(baseHp + (baseHp * sizeBonus / 10) + (baseHp * (incMult - 1)))));
+    const boostedAtk = Math.max(1, Math.round(baseAtk + (baseAtk * weightBonus / 10) + (baseAtk * (incMult - 1))));
     return {
       ...fish,
       size: rawSize,
