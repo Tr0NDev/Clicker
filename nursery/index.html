@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nursery - Clicker</title>
+  <script defer src="../guild-badge.js"></script>
+  <style>
+    :root {
+      --bg: #111516;
+      --panel: #18222a;
+      --panel-border: #2f4d5c;
+      --text: #eef5f9;
+      --muted: #93b7ca;
+      --accent: #8dc4e0;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top left, rgba(77,166,255,0.14), transparent 24%),
+                  linear-gradient(180deg, #0d1216 0%, #0a0f12 100%);
+      padding: 24px 16px 36px;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #0c1217;
+      border-bottom: 1px solid #22313b;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.35);
+      margin: -24px -16px 18px;
+      padding: 10px 0;
+    }
+
+    .top-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 0 0 16px;
+    }
+
+    .nav-button {
+      border-radius: 10px;
+      border: 1px solid #667a86;
+      background: #31414d;
+      color: #eef5f9;
+      padding: 12px 16px;
+      font-size: 14px;
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-button:hover { background: #3a4c59; border-color: #7f95a3; }
+    .nav-button.active-nav-button { background: #dbe3e8; color: #1a2433; border-color: #dbe3e8; font-weight: 700; }
+    .settings-nav-button { margin-left: auto; }
+
+    .shell { width: min(1120px, 100%); margin: 0 auto; display: grid; gap: 18px; }
+    .hero { padding: 22px; border-radius: 18px; border: 1px solid var(--panel-border); background: linear-gradient(180deg, var(--panel) 0%, #12191f 100%); box-shadow: 0 18px 42px rgba(0,0,0,0.26); }
+    .hero h1 { margin: 0 0 10px; font-size: clamp(30px, 4vw, 44px); }
+    .hero p { margin: 0; color: #c1d5e2; line-height: 1.6; }
+
+    .menu-grid { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card { background: #10181f; border: 1px solid #2f4d5c; border-radius: 18px; padding: 22px; display: grid; gap: 14px; }
+    .card h2 { margin: 0; font-size: 22px; }
+    .card p { margin: 0; color: #c7d7e2; line-height: 1.5; }
+    .card .link-btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 16px; border-radius: 12px; border: 1px solid #6f8fa9; background: #233543; color: #fff; text-decoration: none; font-weight: 700; }
+    .card .link-btn:hover { background: #2f4f64; }
+    .card .tag { color: #8dc4e0; text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; font-weight: 700; }
+
+    .note { color: #8aa3b7; font-size: 14px; line-height: 1.55; }
+
+    @media (max-width: 820px) {
+      .menu-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="top-nav">
+      <button class="nav-button" onclick="window.location.href='../'">Game</button>
+      <button class="nav-button" onclick="window.location.href='../inventory/'">Inventory</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../team/'">Team</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../shop/'">Shop</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../bestiary/'">Bestiary</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../battle/'">Battle</button>
+      <button class="nav-button locked-nav-button active-nav-button" onclick="window.location.href='./'">Nursery</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../missions/'">Missions</button>
+      <button class="nav-button locked-nav-button" onclick="window.location.href='../guild/'">Guild</button>
+      <button class="nav-button settings-nav-button" onclick="window.location.href='../settings/'">Settings</button>
+    </div>
+  </div>
+
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-eyebrow">Nursery</div>
+      <h1>Choose your nursery mode</h1>
+      <p>Select the feature you want to use. These two pages are separate and independent: click Nursery to reach this menu, then choose either Magic Pool or Reproduction.</p>
+    </section>
+
+    <section class="menu-grid">
+      <article class="card">
+        <div class="tag">Magic Pool</div>
+        <h2>Pool fusion</h2>
+        <p>Use five mutated fish to blend them in the pool. The strongest fish survives and inherits mutations from your fusion donors.</p>
+        <a class="link-btn" href="./pool/">Enter Magic Pool</a>
+      </article>
+
+      <article class="card">
+        <div class="tag">Reproduction</div>
+        <h2>Breeding lab</h2>
+        <p>Access the breeding interface with your fish inventory. This page is separate from the pool, and they do not link directly to each other.</p>
+        <a class="link-btn" href="./reproduction/">Go to Reproduction</a>
+      </article>
+    </section>
+
+    <section class="note">Note: the top navigation bars no longer show a direct Reproduction button. Use this Nursery menu to access the two independent subpages.</section>
+  </main>
+</body>
+</html>
