@@ -444,6 +444,42 @@
       return [0, 1, 2].map(i => pool[(t + i) % pool.length]);
     }
 
+    function speciesCombatStatsAtTier(species, tier) {
+      if (!species) {
+        species = FISH_SPECIES[0] || { rarity: "common", type: "Fish" };
+      }
+      const t = Math.max(1, Number(tier) || 1);
+      const boss = isBossTier(t);
+
+      const S1_END = 100;
+      const S2_END = 200;
+      const BASE_HP = 5;
+      const S1_SLOPE = 0.47;
+      const S1_POW = 1.10;
+      const S2_SLOPE = 0.80;
+      const S2_POW = 1.60;
+
+      const hpAtS1 = BASE_HP + S1_SLOPE * Math.pow(S1_END - 1, S1_POW);
+      const hpAtS2 = hpAtS1 + S2_SLOPE * Math.pow(S2_END - S1_END, S2_POW);
+      const target1000PerFish = 130000 / 3;
+      const s3Slope = (target1000PerFish - hpAtS2) / (1000 - S2_END);
+
+      let base;
+      if (t <= S1_END) {
+        base = BASE_HP + S1_SLOPE * Math.pow(Math.max(0, t - 1), S1_POW);
+      } else if (t <= S2_END) {
+        base = hpAtS1 + S2_SLOPE * Math.pow(t - S1_END, S2_POW);
+      } else {
+        base = hpAtS2 + s3Slope * (t - S2_END);
+      }
+
+      const rarityMult = { common: 0.85, uncommon: 1.0, rare: 1.2, epic: 1.45, legendary: 1.8, mythic: 2.4 };
+      const mult = rarityMult[species.rarity] || 1.0;
+      const hp = Math.max(1, Math.round(base * mult * (boss ? 1.25 : 1)));
+      const attack = Math.max(1, Math.round(base * mult * 0.55 * (boss ? 1.25 : 1)));
+      return { hp, attack };
+    }
+
     function rollEnemyFishSizeWeight(species, tier) {
       if (!species) {
         species = FISH_SPECIES[0] || { rarity: "common", type: "Fish", sizeMin: 1, sizeMax: 1, weightMin: 0.1, weightMax: 0.1 };
@@ -466,12 +502,11 @@
     function createTierEnemyFromTemplate(species, index, tier) {
       const isBoss = isBossTier(tier);
       const { rawSize, rawWeight } = rollEnemyFishSizeWeight(species, tier);
-      const BOSS_HP = 1.25;
-      const BOSS_ATK = 1.25;
+      const baseStats = speciesCombatStatsAtTier(species, tier);
       const jH = 0.85 + Math.random() * 0.30;
       const jA = 0.85 + Math.random() * 0.30;
-      const hp = Math.max(1, Math.round(rawSize * (isBoss ? BOSS_HP : 1) * jH));
-      const atk = Math.max(1, Math.round(rawWeight * (isBoss ? BOSS_ATK : 1) * jA));
+      const hp = Math.max(1, Math.round(baseStats.hp * jH));
+      const atk = Math.max(1, Math.round(baseStats.attack * jA));
       return {
         id: `enemy-tier-${tier}-${index}-${Date.now()}`,
         name: species.type,
