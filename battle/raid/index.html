@@ -936,22 +936,46 @@
     } catch {}
   }
 
-  function addGuildPoints(guildId, amount) {
+  async function getGuildPointsFromSupabase(guildId) {
+    if (!guildId) return 0;
+    if (!db) return getGuildPoints(guildId);
+    const { data, error } = await db.from("guilds").select("guild_points").eq("id", guildId).single();
+    if (error) {
+      console.error("❌ Erreur lecture guild_points Supabase:", error);
+      return getGuildPoints(guildId);
+    }
+    return Math.max(0, Number(data?.guild_points) || 0);
+  }
+
+  async function addGuildPoints(guildId, amount) {
     if (!guildId || !Number.isFinite(Number(amount))) return 0;
-    const current = getGuildPoints(guildId);
-    const next = current + Math.max(0, Math.floor(Number(amount) || 0));
+    const delta = Math.max(0, Math.floor(Number(amount) || 0));
+    if (delta <= 0) return getGuildPoints(guildId);
+
+    if (db && !amILeader()) {
+      console.log("⏭️ Guild points update skipped: only the raid leader can award Supabase points.");
+      return getGuildPoints(guildId);
+    }
+
+    const current = amILeader() && db
+      ? await getGuildPointsFromSupabase(guildId)
+      : getGuildPoints(guildId);
+    const next = current + delta;
+
     setGuildPoints(guildId, next);
     if (guildData && guildData.id === guildId) {
       guildData.guildPoints = next;
     }
-    
-    // 💾 Sauvegarder aussi sur Supabase en arrière-plan
-    if (db && guildId) {
-      db.from("guilds").update({ guild_points: next }).eq("id", guildId)
-        .then(() => console.log(`✅ Guild points (${next}) synchronisés sur Supabase`))
-        .catch(err => console.error(`❌ Erreur sync guild_points:`, err));
+
+    if (db && amILeader()) {
+      const { error } = await db.from("guilds").update({ guild_points: next }).eq("id", guildId);
+      if (error) {
+        console.error("❌ Erreur sync guild_points:", error);
+      } else {
+        console.log(`✅ Guild points (${next}) synchronisés sur Supabase par le chef`);
+      }
     }
-    
+
     return next;
   }
 
@@ -1219,10 +1243,22 @@
     }
     if(!selectedRaidKey||!RAIDS[selectedRaidKey]) { setStatus("Select a raid first.","err"); return; }
     const mem=getMembership();
+    if (!amILeader()) {
+      setStatus("Only the squad leader can launch the raid.", "err");
+      return;
+    }
     const raidDef=RAIDS[selectedRaidKey];
     const raidCost=getRaidCost(raidDef);
     ensureRaidScoreState(raidState);
     if(raidState.score < raidCost) { setStatus(`Need at least ${raidCost} raid energy to launch this raid.`,"err"); return; }
+
+    const currentGuildPoints = await getGuildPointsFromSupabase(mem.guildId);
+    setGuildPoints(mem.guildId, currentGuildPoints);
+    if (guildData && guildData.id === mem.guildId) {
+      guildData.guildPoints = currentGuildPoints;
+    }
+    console.log("📍 Guild points loaded on raid launch by leader:", currentGuildPoints);
+
     const firstStage=raidDef.stages[0];
 
     const players={};
@@ -1375,24 +1411,9 @@
       state.log.push(`🏅 Victory! Raid energy was spent on launch (${state.currentRaidCost}).`);
       state.log.push(`🏆 VICTORY! "${raidDef.name}" cleared! Survivors: claim your reward.`);
       if (!state.guildPointsAwarded) {
-        const added = addGuildPoints(guildId, state.currentRaidCost || 0);
+        const added = await addGuildPoints(guildId, state.currentRaidCost || 0);
         state.guildPointsAwarded = true;
         state.log.push(`🏅 Guild earned +${added} points from the raid energy cost.`);
-        
-        // 💾 Sauvegarder les points sur Supabase
-        console.log("💾 Sauvegarde des guild_points sur Supabase:", added);
-        try {
-          const { error: updateErr } = await db.from(GUILDS_TABLE).update({
-            guild_points: added
-          }).eq("id", guildId);
-          if (updateErr) {
-            console.error("❌ Erreur sauvegarde guild_points:", updateErr.message);
-          } else {
-            console.log("✅ Guild points sauvegardés sur Supabase!");
-          }
-        } catch (err) {
-          console.error("❌ Exception sauvegarde guild_points:", err);
-        }
       }
     } else {
       state.stageIndex++;
