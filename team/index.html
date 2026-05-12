@@ -3821,6 +3821,14 @@
     });
 
     fishInventory = loadFishInventory();
+    // Fix duplicate UIDs if present and persist the cleaned inventory
+    const beforeCount = fishInventory.length;
+    fishInventory = ensureUniqueFishUids(fishInventory) || fishInventory;
+    try {
+      localStorage.setItem(FISH_INVENTORY_KEY, JSON.stringify(fishInventory));
+    } catch (e) {
+      console.warn('[TEAM] Could not persist cleaned fish inventory:', e);
+    }
     loadFishSelection();
     if (normalizeSelectedFishUids()) saveFishSelection();
 
