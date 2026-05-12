@@ -2211,13 +2211,15 @@
         console.log('[DEBUG] Using imported battle');
         const enemyStats = importedBattle.teamStats || importedBattle.exportedTeamStats || { sizeBonus: 0, weightBonus: 0, incomeMultiplier: 1, fishingSpeed: 1 };
         const enemyIncomeMult = Number(enemyStats.incomeMultiplier || 1);
+        const hpBonus  = 0.12 + (Number(enemyStats.sizeBonus || 0) / 10);
+        const atkBonus = 0.12 + (Number(enemyStats.weightBonus || 0) / 10);
         enemies=importedBattle.lineup.map((f,i)=>({
           id:`enemy-import-${i}-${Date.now()}`,
           name:f.type||`Enemy ${i+1}`,
           rarity:f.rarity||"common",
-          maxHp: Math.max(1, Math.round((Number(f.sizeRaw||f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) / 10) * enemyIncomeMult)),
-          hp:    Math.max(1, Math.round((Number(f.sizeRaw||f.size)||1) * (1 + Number(enemyStats.sizeBonus||0) / 10) * enemyIncomeMult)),
-          attack: Math.max(1, Math.round((Number(f.weightRaw||f.weight)||1) * (1 + Number(enemyStats.weightBonus||0) / 10) * enemyIncomeMult)),
+          maxHp: Math.max(1, Math.round((Number(f.sizeRaw||f.size)||1) * (1 + hpBonus) * enemyIncomeMult)),
+          hp:    Math.max(1, Math.round((Number(f.sizeRaw||f.size)||1) * (1 + hpBonus) * enemyIncomeMult)),
+          attack: Math.max(1, Math.round((Number(f.weightRaw||f.weight)||1) * (1 + atkBonus) * enemyIncomeMult)),
           alive:true,
           descriptor:fishDescriptors(f)
         }));

@@ -1448,23 +1448,22 @@
 
   async function claimReward() {
     if(!raidState||raidState.result!=="victory") return;
+    if (raidRewardClaiming) return;  // Early exit if already claiming
     const pid=myPid(), mem=getMembership();
     const me=raidState.players[pid];
     if(!me) { setStatus("You are spectating this raid and do not receive rewards.","err"); return; }
     if(me.eliminated) { setStatus("You were eliminated — no reward.","err"); return; }
-    if (raidRewardClaiming) return;
     if(raidState.rewardClaimed?.[pid]) { setStatus("Already claimed.",""); return; }
 
     const raidDef=RAIDS[raidState.raidKey];
     const chosen = pickRaidReward(raidDef);
     if (!chosen) { setStatus("No reward configured.","err"); return; }
 
-    raidRewardClaiming = true;
+    raidRewardClaiming = true;  // Set flag before any async work
     lastRaidRewardChoice = chosen;
     const claimBtn = document.getElementById("claimRewardBtn");
     if (claimBtn) {
       claimBtn.disabled = true;
-      claimBtn.remove();
     }
 
     try {
@@ -1476,19 +1475,19 @@
 
       let message = "Reward claimed!";
       if (chosen.type === 'hooks') {
-      const amount = Math.max(0, Number(chosen.amount) || 0);
-      setHooks(getHooks() + amount);
-      message = `+${amount} 🪝 added!`;
-      state.log.push(`🪝 ${resolveName(pid)} claimed +${amount} hooks.`);
-    } else if (chosen.type === 'fish') {
-      const fishTemplate = resolveRewardFish(raidDef, chosen);
-      const fish = fishTemplate ? addFishToInventory(fishTemplate) : null;
-      const fishLabel = fish ? (fish.name || fish.type || 'Fish') : null;
-      message = fish
-        ? `+ ${fishLabel} added to inventory!`
-        : 'Fish reward claimed!';
-      if (fish) state.log.push(`🐟 ${resolveName(pid)} claimed ${fishLabel}.`);
-    }
+        const amount = Math.max(0, Number(chosen.amount) || 0);
+        setHooks(getHooks() + amount);
+        message = `+${amount} 🪝 added!`;
+        state.log.push(`🪝 ${resolveName(pid)} claimed +${amount} hooks.`);
+      } else if (chosen.type === 'fish') {
+        const fishTemplate = resolveRewardFish(raidDef, chosen);
+        const fish = fishTemplate ? addFishToInventory(fishTemplate) : null;
+        const fishLabel = fish ? (fish.name || fish.type || 'Fish') : null;
+        message = fish
+          ? `+ ${fishLabel} added to inventory!`
+          : 'Fish reward claimed!';
+        if (fish) state.log.push(`🐟 ${resolveName(pid)} claimed ${fishLabel}.`);
+      }
 
       console.log("💾 Sauvegarde du raid avec reward claiming - Guild Points:", raidState.guildPointsAwarded);
       const { error: saveErr } = await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
@@ -1497,17 +1496,18 @@
       } else {
         console.log("✅ Reward claim sauvegardé avec succès!");
       }
-      raidState = state;
-      renderAll();
+      raidState = state;  // Update state BEFORE renderAll
+      renderAll();  // This will update the UI
       syncRaidLog();
       setStatus(message,"ok");
       showRaidRewardPopup(chosen, raidDef);
+    } catch (err) {
+      console.error("Error during claim:", err);
+      setStatus("Error claiming reward","err");
     } finally {
+      // Only set to false after everything is done
       raidRewardClaiming = false;
-      if (claimBtn) {
-        claimBtn.disabled = true;
-        claimBtn.remove();
-      }
+      if (claimBtn) claimBtn.remove();
     }
   }
 
@@ -1877,7 +1877,7 @@
         <div class="reward-title">${isVic?"Raid Complete":"Raid Over"}</div>
       </div>
       ${canClaim
-        ?`<button id="claimRewardBtn" class="btn btn-gold" onclick="claimReward()">${getRaidClaimButtonText(raidDef)}</button>`
+        ?`<button id="claimRewardBtn" class="btn btn-gold" onclick="if(raidRewardClaiming) return false; claimReward(); return false;" ${raidRewardClaiming?"disabled":""}>${getRaidClaimButtonText(raidDef)}</button>`
         : claimed ? `<div class="status-line ok" style="text-align:center;">✅ Reward claimed!</div>` : isSpectator ? `<div class="status-line subtle" style="text-align:center;">👀 You joined after the raid started and are spectating; no reward is available.</div>` : ``}
       <div id="raidRewardWheelHolder" style="margin:18px auto 0;max-width:840px;width:100%;"></div>
       <div class="panel" style="margin-top:16px;margin-bottom:12px">

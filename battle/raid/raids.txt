@@ -3,8 +3,8 @@
     "raid_riverside_shallows": {
       "key": "raid_riverside_shallows",
       "name": "Riverside Shallows",
-      "desc": "⭐ - Easy - 4 Floors - 8 Energy",
-      "cost": 8,
+      "desc": "⭐ - Easy - 4 Floors - 5 Energy",
+      "cost": 5,
       "stages": [
         {
           "floor": "Floor 1",
@@ -44,12 +44,12 @@
         {
           "pct": 25,
           "type": "hooks",
-          "amount": 100
+          "amount": 60
         },
         {
           "pct": 45,
           "type": "hooks",
-          "amount": 50
+          "amount": 30
         },
         {
           "pct": 25,
@@ -62,23 +62,23 @@
           "id": "fish_e1_common_carp",
           "name": "Common carp",
           "rarity": "common",
-          "maxHp": 180,
-          "atk": 22
+          "maxHp": 620,
+          "atk": 55
         },
         {
           "id": "fish_e1_silver_trout",
           "name": "Silver trout",
           "rarity": "uncommon",
-          "maxHp": 320,
-          "atk": 45
+          "maxHp": 780,
+          "atk": 72
         }
       ]
     },
     "raid_murky_creek": {
       "key": "raid_murky_creek",
       "name": "Murky Creek",
-      "desc": "⭐ - Easy - 4 Floors - 8 Energy",
-      "cost": 8,
+      "desc": "⭐ - Easy - 4 Floors - 5 Energy",
+      "cost": 5,
       "stages": [
         {
           "floor": "Floor 1",
@@ -118,12 +118,12 @@
         {
           "pct": 22,
           "type": "hooks",
-          "amount": 100
+          "amount": 60
         },
         {
           "pct": 45,
           "type": "hooks",
-          "amount": 50
+          "amount": 30
         },
         {
           "pct": 25,
@@ -136,23 +136,23 @@
           "id": "fish_e2_striped_perch",
           "name": "Striped perch",
           "rarity": "common",
-          "maxHp": 160,
-          "atk": 20
+          "maxHp": 580,
+          "atk": 50
         },
         {
           "id": "fish_e2_rock_bass",
           "name": "Rock bass",
           "rarity": "uncommon",
-          "maxHp": 350,
-          "atk": 48
+          "maxHp": 750,
+          "atk": 68
         }
       ]
     },
     "raid_coral_grotto": {
       "key": "raid_coral_grotto",
       "name": "Coral Grotto",
-      "desc": "⭐⭐ - Medium - 6 Floors - 12 Energy",
-      "cost": 12,
+      "desc": "⭐⭐ - Medium - 6 Floors - 10 Energy",
+      "cost": 10,
       "stages": [
         {
           "floor": "Floor 1",
@@ -211,12 +211,12 @@
         {
           "pct": 30,
           "type": "hooks",
-          "amount": 150
+          "amount": 120
         },
         {
           "pct": 35,
           "type": "hooks",
-          "amount": 75
+          "amount": 60
         },
         {
           "pct": 15,
@@ -229,30 +229,30 @@
           "id": "fish_m1_river_char",
           "name": "River char",
           "rarity": "uncommon",
-          "maxHp": 480,
-          "atk": 68
+          "maxHp": 1050,
+          "atk": 105
         },
         {
           "id": "fish_m1_bluefin_tuna",
           "name": "Bluefin tuna",
           "rarity": "rare",
-          "maxHp": 820,
-          "atk": 115
+          "maxHp": 1600,
+          "atk": 175
         },
         {
           "id": "fish_m1_giant_bass",
           "name": "Giant bass",
           "rarity": "rare",
-          "maxHp": 1050,
-          "atk": 148
+          "maxHp": 1950,
+          "atk": 215
         }
       ]
     },
     "raid_sunken_barge": {
       "key": "raid_sunken_barge",
       "name": "Sunken Barge",
-      "desc": "⭐⭐ - Medium - 6 Floors - 12 Energy",
-      "cost": 12,
+      "desc": "⭐⭐ - Medium - 6 Floors - 10 Energy",
+      "cost": 10,
       "stages": [
         {
           "floor": "Floor 1",
@@ -311,12 +311,12 @@
         {
           "pct": 30,
           "type": "hooks",
-          "amount": 150
+          "amount": 120
         },
         {
           "pct": 35,
           "type": "hooks",
-          "amount": 75
+          "amount": 60
         },
         {
           "pct": 15,
@@ -329,30 +329,30 @@
           "id": "fish_m2_noble_salmon",
           "name": "Noble salmon",
           "rarity": "uncommon",
-          "maxHp": 520,
-          "atk": 72
+          "maxHp": 1100,
+          "atk": 110
         },
         {
           "id": "fish_m2_wild_pike",
           "name": "Wild pike",
           "rarity": "rare",
-          "maxHp": 900,
-          "atk": 128
+          "maxHp": 1750,
+          "atk": 190
         },
         {
           "id": "fish_m2_blue_sturgeon",
           "name": "Blue sturgeon",
           "rarity": "rare",
-          "maxHp": 1200,
-          "atk": 165
+          "maxHp": 2100,
+          "atk": 235
         }
       ]
     },
     "raid_abyssal_trench": {
       "key": "raid_abyssal_trench",
       "name": "Abyssal Trench",
-      "desc": "⭐⭐⭐ - Hard - 8 Floors - 18 Energy",
-      "cost": 18,
+      "desc": "⭐⭐⭐ - Hard - 8 Floors - 20 Energy",
+      "cost": 20,
       "stages": [
         {
           "floor": "Floor 1",
@@ -443,30 +443,30 @@
           "id": "fish_h1_mahi_mahi",
           "name": "Mahi-mahi",
           "rarity": "epic",
-          "maxHp": 1800,
-          "atk": 280
+          "maxHp": 3000,
+          "atk": 380
         },
         {
           "id": "fish_h1_prismatic_eel",
           "name": "Prismatic eel",
           "rarity": "epic",
-          "maxHp": 2600,
-          "atk": 390
+          "maxHp": 3800,
+          "atk": 490
         },
         {
           "id": "fish_h1_golden_shark",
           "name": "Golden shark",
           "rarity": "legendary",
-          "maxHp": 4200,
-          "atk": 680
+          "maxHp": 5500,
+          "atk": 780
         }
       ]
     },
     "raid_storm_reef": {
       "key": "raid_storm_reef",
       "name": "Storm Reef",
-      "desc": "⭐⭐⭐ - Hard - 8 Floors - 18 Energy",
-      "cost": 18,
+      "desc": "⭐⭐⭐ - Hard - 8 Floors - 20 Energy",
+      "cost": 20,
       "stages": [
         {
           "floor": "Floor 1",
@@ -557,30 +557,30 @@
           "id": "fish_h2_rainbow_ray",
           "name": "Rainbow ray",
           "rarity": "epic",
-          "maxHp": 2000,
-          "atk": 310
+          "maxHp": 3200,
+          "atk": 410
         },
         {
           "id": "fish_h2_royal_moray",
           "name": "Royal moray",
           "rarity": "epic",
-          "maxHp": 2400,
-          "atk": 360
+          "maxHp": 3600,
+          "atk": 460
         },
         {
           "id": "fish_h2_sea_dragon",
           "name": "Sea dragon",
           "rarity": "legendary",
-          "maxHp": 5200,
-          "atk": 820
+          "maxHp": 6200,
+          "atk": 900
         }
       ]
     },
     "raid_void_depths": {
       "key": "raid_void_depths",
       "name": "Void Depths",
-      "desc": "⭐⭐⭐⭐ - Extreme - 10 Floors - 25 Energy",
-      "cost": 25,
+      "desc": "⭐⭐⭐⭐ - Extreme - 10 Floors - 30 Energy",
+      "cost": 30,
       "stages": [
         {
           "floor": "Floor 1",
@@ -690,37 +690,37 @@
           "id": "fish_x1_golden_shark",
           "name": "Golden shark",
           "rarity": "legendary",
-          "maxHp": 6500,
-          "atk": 1050
+          "maxHp": 5800,
+          "atk": 850
         },
         {
           "id": "fish_x1_sea_dragon",
           "name": "Sea dragon",
           "rarity": "legendary",
-          "maxHp": 7800,
-          "atk": 1280
+          "maxHp": 7000,
+          "atk": 1050
         },
         {
           "id": "fish_x1_void_kraken",
           "name": "Void Kraken",
           "rarity": "mythic",
-          "maxHp": 8800,
-          "atk": 1650
+          "maxHp": 7800,
+          "atk": 1350
         },
         {
           "id": "fish_x1_storm_hydra",
           "name": "Storm Hydra",
           "rarity": "mythic",
-          "maxHp": 9500,
-          "atk": 1900
+          "maxHp": 8500,
+          "atk": 1600
         }
       ]
     },
     "raid_celestial_abyss": {
       "key": "raid_celestial_abyss",
       "name": "Celestial Abyss",
-      "desc": "⭐⭐⭐⭐ - Extreme - 10 Floors - 25 Energy",
-      "cost": 25,
+      "desc": "⭐⭐⭐⭐ - Extreme - 10 Floors - 30 Energy",
+      "cost": 30,
       "stages": [
         {
           "floor": "Floor 1",
@@ -830,31 +830,185 @@
           "id": "fish_x2_sea_dragon",
           "name": "Sea dragon",
           "rarity": "legendary",
-          "maxHp": 7200,
-          "atk": 1180
+          "maxHp": 6500,
+          "atk": 980
         },
         {
           "id": "fish_x2_golden_shark",
           "name": "Golden shark",
           "rarity": "legendary",
-          "maxHp": 6800,
-          "atk": 1100
+          "maxHp": 6000,
+          "atk": 900
         },
         {
           "id": "fish_x2_storm_hydra",
           "name": "Storm Hydra",
           "rarity": "mythic",
-          "maxHp": 9200,
-          "atk": 1800
+          "maxHp": 8200,
+          "atk": 1500
         },
         {
           "id": "fish_x2_celestial_lev",
           "name": "Celestial Leviathan",
           "rarity": "mythic",
-          "maxHp": 10000,
-          "atk": 2100
+          "maxHp": 9200,
+          "atk": 1800
         }
       ]
-    }
+    },
+    "raid_genesis_gate": {
+      "key": "raid_genesis_gate",
+      "name": "Genesis Gate",
+      "desc": "⭐⭐⭐⭐⭐ - Legendary - 12 Floors - 40 Energy",
+      "cost": 40,
+      "stages": [
+        {
+          "floor": "Floor 1",
+          "name": "Golden shark",
+          "rarity": "legendary",
+          "hp": 50000,
+          "atk": 12000
+        },
+        {
+          "floor": "Floor 2",
+          "name": "Sea dragon",
+          "rarity": "legendary",
+          "hp": 60000,
+          "atk": 15000
+        },
+        {
+          "floor": "Floor 3",
+          "name": "Golden shark",
+          "rarity": "legendary",
+          "hp": 72000,
+          "atk": 18000
+        },
+        {
+          "floor": "Floor 4",
+          "name": "Sea dragon",
+          "rarity": "legendary",
+          "hp": 85000,
+          "atk": 21000
+        },
+        {
+          "floor": "Floor 5",
+          "name": "Void Kraken",
+          "rarity": "mythic",
+          "hp": 105000,
+          "atk": 30000
+        },
+        {
+          "floor": "Floor 6",
+          "name": "Storm Hydra",
+          "rarity": "mythic",
+          "hp": 125000,
+          "atk": 36000
+        },
+        {
+          "floor": "Floor 7",
+          "name": "Celestial Leviathan",
+          "rarity": "mythic",
+          "hp": 148000,
+          "atk": 42000
+        },
+        {
+          "floor": "Floor 8",
+          "name": "Void Kraken",
+          "rarity": "mythic",
+          "hp": 170000,
+          "atk": 48000
+        },
+        {
+          "floor": "Floor 9",
+          "name": "Storm Hydra",
+          "rarity": "mythic",
+          "hp": 200000,
+          "atk": 56000
+        },
+        {
+          "floor": "Floor 10",
+          "name": "Celestial Leviathan",
+          "rarity": "mythic",
+          "hp": 235000,
+          "atk": 65000
+        },
+        {
+          "floor": "Floor 11",
+          "name": "Void Kraken",
+          "rarity": "mythic",
+          "hp": 270000,
+          "atk": 75000
+        },
+        {
+          "floor": "Floor 12",
+          "name": "Genesis Hydra",
+          "rarity": "mythic",
+          "hp": 350000,
+          "atk": 95000
+        }
+      ],
+      "rewards": [
+        {
+          "pct": 1,
+          "type": "fish",
+          "fishId": "fish_s1_genesis_hydra"
+        },
+        {
+          "pct": 3,
+          "type": "fish",
+          "fishId": "fish_s1_celestial_lev"
+        },
+        {
+          "pct": 6,
+          "type": "fish",
+          "fishId": "fish_s1_storm_hydra"
+        },
+        {
+          "pct": 10,
+          "type": "fish",
+          "fishId": "fish_s1_void_kraken"
+        },
+        {
+          "pct": 40,
+          "type": "hooks",
+          "amount": 500
+        },
+        {
+          "pct": 40,
+          "type": "hooks",
+          "amount": 300
+        }
+      ],
+      "fishTemplates": [
+        {
+          "id": "fish_s1_void_kraken",
+          "name": "Void Kraken",
+          "rarity": "mythic",
+          "maxHp": 7200,
+          "atk": 1400
+        },
+        {
+          "id": "fish_s1_storm_hydra",
+          "name": "Storm Hydra",
+          "rarity": "mythic",
+          "maxHp": 8000,
+          "atk": 1600
+        },
+        {
+          "id": "fish_s1_celestial_lev",
+          "name": "Celestial Leviathan",
+          "rarity": "mythic",
+          "maxHp": 9000,
+          "atk": 1850
+        },
+        {
+          "id": "fish_s1_genesis_hydra",
+          "name": "Genesis Hydra",
+          "rarity": "mythic",
+          "maxHp": 10000,
+          "atk": 2200
+        }
+      ]
+    },
   }
 }

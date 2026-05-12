@@ -134,7 +134,7 @@
       </div>
       <div class="draw-quick-info">
         <p class="draw-quick-title">How this draw works</p>
-        <p class="draw-quick-text">Each draw without a Legendary increases rates for rarer characters. Rates reset when you pull a Legendary. Mythic stays fixed at 0.5% and never scales with pity. At 100 draws: Legendary reaches ~20%, Epic reaches ~40%. Common drains first, then Uncommon starts draining too.</p>
+        <p class="draw-quick-text">Each draw without a Legendary increases rates for rarer characters. Rates reset when you pull a Legendary. Mythic stays fixed at 0.3% and never scales with pity. At 100 draws: Legendary reaches ~20%, Epic reaches ~40%. Common drains first, then Uncommon starts draining too.</p>
         <div class="draw-price-badge">
           <span class="draw-price-label">Price</span>
           <span class="draw-price-value">100</span>
@@ -227,7 +227,7 @@
     const PITY_KEY = "clicker_gachaPity";
     const PITY_MAX = 100;
 
-    const BASE_RATES = { 1: 69.5, 2: 23.87, 3: 4.78, 4: 0.96, 5: 0.39, 6: 0.5 };
+    const BASE_RATES = { 1: 69.5, 2: 23.87, 3: 4.78, 4: 0.96, 5: 0.39, 6: 0.3 };
 
     const rarityConfig = {
       1: { label: "Common (★)",         className: "rarity-common" },
@@ -816,7 +816,7 @@
       const list = loadReserveList();
       list.pop();
       saveReserveList(list);
-      const sellValues = { 1: 10, 2: 25, 3: 120, 4: 400, 5: 1200 };
+      const sellValues = { 1: 10, 2: 25, 3: 120, 4: 400, 5: 1200, 6: 2000 };
       setHooks(getHooks() + (sellValues[lastRewardChar.stars] || 10));
       drawRecapText.innerHTML = `Sold for <b>${sellValues[lastRewardChar.stars] || 10} Hooks</b>.`;
       document.getElementById("sellDrawBtn").style.display = "none";
@@ -845,7 +845,7 @@
       drawRecap.className = 'draw-recap visible';
       drawRecapName.className = 'draw-recap-name';
       drawRecapName.textContent = `${tempDrawResults.length} Draw Results`;
-      const sellValues = { 1: 10, 2: 25, 3: 120, 4: 400, 5: 1200 };
+      const sellValues = { 1: 10, 2: 25, 3: 120, 4: 400, 5: 1200, 6: 2000 };
       let html = '<div style="display:grid;gap:8px;">';
       tempDrawResults.forEach((r, idx) => {
         const rv = sellValues[r.char.stars] || 10;
@@ -873,26 +873,36 @@
 
     function sellRecapItem(idx) {
       if (!Array.isArray(tempDrawResults) || idx < 0 || idx >= tempDrawResults.length) return;
-      const sellValues = { 1: 10, 2: 25, 3: 120, 4: 400, 5: 1200 };
+      const sellValues = { 1: 10, 2: 25, 3: 120, 4: 400, 5: 1200, 6: 2000 };
       const entry = tempDrawResults[idx];
       const value = sellValues[entry.char.stars] || 10;
       setHooks(getHooks() + value);
+      // Increase pity when selling this item (Legendary resets to 0, others increment by 1)
+      const isLegendary = entry.char.stars === 5;
+      if (isLegendary) { setPity(0); } else { setPity(getPity() + 1); }
       // remove item
       tempDrawResults.splice(idx, 1);
       renderDraw10Recap();
+      updatePityUI();
       refreshSummary();
     }
 
     if (sellAllRecapBtn) {
       sellAllRecapBtn.addEventListener('click', () => {
         if (!Array.isArray(tempDrawResults) || tempDrawResults.length === 0) return;
-        const sellValues = { 1: 10, 2: 25, 3: 120, 4: 400, 5: 1200 };
+        const sellValues = { 1: 10, 2: 25, 3: 120, 4: 400, 5: 1200, 6: 2000 };
         let total = 0;
         for (const r of tempDrawResults) total += (sellValues[r.char.stars] || 10);
         setHooks(getHooks() + total);
+        // Increase pity for each result (Legendary resets to 0, others increment by 1)
+        for (const r of tempDrawResults) {
+          const isLegendary = r.char.stars === 5;
+          if (isLegendary) { setPity(0); } else { setPity(getPity() + 1); }
+        }
         tempDrawResults = [];
         sellAllRecapBtn.style.display = 'none';
         drawRecap.className = 'draw-recap';
+        updatePityUI();
         refreshSummary();
       });
     }
