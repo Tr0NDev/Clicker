@@ -171,6 +171,9 @@
         <button class="close-btn modal-close-bottom" id="closeGachaBtn">Close</button>
         <button class="action-btn" id="startDrawBtn">Start Draw</button>
         <button class="action-btn" id="startDraw10ModalBtn">Draw 10 (+1 Free)</button>
+        <button class="action-btn" id="skipAnimBtn" style="display:none">Skip</button>
+        <button class="action-btn" id="confirmRecapBtn" style="display:none">OK</button>
+        <button class="action-btn" id="sellAllRecapBtn" style="display:none">Sell All</button>
         <button class="action-btn" id="sellDrawBtn" style="display:none">Sell</button>
       </div>
     </div>
@@ -397,6 +400,9 @@
     let baitSpinning = false;
     let lastRewardChar   = null;
     let lastRewardTalent = null;
+    let animationSkipRequested = false;
+    let lastAnimationResolve = null;
+    let tempDrawResults = [];
 
     console.log('[DEBUG INIT] DRAW_10_COST:', DRAW_10_COST, 'DRAW_10_TOTAL_DRAWS:', DRAW_10_TOTAL_DRAWS, 'RESERVE_MAX:', RESERVE_MAX);
     console.log('[DEBUG INIT] Initial spinning:', spinning, 'baitSpinning:', baitSpinning);
@@ -591,7 +597,26 @@
         const step = iw + 8;
         const center = (win.clientWidth / 2) - (iw / 2);
         const finalX = -((rewardIdx * step) - center);
+
+        // expose resolve so skip handlers can finish the animation early
+        lastAnimationResolve = () => {
+          try { track.removeEventListener("transitionend", done); } catch (e) {}
+          track.style.transition = "none";
+          track.style.transform = `translateX(${finalX}px)`;
+          animationSkipRequested = false;
+          lastAnimationResolve = null;
+          resolve();
+        };
+
         requestAnimationFrame(() => {
+          if (animationSkipRequested) {
+            // finish immediately
+            track.style.transition = "none";
+            track.style.transform = `translateX(${finalX}px)`;
+            const tmp = lastAnimationResolve;
+            if (typeof tmp === 'function') tmp();
+            return;
+          }
           track.style.transition = "transform 4.2s cubic-bezier(0.15,0.88,0.2,1)";
           track.style.transform = `translateX(${finalX}px)`;
         });
@@ -645,9 +670,14 @@
       openGachaBtn.disabled = true;
       drawRecap.classList.remove("visible");
       rollArea.classList.add("visible");
+      // show skip button for single draw
+      const skipBtn = document.getElementById('skipAnimBtn');
+      if (skipBtn) skipBtn.style.display = 'inline-block';
       setHooks(getHooks() - DRAW_COST);
       refreshSummary();
       await runAnimation(rollTrack, rollWindow, reward, createRollItem);
+      // hide skip button after animation
+      if (skipBtn) skipBtn.style.display = 'none';
       applyReward(reward, talent);
       spinning = false;
       refreshSummary();
@@ -687,13 +717,31 @@
       setHooks(getHooks() - DRAW_10_COST);
       refreshSummary();
 
+      // Collect results into tempDrawResults and show a recap instead of committing immediately
+      tempDrawResults = [];
+      // Show skip control while animating
+      const skipBtn = document.getElementById('skipAnimBtn');
+      if (skipBtn) skipBtn.style.display = 'inline-block';
+
       for (let i = 0; i < DRAW_10_TOTAL_DRAWS; i++) {
         const reward = pickRewardCharacter();
         if (!reward) continue;
         const talent = pickRandomTalent();
+        // reset single-skip flag for each animation
+        animationSkipRequested = false;
         await runAnimation(rollTrack, rollWindow, reward, createRollItem);
-        applyReward(reward, talent);
+        tempDrawResults.push({ char: reward, talent });
       }
+
+      // Hide skip controls
+      if (skipBtn) skipBtn.style.display = 'none';
+
+      // Render recap and offer confirm / sell options
+      renderDraw10Recap();
+      const confirmBtn = document.getElementById('confirmRecapBtn');
+      const sellAllBtn = document.getElementById('sellAllRecapBtn');
+      if (confirmBtn) confirmBtn.style.display = 'inline-block';
+      if (sellAllBtn) sellAllBtn.style.display = 'inline-block';
 
       spinning = false;
       refreshSummary();
@@ -707,6 +755,11 @@
       gachaModal.classList.add("visible");
       document.getElementById("sellDrawBtn").style.display = "none";
       lastRewardChar = null; lastRewardTalent = null;
+      // reset any pending multi-draw results and UI
+      tempDrawResults = [];
+      const skipBtn = document.getElementById('skipAnimBtn'); if (skipBtn) skipBtn.style.display = 'none';
+      const confirmBtn = document.getElementById('confirmRecapBtn'); if (confirmBtn) confirmBtn.style.display = 'none';
+      const sellAllBtn = document.getElementById('sellAllRecapBtn'); if (sellAllBtn) sellAllBtn.style.display = 'none';
       refreshSummary();
     }
 
@@ -767,6 +820,96 @@
       lastRewardChar = null; lastRewardTalent = null;
       refreshSummary();
     });
+
+    // Skip / Recap handlers
+    const skipAnimBtn = document.getElementById('skipAnimBtn');
+    const confirmRecapBtn = document.getElementById('confirmRecapBtn');
+    const sellAllRecapBtn = document.getElementById('sellAllRecapBtn');
+
+    if (skipAnimBtn) {
+      skipAnimBtn.addEventListener('click', () => {
+        animationSkipRequested = true;
+        if (typeof lastAnimationResolve === 'function') lastAnimationResolve();
+      });
+    }
+
+    // skip-all removed
+
+    function renderDraw10Recap() {
+      if (!Array.isArray(tempDrawResults) || tempDrawResults.length === 0) {
+        drawRecap.className = 'draw-recap';
+        return;
+      }
+      drawRecap.className = 'draw-recap visible';
+      drawRecapName.className = 'draw-recap-name';
+      drawRecapName.textContent = `${tempDrawResults.length} Draw Results`;
+      const sellValues = { 1: 10, 2: 25, 3: 120, 4: 400, 5: 1200 };
+      let html = '<div style="display:grid;gap:8px;">';
+      tempDrawResults.forEach((r, idx) => {
+        const rv = sellValues[r.char.stars] || 10;
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #2f4d5c;">`;
+        html += `<div><strong class="${getRarityClassByStars(r.char.stars)}">${escapeHtml(r.char.name)} ${getStarsString(r.char.stars)}</strong><div style="font-size:12px;color:#cde3ef;">Talent: ${escapeHtml(r.talent.name || '')}</div></div>`;
+        html += `<div style="display:flex;gap:8px;align-items:center;"><button class="action-btn sell-recap-btn" data-idx="${idx}">Sell (${rv} 🪝)</button></div>`;
+        html += `</div>`;
+      });
+      html += '</div>';
+      drawRecapText.innerHTML = html;
+
+      // attach listeners
+      setTimeout(() => {
+        document.querySelectorAll('.sell-recap-btn').forEach((btn) => {
+          btn.removeEventListener('click', onSellRecapItem);
+          btn.addEventListener('click', onSellRecapItem);
+        });
+      }, 10);
+    }
+
+    function onSellRecapItem(e) {
+      const idx = Number(e.currentTarget.getAttribute('data-idx'));
+      sellRecapItem(idx);
+    }
+
+    function sellRecapItem(idx) {
+      if (!Array.isArray(tempDrawResults) || idx < 0 || idx >= tempDrawResults.length) return;
+      const sellValues = { 1: 10, 2: 25, 3: 120, 4: 400, 5: 1200 };
+      const entry = tempDrawResults[idx];
+      const value = sellValues[entry.char.stars] || 10;
+      setHooks(getHooks() + value);
+      // remove item
+      tempDrawResults.splice(idx, 1);
+      renderDraw10Recap();
+      refreshSummary();
+    }
+
+    if (confirmRecapBtn) {
+      confirmRecapBtn.addEventListener('click', async () => {
+        // commit results to reserve
+        if (!Array.isArray(tempDrawResults) || tempDrawResults.length === 0) return;
+        for (const r of tempDrawResults) {
+          applyReward(r.char, r.talent);
+        }
+        tempDrawResults = [];
+        confirmRecapBtn.style.display = 'none';
+        sellAllRecapBtn.style.display = 'none';
+        drawRecap.className = 'draw-recap';
+        refreshSummary();
+      });
+    }
+
+    if (sellAllRecapBtn) {
+      sellAllRecapBtn.addEventListener('click', () => {
+        if (!Array.isArray(tempDrawResults) || tempDrawResults.length === 0) return;
+        const sellValues = { 1: 10, 2: 25, 3: 120, 4: 400, 5: 1200 };
+        let total = 0;
+        for (const r of tempDrawResults) total += (sellValues[r.char.stars] || 10);
+        setHooks(getHooks() + total);
+        tempDrawResults = [];
+        confirmRecapBtn.style.display = 'none';
+        sellAllRecapBtn.style.display = 'none';
+        drawRecap.className = 'draw-recap';
+        refreshSummary();
+      });
+    }
 
   </script>
 </body>
