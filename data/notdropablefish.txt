@@ -1,3 +1,5 @@
 window.notDroppableFish = [
-  { id: 27, name: "Celestial Leviathan", rarity: "mythic", droppable: false }
+  { id: 27, name: "Celestial Leviathan", rarity: "mythic", droppable: false },
+  { id: 28, name: "Void Kraken", rarity: "mythic", droppable: false },
+  { id: 34, name: "Storm Hydra", rarity: "mythic", droppable: false },
 ];

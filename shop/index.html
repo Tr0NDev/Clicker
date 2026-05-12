@@ -172,7 +172,6 @@
         <button class="action-btn" id="startDrawBtn">Start Draw</button>
         <button class="action-btn" id="startDraw10ModalBtn">Draw 10 (+1 Free)</button>
         <button class="action-btn" id="skipAnimBtn" style="display:none">Skip</button>
-        <button class="action-btn" id="confirmRecapBtn" style="display:none">OK</button>
         <button class="action-btn" id="sellAllRecapBtn" style="display:none">Sell All</button>
         <button class="action-btn" id="sellDrawBtn" style="display:none">Sell</button>
       </div>
@@ -736,11 +735,9 @@
       // Hide skip controls
       if (skipBtn) skipBtn.style.display = 'none';
 
-      // Render recap and offer confirm / sell options
+      // Render recap and offer sell option
       renderDraw10Recap();
-      const confirmBtn = document.getElementById('confirmRecapBtn');
       const sellAllBtn = document.getElementById('sellAllRecapBtn');
-      if (confirmBtn) confirmBtn.style.display = 'inline-block';
       if (sellAllBtn) sellAllBtn.style.display = 'inline-block';
 
       spinning = false;
@@ -758,7 +755,6 @@
       // reset any pending multi-draw results and UI
       tempDrawResults = [];
       const skipBtn = document.getElementById('skipAnimBtn'); if (skipBtn) skipBtn.style.display = 'none';
-      const confirmBtn = document.getElementById('confirmRecapBtn'); if (confirmBtn) confirmBtn.style.display = 'none';
       const sellAllBtn = document.getElementById('sellAllRecapBtn'); if (sellAllBtn) sellAllBtn.style.display = 'none';
       refreshSummary();
     }
@@ -773,6 +769,13 @@
 
     function closeGachaModal() {
       if (spinning) return;
+      // Before closing, apply any remaining tempDrawResults
+      if (Array.isArray(tempDrawResults) && tempDrawResults.length > 0) {
+        for (const r of tempDrawResults) {
+          applyReward(r.char, r.talent);
+        }
+        tempDrawResults = [];
+      }
       gachaModal.classList.remove("visible");
       rollArea.classList.remove("visible");
       drawRecap.className = "draw-recap";
@@ -823,7 +826,6 @@
 
     // Skip / Recap handlers
     const skipAnimBtn = document.getElementById('skipAnimBtn');
-    const confirmRecapBtn = document.getElementById('confirmRecapBtn');
     const sellAllRecapBtn = document.getElementById('sellAllRecapBtn');
 
     if (skipAnimBtn) {
@@ -881,21 +883,6 @@
       refreshSummary();
     }
 
-    if (confirmRecapBtn) {
-      confirmRecapBtn.addEventListener('click', async () => {
-        // commit results to reserve
-        if (!Array.isArray(tempDrawResults) || tempDrawResults.length === 0) return;
-        for (const r of tempDrawResults) {
-          applyReward(r.char, r.talent);
-        }
-        tempDrawResults = [];
-        confirmRecapBtn.style.display = 'none';
-        sellAllRecapBtn.style.display = 'none';
-        drawRecap.className = 'draw-recap';
-        refreshSummary();
-      });
-    }
-
     if (sellAllRecapBtn) {
       sellAllRecapBtn.addEventListener('click', () => {
         if (!Array.isArray(tempDrawResults) || tempDrawResults.length === 0) return;
@@ -904,7 +891,6 @@
         for (const r of tempDrawResults) total += (sellValues[r.char.stars] || 10);
         setHooks(getHooks() + total);
         tempDrawResults = [];
-        confirmRecapBtn.style.display = 'none';
         sellAllRecapBtn.style.display = 'none';
         drawRecap.className = 'draw-recap';
         refreshSummary();
