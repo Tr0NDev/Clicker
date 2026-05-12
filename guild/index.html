@@ -339,18 +339,21 @@
     .char-slot.stars-3 { border-color: #1a3a7a; background: rgba(88,166,255,.05); }
     .char-slot.stars-4 { border-color: #4a2a7a; background: rgba(210,168,255,.05); }
     .char-slot.stars-5 { border-color: #7a4a10; background: rgba(255,166,87,.06); }
+    .char-slot.stars-6 { border-color: #ff5e5e; background: rgba(255,94,94,.08); }
 
     .char-name-1 { color: #c0c0c0; }
     .char-name-2 { color: #7ee787; }
     .char-name-3 { color: #58a6ff; }
     .char-name-4 { color: #d2a8ff; }
     .char-name-5 { color: #ffa657; }
+    .char-name-6 { color: #ff5e5e; }
 
     .char-stars-1 { color: #6a8a9a; }
     .char-stars-2 { color: #7ee787; }
     .char-stars-3 { color: #58a6ff; }
     .char-stars-4 { color: #d2a8ff; }
     .char-stars-5 { color: #ffa657; }
+    .char-stars-6 { color: #ff5e5e; }
 
     /* empty slot */
     .team-slot-empty {
@@ -952,9 +955,9 @@
 
     // ── RENDU CHAR SLOT (couleur par étoiles) ─────────────────────────────────
     function renderCharSlot(c) {
-      const stars = Math.min(5, Math.max(1, c.stars || c.level || 1));
+      const stars = Math.min(6, Math.max(1, c.stars || c.level || 1));
       const name = escHtml((c.name || "?").slice(0, 14));
-      const starsStr = "★".repeat(stars) + "☆".repeat(5 - stars);
+      const starsStr = "★".repeat(stars) + "☆".repeat(Math.max(0, 6 - stars));
       return `<div class="char-slot stars-${stars}" title="${name} ★${stars}">
         <span class="char-slot-name char-name-${stars}">${name}</span>
         <span class="char-slot-stars char-stars-${stars}">${starsStr}</span>
@@ -1346,9 +1349,9 @@
       score = Math.round(score);
 
       const rarityColors = { common: "#c0c0c0", uncommon: "#7ee787", rare: "#58a6ff", epic: "#d2a8ff", legendary: "#ffa657", mythic: "#ff5e5e" };
-      const starColors = { 1: "#c0c0c0", 2: "#7ee787", 3: "#58a6ff", 4: "#d2a8ff", 5: "#ffa657" };
+      const starColors = { 1: "#c0c0c0", 2: "#7ee787", 3: "#58a6ff", 4: "#d2a8ff", 5: "#ffa657", 6: "#ff5e5e" };
       const rarityBgs = { common: "#4a5a5a", uncommon: "#2a5a2a", rare: "#1a3a7a", epic: "#4a2a7a", legendary: "#7a4a10", mythic: "#5a1515" };
-      const starBgs = { 1: "#4a5a5a", 2: "#2a5a2a", 3: "#1a3a7a", 4: "#4a2a7a", 5: "#7a4a10" };
+      const starBgs = { 1: "#4a5a5a", 2: "#2a5a2a", 3: "#1a3a7a", 4: "#4a2a7a", 5: "#7a4a10", 6: "#7a1a1a" };
 
       const fishHtml = fish_team.length > 0
         ? fish_team.map(f => {
@@ -1371,8 +1374,8 @@
 
       const charHtml = char_team.length > 0
         ? char_team.map(c => {
-            const stars = Math.min(5, Math.max(1, c.stars || 1));
-            const starsStr = "★".repeat(stars) + "☆".repeat(5 - stars);
+              const stars = Math.min(6, Math.max(1, c.stars || 1));
+              const starsStr = "★".repeat(stars) + "☆".repeat(Math.max(0, 6 - stars));
             const name = escHtml((c.name || "?").slice(0, 14));
             const color = starColors[stars];
             const borderColor = starBgs[stars];
@@ -1447,9 +1450,9 @@
 
         let score = computePlayerScore(fish_team, char_team);
         const rarityColors = { common: "#c0c0c0", uncommon: "#7ee787", rare: "#58a6ff", epic: "#d2a8ff", legendary: "#ffa657", mythic: "#ff5e5e" };
-        const starColors = { 1: "#c0c0c0", 2: "#7ee787", 3: "#58a6ff", 4: "#d2a8ff", 5: "#ffa657" };
+        const starColors = { 1: "#c0c0c0", 2: "#7ee787", 3: "#58a6ff", 4: "#d2a8ff", 5: "#ffa657", 6: "#ff5e5e" };
         const rarityBgs = { common: "#4a5a5a", uncommon: "#2a5a2a", rare: "#1a3a7a", epic: "#4a2a7a", legendary: "#7a4a10", mythic: "#5a1515" };
-        const starBgs = { 1: "#4a5a5a", 2: "#2a5a2a", 3: "#1a3a7a", 4: "#4a2a7a", 5: "#7a4a10" };
+        const starBgs = { 1: "#4a5a5a", 2: "#2a5a2a", 3: "#1a3a7a", 4: "#4a2a7a", 5: "#7a4a10", 6: "#7a1a1a" };
 
         const fishHtml = fish_team.length > 0
           ? fish_team.map(f => {
@@ -1472,8 +1475,8 @@
 
         const charHtml = char_team.length > 0
           ? char_team.map(c => {
-              const stars = Math.min(5, Math.max(1, c.stars || 1));
-              const starsStr = "★".repeat(stars) + "☆".repeat(5 - stars);
+              const stars = Math.min(6, Math.max(1, c.stars || 1));
+              const starsStr = "★".repeat(stars) + "☆".repeat(Math.max(0, 6 - stars));
               const name = escHtml((c.name || "?").slice(0, 14));
               const color = starColors[stars];
               const borderColor = starBgs[stars];

@@ -453,6 +453,11 @@
       border-color: #ffd700;
     }
 
+    .reserve-character-card.stars-6 {
+      background: linear-gradient(180deg, rgba(255, 94, 94, 0.24) 0%, rgba(122, 19, 19, 0.16) 100%);
+      border-color: #ff5e5e;
+    }
+
     .reserve-character-card:hover {
       border-color: #8dc4e0;
       box-shadow: 0 0 12px rgba(141, 196, 224, 0.2);
@@ -514,6 +519,11 @@
     .character-card.stars-5 {
       background: linear-gradient(180deg, rgba(255, 215, 0, 0.25) 0%, rgba(255, 180, 0, 0.15) 100%);
       border-color: #ffd700;
+    }
+
+    .character-card.stars-6 {
+      background: linear-gradient(180deg, rgba(255, 94, 94, 0.24) 0%, rgba(122, 19, 19, 0.16) 100%);
+      border-color: #ff5e5e;
     }
 
     .character-card.slot-empty {
@@ -1570,12 +1580,16 @@
       {id: 34, templateId: 34, name: "Zayne", stars: 4, level: 1, incomeMultiplier: 1.5, clickMultiplier: 1.55, sizeAdd: 30, sizeMult: 1, weightAdd: 0, weightMult: 1.25, chanceAdd: 18, chanceMult: 1, resaleAdd: 0, resaleMult: 1.16, fishingSpeed: 1.45, unlocked: false, cost: 8000, talents: [], teamSlot: null},
 
       // ===== 5 STARS (2 characters) - Legendary multiplicatives =====
-      {id: 35, templateId: 35, name: "Ares", stars: 5, level: 1, incomeMultiplier: 1.8, clickMultiplier: 1.75, sizeAdd: 35, sizeMult: 1.3, weightAdd: 35, weightMult: 1.28, chanceAdd: 35, chanceMult: 1.2, resaleAdd: 50, resaleMult: 1.25, fishingSpeed: 1.7, unlocked: false, cost: 30000, talents: [], teamSlot: null},
-      {id: 36, templateId: 36, name: "Draco", stars: 5, level: 1, incomeMultiplier: 1.9, clickMultiplier: 1.85, sizeAdd: 40, sizeMult: 1.35, weightAdd: 38, weightMult: 1.3, chanceAdd: 40, chanceMult: 1.25, resaleAdd: 55, resaleMult: 1.3, fishingSpeed: 1.75, unlocked: false, cost: 30000, talents: [], teamSlot: null}
+      {id: 35, templateId: 35, name: "Ares", stars: 5, level: 1, incomeMultiplier: 1.72, clickMultiplier: 1.68, sizeAdd: 30, sizeMult: 1.24, weightAdd: 30, weightMult: 1.22, chanceAdd: 28, chanceMult: 1.14, resaleAdd: 40, resaleMult: 1.18, fishingSpeed: 1.62, unlocked: false, cost: 26000, talents: [], teamSlot: null},
+      {id: 36, templateId: 36, name: "Draco", stars: 5, level: 1, incomeMultiplier: 1.82, clickMultiplier: 1.76, sizeAdd: 34, sizeMult: 1.28, weightAdd: 32, weightMult: 1.25, chanceAdd: 32, chanceMult: 1.18, resaleAdd: 45, resaleMult: 1.22, fishingSpeed: 1.68, unlocked: false, cost: 28000, talents: [], teamSlot: null},
+
+      // ===== 6 STARS (2 characters) - Mythic apex bonuses =====
+      {id: 37, templateId: 37, name: "Nyx", stars: 6, level: 1, incomeMultiplier: 2.05, clickMultiplier: 2, sizeAdd: 45, sizeMult: 1.4, weightAdd: 45, weightMult: 1.35, chanceAdd: 42, chanceMult: 1.28, resaleAdd: 60, resaleMult: 1.3, fishingSpeed: 1.88, unlocked: false, cost: 120000, talents: [], teamSlot: null},
+      {id: 38, templateId: 38, name: "Aether", stars: 6, level: 1, incomeMultiplier: 2.15, clickMultiplier: 2.08, sizeAdd: 50, sizeMult: 1.45, weightAdd: 48, weightMult: 1.4, chanceAdd: 48, chanceMult: 1.32, resaleAdd: 68, resaleMult: 1.35, fishingSpeed: 1.95, unlocked: false, cost: 135000, talents: [], teamSlot: null}
     ];
 
     const TEAM_RESERVE_STORAGE_KEY = 'clicker_characterReserve';
-    const BASE_CHARACTER_COUNT = 36;
+    const BASE_CHARACTER_COUNT = 38;
     const MAX_RESERVE_SIZE = 50;
     let reserveSortDirection = 'desc';
 

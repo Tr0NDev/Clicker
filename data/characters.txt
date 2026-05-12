@@ -33,6 +33,8 @@
   {id: 32, name: "Dany", stars: 4, incomeMultiplier: 1.6, clickMultiplier: 1.55, sizeAdd: 0.5, weightAdd: 0.45},
   {id: 33, name: "Magnus", stars: 4, incomeMultiplier: 1.65, clickMultiplier: 1.65, sizeAdd: 0.6, weightAdd: 0.55},
   {id: 34, name: "Zayne", stars: 4, incomeMultiplier: 1.55, clickMultiplier: 1.6, sizeAdd: 0.55, weightAdd: 0.65},
-  {id: 35, name: "Ares", stars: 5, incomeMultiplier: 1.8, clickMultiplier: 1.75, sizeAdd: 0.7, weightAdd: 0.7},
-  {id: 36, name: "Draco", stars: 5, incomeMultiplier: 1.9, clickMultiplier: 1.85, sizeAdd: 0.8, weightAdd: 0.75}
+  {id: 35, name: "Ares", stars: 5, incomeMultiplier: 1.72, clickMultiplier: 1.68, sizeAdd: 0.62, weightAdd: 0.62},
+  {id: 36, name: "Draco", stars: 5, incomeMultiplier: 1.82, clickMultiplier: 1.76, sizeAdd: 0.7, weightAdd: 0.68},
+  {id: 37, name: "Nyx", stars: 6, incomeMultiplier: 2.05, clickMultiplier: 2, sizeAdd: 0.95, weightAdd: 0.9},
+  {id: 38, name: "Aether", stars: 6, incomeMultiplier: 2.15, clickMultiplier: 2.08, sizeAdd: 1.05, weightAdd: 1}
 ];

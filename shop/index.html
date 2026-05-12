@@ -68,6 +68,7 @@
     .rarity-rare { color: #58a6ff; }
     .rarity-epic { color: #d2a8ff; }
     .rarity-legendary { color: #ffa657; }
+    .rarity-mythic { color: #ff5e5e; font-weight: bold; }
     .roll-item.rarity-common { background: linear-gradient(180deg,#25303a,#1b242c); border-color: #7d8a95; }
     .roll-item.rarity-uncommon { background: linear-gradient(180deg,#1f3a2a,#162a1f); border-color: #4ea867; }
     .roll-item.rarity-rare { background: linear-gradient(180deg,#1d324a,#162737); border-color: #4f86c7; }
@@ -80,6 +81,7 @@
     .result-box.rarity-epic, .draw-recap.rarity-epic { background: linear-gradient(180deg,#33244a,#241a37); border-color: #8d65bf; }
     .result-box.rarity-legendary, .draw-recap.rarity-legendary { background: linear-gradient(180deg,#4b341d,#362513); border-color: #c88a3f; }
     .result-box.rarity-mythic, .draw-recap.rarity-mythic { background: linear-gradient(180deg,#3e1212,#2a0e0e); border-color: #ff5e5e; }
+    .drop-table .rarity-mythic { color: #ff5e5e; font-weight: bold; }
     .talent-inline { display: inline-flex; align-items: center; gap: 8px; vertical-align: middle; min-width: 0; }
     .talent-name-text { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .talent-help { position: relative; width: 16px; height: 16px; border-radius: 999px; border: 1px solid #84a9be; color: #d9ecf8; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; background: #203240; cursor: help; line-height: 1; flex: 0 0 auto; }
@@ -132,7 +134,7 @@
       </div>
       <div class="draw-quick-info">
         <p class="draw-quick-title">How this draw works</p>
-        <p class="draw-quick-text">Each draw without a Legendary increases rates for rarer characters. Rates reset when you pull a Legendary. At 100 draws: Legendary reaches ~20%, Epic reaches ~40%. Common drains first, then Uncommon starts draining too.</p>
+        <p class="draw-quick-text">Each draw without a Legendary increases rates for rarer characters. Rates reset when you pull a Legendary. Mythic stays fixed at 0.5% and never scales with pity. At 100 draws: Legendary reaches ~20%, Epic reaches ~40%. Common drains first, then Uncommon starts draining too.</p>
         <div class="draw-price-badge">
           <span class="draw-price-label">Price</span>
           <span class="draw-price-value">100</span>
@@ -223,7 +225,7 @@
     const PITY_KEY = "clicker_gachaPity";
     const PITY_MAX = 100;
 
-    const BASE_RATES = { 1: 70, 2: 23.87, 3: 4.78, 4: 0.96, 5: 0.39 };
+    const BASE_RATES = { 1: 69.5, 2: 23.87, 3: 4.78, 4: 0.96, 5: 0.39, 6: 0.5 };
 
     const rarityConfig = {
       1: { label: "Common (★)",         className: "rarity-common" },
@@ -253,6 +255,8 @@
     function getCurrentRates(pity) {
       const p = Math.min(pity, PITY_MAX);
       const t = p / PITY_MAX;
+      const mythicRate = BASE_RATES[6];
+      const targetBudget = 100 - mythicRate;
 
       // Legendary: base 0.39% → max 20% at pity 100
       const legendaryRate = BASE_RATES[5] + (20 - BASE_RATES[5]) * Math.pow(t, 1.5);
@@ -268,7 +272,7 @@
 
       // Budget left for 1★ and 2★
       const boostedTotal = cappedLeg + cappedEpic + rareRate;
-      const remainingForLow = Math.max(0, 100 - boostedTotal);
+      const remainingForLow = Math.max(0, targetBudget - boostedTotal);
 
       // Common (1★): drains first — fills as much as possible leaving room for base 2★
       const commonRate = Math.max(0, remainingForLow - BASE_RATES[2]);
@@ -279,14 +283,15 @@
 
       // Normalize to ensure exact 100%
       const total = cappedLeg + cappedEpic + rareRate + uncommonRate + commonRate;
-      const scale = 100 / total;
+      const scale = targetBudget / total;
 
       return {
         1: Math.max(0, commonRate * scale),
         2: Math.max(0, uncommonRate * scale),
         3: Math.max(0, rareRate * scale),
         4: cappedEpic * scale,
-        5: cappedLeg * scale
+        5: cappedLeg * scale,
+        6: mythicRate
       };
     }
 
@@ -446,7 +451,7 @@
       const pity = getPity();
       const cur  = getCurrentRates(pity);
       const base = BASE_RATES;
-      dropTableBody.innerHTML = [1,2,3,4,5].map(stars => {
+      dropTableBody.innerHTML = [1,2,3,4,5,6].map(stars => {
         const rc   = rarityConfig[stars];
         const b    = base[stars];
         const c    = cur[stars];
@@ -481,11 +486,11 @@
 
     function pickWeightedRarity(pity) {
       const rates = getCurrentRates(pity);
-      const entries = [1,2,3,4,5].map(s => ({ stars: s, weight: rates[s] }));
+      const entries = [1,2,3,4,5,6].map(s => ({ stars: s, weight: rates[s] }));
       const total = entries.reduce((s,e) => s + e.weight, 0);
       let roll = Math.random() * total;
       for (const e of entries) { roll -= e.weight; if (roll <= 0) return e.stars; }
-      return 5;
+      return 6;
     }
 
     function pickWeightedRarityBait() {

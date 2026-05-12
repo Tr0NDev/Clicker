@@ -16,6 +16,7 @@
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
     .card { background: #0c1217; border: 1px solid #3f6075; border-radius: 12px; padding: 16px; text-align: left; cursor: pointer; transition: background-color 0.15s ease; }
     .card:hover { background: #1a2330; }
+    .card[data-char-stars="6"]:hover { background: #1a2330; }
     .card-title { font-size: 18px; font-weight: bold; color: #f4fbff; margin-bottom: 8px; }
     .card-details { font-size: 14px; color: #cde3ef; line-height: 1.4; }
     .rarity-common { color: #d9d9d9; }
@@ -29,6 +30,7 @@
     .stars-3 { color: #58a6ff; }
     .stars-4 { color: #d2a8ff; }
     .stars-5 { color: #ffa657; }
+    .stars-6 { color: #ff5e5e; }
     .talent-inline { display: inline-flex; align-items: center; gap: 8px; vertical-align: middle; min-width: 0; }
     .talent-name-text { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .talent-help { position: relative; width: 16px; height: 16px; border-radius: 999px; border: 1px solid #84a9be; color: #d9ecf8; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; background: #203240; cursor: help; line-height: 1; flex: 0 0 auto; }
