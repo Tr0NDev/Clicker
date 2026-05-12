@@ -33,9 +33,9 @@
   {id: 32, name: "Dany", stars: 4, incomeMultiplier: 1.6, clickMultiplier: 1.55, sizeAdd: 0.5, weightAdd: 0.45},
   {id: 33, name: "Magnus", stars: 4, incomeMultiplier: 1.65, clickMultiplier: 1.65, sizeAdd: 0.6, weightAdd: 0.55},
   {id: 34, name: "Zayne", stars: 4, incomeMultiplier: 1.55, clickMultiplier: 1.6, sizeAdd: 0.55, weightAdd: 0.65},
-  {id: 35, name: "Ares", stars: 5, incomeMultiplier: 1.72, clickMultiplier: 1.68, sizeAdd: 0.62, weightAdd: 0.62},
-  {id: 36, name: "Draco", stars: 5, incomeMultiplier: 1.82, clickMultiplier: 1.76, sizeAdd: 0.7, weightAdd: 0.68},
+  {id: 35, name: "Ares", stars: 5, incomeMultiplier: 1.68, clickMultiplier: 1.63, sizeAdd: 0.62, weightAdd: 0.62},
+  {id: 36, name: "Draco", stars: 5, incomeMultiplier: 1.72, clickMultiplier: 1.70, sizeAdd: 0.7, weightAdd: 0.68},
   {id: 39, name: "Bastion", stars: 5, incomeMultiplier: 1.46, clickMultiplier: 1.32, sizeAdd: 0.72, weightAdd: 0.48},
-  {id: 37, name: "Nyx", stars: 6, incomeMultiplier: 2.05, clickMultiplier: 2, sizeAdd: 0.95, weightAdd: 0.9},
-  {id: 38, name: "Aether", stars: 6, incomeMultiplier: 2.15, clickMultiplier: 2.08, sizeAdd: 1.05, weightAdd: 1}
+  {id: 37, name: "Nyx", stars: 6, incomeMultiplier: 1.92, clickMultiplier: 1.88, sizeAdd: 0.90, weightAdd: 0.85},
+  {id: 38, name: "Aether", stars: 6, incomeMultiplier: 2.02, clickMultiplier: 1.98, sizeAdd: 1.00, weightAdd: 0.95}
 ];
