@@ -285,6 +285,53 @@ const DETECTORS = [
       return null;
     }
   },
+  {
+    // Obsolete talents migration
+    check(data) {
+      const rosterRaw = data["clicker_teamRoster"];
+      if (!rosterRaw) return null;
+      try {
+        const roster = JSON.parse(rosterRaw);
+        if (!roster || typeof roster !== "object") return null;
+        const slots = roster.slots || [];
+        const oldTalents = ["ancre", "specialiste-chance", "specialiste-resale", "swap-ready", "anti-synergie"];
+        const validTalents = ["avant-garde", "relais", "capitaine", "finisseur", "duo-parfait", "escalier", "miroir", "specialiste-income", "pecheur-equipe", "combo-additif", "combo-multiplicatif", "solitaire-tactique", "duo-tactique", "trio-tactique", "guardian", "bloodlust", "majestic", "prince", "helper"];
+        let affected = 0;
+        for (const slot of slots) {
+          if (slot && slot.instances && Array.isArray(slot.instances)) {
+            for (const inst of slot.instances) {
+              if (inst && oldTalents.includes(inst.talentId)) {
+                affected++;
+              }
+            }
+          }
+        }
+        if (affected === 0) return null;
+        return {
+          severity: "warning",
+          message: `${affected} character(s) have obsolete talents (Ancre, Specialiste Chance, Specialiste Resale, Swap Ready, Anti-Synergie).`,
+          fix: `Replace each obsolete talent with a random valid talent from the new roster.`,
+          apply(d) {
+            try {
+              const r = JSON.parse(d["clicker_teamRoster"]);
+              const slots = r.slots || [];
+              for (const slot of slots) {
+                if (slot && slot.instances && Array.isArray(slot.instances)) {
+                  for (const inst of slot.instances) {
+                    if (inst && oldTalents.includes(inst.talentId)) {
+                      const randomTalent = validTalents[Math.floor(Math.random() * validTalents.length)];
+                      inst.talentId = randomTalent;
+                    }
+                  }
+                }
+              }
+              d["clicker_teamRoster"] = JSON.stringify(r);
+            } catch {}
+          }
+        };
+      } catch { return null; }
+    }
+  },
 ];
 
 // ─── PARSE SAVE ──────────────────────────────────────────────────────────────

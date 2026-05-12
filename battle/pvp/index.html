@@ -1103,12 +1103,11 @@
         return;
       }
       
-      // Load team from Supabase for queue
-      console.log('[DEBUG] Loading team from Supabase for queue');
-      await loadPlayerTeamFromSupabase();
+      // Load queue payload from Supabase without mutating the global battle team
+      console.log('[DEBUG] Loading queue payload from Supabase');
+      const payload = await buildQueueBattlePayloadFromSupabase();
       
       const playerName = getPlayerNameOrDefault();
-      const payload = buildBattlePayload();
       console.log('[DEBUG] Payload:', payload ? {lineup: payload.lineup?.length} : 'null');
       if (!payload || !Array.isArray(payload.lineup) || payload.lineup.length !== 3) {
         setQueueStatus("Select 3 fish before joining queue.");
@@ -1423,7 +1422,7 @@
         console.log('[DEBUG] Fetching team from Supabase for player:', playerId);
         const { data, error } = await db
           .from('profiles')
-          .select('fish_team, team_stats')
+          .select('fish_team, team_stats, char_team')
           .eq('player_id', playerId)
           .maybeSingle();
         
@@ -1473,9 +1472,113 @@
           console.log('[DEBUG] Team stats loaded from Supabase:', teamStats);
         }
         
+        // Load character team from Supabase if available
+        if (data.char_team && Array.isArray(data.char_team)) {
+          console.log('[DEBUG] Character team loaded from Supabase:', data.char_team.length, 'characters');
+          // Create a mock teamState for loadPlayerCharacterTeam compatibility
+          localStorage.setItem('clicker_teamState', JSON.stringify({
+            teamChars: data.char_team.map(c => ({
+              ...c,
+              teamSlot: c.teamSlot || c.slot
+            }))
+          }));
+        }
+        
         console.log('[DEBUG] Team loaded from Supabase successfully');
       } catch (e) {
         console.error('[DEBUG] Error loading team from Supabase:', e);
+      }
+    }
+
+    async function buildQueueBattlePayloadFromSupabase() {
+      try {
+        if (!db) {
+          console.log('[DEBUG] buildQueueBattlePayloadFromSupabase: Supabase not configured');
+          return null;
+        }
+
+        const playerId = getPlayerIdOrNull();
+        if (!playerId) {
+          console.log('[DEBUG] buildQueueBattlePayloadFromSupabase: No player ID');
+          return null;
+        }
+
+        console.log('[DEBUG] buildQueueBattlePayloadFromSupabase: Fetching team from Supabase for player:', playerId);
+        const { data, error } = await db
+          .from('profiles')
+          .select('fish_team, char_team')
+          .eq('player_id', playerId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('[DEBUG] buildQueueBattlePayloadFromSupabase: Supabase fetch error:', error);
+          return null;
+        }
+
+        if (!data || !data.fish_team || !Array.isArray(data.fish_team)) {
+          console.log('[DEBUG] buildQueueBattlePayloadFromSupabase: No fish_team found');
+          return null;
+        }
+
+        const supabaseTeamFish = data.fish_team.map(f => ({
+          uid: f.uid || `fish-${Date.now()}-${Math.random().toString(36).slice(2,10)}`,
+          type: f.type || "Fish",
+          rarity: f.rarity || "common",
+          size: Number(f.size) || 0,
+          weight: Number(f.weight) || 0,
+          mutations: normalizeFishMutations(f.mutations),
+          price: 0,
+          basePrice: 0,
+          currentValue: 0,
+          priceReductionVersion: 1,
+          storageState: "team",
+          spoiled: false
+        }));
+
+        const selectedTeam = supabaseTeamFish.slice(0, 3);
+        const lineup = selectedTeam.map(x => {
+          const effective = getFishEffectiveBaseStats(x);
+          const boosted = applyTeamBoostsToFishStats(
+            Math.max(1, Number(effective.mutatedSize) || 1),
+            Math.max(1, Number(effective.mutatedWeight) || 1)
+          );
+          return {
+            name: x.type || "Fish",
+            rarity: x.rarity || "common",
+            mutations: normalizeFishMutations(x.mutations),
+            mutationMultiplier: getFishMutationMultiplier(x),
+            size: boosted.hp,
+            weight: boosted.atk,
+            sizeRaw: Math.max(1, Number(effective.mutatedSize) || 1),
+            weightRaw: Math.max(1, Number(effective.mutatedWeight) || 1),
+            baseSizeRaw: Math.max(1, Number(effective.baseSize) || 1),
+            baseWeightRaw: Math.max(1, Number(effective.baseWeight) || 1)
+          };
+        });
+
+        const charTeam = Array.isArray(data.char_team) ? data.char_team.map(c => ({
+          ...c,
+          teamSlot: Number.isFinite(Number(c.teamSlot)) ? Number(c.teamSlot) : c.slot
+        })) : [];
+
+        const teamChars = charTeam.slice(0, 3);
+
+        return {
+          version: 2,
+          createdAt: new Date().toISOString(),
+          lineup,
+          teamStats: {
+            sizeBonus: teamStats.sizeBonus,
+            weightBonus: teamStats.weightBonus,
+            incomeMultiplier: teamStats.incomeMultiplier,
+            fishingSpeed: teamStats.fishingSpeed
+          },
+          exportedTeamChars: teamChars,
+          bait: [null, null]
+        };
+      } catch (e) {
+        console.error('[DEBUG] buildQueueBattlePayloadFromSupabase: Exception:', e);
+        return null;
       }
     }
 
@@ -1796,21 +1899,21 @@
       "relais":"Gives +8% chance to the teammate directly on the right.",
       "capitaine":"Slot 2 only: applies x1.15 fishing speed to the two other teammates.",
       "finisseur":"Slot 3 only: this character click multiplier is multiplied by x1.35.",
-      "ancre":"Gives +20% weight to slot 2 and +10% resale to slot 3.",
       "duo-parfait":"Adjacent teammates with same stars gain x1.2 income.",
       "escalier":"If stars strictly increase left to right, team gains +15% chance.",
       "miroir":"If slot 1 and slot 3 have same stars, slot 2 gains x1.3 click.",
       "specialiste-income":"If base income is at least x1.3, gains an extra x1.15 income.",
-      "specialiste-chance":"Converts up to +10% own weight bonus into +10% own chance bonus.",
-      "specialiste-resale":"Own resale is multiplied by x1.2, but own click is multiplied by x0.95.",
       "pecheur-equipe":"For each teammate with fishing speed >= x1.2, gains +0.05x fishing speed.",
       "combo-additif":"If at least two additive bonuses are non-zero, lowest additive bonus gets +12%.",
       "combo-multiplicatif":"Each existing stat multiplier above x1 gets +0.05.",
       "solitaire-tactique":"If alone in team, own income/click/fishing are multiplied by x1.8.",
       "duo-tactique":"If exactly 2 teammates, gains +12% chance and +12% resale.",
       "trio-tactique":"If team is full: slot1 x1.1 income, slot2 +10% weight, slot3 x1.1 click.",
-      "swap-ready":"If this copy changed slot since last save, gains +20% size.",
-      "anti-synergie":"Risk/reward: own income x1.35 and own chance -12%.",
+      "guardian":"Size boost x1.2 based on own income multiplier.",
+      "bloodlust":"Weight boost x1.25 based on own click multiplier.",
+      "majestic":"Size +12% and weight +12% for this character.",
+      "prince":"1 prince: size x1.3, weight x1.3. 2 princes: both x1.4 and boost each other x1.2. 3+ princes: lose all bonuses.",
+      "helper":"If two teammates already synergize, boost it x1.2 and add 1/4 of helper's own stats.",
       "no-talent":"No talent on this character."
     };
 

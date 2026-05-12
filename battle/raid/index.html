@@ -765,6 +765,62 @@
     const teamStats = loadRaidTeamStats();
     return padRaidTeam(team).map((fish) => boostRaidFishStats(fish, teamStats));
   }
+  async function loadPlayerTeamFromSupabaseForRaid() {
+    try {
+      if (!db) {
+        console.log('[DEBUG][RAID] Supabase not configured, using localStorage');
+        return getLocalRaidTeam();
+      }
+      
+      const playerId = myPid();
+      if (!playerId) {
+        console.log('[DEBUG][RAID] No player ID, using localStorage');
+        return getLocalRaidTeam();
+      }
+      
+      console.log('[DEBUG][RAID] Fetching team from Supabase for player:', playerId);
+      const { data, error } = await db
+        .from('profiles')
+        .select('fish_team')
+        .eq('player_id', playerId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('[DEBUG][RAID] Supabase fetch error:', error, 'raw:', JSON.stringify(error));
+        return getLocalRaidTeam();
+      }
+      
+      if (!data || !data.fish_team || !Array.isArray(data.fish_team)) {
+        console.log('[DEBUG][RAID] No team found in Supabase, using localStorage');
+        return getLocalRaidTeam();
+      }
+      
+      console.log('[DEBUG][RAID] Team fetched from Supabase:', data.fish_team.length, 'fish');
+      
+      // Convert Supabase team data to raid format
+      const supabaseTeamFish = data.fish_team.map(f => normalizeRaidFishState({
+        uid: f.uid || `fish-${Date.now()}-${Math.random().toString(36).slice(2,10)}`,
+        type: f.type || "Fish",
+        rarity: f.rarity || "common",
+        size: Number(f.size) || 0,
+        weight: Number(f.weight) || 0,
+        hp: Number(f.hp) || Number(f.size) || 0,
+        atk: Number(f.atk) || Number(f.weight) || 0,
+        maxHp: Number(f.maxHp) || Number(f.size) || 0,
+        baseHp: Number(f.baseHp) || Number(f.size) || 0,
+        baseAtk: Number(f.baseAtk) || Number(f.weight) || 0
+      })).filter(Boolean);
+      
+      if (data.team_stats) {
+        console.log('[DEBUG][RAID] Team stats loaded from Supabase');
+      }
+      
+      return boostRaidTeam(supabaseTeamFish.slice(0, 3));
+    } catch (e) {
+      console.error('[DEBUG][RAID] Error loading team from Supabase:', e);
+      return getLocalRaidTeam();
+    }
+  }
   function loadRaidInventory() {
     try {
       const raw = localStorage.getItem(INVENTORY_KEY);
@@ -795,9 +851,13 @@
     return boostRaidTeam(team);
   }
   function getRaidTeamFromMember(member) {
-    if (memberPid(member) === myPid()) return getLocalRaidTeam();
     if (member?.raidTeam && Array.isArray(member.raidTeam) && member.raidTeam.length) {
+      console.log('[DEBUG][RAID] getRaidTeamFromMember: using member.raidTeam for', memberPid(member));
       return padRaidTeam(member.raidTeam);
+    }
+    if (memberPid(member) === myPid()) {
+      console.log('[DEBUG][RAID] getRaidTeamFromMember: falling back to local raid team for current player');
+      return getLocalRaidTeam();
     }
     return padRaidTeam([]);
   }
@@ -1080,6 +1140,9 @@
     const pid=myPid(), name=myDisplayName();
     if(!pid) { setStatus("No player ID. Please log in.", "err"); return; }
 
+    // Load team from Supabase
+    const supabaseTeam = await loadPlayerTeamFromSupabaseForRaid();
+
     const {data:guild,error:ferr} = await db.from(GUILDS_TABLE).select("members").eq("id",mem.guildId).single();
     if(ferr||!guild) { setStatus("Error reading guild.", "err"); return; }
 
@@ -1087,9 +1150,9 @@
     const now=nowIso();
     const idx=members.findIndex(mb=>memberPid(mb)===pid);
     if(idx===-1) {
-      members.push({pid,displayName:name,role:"member",joined:now,raidJoinedAt:now,raidLastSeen:now,raidTeam:getLocalRaidTeam()});
+      members.push({pid,displayName:name,role:"member",joined:now,raidJoinedAt:now,raidLastSeen:now,raidTeam:supabaseTeam});
     } else {
-      members[idx]={...members[idx],displayName:name,raidJoinedAt:members[idx].raidJoinedAt||now,raidLastSeen:now,raidTeam:getLocalRaidTeam()};
+      members[idx]={...members[idx],displayName:name,raidJoinedAt:members[idx].raidJoinedAt||now,raidLastSeen:now,raidTeam:supabaseTeam};
     }
 
     const {error:uerr}=await db.from(GUILDS_TABLE).update({members:JSON.stringify(members),member_count:members.length}).eq("id",mem.guildId);
@@ -1133,12 +1196,16 @@
     if(!amIInSquad()) return;
     const mem=getMembership(); if(!db||!mem?.guildId) return;
     const pid=myPid();
+    
+    // Load team from Supabase
+    const supabaseTeam = await loadPlayerTeamFromSupabaseForRaid();
+    
     const {data:guild}=await db.from(GUILDS_TABLE).select("members").eq("id",mem.guildId).single();
     if(!guild) return;
     let members=safeParseArray(guild.members);
     const idx=members.findIndex(mb=>memberPid(mb)===pid);
     if(idx===-1) return;
-    members[idx]={...members[idx],raidLastSeen:nowIso(),raidTeam:getLocalRaidTeam()};
+    members[idx]={...members[idx],raidLastSeen:nowIso(),raidTeam:supabaseTeam};
     await db.from(GUILDS_TABLE).update({members:JSON.stringify(members)}).eq("id",mem.guildId);
   }
 

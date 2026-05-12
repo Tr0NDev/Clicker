@@ -524,6 +524,8 @@
     let viewingProfileData = null; // Store current profile data for PVP
     let memberProfilesCache = {}; // Cache loaded member profiles for fallback
     let presenceIntervalId = null;
+    let mySupabaseFishTeam = null; // Cached player's fish team from Supabase
+    let mySupabaseCharTeam = null; // Cached player's character team from Supabase
     const ONLINE_WINDOW_MS = 3 * 60 * 1000;
 
     async function getMemberDisplayNames(memberIds) {
@@ -549,6 +551,76 @@
       }
 
       return map;
+    }
+
+    async function loadMyTeamFromSupabase() {
+      try {
+        if (!db) {
+          console.log('[DEBUG][GUILD] loadMyTeamFromSupabase: db is null');
+          return;
+        }
+        
+        const playerId = getPlayerId();
+        if (!playerId) {
+          console.log('[DEBUG][GUILD] loadMyTeamFromSupabase: no playerId');
+          return;
+        }
+        
+        console.log('[DEBUG][GUILD] loadMyTeamFromSupabase: Loading team from Supabase for player:', playerId);
+        const { data, error } = await db
+          .from('profiles')
+          .select('fish_team, char_team')
+          .eq('player_id', playerId)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('[DEBUG][GUILD] loadMyTeamFromSupabase: Error loading team:', error);
+          return;
+        }
+        
+        if (!data) {
+          console.log('[DEBUG][GUILD] loadMyTeamFromSupabase: No profile found in Supabase');
+          return;
+        }
+        
+        console.log('[DEBUG][GUILD] loadMyTeamFromSupabase: Raw Supabase data:', data);
+        
+        // Load and cache fish team
+        if (data.fish_team && Array.isArray(data.fish_team)) {
+          mySupabaseFishTeam = data.fish_team.map(f => ({
+            uid: f.uid || `fish-${Date.now()}-${Math.random().toString(36).slice(2,10)}`,
+            type: f.type || "Fish",
+            rarity: f.rarity || "common",
+            size: Number(f.size) || 0,
+            weight: Number(f.weight) || 0,
+            mutations: normalizeFishMutations(f.mutations),
+            price: 0,
+            basePrice: 0,
+            currentValue: 0,
+            priceReductionVersion: 1,
+            storageState: "team",
+            spoiled: false
+          }));
+          console.log('[DEBUG][GUILD] loadMyTeamFromSupabase: Fish team cached:', mySupabaseFishTeam.length, 'fish');
+          console.log('[DEBUG][GUILD] loadMyTeamFromSupabase: Fish team details:', JSON.stringify(mySupabaseFishTeam, null, 2));
+        } else {
+          console.log('[DEBUG][GUILD] loadMyTeamFromSupabase: No fish_team in Supabase data');
+        }
+        
+        // Load and cache character team
+        if (data.char_team && Array.isArray(data.char_team)) {
+          mySupabaseCharTeam = data.char_team.map(c => ({
+            ...c,
+            teamSlot: c.teamSlot || c.slot
+          }));
+          console.log('[DEBUG][GUILD] loadMyTeamFromSupabase: Character team cached:', mySupabaseCharTeam.length, 'characters');
+          console.log('[DEBUG][GUILD] loadMyTeamFromSupabase: Char team details:', JSON.stringify(mySupabaseCharTeam, null, 2));
+        } else {
+          console.log('[DEBUG][GUILD] loadMyTeamFromSupabase: No char_team in Supabase data');
+        }
+      } catch (e) {
+        console.error('[DEBUG][GUILD] loadMyTeamFromSupabase: Exception:', e);
+      }
     }
 
     function normalizeTeamArray(value) {
@@ -616,26 +688,53 @@
 
     function getPlayerFishTeam() {
       try {
+        // If we have cached Supabase data, use it (mySupabaseFishTeam is set by loadMyTeamFromSupabase)
+        if (mySupabaseFishTeam && Array.isArray(mySupabaseFishTeam)) {
+          console.log('[DEBUG][GUILD] getPlayerFishTeam: Using Supabase cached team:', mySupabaseFishTeam.length, 'fish');
+          return mySupabaseFishTeam;
+        }
+        
+        console.log('[DEBUG][GUILD] getPlayerFishTeam: mySupabaseFishTeam is null/undefined, using localStorage');
+        // Otherwise fall back to localStorage
         const inv = JSON.parse(localStorage.getItem(INVENTORY_KEY) || "[]");
         const sel = JSON.parse(localStorage.getItem(BATTLE_SELECTION_KEY) || "[]");
         const fishMap = new Map(inv.map(f => [f.uid, f]));
-        return sel.slice(0, 3).map(uid => fishMap.get(uid)).filter(Boolean);
-      } catch { return []; }
+        const localTeam = sel.slice(0, 3).map(uid => fishMap.get(uid)).filter(Boolean);
+        console.log('[DEBUG][GUILD] getPlayerFishTeam: Using localStorage team:', localTeam.length, 'fish');
+        return localTeam;
+      } catch (e) {
+        console.error('[DEBUG][GUILD] getPlayerFishTeam: Exception:', e);
+        return [];
+      }
     }
 
     function getPlayerCharTeam() {
       try {
+        // If we have cached Supabase data, use it (mySupabaseCharTeam is set by loadMyTeamFromSupabase)
+        if (mySupabaseCharTeam && Array.isArray(mySupabaseCharTeam)) {
+          console.log('[DEBUG][GUILD] getPlayerCharTeam: Using Supabase cached team:', mySupabaseCharTeam.length, 'characters');
+          return mySupabaseCharTeam;
+        }
+        
+        console.log('[DEBUG][GUILD] getPlayerCharTeam: mySupabaseCharTeam is null/undefined, using localStorage');
+        // Otherwise fall back to localStorage
         const stateRaw = localStorage.getItem(TEAM_STATE_KEY);
         if (stateRaw) {
           const state = JSON.parse(stateRaw);
           if (state && Array.isArray(state.teamChars)) {
-            return state.teamChars.filter(c => c && c.teamSlot != null)
+            const localTeam = state.teamChars.filter(c => c && c.teamSlot != null)
               .sort((a,b) => Number(a.teamSlot) - Number(b.teamSlot))
               .slice(0, 3);
+            console.log('[DEBUG][GUILD] getPlayerCharTeam: Using localStorage team:', localTeam.length, 'characters');
+            return localTeam;
           }
         }
+        console.log('[DEBUG][GUILD] getPlayerCharTeam: No teamChars found in localStorage');
         return [];
-      } catch { return []; }
+      } catch (e) {
+        console.error('[DEBUG][GUILD] getPlayerCharTeam: Exception:', e);
+        return [];
+      }
     }
 
     function getPlayerTeamStats() {
@@ -1167,127 +1266,52 @@
 
     // ── RENDER PLAYER PROFILE ────────────────────────────────────────────────
     function renderPlayerProfile() {
+      console.log('[DEBUG][GUILD] renderPlayerProfile called');
       const pid = getPlayerId();
-      if (!pid) return;
+      if (!pid) {
+        console.log('[DEBUG][GUILD] renderPlayerProfile: no pid');
+        return;
+      }
+      console.log('[DEBUG][GUILD] renderPlayerProfile: calling viewMemberProfile with pid:', pid);
       viewMemberProfile(pid).catch(console.error);
     }
 
     // ── VIEW OTHER MEMBER PROFILE ─────────────────────────────────────────────
     async function viewMemberProfile(memberId) {
-      if (!db) {
-        const localPlayerId = getPlayerId();
-        if (memberId !== localPlayerId) {
-          renderPlayerProfile();
-          return;
+      console.log('[DEBUG][GUILD] viewMemberProfile called with memberId:', memberId);
+      // Always load from Supabase if available
+      if (db) {
+        console.log('[DEBUG][GUILD] viewMemberProfile: db is available, loading from Supabase');
+        // First, get the player's name from profiles or accounts
+        let displayName = "Player";
+        let guildName = "—";
+        const { data: profile, error: profileError } = await db.from("profiles").select("player_id, display_name, fish_team, char_team").eq("player_id", memberId).single();
+
+        console.log('[DEBUG][GUILD] viewMemberProfile: Supabase profile data:', { profile, profileError });
+
+        if (profile && !profileError) {
+          displayName = profile.display_name || "Player";
+          console.log('[DEBUG][GUILD] viewMemberProfile: Got profile from Supabase, displayName:', displayName);
+        } else {
+          // Try to get name from accounts table
+          const { data: account, error: accountError } = await db.from("accounts").select("username").eq("user_id", memberId).single();
+          if (account && !accountError) {
+            displayName = account.username || "Player";
+            console.log('[DEBUG][GUILD] viewMemberProfile: Got name from accounts table:', displayName);
+          }
         }
 
-        const displayName = localStorage.getItem("clicker_username") || "Player";
-        const guildName = "—";
-        const fish_team = getPlayerFishTeam();
-        const char_team = getPlayerCharTeam();
+        // Get guild info
+        for (const guild of allGuilds) {
+          const members = safeParseMembers(guild.members);
+          if (members.find(m => m.pid === memberId)) {
+            guildName = guild.name;
+            break;
+          }
+        }
 
         viewingProfileId = memberId;
-        viewingProfileData = {
-          player_id: memberId,
-          display_name: displayName,
-          fish_team,
-          char_team
-        };
-
-        let score = computePlayerScore(fish_team, char_team);
-        const rarityColors = { common: "#c0c0c0", uncommon: "#7ee787", rare: "#58a6ff", epic: "#d2a8ff", legendary: "#ffa657", mythic: "#ff5e5e" };
-        const starColors = { 1: "#c0c0c0", 2: "#7ee787", 3: "#58a6ff", 4: "#d2a8ff", 5: "#ffa657" };
-        const rarityBgs = { common: "#4a5a5a", uncommon: "#2a5a2a", rare: "#1a3a7a", epic: "#4a2a7a", legendary: "#7a4a10", mythic: "#5a1515" };
-        const starBgs = { 1: "#4a5a5a", 2: "#2a5a2a", 3: "#1a3a7a", 4: "#4a2a7a", 5: "#7a4a10" };
-
-        const fishHtml = fish_team.length > 0
-          ? fish_team.map(f => {
-              const rarity = f.rarity || "common";
-              const color = rarityColors[rarity] || "#c0c0c0";
-              const borderColor = rarityBgs[rarity] || "#4a5a5a";
-              const boostedStats = getBoostedFishStats(f);
-              const mutationText = getFishMutationText(f);
-              const mutationHtml = getFishMutationHtml(f);
-              return `
-              <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
-                <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
-                ${mutationHtml ? `<div style="font-size:10px;margin-bottom:4px">${mutationHtml}</div>` : ""}
-                <div style="font-size:11px;color:#8dc4e0">HP ${boostedStats.baseHp} → ${boostedStats.hp}</div>
-                <div style="font-size:11px;color:#8dc4e0">ATK ${boostedStats.baseAtk} → ${boostedStats.atk}</div>
-                <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
-              </div>`;
-            }).join("")
-          : '<div style="padding:16px;text-align:center;color:#6a8a9a">No fish team</div>';
-
-        const charHtml = char_team.length > 0
-          ? char_team.map(c => {
-              const stars = Math.min(5, Math.max(1, c.stars || 1));
-              const starsStr = "★".repeat(stars) + "☆".repeat(5 - stars);
-              const name = escHtml((c.name || "?").slice(0, 14));
-              const color = starColors[stars];
-              const borderColor = starBgs[stars];
-              return `
-              <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
-                <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${name}</div>
-                <div style="font-size:11px;color:${color};font-weight:bold">${starsStr}</div>
-                ${(c.talents || []).length > 0 ? `<div style="font-size:10px;color:#e8c060;margin-top:4px">${(c.talents || []).slice(0,2).join(", ")}</div>` : ""}
-              </div>`;
-            }).join("")
-          : '<div style="padding:16px;text-align:center;color:#6a8a9a">No characters</div>';
-
-        const profileHtml = `
-          <div class="section anim-in">
-            <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #1e3040">
-              <div style="font-size:16px;font-weight:bold;color:#e8c060">${escHtml(displayName)} (You)</div>
-              <div style="font-size:12px;color:#6a8a9a;margin-top:6px">ID: ${escHtml(memberId.slice(-8))}</div>
-              <div style="font-size:12px;color:#8dc4e0;margin-top:4px">Guild: <b>${escHtml(guildName)}</b></div>
-            </div>
-
-            <div style="margin-bottom:14px">
-              <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Character Team</div>
-              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${charHtml}</div>
-            </div>
-
-            <div style="margin-bottom:14px;border-top:1px solid #1e3040;padding-top:14px">
-              <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Fish Team</div>
-              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${fishHtml}</div>
-            </div>
-
-            <div style="text-align:center;padding-top:12px;border-top:1px solid #1e3040">
-              <div style="font-size:12px;color:#8dc4e0;margin-bottom:12px">Score: <b style="color:#e8c060;font-size:16px">${fmtNum(score)}</b></div>
-            </div>
-          </div>`;
-
-        document.getElementById("rightCol").innerHTML = profileHtml;
-        return;
-      }
-
-      // First, get the player's name from profiles or accounts
-      let displayName = "Player";
-      let guildName = "—";
-      const { data: profile, error: profileError } = await db.from("profiles").select("player_id, display_name, fish_team, char_team").eq("player_id", memberId).single();
-
-      if (profile && !profileError) {
-        displayName = profile.display_name || "Player";
-      } else {
-        // Try to get name from accounts table
-        const { data: account, error: accountError } = await db.from("accounts").select("username").eq("user_id", memberId).single();
-        if (account && !accountError) {
-          displayName = account.username || "Player";
-        }
-      }
-
-      // Get guild info
-      for (const guild of allGuilds) {
-        const members = safeParseMembers(guild.members);
-        if (members.find(m => m.pid === memberId)) {
-          guildName = guild.name;
-          break;
-        }
-      }
-
-      viewingProfileId = memberId;
-      const cachedProfile = memberProfilesCache[memberId] || null;
+        const cachedProfile = memberProfilesCache[memberId] || null;
       const normalizedProfile = profile && profile.player_id
         ? {
             ...profile,
@@ -1295,6 +1319,8 @@
             char_team: normalizeTeamArray(profile.char_team)
           }
         : cachedProfile;
+      
+      console.log('[DEBUG][GUILD] viewMemberProfile: normalizedProfile:', normalizedProfile);
       
       // Ensure viewingProfileData is always an object with valid arrays
       viewingProfileData = normalizedProfile || {
@@ -1393,7 +1419,98 @@
           </div>
         </div>`;
 
+      console.log('[DEBUG][GUILD] viewMemberProfile: About to display profile with:');
+      console.log('[DEBUG][GUILD]   - fish_team:', JSON.stringify(fish_team, null, 2));
+      console.log('[DEBUG][GUILD]   - char_team:', JSON.stringify(char_team, null, 2));
+      console.log('[DEBUG][GUILD]   - score:', score);
       document.getElementById("rightCol").innerHTML = profileHtml;
+      } else {
+        // Fallback when Supabase is not configured
+        const localPlayerId = getPlayerId();
+        if (memberId !== localPlayerId) {
+          renderPlayerProfile();
+          return;
+        }
+
+        const displayName = localStorage.getItem("clicker_username") || "Player";
+        const guildName = "—";
+        const fish_team = getPlayerFishTeam();
+        const char_team = getPlayerCharTeam();
+
+        viewingProfileId = memberId;
+        viewingProfileData = {
+          player_id: memberId,
+          display_name: displayName,
+          fish_team,
+          char_team
+        };
+
+        let score = computePlayerScore(fish_team, char_team);
+        const rarityColors = { common: "#c0c0c0", uncommon: "#7ee787", rare: "#58a6ff", epic: "#d2a8ff", legendary: "#ffa657", mythic: "#ff5e5e" };
+        const starColors = { 1: "#c0c0c0", 2: "#7ee787", 3: "#58a6ff", 4: "#d2a8ff", 5: "#ffa657" };
+        const rarityBgs = { common: "#4a5a5a", uncommon: "#2a5a2a", rare: "#1a3a7a", epic: "#4a2a7a", legendary: "#7a4a10", mythic: "#5a1515" };
+        const starBgs = { 1: "#4a5a5a", 2: "#2a5a2a", 3: "#1a3a7a", 4: "#4a2a7a", 5: "#7a4a10" };
+
+        const fishHtml = fish_team.length > 0
+          ? fish_team.map(f => {
+              const rarity = f.rarity || "common";
+              const color = rarityColors[rarity] || "#c0c0c0";
+              const borderColor = rarityBgs[rarity] || "#4a5a5a";
+              const boostedStats = getBoostedFishStats(f);
+              const mutationText = getFishMutationText(f);
+              const mutationHtml = getFishMutationHtml(f);
+              return `
+              <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
+                <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
+                ${mutationHtml ? `<div style="font-size:10px;margin-bottom:4px">${mutationHtml}</div>` : ""}
+                <div style="font-size:11px;color:#8dc4e0">HP ${boostedStats.baseHp} → ${boostedStats.hp}</div>
+                <div style="font-size:11px;color:#8dc4e0">ATK ${boostedStats.baseAtk} → ${boostedStats.atk}</div>
+                <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
+              </div>`;
+            }).join("")
+          : '<div style="padding:16px;text-align:center;color:#6a8a9a">No fish team</div>';
+
+        const charHtml = char_team.length > 0
+          ? char_team.map(c => {
+              const stars = Math.min(5, Math.max(1, c.stars || 1));
+              const starsStr = "★".repeat(stars) + "☆".repeat(5 - stars);
+              const name = escHtml((c.name || "?").slice(0, 14));
+              const color = starColors[stars];
+              const borderColor = starBgs[stars];
+              return `
+              <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
+                <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${name}</div>
+                <div style="font-size:11px;color:${color};font-weight:bold">${starsStr}</div>
+                ${(c.talents || []).length > 0 ? `<div style="font-size:10px;color:#e8c060;margin-top:4px">${(c.talents || []).slice(0,2).join(", ")}</div>` : ""}
+              </div>`;
+            }).join("")
+          : '<div style="padding:16px;text-align:center;color:#6a8a9a">No characters</div>';
+
+        const profileHtml = `
+          <div class="section anim-in">
+            <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #1e3040">
+              <div style="font-size:16px;font-weight:bold;color:#e8c060">${escHtml(displayName)} (You)</div>
+              <div style="font-size:12px;color:#6a8a9a;margin-top:6px">ID: ${escHtml(memberId.slice(-8))}</div>
+              <div style="font-size:12px;color:#8dc4e0;margin-top:4px">Guild: <b>${escHtml(guildName)}</b></div>
+            </div>
+
+            <div style="margin-bottom:14px">
+              <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Character Team</div>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${charHtml}</div>
+            </div>
+
+            <div style="margin-bottom:14px;border-top:1px solid #1e3040;padding-top:14px">
+              <div style="font-size:12px;font-weight:bold;color:#8dc4e0;margin-bottom:10px;text-transform:uppercase">Fish Team</div>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${fishHtml}</div>
+            </div>
+
+            <div style="text-align:center;padding-top:12px;border-top:1px solid #1e3040">
+              <div style="font-size:12px;color:#8dc4e0;margin-bottom:12px">Score: <b style="color:#e8c060;font-size:16px">${fmtNum(score)}</b></div>
+            </div>
+          </div>`;
+
+        document.getElementById("rightCol").innerHTML = profileHtml;
+      }
     }
 
     function startPVP(opponentId, opponentName) {
@@ -1832,7 +1949,15 @@
     presenceIntervalId = setInterval(() => {
       updateMyPresence().then(() => updateGuildOnlineIndicator()).catch(() => {});
     }, 60000);
-    loadGuilds();
+    loadMyTeamFromSupabase()
+      .then(() => {
+        console.log('[DEBUG][GUILD] loadMyTeamFromSupabase complete, now loading guilds');
+        loadGuilds();
+      })
+      .catch((err) => {
+        console.error('[DEBUG][GUILD] loadMyTeamFromSupabase failed', err);
+        loadGuilds();
+      });
   </script>
 
   <!-- Rename Guild Modal -->
