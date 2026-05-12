@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Inventory - Clicker</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --sidebar-width: 360px;
@@ -332,6 +333,13 @@
       background: #324555;
     }
 
+    .inventory-note {
+      margin-top: 10px;
+      color: #9eb0bc;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
     .inventory-layout {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -619,7 +627,10 @@
             <button class="sort-btn" data-sort="weight">Weight ↓</button>
             <button class="sort-btn" data-sort="size">Size ↓</button>
             <button class="sort-btn" data-sort="rarity">Rarity ↓</button>
+            <button class="sort-btn" data-sort="mutation">Mutation ↓</button>
           </div>
+
+          <div class="inventory-note">Team fish are protected from auto-sell if they are active in the menu team or synced in Supabase.</div>
 
           <div id="list" class="list"></div>
           <div id="empty" class="empty" style="display:none;">Inventory is empty.</div>
@@ -671,6 +682,8 @@
     const TURN_SECONDS = 10;
     const OUT_GAIN_PER_10S_MIN = 5;
     const OUT_GAIN_PER_10S_MAX = 10;
+    const SUPABASE_URL = "https://vrozpjdyqerpcrwlcdfo.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_moV-dfu5sVohSbQOR6z0zw_BSpcVCHg";
 
     const moneyDisplay = document.getElementById("money");
     const countDisplay = document.getElementById("count");
@@ -687,6 +700,11 @@
     const autoSellMaxRaritySelect = document.getElementById("autoSellMaxRarity");
     const sellByFilter = document.getElementById("sellByFilter");
 
+    let db = null;
+    if (window.supabase && SUPABASE_URL !== "YOUR_SUPABASE_URL") {
+      db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
     let money = Number(localStorage.getItem("clicker_money")) || 0;
     let inventory = [];
     let autoSellMaxPrice = Number(localStorage.getItem("clicker_autoSellMaxPrice"));
@@ -694,9 +712,80 @@
     let sortMode = "none";
     let sortDirection = "desc";
     let selectedFishUid = localStorage.getItem("clicker_inventorySelectedFishUid") || "";
+    let protectedFishUidCache = new Set();
+    let protectedFishUidCacheReady = false;
 
     if (Number.isNaN(autoSellMaxPrice)) {
       autoSellMaxPrice = 25;
+    }
+
+    function getPlayerId() {
+      return localStorage.getItem("clicker_userId") || null;
+    }
+
+    function normalizeFishUid(value) {
+      return String(value || "").trim();
+    }
+
+    function extractFishUidsFromTeamEntries(entries) {
+      if (!Array.isArray(entries)) return [];
+      return entries
+        .map((fish) => normalizeFishUid(fish && fish.uid))
+        .filter(Boolean);
+    }
+
+    function readMenuTeamFishUids() {
+      try {
+        const raw = localStorage.getItem("clicker_battleSelection");
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.map((uid) => normalizeFishUid(uid)).filter(Boolean);
+      } catch (error) {
+        return [];
+      }
+    }
+
+    async function loadSupabaseFishTeamUids() {
+      if (!db) return [];
+
+      const playerId = getPlayerId();
+      if (!playerId) return [];
+
+      const { data, error } = await db
+        .from("profiles")
+        .select("fish_team")
+        .eq("player_id", playerId)
+        .maybeSingle();
+
+      if (error || !data || !Array.isArray(data.fish_team)) {
+        return [];
+      }
+
+      return extractFishUidsFromTeamEntries(data.fish_team);
+    }
+
+    async function refreshProtectedFishUids() {
+      const protectedUids = new Set(readMenuTeamFishUids());
+
+      try {
+        const supabaseUids = await loadSupabaseFishTeamUids();
+        supabaseUids.forEach((uid) => protectedUids.add(uid));
+      } catch (error) {
+        console.warn("Could not load Supabase fish team for inventory auto-sell protection:", error);
+      }
+
+      protectedFishUidCache = protectedUids;
+      protectedFishUidCacheReady = true;
+      return protectedUids;
+    }
+
+    function getProtectedFishUidsSync() {
+      if (protectedFishUidCacheReady) {
+        return protectedFishUidCache;
+      }
+
+      return new Set(readMenuTeamFishUids());
     }
 
     function loadInventory() {
@@ -1095,7 +1184,10 @@
       render();
     }
 
-    function shouldAutoSell(fish) {
+    function shouldAutoSell(fish, protectedFishUids) {
+      const activeFishUids = protectedFishUids || getProtectedFishUidsSync();
+      if (activeFishUids.has(normalizeFishUid(fish && fish.uid))) return false;
+
       // Never auto-sell fish with mutations
       const hasMutations = Array.isArray(fish.mutations) && fish.mutations.length > 0;
       if (hasMutations) return false;
@@ -1113,11 +1205,12 @@
       localStorage.setItem("clicker_autoSellMaxRarity", autoSellMaxRarity);
     }
 
-    function applyAutoSellToInventory() {
+    async function applyAutoSellToInventory() {
       const now = Date.now();
       let lifecycleChanged = false;
       let soldValue = 0;
       const kept = [];
+      const protectedFishUids = await refreshProtectedFishUids();
 
       for (const fish of inventory) {
         if (updateFishLifecycle(fish, now)) {
@@ -1125,7 +1218,7 @@
         }
         refreshFishValue(fish, now);
 
-        if (shouldAutoSell(fish)) {
+        if (shouldAutoSell(fish, protectedFishUids)) {
           soldValue += getFishValue(fish);
         } else {
           kept.push(fish);
@@ -1234,6 +1327,14 @@
         displayInventory.sort((a, b) => (Number(a.size) - Number(b.size)) * directionFactor);
       } else if (sortMode === "rarity") {
         displayInventory.sort((a, b) => (rarityRank(a.rarity) - rarityRank(b.rarity)) * directionFactor);
+      } else if (sortMode === "mutation") {
+        displayInventory.sort((a, b) => {
+          const aIds = normalizeFishMutations(a.mutations);
+          const bIds = normalizeFishMutations(b.mutations);
+          const countDelta = (aIds.length - bIds.length) * directionFactor;
+          if (countDelta !== 0) return countDelta;
+          return aIds.join("|").localeCompare(bIds.join("|")) * directionFactor;
+        });
       }
 
       displayInventory.forEach((fish, displayIndex) => {
@@ -1279,8 +1380,8 @@
       updateSidebar(selectedFish, now);
     }
 
-    sellByFilter.addEventListener("click", () => {
-      applyAutoSellToInventory();
+    sellByFilter.addEventListener("click", async () => {
+      await applyAutoSellToInventory();
     });
 
     fridgeButton.addEventListener("click", () => {
@@ -1344,7 +1445,8 @@
           price: "Price",
           weight: "Weight",
           size: "Size",
-          rarity: "Rarity"
+          rarity: "Rarity",
+          mutation: "Mutation"
         };
 
         let arrow = "↓";
