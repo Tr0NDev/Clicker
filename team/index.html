@@ -3278,6 +3278,49 @@
       }
     }
 
+    // Ensure each fish has a unique uid. If duplicates are detected (e.g. from bad imports),
+    // reassign new uids to later occurrences and update any saved selection to point
+    // to the first occurrence to avoid selecting multiple items for one uid.
+    function ensureUniqueFishUids(list) {
+      const seen = new Map();
+      for (let i = 0; i < list.length; i++) {
+        const fish = list[i];
+        if (!fish) continue;
+        const uid = String(fish.uid || '');
+        if (!uid) {
+          const newUid = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+          fish.uid = newUid;
+          seen.set(fish.uid, [i]);
+          continue;
+        }
+
+        if (!seen.has(uid)) {
+          seen.set(uid, [i]);
+          continue;
+        }
+
+        // Duplicate found — assign a new uid for this occurrence
+        const newUid = `${uid}-${i}-${Math.random().toString(36).slice(2,6)}`;
+        console.warn('[TEAM] Duplicate fish uid detected, reassigning:', uid, '->', newUid);
+        fish.uid = newUid;
+        seen.get(uid).push(i);
+        seen.set(newUid, [i]);
+      }
+
+      // If selectedFishUids referenced a uid that had duplicates, keep only the first occurrence selected
+      if (Array.isArray(selectedFishUids) && selectedFishUids.length) {
+        const updated = [];
+        const validUids = new Set(list.map(f => f && f.uid));
+        for (const uid of selectedFishUids) {
+          if (!validUids.has(uid)) continue;
+          if (!updated.includes(uid)) updated.push(uid);
+        }
+        selectedFishUids = updated.slice(0, MAX_FISH_SELECTION);
+      }
+
+      return list;
+    }
+
     function loadFishSelection() {
       try {
         const parsed = JSON.parse(localStorage.getItem(FISH_SELECTION_KEY) || '[]');
