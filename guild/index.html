@@ -748,21 +748,57 @@
       primal: "#ff1744"
     };
 
+    const FISH_MUTATION_MULTIPLIERS = {
+      frozen: 1.2,
+      plasma: 1.3,
+      venomous: 1.4,
+      celestial: 1.5,
+      abyssal: 1.6,
+      primal: 1.7
+    };
+
+    function normalizeFishMutations(mutations) {
+      if (!Array.isArray(mutations)) return [];
+      const seen = new Set();
+      return mutations
+        .map((id) => String(id || "").trim().toLowerCase())
+        .filter((id) => FISH_MUTATION_LABELS[id] && !seen.has(id) && seen.add(id));
+    }
+
+    function getFishMutationMultiplier(fish) {
+      const explicit = Number(fish && fish.mutationMultiplier);
+      if (Number.isFinite(explicit) && explicit > 0) return explicit;
+      return normalizeFishMutations(fish && fish.mutations)
+        .reduce((mult, id) => mult * (FISH_MUTATION_MULTIPLIERS[id] || 1), 1);
+    }
+
+    function getFishEffectiveBaseStats(fish) {
+      const baseSize = Math.max(0, Number(fish && fish.baseSize) || Number(fish && fish.size) || 0);
+      const baseWeight = Math.max(0, Number(fish && fish.baseWeight) || Number(fish && fish.weight) || 0);
+      const mutationMultiplier = getFishMutationMultiplier(fish);
+      return {
+        baseSize,
+        baseWeight,
+        mutationMultiplier,
+        mutatedSize: baseSize * mutationMultiplier,
+        mutatedWeight: baseWeight * mutationMultiplier
+      };
+    }
+
     function getFishMutationText(fish) {
-      const ids = Array.isArray(fish && fish.mutations) ? fish.mutations : [];
+      const ids = normalizeFishMutations(fish && fish.mutations);
       const labels = ids
-        .map((id) => FISH_MUTATION_LABELS[String(id || "").toLowerCase()])
+        .map((id) => FISH_MUTATION_LABELS[id])
         .filter(Boolean);
       return labels.length ? labels.join(", ") : "";
     }
 
     function getFishMutationHtml(fish) {
-      const ids = Array.isArray(fish && fish.mutations) ? fish.mutations : [];
+      const ids = normalizeFishMutations(fish && fish.mutations);
       return ids
         .map((id) => {
-          const idStr = String(id || "").toLowerCase();
-          const label = FISH_MUTATION_LABELS[idStr];
-          const color = FISH_MUTATION_COLORS[idStr];
+          const label = FISH_MUTATION_LABELS[id];
+          const color = FISH_MUTATION_COLORS[id];
           if (!label || !color) return '';
           return `<span style="display:inline-block;background:${color};color:white;padding:4px 10px;border-radius:20px;font-size:12px;margin:2px;font-weight:bold;">${label}</span>`;
         })
@@ -776,14 +812,17 @@
       return "Member";
     }
 
-    function getBoostedFishStats(size, weight) {
+    function getBoostedFishStats(fish) {
       const teamStats = getPlayerTeamStats() || {};
       const hpMult = 1 + ((Number(teamStats.sizeBonus) || 0) / 10);
       const atkMult = 1 + ((Number(teamStats.weightBonus) || 0) / 10);
       const incMult = Number(teamStats.incomeMultiplier) || 1;
+      const effective = getFishEffectiveBaseStats(fish || {});
       return {
-        hp: Math.max(1, Math.round((Number(size) || 0) * hpMult * incMult)),
-        atk: Math.max(1, Math.round((Number(weight) || 0) * atkMult * incMult))
+        baseHp: Math.max(1, Math.round(effective.mutatedSize)),
+        baseAtk: Math.max(1, Math.round(effective.mutatedWeight)),
+        hp: Math.max(1, Math.round((Number(effective.mutatedSize) || 0) * hpMult * incMult)),
+        atk: Math.max(1, Math.round((Number(effective.mutatedWeight) || 0) * atkMult * incMult))
       };
     }
 
@@ -793,14 +832,12 @@
       const name = escHtml((f.type || "Fish").slice(0, 14));
       const mutationText = getFishMutationText(f);
       const mutationHtml = getFishMutationHtml(f);
-      const size = Number(f.size);
-      const weight = Number(f.weight);
-      const boostedStats = getBoostedFishStats(size, weight);
+      const boostedStats = getBoostedFishStats(f);
       const statsHtml = boostedStats
         ? showArrows
             ? `<div class="fish-slot-stats">
-              <span class="fish-slot-stat">HP ${size.toFixed(1)} → ${boostedStats.hp}</span>
-              <span class="fish-slot-stat">ATK ${weight.toFixed(2)} → ${boostedStats.atk}</span>
+              <span class="fish-slot-stat">HP ${boostedStats.baseHp} → ${boostedStats.hp}</span>
+              <span class="fish-slot-stat">ATK ${boostedStats.baseAtk} → ${boostedStats.atk}</span>
              </div>`
           : `<div class="fish-slot-stats">
               <span class="fish-slot-stat">HP ${boostedStats.hp}</span>
@@ -1168,15 +1205,15 @@
               const rarity = f.rarity || "common";
               const color = rarityColors[rarity] || "#c0c0c0";
               const borderColor = rarityBgs[rarity] || "#4a5a5a";
-              const boostedStats = getBoostedFishStats(Number(f.size), Number(f.weight));
+              const boostedStats = getBoostedFishStats(f);
               const mutationText = getFishMutationText(f);
               const mutationHtml = getFishMutationHtml(f);
               return `
               <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
                 <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
                 ${mutationHtml ? `<div style="font-size:10px;margin-bottom:4px">${mutationHtml}</div>` : ""}
-                <div style="font-size:11px;color:#8dc4e0">HP ${Number(f.size).toFixed(1)} → ${boostedStats.hp}</div>
-                <div style="font-size:11px;color:#8dc4e0">ATK ${Number(f.weight).toFixed(2)} → ${boostedStats.atk}</div>
+                <div style="font-size:11px;color:#8dc4e0">HP ${boostedStats.baseHp} → ${boostedStats.hp}</div>
+                <div style="font-size:11px;color:#8dc4e0">ATK ${boostedStats.baseAtk} → ${boostedStats.atk}</div>
                 <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
               </div>`;
             }).join("")
@@ -1292,15 +1329,15 @@
             const rarity = f.rarity || "common";
             const color = rarityColors[rarity] || "#c0c0c0";
             const borderColor = rarityBgs[rarity] || "#4a5a5a";
-            const boostedStats = getBoostedFishStats(Number(f.size), Number(f.weight));
+            const boostedStats = getBoostedFishStats(f);
             const mutationText = getFishMutationText(f);
             const mutationHtml = getFishMutationHtml(f);
             return `
             <div style="border:1px solid ${borderColor};border-radius:8px;padding:8px;background:#0c1217;min-width:100px">
               <div style="font-weight:bold;color:${color};font-size:12px;margin-bottom:4px">${escHtml(f.type || "Fish")}</div>
               ${mutationHtml ? `<div style="font-size:10px;margin-bottom:4px">${mutationHtml}</div>` : ""}
-              <div style="font-size:11px;color:#8dc4e0">HP ${Number(f.size).toFixed(1)} → ${boostedStats.hp}</div>
-              <div style="font-size:11px;color:#8dc4e0">ATK ${Number(f.weight).toFixed(2)} → ${boostedStats.atk}</div>
+              <div style="font-size:11px;color:#8dc4e0">HP ${boostedStats.baseHp} → ${boostedStats.hp}</div>
+              <div style="font-size:11px;color:#8dc4e0">ATK ${boostedStats.baseAtk} → ${boostedStats.atk}</div>
               <div style="font-size:10px;color:${color};margin-top:4px;font-weight:bold">${rarityLabel(rarity)}</div>
             </div>`;
           }).join("")

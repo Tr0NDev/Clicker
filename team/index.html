@@ -1365,8 +1365,10 @@
 
   <div class="shell">
     <h1 style="display:flex; align-items:center; gap:8px;">Team <span class="talent-help" tabindex="0" data-tooltip="Formula
-  HP = round(size + size*sizeBonus/10 + size*(incomeMultiplier-1))
-  ATK = round(weight + weight*weightBonus/10 + weight*(incomeMultiplier-1))">?</span></h1>
+  mutatedSize = baseSize * mutationMultiplier
+  mutatedWeight = baseWeight * mutationMultiplier
+  HP = round(mutatedSize + mutatedSize*sizeBonus/10 + mutatedSize*(incomeMultiplier-1))
+  ATK = round(mutatedWeight + mutatedWeight*weightBonus/10 + mutatedWeight*(incomeMultiplier-1))">?</span></h1>
 
     <!-- Top section: Selected Fish (left) + Selected Characters (right) -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; max-width: 1080px; margin-left: auto; margin-right: auto;">
@@ -3272,16 +3274,22 @@
         if (!Array.isArray(parsed)) return [];
         return parsed.map((fish) => {
           if (!fish || typeof fish !== 'object') return null;
-          const normalizedMutations = Array.isArray(fish.mutations)
-            ? fish.mutations.map((id) => String(id || '').trim().toLowerCase()).filter(Boolean)
-            : [];
+          const normalizedMutations = normalizeFishMutations(fish.mutations);
+          const baseSize = Number(fish.baseSize) || Number(fish.size) || 0;
+          const baseWeight = Number(fish.baseWeight) || Number(fish.weight) || 0;
+          const mutationMultiplier = Number(fish.mutationMultiplier);
           return {
             uid: typeof fish.uid === 'string' && fish.uid ? fish.uid : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
             type: typeof fish.type === 'string' && fish.type ? fish.type : 'Fish',
             rarity: typeof fish.rarity === 'string' && fish.rarity ? fish.rarity : 'common',
+            baseSize,
+            baseWeight,
             size: Number(fish.size) || 0,
             weight: Number(fish.weight) || 0,
             mutations: normalizedMutations,
+            mutationMultiplier: Number.isFinite(mutationMultiplier) && mutationMultiplier > 0
+              ? mutationMultiplier
+              : normalizedMutations.reduce((mult, id) => mult * (FISH_MUTATION_MULTIPLIERS[id] || 1), 1),
             price: Number(fish.price) || 0,
             basePrice: Number(fish.basePrice) || Number(fish.price) || 0,
             currentValue: Number.isFinite(Number(fish.currentValue)) ? Number(fish.currentValue) : (Number(fish.basePrice) || Number(fish.price) || 0)
@@ -3363,21 +3371,57 @@
       primal: '#ff1744'
     };
 
+    const FISH_MUTATION_MULTIPLIERS = {
+      frozen: 1.2,
+      plasma: 1.3,
+      venomous: 1.4,
+      celestial: 1.5,
+      abyssal: 1.6,
+      primal: 1.7
+    };
+
+    function normalizeFishMutations(mutations) {
+      if (!Array.isArray(mutations)) return [];
+      const seen = new Set();
+      return mutations
+        .map((id) => String(id || '').trim().toLowerCase())
+        .filter((id) => FISH_MUTATION_LABELS[id] && !seen.has(id) && seen.add(id));
+    }
+
+    function getFishMutationMultiplier(fish) {
+      const explicit = Number(fish && fish.mutationMultiplier);
+      if (Number.isFinite(explicit) && explicit > 0) return explicit;
+      return normalizeFishMutations(fish && fish.mutations)
+        .reduce((mult, id) => mult * (FISH_MUTATION_MULTIPLIERS[id] || 1), 1);
+    }
+
+    function getFishEffectiveBaseStats(fish) {
+      const baseSize = Math.max(0, Number(fish && fish.baseSize) || Number(fish && fish.size) || 0);
+      const baseWeight = Math.max(0, Number(fish && fish.baseWeight) || Number(fish && fish.weight) || 0);
+      const mutationMultiplier = getFishMutationMultiplier(fish);
+      return {
+        baseSize,
+        baseWeight,
+        mutationMultiplier,
+        mutatedSize: baseSize * mutationMultiplier,
+        mutatedWeight: baseWeight * mutationMultiplier
+      };
+    }
+
     function getFishMutationText(fish) {
-      const ids = Array.isArray(fish && fish.mutations) ? fish.mutations : [];
+      const ids = normalizeFishMutations(fish && fish.mutations);
       const labels = ids
-        .map((id) => FISH_MUTATION_LABELS[String(id || '').toLowerCase()])
+        .map((id) => FISH_MUTATION_LABELS[id])
         .filter(Boolean);
       return labels.length ? labels.join(', ') : '';
     }
 
     function getFishMutationHtml(fish) {
-      const ids = Array.isArray(fish && fish.mutations) ? fish.mutations : [];
+      const ids = normalizeFishMutations(fish && fish.mutations);
       return ids
         .map((id) => {
-          const idStr = String(id || '').toLowerCase();
-          const label = FISH_MUTATION_LABELS[idStr];
-          const color = FISH_MUTATION_COLORS[idStr];
+          const label = FISH_MUTATION_LABELS[id];
+          const color = FISH_MUTATION_COLORS[id];
           if (!label || !color) return '';
           return `<span style="display:inline-block;background:${color};color:white;padding:4px 10px;border-radius:20px;font-size:12px;margin:2px;font-weight:bold;">${label}</span>`;
         })
@@ -3429,17 +3473,23 @@
       return { sizeBonus, weightBonus, chanceBonus, incomeMultiplier };
     }
 
-    function buildFishCalcTooltip(baseHp, baseAtk, teamBonuses) {
+    function buildFishCalcTooltip(fish, teamBonuses) {
       const sizeBonus = Number(teamBonuses.sizeBonus) || 0;
       const weightBonus = Number(teamBonuses.weightBonus) || 0;
       const incomeMult = Number(teamBonuses.incomeMultiplier) || 1;
+      const effective = getFishEffectiveBaseStats(fish || {});
+      const baseHp = Math.max(1, Math.round(effective.mutatedSize));
+      const baseAtk = Math.max(1, Math.round(effective.mutatedWeight));
       const hpFromSize = baseHp * sizeBonus / 10;
       const hpFromIncome = baseHp * (incomeMult - 1);
       const atkFromWeight = baseAtk * weightBonus / 10;
       const atkFromIncome = baseAtk * (incomeMult - 1);
       const finalHp = Math.max(1, Math.round(baseHp + hpFromSize + hpFromIncome));
       const finalAtk = Math.max(1, Math.round(baseAtk + atkFromWeight + atkFromIncome));
-      return `HP = ${baseHp} + (${baseHp} x ${sizeBonus.toFixed(1)} / 10) + (${baseHp} x (${incomeMult.toFixed(2)} - 1)) = ${finalHp} | ATK = ${baseAtk} + (${baseAtk} x ${weightBonus.toFixed(1)} / 10) + (${baseAtk} x (${incomeMult.toFixed(2)} - 1)) = ${finalAtk}`;
+      const mutationPrefix = effective.mutationMultiplier > 1
+        ? `Mutation: baseSize ${effective.baseSize.toFixed(1)} x ${effective.mutationMultiplier.toFixed(2)} = ${baseHp} | baseWeight ${effective.baseWeight.toFixed(2)} x ${effective.mutationMultiplier.toFixed(2)} = ${baseAtk} || `
+        : '';
+      return `${mutationPrefix}HP = ${baseHp} + (${baseHp} x ${sizeBonus.toFixed(1)} / 10) + (${baseHp} x (${incomeMult.toFixed(2)} - 1)) = ${finalHp} | ATK = ${baseAtk} + (${baseAtk} x ${weightBonus.toFixed(1)} / 10) + (${baseAtk} x (${incomeMult.toFixed(2)} - 1)) = ${finalAtk}`;
     }
 
     function renderSelectedFishSlots() {
@@ -3457,8 +3507,9 @@
           card.classList.add(`rarity-${fish.rarity}`, 'selected-highlight');
           
           // Calculate stats with bonuses
-          const baseSize = Number(fish.size || 0);
-          const baseWeight = Number(fish.weight || 0);
+          const effective = getFishEffectiveBaseStats(fish);
+          const baseSize = Number(effective.mutatedSize || 0);
+          const baseWeight = Number(effective.mutatedWeight || 0);
           const baseChance = Number(fish.chance || 0);
           
           const sizeBonus = Number(teamBonuses.sizeBonus) || 0;
@@ -3470,7 +3521,7 @@
           
           const baseHp = Math.max(1, Math.round(baseSize));
           const baseAtk = Math.max(1, Math.round(baseWeight));
-          const calcTooltip = buildFishCalcTooltip(baseHp, baseAtk, teamBonuses);
+          const calcTooltip = buildFishCalcTooltip(fish, teamBonuses);
           const mutationText = getFishMutationText(fish);
           const mutationHtml = getFishMutationHtml(fish);
           
@@ -3530,8 +3581,9 @@
         if (selectedSet.has(fish.uid)) card.classList.add('selected-highlight');
         
         // Calculate stats
-        const baseSize = Number(fish.size || 0);
-        const baseWeight = Number(fish.weight || 0);
+        const effective = getFishEffectiveBaseStats(fish);
+        const baseSize = Number(effective.mutatedSize || 0);
+        const baseWeight = Number(effective.mutatedWeight || 0);
         const baseChance = Number(fish.chance || 0);
         
         const sizeBonus = Number(teamBonuses.sizeBonus) || 0;
@@ -3543,7 +3595,7 @@
         
         const baseHp = Math.max(1, Math.round(baseSize));
         const baseAtk = Math.max(1, Math.round(baseWeight));
-        const calcTooltip = buildFishCalcTooltip(baseHp, baseAtk, teamBonuses);
+        const calcTooltip = buildFishCalcTooltip(fish, teamBonuses);
         const mutationText = getFishMutationText(fish);
         const mutationHtml = getFishMutationHtml(fish);
         
