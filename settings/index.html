@@ -229,6 +229,98 @@
     body.limited-nav-mode .locked-nav-button {
       display: none;
     }
+
+    /* Custom Modal Styles */
+    .custom-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .custom-modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #1a242c;
+      border: 1px solid #3d4e59;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #e8c060;
+    }
+
+    .modal-message {
+      font-size: 14px;
+      color: #c8d8e3;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .modal-btn {
+      padding: 10px 18px;
+      border: 1px solid #667a86;
+      background: #31414d;
+      color: #eef5f9;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+
+    .modal-btn:hover {
+      background: #3a4c59;
+      border-color: #7f95a3;
+    }
+
+    .modal-btn.primary {
+      background: #2a7a60;
+      border-color: #60c0e8;
+      color: #60c0e8;
+    }
+
+    .modal-btn.primary:hover {
+      background: #2f9670;
+    }
+
+    .modal-btn.danger {
+      background: #7a3131;
+      border-color: #da6a6a;
+      color: #ffb3b3;
+    }
+
+    .modal-btn.danger:hover {
+      background: #903636;
+    }
+
+    .modal-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
@@ -258,9 +350,18 @@
         <div style="font-size: 14px; color: #8dc4e0; margin-bottom: 8px;">
           <strong>Username:</strong> <span id="usernameDisplay" style="color: #e8c060;">Loading...</span>
         </div>
-        <button onclick="handleLogout()" style="padding: 8px 16px; background: #4a2730; border: 1px solid #9a5a68; color: #ff9999; border-radius: 8px; cursor: pointer; font-weight: bold;">
-          Logout
-        </button>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;">
+          <button onclick="handleLogout()" style="padding: 8px 16px; background: #4a2730; border: 1px solid #9a5a68; color: #ff9999; border-radius: 8px; cursor: pointer; font-weight: bold;">
+            Logout
+          </button>
+          <button id="saveToCloud" style="padding: 8px 16px; background: #2a5a7a; border: 1px solid #60c0e8; color: #60c0e8; border-radius: 8px; cursor: pointer; font-weight: bold;">
+            💾 Save to Cloud
+          </button>
+          <button id="loadFromCloud" style="padding: 8px 16px; background: #2a5a7a; border: 1px solid #60c0e8; color: #60c0e8; border-radius: 8px; cursor: pointer; font-weight: bold;">
+            📥 Load from Cloud
+          </button>
+        </div>
+        <div id="cloudSaveStatus" style="font-size: 12px; color: #9ec3d8; margin-top: 8px; min-height: 16px;"></div>
       </div>
     </section>
 
@@ -390,7 +491,37 @@
     </section>
   </div>
 
+  <!-- CUSTOM MODALS -->
+  <div id="confirmModal" class="custom-modal">
+    <div class="modal-content">
+      <div class="modal-icon" id="confirmIcon">❓</div>
+      <div class="modal-title" id="confirmTitle">Confirmation</div>
+      <div class="modal-message" id="confirmMessage">Are you sure?</div>
+      <div class="modal-buttons">
+        <button class="modal-btn" onclick="closeConfirmModal()">Cancel</button>
+        <button class="modal-btn primary" onclick="confirmModalAction()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="alertModal" class="custom-modal">
+    <div class="modal-content">
+      <div class="modal-icon" id="alertIcon">ℹ️</div>
+      <div class="modal-title" id="alertTitle">Message</div>
+      <div class="modal-message" id="alertMessage">Information</div>
+      <div class="modal-buttons">
+        <button class="modal-btn primary" onclick="closeAlertModal()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    // Supabase client
+    const SUPABASE_URL = "https://vrozpjdyqerpcrwlcdfo.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_moV-dfu5sVohSbQOR6z0zw_BSpcVCHg";
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     const generateSave = document.getElementById("generateSave");
     const loadSave = document.getElementById("loadSave");
     const saveOutput = document.getElementById("saveOutput");
@@ -400,6 +531,51 @@
     const resetSave = document.getElementById("resetSave");
     const paramsStatus = document.getElementById("paramsStatus");
     const cheaterFlag = document.getElementById("cheaterFlag");
+    const saveToCloudBtn = document.getElementById("saveToCloud");
+    const loadFromCloudBtn = document.getElementById("loadFromCloud");
+    const cloudSaveStatus = document.getElementById("cloudSaveStatus");
+
+    // Modal management
+    let confirmCallback = null;
+    let confirmResolve = null;
+
+    function showAlert(title, message, icon = "ℹ️") {
+      document.getElementById("alertIcon").textContent = icon;
+      document.getElementById("alertTitle").textContent = title;
+      document.getElementById("alertMessage").textContent = message;
+      document.getElementById("alertModal").classList.add("active");
+    }
+
+    function closeAlertModal() {
+      document.getElementById("alertModal").classList.remove("active");
+    }
+
+    function showConfirm(title, message, icon = "❓", callback) {
+      document.getElementById("confirmIcon").textContent = icon;
+      document.getElementById("confirmTitle").textContent = title;
+      document.getElementById("confirmMessage").textContent = message;
+      confirmCallback = callback;
+      document.getElementById("confirmModal").classList.add("active");
+    }
+
+    function closeConfirmModal() {
+      document.getElementById("confirmModal").classList.remove("active");
+      confirmCallback = null;
+      if (confirmResolve) {
+        confirmResolve(false);
+        confirmResolve = null;
+      }
+    }
+
+    function confirmModalAction() {
+      if (confirmCallback) confirmCallback();
+      if (confirmResolve) {
+        confirmResolve(true);
+        confirmResolve = null;
+      }
+      document.getElementById("confirmModal").classList.remove("active");
+      confirmCallback = null;
+    }
 
     const LEGACY_SAVE_KEY_MAP = {
       money: "clicker_money",
@@ -503,6 +679,147 @@
         .join("\n");
     }
 
+    // Cloud Save/Load functions
+    function collectAllGameData() {
+      const data = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("clicker_")) {
+          data[key] = localStorage.getItem(key);
+        }
+      }
+      return data;
+    }
+
+    async function saveGameToCloud() {
+      try {
+        cloudSaveStatus.textContent = "Saving...";
+        cloudSaveStatus.style.color = "#9ec3d8";
+        
+        const userId = localStorage.getItem("clicker_userId");
+        const username = localStorage.getItem("clicker_username");
+        
+        if (!userId || !username) {
+          cloudSaveStatus.textContent = "⚠️ Not logged in!";
+          cloudSaveStatus.style.color = "#ffb3b3";
+          showAlert("Not Logged In", "You must be logged in to save to the cloud.", "⚠️");
+          return;
+        }
+
+        const gameSaveData = collectAllGameData();
+        
+        // Update or insert profile with game save
+        const { data, error } = await db
+          .from("profiles")
+          .upsert({
+            player_id: userId,
+            display_name: username,
+            game_save: gameSaveData,
+            game_save_at: new Date().toISOString()
+          }, {
+            onConflict: "player_id"
+          });
+
+        if (error) {
+          console.error("Cloud save error:", error);
+          cloudSaveStatus.textContent = "❌ Save failed!";
+          cloudSaveStatus.style.color = "#ffb3b3";
+          showAlert("Save Failed", "Failed to save to cloud: " + error.message, "❌");
+          return;
+        }
+
+        cloudSaveStatus.textContent = "✅ Saved to cloud!";
+        cloudSaveStatus.style.color = "#90ee90";
+        showAlert("Success", "Your game has been saved to the cloud!", "✅");
+        setTimeout(() => {
+          cloudSaveStatus.textContent = "";
+        }, 3000);
+      } catch (err) {
+        console.error("Cloud save exception:", err);
+        cloudSaveStatus.textContent = "❌ Error!";
+        cloudSaveStatus.style.color = "#ffb3b3";
+        showAlert("Error", "Error saving to cloud: " + err.message, "❌");
+      }
+    }
+
+    async function loadGameFromCloud() {
+      try {
+        cloudSaveStatus.textContent = "Loading...";
+        cloudSaveStatus.style.color = "#9ec3d8";
+        
+        const userId = localStorage.getItem("clicker_userId");
+        
+        if (!userId) {
+          cloudSaveStatus.textContent = "⚠️ Not logged in!";
+          cloudSaveStatus.style.color = "#ffb3b3";
+          showAlert("Not Logged In", "You must be logged in to load from the cloud.", "⚠️");
+          return;
+        }
+
+        // Fetch profile with game save
+        const { data, error } = await db
+          .from("profiles")
+          .select("game_save, game_save_at")
+          .eq("player_id", userId)
+          .single();
+
+        if (error) {
+          console.error("Cloud load error:", error);
+          cloudSaveStatus.textContent = "❌ Load failed!";
+          cloudSaveStatus.style.color = "#ffb3b3";
+          showAlert("Load Failed", "Failed to load from cloud: " + error.message, "❌");
+          return;
+        }
+
+        if (!data || !data.game_save) {
+          cloudSaveStatus.textContent = "ℹ️ No cloud save found";
+          cloudSaveStatus.style.color = "#9ec3d8";
+          showAlert("No Save Found", "No save found in the cloud.", "ℹ️");
+          return;
+        }
+
+        // Confirm load
+        const savedDate = new Date(data.game_save_at).toLocaleString();
+        showConfirm("Load from Cloud?", `Saved: ${savedDate}\n\nThis will replace your current game data.`, "📥", () => {
+          // Clear current localStorage clicker entries
+          const keysToDelete = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith("clicker_")) {
+              keysToDelete.push(key);
+            }
+          }
+          keysToDelete.forEach((key) => localStorage.removeItem(key));
+
+          // Load cloud data
+          Object.entries(data.game_save).forEach(([key, value]) => {
+            localStorage.setItem(key, value);
+          });
+
+          // Update UI
+          const loadedState = readGameState();
+          fillParamInputs(loadedState);
+          saveOutput.value = buildSaveText();
+          
+          cloudSaveStatus.textContent = "✅ Loaded from cloud!";
+          cloudSaveStatus.style.color = "#90ee90";
+          paramsStatus.textContent = "Cloud save loaded. Game data restored.";
+          
+          setTimeout(() => {
+            cloudSaveStatus.textContent = "";
+          }, 3000);
+          
+          showAlert("Success", "Save successfully loaded from cloud!", "✅");
+        });
+        return;
+      } catch (err) {
+        console.error("Cloud load exception:", err);
+        cloudSaveStatus.textContent = "❌ Error!";
+        cloudSaveStatus.style.color = "#ffb3b3";
+        showAlert("Error", "Error loading from cloud: " + err.message, "❌");
+      }
+    }
+
     function parseSaveText(text) {
       const importedEntries = {};
 
@@ -592,27 +909,24 @@
     }
 
     function resetAllGameSave() {
-      const shouldReset = confirm("Are you sure you want to reset your entire save? This cannot be undone.");
-      if (!shouldReset) {
-        return;
-      }
-
-      const keysToDelete = [];
-      for (let i = 0; i < localStorage.length; i += 1) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith("clicker_")) {
-          keysToDelete.push(key);
+      showConfirm("Reset Save?", "This will delete all game save data (money, inventory, upgrades, team, shop, and settings). This cannot be undone.", "⚠️", () => {
+        const keysToDelete = [];
+        for (let i = 0; i < localStorage.length; i += 1) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("clicker_")) {
+            keysToDelete.push(key);
+          }
         }
-      }
 
-      keysToDelete.forEach((key) => localStorage.removeItem(key));
+        keysToDelete.forEach((key) => localStorage.removeItem(key));
 
-      const freshState = readGameState();
-      fillParamInputs(freshState);
-      saveInput.value = "";
-      saveOutput.value = buildSaveText();
-      paramsStatus.textContent = "Save reset complete.";
-      alert("Save reset complete.");
+        const freshState = readGameState();
+        fillParamInputs(freshState);
+        saveInput.value = "";
+        saveOutput.value = buildSaveText();
+        paramsStatus.textContent = "Save reset complete.";
+        showAlert("Reset Complete", "Your save has been reset successfully.", "✅");
+      });
     }
 
     generateSave.addEventListener("click", () => {
@@ -627,7 +941,7 @@
       const importedKeys = Object.keys(importedEntries);
 
       if (importedKeys.length === 0) {
-        alert("No valid save data found.");
+        showAlert("Invalid Save", "No valid save data found.", "⚠️");
         return;
       }
 
@@ -653,7 +967,7 @@
       fillParamInputs(loadedState);
       paramsStatus.textContent = "Save loaded and parameters synced.";
       saveOutput.value = buildSaveText();
-      alert("Save successfully loaded!");
+      showAlert("Success", "Save successfully loaded!", "✅");
     });
 
     applyParams.addEventListener("click", () => {
@@ -667,6 +981,15 @@
 
     resetSave.addEventListener("click", () => {
       resetAllGameSave();
+    });
+
+    // Cloud save/load event listeners
+    saveToCloudBtn.addEventListener("click", () => {
+      saveGameToCloud();
+    });
+
+    loadFromCloudBtn.addEventListener("click", () => {
+      loadGameFromCloud();
     });
 
     const initialState = readGameState();
@@ -689,12 +1012,14 @@
 
     // Handle logout
     function handleLogout() {
-      if (confirm('Are you sure you want to logout?')) {
+      showConfirm("Logout?", "Are you sure you want to logout?", "🚪", () => {
         localStorage.removeItem('clicker_userId');
         localStorage.removeItem('clicker_username');
-        alert('Logged out successfully!');
-        window.location.href = '../login/';
-      }
+        showAlert("Logged Out", "You have been logged out successfully.", "✅");
+        setTimeout(() => {
+          window.location.href = '../login/';
+        }, 1500);
+      });
     }
 
     // Init on page load
