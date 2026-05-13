@@ -1043,13 +1043,17 @@
 
       const fish = lastFusionResult.outputFish;
       const mutationHtml = getMutationPillsHtml(fish);
+      const mutationMult = (Array.isArray(fish.mutations) ? fish.mutations : [])
+        .reduce((mult, id) => mult * (FISH_MUTATION_BY_ID[id]?.multiplier || 1), 1);
+      const effectiveSize = Math.round((Number(fish.size) || 0) * mutationMult);
+      const effectiveWeight = Math.round((Number(fish.weight) || 0) * mutationMult);
       resultPreviewEl.innerHTML = `
         <div class="result-fish">
           <div class="result-title ${`rarity-${fish.rarity || "common"}`}">${escapeHtml(fish.type || "Fish")}</div>
           <div class="pill-row">${mutationHtml || '<span class="result-empty">No mutation inherited.</span>'}</div>
           <div class="result-stat">Rarity: ${escapeHtml(fish.rarity || "common")}</div>
-          <div class="result-stat">Size: ${Number(fish.size) || 0} cm</div>
-          <div class="result-stat">Weight: ${Number(fish.weight) || 0} kg</div>
+          <div class="result-stat">Size: ${Number(fish.size) || 0}${mutationMult > 1 ? ` → ${effectiveSize}` : ''} cm${mutationMult > 1 ? ` (×${mutationMult.toFixed(2)})` : ''}</div>
+          <div class="result-stat">Weight: ${Number(fish.weight) || 0}${mutationMult > 1 ? ` → ${effectiveWeight}` : ''} kg${mutationMult > 1 ? ` (×${mutationMult.toFixed(2)})` : ''}</div>
           <div class="result-stat">Strongest source: ${escapeHtml(lastFusionResult.strongestName)}</div>
           <div class="result-stat">Consumed: ${lastFusionResult.consumedCount} other fish</div>
         </div>

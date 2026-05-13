@@ -362,6 +362,7 @@
           </button>
         </div>
         <div id="cloudSaveStatus" style="font-size: 12px; color: #9ec3d8; margin-top: 8px; min-height: 16px;"></div>
+        <div id="cloudSaveMeta" style="font-size: 12px; color: #8db1c7; margin-top: 4px; min-height: 16px;">Last cloud save: --</div>
       </div>
     </section>
 
@@ -534,6 +535,7 @@
     const saveToCloudBtn = document.getElementById("saveToCloud");
     const loadFromCloudBtn = document.getElementById("loadFromCloud");
     const cloudSaveStatus = document.getElementById("cloudSaveStatus");
+    const cloudSaveMeta = document.getElementById("cloudSaveMeta");
 
     // Modal management
     let confirmCallback = null;
@@ -679,6 +681,43 @@
         .join("\n");
     }
 
+    function formatCloudDateTime(isoString) {
+      if (!isoString) return "--";
+      const date = new Date(isoString);
+      if (Number.isNaN(date.getTime())) return "--";
+      return date.toLocaleString();
+    }
+
+    function updateCloudSaveMeta(isoString) {
+      if (!cloudSaveMeta) return;
+      cloudSaveMeta.textContent = `Last cloud save: ${formatCloudDateTime(isoString)}`;
+    }
+
+    async function refreshCloudSaveMeta() {
+      const userId = localStorage.getItem("clicker_userId");
+      if (!userId) {
+        updateCloudSaveMeta(null);
+        return;
+      }
+
+      try {
+        const { data, error } = await db
+          .from("profiles")
+          .select("game_save_at")
+          .eq("player_id", userId)
+          .maybeSingle();
+
+        if (error) {
+          updateCloudSaveMeta(null);
+          return;
+        }
+
+        updateCloudSaveMeta(data?.game_save_at || null);
+      } catch (err) {
+        updateCloudSaveMeta(null);
+      }
+    }
+
     // Cloud Save/Load functions
     function collectAllGameData() {
       const data = {};
@@ -730,6 +769,7 @@
 
         cloudSaveStatus.textContent = "✅ Saved to cloud!";
         cloudSaveStatus.style.color = "#90ee90";
+        updateCloudSaveMeta(new Date().toISOString());
         showAlert("Success", "Your game has been saved to the cloud!", "✅");
         setTimeout(() => {
           cloudSaveStatus.textContent = "";
@@ -774,9 +814,12 @@
         if (!data || !data.game_save) {
           cloudSaveStatus.textContent = "ℹ️ No cloud save found";
           cloudSaveStatus.style.color = "#9ec3d8";
+          updateCloudSaveMeta(null);
           showAlert("No Save Found", "No save found in the cloud.", "ℹ️");
           return;
         }
+
+        updateCloudSaveMeta(data.game_save_at || null);
 
         // Confirm load
         const savedDate = new Date(data.game_save_at).toLocaleString();
@@ -823,26 +866,47 @@
     function parseSaveText(text) {
       const importedEntries = {};
 
-      const lines = text.split(/\r?\n/);
-      for (const line of lines) {
-        if (!line.trim()) {
+      if (typeof text !== "string") {
+        return importedEntries;
+      }
+
+      let raw = text.replace(/\r\n?/g, "\n").trim();
+      if (!raw) {
+        return importedEntries;
+      }
+
+      // Handle pasted text like "...bienclicker_autoFisherLevel=22" on first line.
+      const firstBreak = raw.indexOf("\n");
+      const firstLine = firstBreak === -1 ? raw : raw.slice(0, firstBreak);
+      const gluedClickerIndex = firstLine.indexOf("clicker_");
+      if (gluedClickerIndex > 0) {
+        const tail = firstBreak === -1 ? "" : `\n${raw.slice(firstBreak + 1)}`;
+        raw = firstLine.slice(gluedClickerIndex) + tail;
+      }
+
+      const parsedEntries = [];
+      const keyRegex = /(^|\n)([A-Za-z0-9_]+)=/g;
+      let match;
+      while ((match = keyRegex.exec(raw)) !== null) {
+        const key = match[2];
+        const keyStart = match.index + match[1].length;
+        const valueStart = keyStart + key.length + 1;
+        parsedEntries.push({ key, keyStart, valueStart });
+      }
+
+      for (let i = 0; i < parsedEntries.length; i += 1) {
+        const current = parsedEntries[i];
+        const next = parsedEntries[i + 1];
+        const rawValue = raw
+          .slice(current.valueStart, next ? next.keyStart : raw.length)
+          .trim();
+
+        if (current.key.startsWith("clicker_")) {
+          importedEntries[current.key] = rawValue;
           continue;
         }
 
-        const parts = line.split("=");
-        if (parts.length < 2) {
-          continue;
-        }
-
-        const key = parts[0].trim();
-        const rawValue = parts.slice(1).join("=");
-
-        if (key.startsWith("clicker_")) {
-          importedEntries[key] = rawValue;
-          continue;
-        }
-
-        const mappedKey = LEGACY_SAVE_KEY_MAP[key];
+        const mappedKey = LEGACY_SAVE_KEY_MAP[current.key];
         if (mappedKey) {
           importedEntries[mappedKey] = rawValue;
         }
@@ -1008,6 +1072,7 @@
       if (username) {
         document.getElementById('usernameDisplay').textContent = username;
       }
+      refreshCloudSaveMeta();
     }
 
     // Handle logout

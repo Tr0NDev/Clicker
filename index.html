@@ -503,6 +503,7 @@
           <div class="stat-label">Fish in inventory</div>
           <div class="stat-value" id="inventoryCount">0</div>
           <div class="stat-subvalue">Total value: <span id="inventoryTotalValue">0</span></div>
+          <div id="inventoryFullMessage" style="color: #ff6b6b; font-weight: bold; display: none; margin-top: 8px;">⚠️ Inventory FULL</div>
         </div>
       </div>
 
@@ -678,6 +679,7 @@
 
       const RARITY_MULTIPLIERS = { common: 1, uncommon: 1.35, rare: 1.9, epic: 2.8, legendary: 4.2, mythic: 6.0 };
       const RARITY_ORDER = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5, mythic: 6 };
+      const MAX_FISH_INVENTORY = 1000;
 
       const moneyDisplay          = document.getElementById("money");
       const hooksDisplay          = document.getElementById("hooksDisplay");
@@ -698,6 +700,7 @@
       const autoSellRarityGroup   = document.getElementById("autoSellRarityGroup");
       const autoSellMaxPriceInput = document.getElementById("autoSellMaxPrice");
       const autoSellMaxRaritySelect = document.getElementById("autoSellMaxRarity");
+      const inventoryFullMessage  = document.getElementById("inventoryFullMessage");
       const autoSellPanel         = document.querySelector(".auto-sell-panel");
       const autoSellTitle         = document.querySelector(".auto-sell-title");
       const autoSellTogglePanelBtn = document.getElementById("autoSellTogglePanelBtn");
@@ -1208,12 +1211,12 @@
       }
 
       const FISH_MUTATIONS = [
-        { id: "frozen", name: "Frozen", multiplier: 1.2, chanceDenominator: 100000, color: "#4da6ff" },
-        { id: "plasma", name: "Plasma", multiplier: 1.3, chanceDenominator: 300000, color: "#ff6b35" },
-        { id: "venomous", name: "Venomous", multiplier: 1.4, chanceDenominator: 500000, color: "#7cb342" },
-        { id: "celestial", name: "Celestial", multiplier: 1.5, chanceDenominator: 1000000, color: "#ce93d8" },
-        { id: "abyssal", name: "Abyssal", multiplier: 1.6, chanceDenominator: 2000000, color: "#1a237e" },
-        { id: "primal", name: "Primal", multiplier: 1.7, chanceDenominator: 3000000, color: "#ff1744" }
+        { id: "frozen", name: "Frozen", multiplier: 1.2, chanceDenominator: 1000, color: "#4da6ff" },
+        { id: "plasma", name: "Plasma", multiplier: 1.3, chanceDenominator: 3000, color: "#ff6b35" },
+        { id: "venomous", name: "Venomous", multiplier: 1.4, chanceDenominator: 5000, color: "#7cb342" },
+        { id: "celestial", name: "Celestial", multiplier: 1.5, chanceDenominator: 10000, color: "#ce93d8" },
+        { id: "abyssal", name: "Abyssal", multiplier: 1.6, chanceDenominator: 20000, color: "#1a237e" },
+        { id: "primal", name: "Primal", multiplier: 1.7, chanceDenominator: 30000, color: "#ff1744" }
       ];
       const FISH_MUTATION_BY_ID = Object.fromEntries(FISH_MUTATIONS.map((m) => [m.id, m]));
 
@@ -1355,7 +1358,14 @@
           mutationMultiplier: getFishMutationMultiplier(currentFish.mutations),
           priceReductionVersion: 1, caughtAt: new Date().toISOString()
         };
-        if (shouldAutoSell(fish)) { money += fish.price; } else { inventory.push(fish); }
+        if (shouldAutoSell(fish)) { 
+          money += fish.price; 
+        } else { 
+          // Check if inventory is full
+          if (inventory.length < MAX_FISH_INVENTORY) {
+            inventory.push(fish);
+          }
+        }
         if (fish.rarity === "epic")      epicCaughtCount++;
         else if (fish.rarity === "legendary") legendaryCaughtCount++;
         caughtCount++;
@@ -1487,6 +1497,9 @@
         caughtCountDisplay.textContent    = formatNumber(caughtCount);
         inventoryCountDisplay.textContent = formatNumber(inventory.length);
         inventoryTotalValueDisplay.textContent = formatNumber(inventoryTotalValue);
+        
+        // Show/hide inventory full message
+        inventoryFullMessage.style.display = inventory.length >= MAX_FISH_INVENTORY ? "block" : "none";
 
         renderDisplay();
 
@@ -1552,7 +1565,7 @@
       sizeUpgrade.addEventListener("click",       () => { const c = getSizeUpgradeCost(sizeBoostLevel);    if (money >= c) { money -= c; sizeBoostLevel++;           render(); } });
       autoUpgrade.addEventListener("click",       () => { const c = getAutoUpgradeCost(autoFisherLevel);   if (money >= c) { money -= c; autoFisherLevel++;          render(); } });
       weightUpgrade.addEventListener("click",     () => { const c = getWeightUpgradeCost(weightBoostLevel);if (money >= c) { money -= c; weightBoostLevel++;         render(); } });
-      waitUpgrade.addEventListener("click",       () => { const c = getWaitUpgradeCost(autoWaitReductionLevel); if (money >= c) { money -= c; autoWaitReductionLevel++; render(); } });
+      waitUpgrade.addEventListener("click",       () => { const c = getWaitUpgradeCost(autoWaitReductionLevel); if (autoWaitReductionLevel < 15 && money >= c) { money -= c; autoWaitReductionLevel++; render(); } });
 
       autoSellEnabledInput.addEventListener("change",  () => { autoSellEnabled = autoSellEnabledInput.checked; render(); });
       autoSellModeSelect.addEventListener("change",    () => { const v = autoSellModeSelect.value; autoSellMode = (v === "rarity" || v === "all") ? v : "price"; render(); });

@@ -294,6 +294,31 @@
   // Rarity colours for enemy badges
   const RARITY_COLOR = { common:"#d9d9d9", uncommon:"#7ee787", rare:"#58a6ff", epic:"#d2a8ff", legendary:"#ffa657", mythic:"#ff5e5e" };
   const RARITY_EMOJI = { common:"⚪", uncommon:"🟢", rare:"🔵", epic:"🟣", legendary:"", mythic:"🔴" };
+  const FISH_MUTATIONS = ["frozen", "plasma", "venomous", "celestial", "abyssal", "primal"];
+  const FISH_MUTATION_LABELS = {
+    frozen: "Frozen",
+    plasma: "Plasma",
+    venomous: "Venomous",
+    celestial: "Celestial",
+    abyssal: "Abyssal",
+    primal: "Primal"
+  };
+  const FISH_MUTATION_COLORS = {
+    frozen: "#4da6ff",
+    plasma: "#ff6b35",
+    venomous: "#7cb342",
+    celestial: "#ce93d8",
+    abyssal: "#1a237e",
+    primal: "#ff1744"
+  };
+  const FISH_MUTATION_MULTIPLIERS = {
+    frozen: 1.2,
+    plasma: 1.3,
+    venomous: 1.4,
+    celestial: 1.5,
+    abyssal: 1.6,
+    primal: 1.7
+  };
 
   // ─── RAID DATA (from raids.txt) ───────────────────────────────────────────────
   // NOTE: raids.txt is fetched at runtime from battle/raid/raids.txt relative to this page.
@@ -1089,6 +1114,106 @@
     return Math.max(0, Number.isFinite(numericCost) ? numericCost : 20);
   }
 
+  function getRaidKeysInOrder() {
+    return Object.keys(RAIDS || {});
+  }
+
+  function isRaidUnlockedForState(raidKey, state) {
+    if (!raidKey || !RAIDS[raidKey]) return false;
+    const keys = getRaidKeysInOrder();
+    const raidIndex = keys.indexOf(raidKey);
+    if (raidIndex < 0) return false;
+    
+    // First raid is always unlocked
+    if (raidIndex === 0) return true;
+    
+    // Other raids: check if <= maxRaidKeyUnlocked
+    const maxKey = state?.maxRaidKeyUnlocked;
+    const maxIndex = maxKey ? keys.indexOf(maxKey) : -1;
+    const isUnlocked = maxIndex >= raidIndex - 1;
+    
+    console.log(`[RAID UNLOCK CHECK] raidKey=${raidKey} (idx=${raidIndex}), maxUnlocked=${maxKey} (idx=${maxIndex}), unlocked=${isUnlocked}`);
+    return isUnlocked;
+  }
+
+  function updateMaxRaidUnlocked(state, completedRaidKey) {
+    if (!completedRaidKey) return;
+    const keys = getRaidKeysInOrder();
+    const completedIndex = keys.indexOf(completedRaidKey);
+    if (completedIndex < 0) return;
+    
+    const currentMaxKey = state?.maxRaidKeyUnlocked;
+    const currentMaxIndex = currentMaxKey ? keys.indexOf(currentMaxKey) : -1;
+    
+    // Update to next raid if current is highest completed
+    if (completedIndex >= currentMaxIndex) {
+      const nextIndex = completedIndex + 1;
+      if (nextIndex < keys.length) {
+        state.maxRaidKeyUnlocked = keys[nextIndex];
+        console.log(`[UPDATE MAX RAID] Completed ${completedRaidKey}, max unlocked now = ${state.maxRaidKeyUnlocked}`);
+      }
+    }
+  }
+
+  function getFirstUnlockedRaidKey(state) {
+    const keys = getRaidKeysInOrder();
+    return keys.find((key) => isRaidUnlockedForState(key, state)) || keys[0] || null;
+  }
+
+  function pickFinalBossMutations() {
+    if (Math.random() >= 0.01) return [];
+    const first = FISH_MUTATIONS[Math.floor(Math.random() * FISH_MUTATIONS.length)];
+    const out = [first];
+    if (Math.random() < (1 / 500)) {
+      const pool = FISH_MUTATIONS.filter((id) => id !== first);
+      if (pool.length) out.push(pool[Math.floor(Math.random() * pool.length)]);
+    }
+    return out;
+  }
+
+  function getMutationMultiplierFromIds(ids) {
+    if (!Array.isArray(ids) || !ids.length) return 1;
+    return ids.reduce((mult, id) => mult * (FISH_MUTATION_MULTIPLIERS[id] || 1), 1);
+  }
+
+  function formatMutationsText(ids) {
+    if (!Array.isArray(ids) || !ids.length) return "";
+    return ids.map((id) => FISH_MUTATION_LABELS[id] || id).join(", ");
+  }
+
+  function renderMutationBadges(ids) {
+    if (!Array.isArray(ids) || !ids.length) return "";
+    return ids.map((id) => {
+      const label = escH(FISH_MUTATION_LABELS[id] || id);
+      const color = FISH_MUTATION_COLORS[id] || "#8dc4e0";
+      return `<span style="display:inline-block;background:${color};color:#fff;padding:2px 8px;border-radius:12px;font-size:11px;margin:0 3px 3px 0;font-weight:bold;">${label}</span>`;
+    }).join("");
+  }
+
+  function getCurrentStageAtk(state, raidDef, stage) {
+    const fromState = Number(state?.currentEnemyAtk);
+    if (Number.isFinite(fromState) && fromState > 0) return fromState;
+    const baseAtk = Math.max(1, Number(stage?.atk) || 1);
+    const isFinalStage = Number(state?.stageIndex) === Math.max(0, (raidDef?.stages?.length || 1) - 1);
+    const mutationMult = isFinalStage ? getMutationMultiplierFromIds(state?.finalBossMutations) : 1;
+    return Math.max(1, Math.round(baseAtk * mutationMult));
+  }
+
+  function normalizeFishName(name) {
+    return String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  }
+
+  function applyFinalBossMutationsToRewardFish(state, raidDef, fishTemplate) {
+    if (!fishTemplate || !raidDef) return fishTemplate;
+    const ids = Array.isArray(state?.finalBossMutations) ? state.finalBossMutations : [];
+    if (!ids.length) return fishTemplate;
+    const finalStage = raidDef.stages?.[Math.max(0, (raidDef.stages?.length || 1) - 1)];
+    const sameBoss = normalizeFishName(fishTemplate.name) === normalizeFishName(finalStage?.name);
+    if (!sameBoss) return fishTemplate;
+    const merged = Array.from(new Set([...(Array.isArray(fishTemplate.mutations) ? fishTemplate.mutations : []), ...ids]));
+    return { ...fishTemplate, mutations: merged };
+  }
+
   function ensureRaidScoreState(state) {
     if (!state) return false;
     let changed = false;
@@ -1097,6 +1222,10 @@
     state.score = Number.isFinite(Number(state.score)) ? Math.min(state.scoreMax, Number(state.score)) : state.scoreMax;
     if (!state.scoreLastRefill) {
       state.scoreLastRefill = nowIso();
+      changed = true;
+    }
+    if (!state.maxRaidKeyUnlocked) {
+      state.maxRaidKeyUnlocked = "raid_riverside_shallows";
       changed = true;
     }
     state.log = Array.isArray(state.log) ? state.log : [];
@@ -1134,11 +1263,17 @@
 
       try {
         const raw = guild.raid_state;
-        raidState = raw ? (typeof raw==="string" ? JSON.parse(raw) : raw) : { phase: "idle", score: 100, scoreMax: 100, scoreRefillMs: 60000, scoreLastRefill: nowIso(), log: [] };
-      } catch { raidState={ phase: "idle", score: 100, scoreMax: 100, scoreRefillMs: 60000, scoreLastRefill: nowIso(), log: [] }; }
+        raidState = raw ? (typeof raw==="string" ? JSON.parse(raw) : raw) : { phase: "idle", score: 100, scoreMax: 100, scoreRefillMs: 60000, scoreLastRefill: nowIso(), maxRaidKeyUnlocked: "raid_riverside_shallows", log: [] };
+        // Ensure maxRaidKeyUnlocked is set
+        if (!raidState.maxRaidKeyUnlocked) raidState.maxRaidKeyUnlocked = "raid_riverside_shallows";
+        console.log(`[LOAD RAID STATE] maxRaidKeyUnlocked=${raidState?.maxRaidKeyUnlocked}`);
+      } catch { raidState={ phase: "idle", score: 100, scoreMax: 100, scoreRefillMs: 60000, scoreLastRefill: nowIso(), maxRaidKeyUnlocked: "raid_riverside_shallows", log: [] }; }
       const scoreStateChanged = ensureRaidScoreState(raidState);
       const scoreRefilled = applyScoreRefill(raidState);
       const teamStateChanged = raidState?.phase === "running" && syncLocalRaidTeamInState(raidState);
+      if (!selectedRaidKey || !RAIDS[selectedRaidKey] || !isRaidUnlockedForState(selectedRaidKey, raidState)) {
+        selectedRaidKey = getFirstUnlockedRaidKey(raidState);
+      }
       if (scoreStateChanged || scoreRefilled || teamStateChanged) {
         await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(raidState)}).eq("id",mem.guildId);
       }
@@ -1242,12 +1377,18 @@
       return;
     }
     if(!selectedRaidKey||!RAIDS[selectedRaidKey]) { setStatus("Select a raid first.","err"); return; }
+    console.log(`[LAUNCH RAID] selectedRaidKey=${selectedRaidKey}, maxRaidKeyUnlocked=${raidState?.maxRaidKeyUnlocked}`);
+    if(!isRaidUnlockedForState(selectedRaidKey, raidState)) {
+      setStatus("Finish the previous raid first.", "err");
+      return;
+    }
     const mem=getMembership();
     if (!amILeader()) {
       setStatus("Only the squad leader can launch the raid.", "err");
       return;
     }
     const raidDef=RAIDS[selectedRaidKey];
+    const finalBossMutations = pickFinalBossMutations();
     const raidCost=getRaidCost(raidDef);
     ensureRaidScoreState(raidState);
     if(raidState.score < raidCost) { setStatus(`Need at least ${raidCost} raid energy to launch this raid.`,"err"); return; }
@@ -1260,6 +1401,8 @@
     console.log("📍 Guild points loaded on raid launch by leader:", currentGuildPoints);
 
     const firstStage=raidDef.stages[0];
+    const isFinalStageFirst = raidDef.stages.length === 1;
+    const finalBossMult = isFinalStageFirst ? getMutationMultiplierFromIds(finalBossMutations) : 1;
 
     const players={};
     let totalAtk = 0;
@@ -1274,7 +1417,8 @@
     if (totalAtk === 0) { setStatus("No attack power in squad — select fish first.","err"); return; }
 
     const numPlayers = Math.max(1, squadPids.length);
-    const scaledBossHp = firstStage.hp * numPlayers;
+    const scaledBossHp = Math.max(1, Math.round(firstStage.hp * numPlayers * finalBossMult));
+    const firstStageAtk = Math.max(1, Math.round(firstStage.atk * finalBossMult));
     const spentScore = Math.max(0, raidState.score - raidCost);
     const state={
       phase:"running",
@@ -1283,16 +1427,22 @@
       stageIndex:0,
       enemyMaxHp:scaledBossHp,
       enemyHp:scaledBossHp,
+      currentEnemyAtk:firstStageAtk,
       players,
       completedStages:[],
+      maxRaidKeyUnlocked: raidState.maxRaidKeyUnlocked,
+      finalBossMutations,
       rewardClaimed:{},
       score: spentScore,
       scoreMax: raidState.scoreMax,
       scoreRefillMs: raidState.scoreRefillMs,
       scoreLastRefill: raidState.scoreLastRefill,
       currentRaidCost: raidCost,
-      log:[`⚔️ Raid "${raidDef.name}" launched! Floor 1: ${firstStage.name} (${scaledBossHp} HP × ${numPlayers} players | ${firstStage.atk} ATK) [${firstStage.rarity}] — Cost ${raidCost} score.`]
+      log:[`⚔️ Raid "${raidDef.name}" launched! Floor 1: ${firstStage.name} (${scaledBossHp} HP × ${numPlayers} players | ${firstStageAtk} ATK) [${firstStage.rarity}] — Cost ${raidCost} score.`]
     };
+    if (finalBossMutations.length) {
+      state.log.push(`☣️ Final boss mutation rolled: ${formatMutationsText(finalBossMutations)} (x${getMutationMultiplierFromIds(finalBossMutations).toFixed(2)}).`);
+    }
 
     await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",mem.guildId);
     raidState = state;
@@ -1324,6 +1474,7 @@
 
     const raidDef=RAIDS[state.raidKey];
     const stage=raidDef.stages[state.stageIndex];
+    const stageAtk = getCurrentStageAtk(state, raidDef, stage);
 
     // All players attack with their active fish
     let totalDmg = 0;
@@ -1341,7 +1492,7 @@
 
     // Boss attacks all active fish
     const numPlayers = Object.keys(state.players).length;
-    const bossDmg = stage.atk * numPlayers;
+    const bossDmg = stageAtk * numPlayers;
     let anyAlive = false;
     Object.entries(state.players).forEach(([p, pd]) => {
       if (pd.eliminated) return;
@@ -1408,6 +1559,8 @@
 
     if(state.stageIndex>=raidDef.stages.length-1) {
       state.phase="ended"; state.result="victory";
+      updateMaxRaidUnlocked(state, state.raidKey);
+      console.log(`[RAID VICTORY] raidKey=${state.raidKey}, maxRaidKeyUnlocked now=${state.maxRaidKeyUnlocked}`);
       state.log.push(`🏅 Victory! Raid energy was spent on launch (${state.currentRaidCost}).`);
       state.log.push(`🏆 VICTORY! "${raidDef.name}" cleared! Survivors: claim your reward.`);
       if (!state.guildPointsAwarded) {
@@ -1416,12 +1569,20 @@
         state.log.push(`🏅 Guild earned +${added} points from the raid energy cost.`);
       }
     } else {
-      state.stageIndex++;
+      const nextStageIndex = state.stageIndex + 1;
+      state.stageIndex = nextStageIndex;
       const ns=raidDef.stages[state.stageIndex];
       const numPlayers = Object.keys(state.players).length;
-      const scaledBossHp = ns.hp * numPlayers;
+      const isFinalStage = state.stageIndex >= raidDef.stages.length - 1;
+      const finalBossMult = isFinalStage ? getMutationMultiplierFromIds(state.finalBossMutations) : 1;
+      const scaledBossHp = Math.max(1, Math.round(ns.hp * numPlayers * finalBossMult));
+      const stageAtk = Math.max(1, Math.round(ns.atk * finalBossMult));
       state.enemyMaxHp=scaledBossHp; state.enemyHp=scaledBossHp;
-      state.log.push(`🌊 Floor ${state.stageIndex+1}: ${ns.name} (${scaledBossHp} HP × ${numPlayers} players | ${ns.atk} ATK) [${ns.rarity}]`);
+      state.currentEnemyAtk = stageAtk;
+      state.log.push(`🌊 Floor ${state.stageIndex+1}: ${ns.name} (${scaledBossHp} HP × ${numPlayers} players | ${stageAtk} ATK) [${ns.rarity}]`);
+      if (isFinalStage && Array.isArray(state.finalBossMutations) && state.finalBossMutations.length) {
+        state.log.push(`☣️ Final boss is mutated: ${formatMutationsText(state.finalBossMutations)}.`);
+      }
     }
 
     await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(state)}).eq("id",guildId);
@@ -1481,12 +1642,16 @@
         state.log.push(`🪝 ${resolveName(pid)} claimed +${amount} hooks.`);
       } else if (chosen.type === 'fish') {
         const fishTemplate = resolveRewardFish(raidDef, chosen);
-        const fish = fishTemplate ? addFishToInventory(fishTemplate) : null;
+        const fishToDrop = fishTemplate ? applyFinalBossMutationsToRewardFish(state, raidDef, fishTemplate) : null;
+        const fish = fishToDrop ? addFishToInventory(fishToDrop) : null;
         const fishLabel = fish ? (fish.name || fish.type || 'Fish') : null;
+        const mutationText = fish && Array.isArray(fish.mutations) && fish.mutations.length
+          ? ` with ${formatMutationsText(fish.mutations)}`
+          : "";
         message = fish
-          ? `+ ${fishLabel} added to inventory!`
+          ? `+ ${fishLabel}${mutationText} added to inventory!`
           : 'Fish reward claimed!';
-        if (fish) state.log.push(`🐟 ${resolveName(pid)} claimed ${fishLabel}.`);
+        if (fish) state.log.push(`🐟 ${resolveName(pid)} claimed ${fishLabel}${mutationText}.`);
       }
 
       console.log("💾 Sauvegarde du raid avec reward claiming - Guild Points:", raidState.guildPointsAwarded);
@@ -1514,14 +1679,17 @@
   async function resetRaid() {
     const mem=getMembership(); if(!mem||!db) return;
     const currentScore = raidState ? { score: raidState.score, scoreMax: raidState.scoreMax, scoreRefillMs: raidState.scoreRefillMs, scoreLastRefill: raidState.scoreLastRefill } : null;
+    const maxRaidUnlocked = raidState?.maxRaidKeyUnlocked || "raid_riverside_shallows";
     const newState = {
       phase: "idle",
       score: currentScore?.score ?? 100,
       scoreMax: currentScore?.scoreMax ?? 100,
       scoreRefillMs: currentScore?.scoreRefillMs ?? 60000,
       scoreLastRefill: currentScore?.scoreLastRefill || nowIso(),
+      maxRaidKeyUnlocked: maxRaidUnlocked,
       log: []
     };
+    console.log(`[RESET RAID] Preserving maxRaidKeyUnlocked=${maxRaidUnlocked}`);
     await db.from(GUILDS_TABLE).update({raid_state:JSON.stringify(newState)}).eq("id",mem.guildId);
     lastLogCount=0;
     await fetchAll();
@@ -1711,11 +1879,12 @@
           ${raidKeys.map(key=>{
             const r=RAIDS[key];
             const sel=selectedRaidKey===key;
-            return `<div class="raid-choice ${sel?"selected":""}" onclick="selectRaid('${escH(key)}')">
+            const locked = !isRaidUnlockedForState(key, raidState);
+            return `<div class="raid-choice ${sel?"selected":""}" ${locked?"style='opacity:.45;cursor:not-allowed;'":""} onclick="selectRaid('${escH(key)}')">
               <span class="raid-choice-icon">⚔️</span>
               <div class="raid-choice-info">
                 <div class="raid-choice-name">${escH(r.name)}</div>
-                <div class="raid-choice-stats">${escH(String(r.desc || r.description || "").trim() || "No description")}</div>
+                <div class="raid-choice-stats">${escH(String(r.desc || r.description || "").trim() || "No description")}${locked ? " · Locked" : ""}</div>
               </div>
             </div>`;
           }).join("")}
@@ -1746,7 +1915,15 @@
     document.getElementById("rewardSection").style.display="none";
   }
 
-  function selectRaid(key) { selectedRaidKey = key; renderCenter(); renderRaidDrops(); }
+  function selectRaid(key) {
+    if (!isRaidUnlockedForState(key, raidState)) {
+      setStatus("Finish the previous raid first.", "err");
+      return;
+    }
+    selectedRaidKey = key;
+    renderCenter();
+    renderRaidDrops();
+  }
 
   function renderArena() {
     if (!raidState) {
@@ -1768,6 +1945,9 @@
     const iAmLdr=amILeader();
     const rarityColor=RARITY_COLOR[stage.rarity]||"#fff";
     const rarityEmoji=RARITY_EMOJI[stage.rarity]||"";
+    const stageAtk = getCurrentStageAtk(currentState, raidDef, stage);
+    const isFinalStage = currentState.stageIndex === raidDef.stages.length - 1;
+    const bossMutationBadges = isFinalStage ? renderMutationBadges(currentState.finalBossMutations) : "";
 
     const playerCards=Object.entries(currentState.players).map(([p,pd])=>{
       const team = Array.isArray(pd.team) ? pd.team : [];
@@ -1821,7 +2001,8 @@
         <div class="arena-inner">
           <div class="enemy-zone">
             <div class="enemy-name" style="color:${rarityColor}">${rarityEmoji} ${escH(stage.name)}</div>
-            <div style="font-size:11px;color:#6a8a9a;margin-bottom:6px">${escH(stage.floor||"")} · ${escH(stage.rarity)} · ATK ${stage.atk}</div>
+            <div style="font-size:11px;color:#6a8a9a;margin-bottom:6px">${escH(stage.floor||"")} · ${escH(stage.rarity)} · ATK ${stageAtk}</div>
+            ${bossMutationBadges ? `<div style="margin:4px 0 6px">${bossMutationBadges}</div>` : ""}
             <div class="hp-bar-wrap">
               <div class="hp-bar-label"><span>HP</span><span>${fmt1(enemyHp)} / ${fmt1(enemyMaxHp)}</span></div>
               <div class="hp-bar-track"><div class="hp-bar-fill ${hpCls}" style="width:${hpPct.toFixed(1)}%"></div></div>

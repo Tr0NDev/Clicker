@@ -426,11 +426,13 @@
       user-select: none;
       flex-shrink: 0;
       width: 200px;
-      height: 200px;
+      min-height: 200px;
+      max-height: 280px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       box-sizing: border-box;
+      overflow: hidden;
     }
 
     .reserve-character-card.stars-2 {
@@ -493,12 +495,14 @@
       transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
       user-select: none;
       width: 200px;
-      height: 200px;
+      min-height: 200px;
+      max-height: 280px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       box-sizing: border-box;
+      overflow: hidden;
     }
 
     .character-card.stars-2 {
@@ -558,18 +562,22 @@
     }
 
     .character-header {
-      margin-bottom: 16px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      width: 100%;
     }
 
     .character-name {
-      font-size: 24px;
+      font-size: 20px;
       font-weight: bold;
       color: #8dc4e0;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
       flex-wrap: wrap;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .stack-count {
@@ -615,29 +623,31 @@
     }
 
     .talent-badge {
-      margin-top: 6px;
+      margin-top: 3px;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 4px 8px;
+      gap: 4px;
+      padding: 3px 6px;
       border-radius: 999px;
       border: 1px solid #4b6878;
       background: #142029;
       color: #d9ecf8;
-      font-size: 11px;
+      font-size: 10px;
       letter-spacing: 0.03em;
-      max-width: 170px;
-      overflow: visible;
+      max-width: 160px;
+      overflow: hidden;
       position: relative;
+      word-break: break-word;
     }
 
     .talent-state {
-      margin-top: 5px;
-      font-size: 11px;
+      margin-top: 2px;
+      font-size: 10px;
       font-weight: bold;
       letter-spacing: 0.03em;
       text-transform: uppercase;
       color: #8aa6b8;
+      word-break: break-word;
     }
 
     .talent-state.active {
@@ -1405,13 +1415,13 @@
     <div id="characterReserveContainer" class="reserve-section" style="margin-top: 0;">
       <div class="reserve-title">
         <span>Character Reserve <span class="reserve-count" id="reserveCount">0/50</span></span>
-        <label class="reserve-sort" for="reserveSortSelect">
-          Sort:
-          <select id="reserveSortSelect">
-            <option value="desc">Rarity high to low</option>
-            <option value="asc">Rarity low to high</option>
-          </select>
-        </label>
+      </div>
+      <div class="sort-panel">
+        <span class="sort-label">Sort:</span>
+        <button class="nav-button active-nav-button" data-char-sort="rarity" type="button" style="padding: 8px 12px; font-size: 13px;">Rarity ↓</button>
+        <button class="nav-button" data-char-sort="stars" type="button" style="padding: 8px 12px; font-size: 13px;">Stars ↓</button>
+        <button class="nav-button" data-char-sort="name" type="button" style="padding: 8px 12px; font-size: 13px;">Name ↑</button>
+        <button class="nav-button" data-char-sort="level" type="button" style="padding: 8px 12px; font-size: 13px;">Level ↓</button>
       </div>
       <div class="reserve-grid" id="reserveContainer">
         <!-- Reserve characters will be generated here -->
@@ -1420,12 +1430,11 @@
 
     <!-- Fish Reserve Section -->
     <div id="fishReserveContainer" class="fish-selection-section" style="display: none;">
-      <div class="reserve-title" style="margin-bottom: 0; justify-content: space-between; display: flex; align-items: center; gap: 10px;">
-        <div>
-          <div style="font-weight: bold; font-size: 15px;">Fish Inventory</div>
-          <div class="fish-selection-note" id="fishSelectionNote">Choose 3 fish for battle.</div>
-        </div>
+      <div class="reserve-title">
+        <span>Fish Inventory <span class="reserve-count" id="fishInventoryCount">0/1000</span></span>
       </div>
+      <div class="fish-selection-note" id="fishSelectionNote" style="margin-top: 8px;">Choose 3 fish for battle.</div>
+      <div id="fishInventoryFullMessage" style="color: #ff6b6b; font-weight: bold; display: none; margin-top: 8px;">⚠️ Inventory FULL (1000/1000)</div>
       <div class="sort-panel">
         <span class="sort-label">Sort:</span>
         <button class="nav-button" data-fish-sort="default" type="button" style="padding: 8px 12px; font-size: 13px;">Default</button>
@@ -1593,10 +1602,12 @@
     const BASE_CHARACTER_COUNT = 39;
     const MAX_RESERVE_SIZE = 50;
     let reserveSortDirection = 'desc';
+    let reserveSortMode = 'rarity';
 
     const FISH_INVENTORY_KEY = 'clicker_inventory';
     const FISH_SELECTION_KEY = 'clicker_battleSelection';
     const MAX_FISH_SELECTION = 3;
+    const MAX_FISH_INVENTORY = 1000;
     const FISH_RARITY_COLOR = {
       common: '#d9d9d9',
       uncommon: '#7ee787',
@@ -1661,8 +1672,7 @@
       'no-talent': 'No talent on this character.'
     };
 
-    let draggedChar = null;
-    let dragSource = null;
+
     const reserveStackCursorByTemplate = {};
     let lastSavedSlotByInstanceId = {};
     const MAX_FUSION_LEVEL = 5;
@@ -2164,6 +2174,26 @@
       renderCharacters();
     }
 
+    function toggleCharacterSelection(charId) {
+      const char = allCharacters.find(c => Number(c.id) === Number(charId));
+      if (!char) return;
+
+      if (char.teamSlot === null) {
+        // Character is in reserve, select for team
+        const availableSlot = [0, 1, 2].find(slot => !allCharacters.some(c => c.teamSlot === slot));
+        if (availableSlot !== undefined) {
+          char.teamSlot = availableSlot;
+          persistOwnedCharactersToReserveStorage();
+          renderCharacters();
+        }
+      } else {
+        // Character is in team, remove to reserve
+        char.teamSlot = null;
+        persistOwnedCharactersToReserveStorage();
+        renderCharacters();
+      }
+    }
+
     sellCancelBtn.addEventListener('click', () => {
       closeSellConfirmation(false);
     });
@@ -2525,6 +2555,44 @@
               markActive(char);
             }
             break;
+          case 'guardian': {
+            const sizeBoostMult = Math.max(1, char.incomeMultiplier);
+            char.sizeMult *= sizeBoostMult * 1.2;
+            markActive(char);
+            break;
+          }
+          case 'bloodlust': {
+            const weightBoostMult = Math.max(1, char.clickMultiplier);
+            char.weightMult *= weightBoostMult * 1.25;
+            markActive(char);
+            break;
+          }
+          case 'majestic':
+            char.sizeAdd += 12;
+            char.weightAdd += 12;
+            markActive(char);
+            break;
+          case 'prince': {
+            const princeCount = team.filter((c) => c.talentId === 'prince').length;
+            if (princeCount === 1) {
+              char.sizeMult *= 1.3;
+              char.weightMult *= 1.3;
+            } else if (princeCount === 2) {
+              char.sizeMult *= 1.4;
+              char.weightMult *= 1.4;
+              const otherPrince = team.find((c) => c.talentId === 'prince' && c.id !== char.id);
+              if (otherPrince) {
+                char.incomeMultiplier *= 1.2;
+                char.clickMultiplier *= 1.2;
+                otherPrince.incomeMultiplier *= 1.2;
+                otherPrince.clickMultiplier *= 1.2;
+              }
+            }
+            // Else: 3+ princes, lose all bonuses (no effect applied but talent is still active)
+            // Prince talent is ALWAYS active when detected
+            markActive(char);
+            break;
+          }
           default:
             break;
         }
@@ -2588,6 +2656,24 @@
           }
         });
       }
+
+      // Helper talent processed last, after all others are marked active
+      team.forEach((char) => {
+        if (char.talentId === 'helper') {
+          const activeTalents = team.filter((c) => talentActiveByKey[getCharKey(c)]).length;
+          if (activeTalents >= 2) {
+            team.forEach((c) => {
+              if (talentActiveByKey[getCharKey(c)]) {
+                c.incomeMultiplier *= 1.2;
+                c.clickMultiplier *= 1.2;
+                c.sizeAdd += char.sizeAdd * 0.25;
+                c.weightAdd += char.weightAdd * 0.25;
+              }
+            });
+            markActive(char);
+          }
+        }
+      });
 
       team.forEach((char) => {
         const key = getCharKey(char);
@@ -2809,12 +2895,7 @@
       const card = document.createElement('div');
       card.className = isReserve ? 'reserve-character-card' : 'character-card';
       card.classList.add(`stars-${char.stars}`);
-      card.draggable = true;
       card.dataset.charId = char.id;
-      let pointerDown = false;
-      let pointerMoved = false;
-      let startX = 0;
-      let startY = 0;
 
       const stackCount = Number(char.stackCount) || 1;
       const stackLabel = isReserve && stackCount > 1
@@ -2845,17 +2926,23 @@
           <div class="talent-badge">${renderTalentWithHelp(talentLabel, char.talentId)}</div>
           <div class="talent-state ${talentStateClass}">${talentStateText}</div>
           ${stackNavigation}
-          ${canSell ? `<button class="sell-btn" data-sell-id="${char.id}" type="button">Sell ${sellValue}</button>` : ''}
+          <button class="nav-button${isReserve ? '' : ' btn-danger'}" style="width: 100%; padding: 8px 12px; font-size: 13px; margin-top: 6px;" type="button" data-toggle-char="${char.id}">${isReserve ? 'Select' : 'Remove'}</button>
+          ${isReserve && canSell ? `<button class="action-btn sell-btn" data-sell-id="${char.id}" type="button">Sell ${sellValue}</button>` : ''}
         </div>
       `;
 
-      const sellButton = card.querySelector('.sell-btn');
-      if (sellButton) {
-        sellButton.addEventListener('pointerdown', (event) => {
+      // Character toggle button
+      const toggleButton = card.querySelector('button[data-toggle-char]');
+      if (toggleButton) {
+        toggleButton.addEventListener('click', (event) => {
           event.preventDefault();
           event.stopPropagation();
+          toggleCharacterSelection(toggleButton.getAttribute('data-toggle-char'));
         });
+      }
 
+      const sellButton = card.querySelector('.sell-btn');
+      if (sellButton) {
         sellButton.addEventListener('click', (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -2866,11 +2953,6 @@
       if (isReserve && stackMeta && stackMeta.stackCount > 1) {
         const buttons = card.querySelectorAll('.stack-nav-btn');
         buttons.forEach((button) => {
-          button.addEventListener('pointerdown', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-          });
-
           button.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
@@ -2884,67 +2966,10 @@
         });
       }
 
-      // Drag events
-      card.addEventListener('dragstart', (e) => {
-        draggedChar = char;
-        dragSource = isReserve ? 'reserve' : 'team';
-        card.classList.add('dragging');
-        e.dataTransfer.effectAllowed = 'move';
-      });
-
-      card.addEventListener('dragend', (e) => {
-        card.classList.remove('dragging');
-        draggedChar = null;
-        dragSource = null;
-      });
-
-      card.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        card.classList.add('drag-over');
-      });
-
-      card.addEventListener('dragleave', (e) => {
-        card.classList.remove('drag-over');
-      });
-
-      // Reliable tap/click detection on draggable cards
-      card.addEventListener('pointerdown', (e) => {
-        pointerDown = true;
-        pointerMoved = false;
-        startX = e.clientX;
-        startY = e.clientY;
-      });
-
-      card.addEventListener('pointermove', (e) => {
-        if (!pointerDown) {
-          return;
-        }
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        if ((dx * dx + dy * dy) > 36) {
-          pointerMoved = true;
-        }
-      });
-
-      card.addEventListener('pointerup', (e) => {
-        if (!pointerDown) {
-          return;
-        }
-        pointerDown = false;
-      });
-
       card.addEventListener('click', (e) => {
-        if (pointerMoved || card.classList.contains('dragging')) {
-          return;
-        }
         e.preventDefault();
         e.stopPropagation();
         openStatsModal(char.id);
-      });
-
-      card.addEventListener('pointercancel', () => {
-        pointerDown = false;
       });
 
       return card;
@@ -3006,12 +3031,41 @@
           stackIndex
         };
       }).sort((left, right) => {
-        if (left.char.stars !== right.char.stars) {
-          return reserveSortDirection === 'desc'
-            ? right.char.stars - left.char.stars
-            : left.char.stars - right.char.stars;
+        // Apply sorting based on reserveSortMode and direction
+        switch (reserveSortMode) {
+          case 'rarity':
+            if (left.char.stars !== right.char.stars) {
+              return reserveSortDirection === 'desc'
+                ? right.char.stars - left.char.stars
+                : left.char.stars - right.char.stars;
+            }
+            return left.char.name.localeCompare(right.char.name);
+          case 'stars':
+            if (left.char.stars !== right.char.stars) {
+              return reserveSortDirection === 'desc'
+                ? right.char.stars - left.char.stars
+                : left.char.stars - right.char.stars;
+            }
+            return left.char.name.localeCompare(right.char.name);
+          case 'name':
+            return reserveSortDirection === 'desc'
+              ? right.char.name.localeCompare(left.char.name)
+              : left.char.name.localeCompare(right.char.name);
+          case 'level':
+            if (left.char.level !== right.char.level) {
+              return reserveSortDirection === 'desc'
+                ? (right.char.level || 0) - (left.char.level || 0)
+                : (left.char.level || 0) - (right.char.level || 0);
+            }
+            return left.char.name.localeCompare(right.char.name);
+          default:
+            if (left.char.stars !== right.char.stars) {
+              return reserveSortDirection === 'desc'
+                ? right.char.stars - left.char.stars
+                : left.char.stars - right.char.stars;
+            }
+            return left.char.name.localeCompare(right.char.name);
         }
-        return left.char.name.localeCompare(right.char.name);
       });
 
       // Render team with fixed 3 slots
@@ -3032,97 +3086,9 @@
           emptySlot.dataset.slotIndex = i;
           emptySlot.innerHTML = '<div class="slot-empty-text">Empty slot</div>';
           
-          // Drag over effects for empty slot
-          emptySlot.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            emptySlot.classList.add('drag-over');
-          });
-
-          emptySlot.addEventListener('dragleave', (e) => {
-            emptySlot.classList.remove('drag-over');
-          });
-
-          emptySlot.addEventListener('drop', (e) => {
-            e.preventDefault();
-            emptySlot.classList.remove('drag-over');
-            if (draggedChar) {
-              if (dragSource === 'reserve') {
-                // From reserve to empty team slot
-                draggedChar.teamSlot = i;
-                renderCharacters();
-                renderFishSelection();
-              } else if (dragSource === 'team') {
-                // Move team member to empty slot (swap)
-                draggedChar.teamSlot = i;
-                renderCharacters();
-                renderFishSelection();
-              }
-            }
-          });
-
           teamContainer.appendChild(emptySlot);
         }
       }
-
-      // Setup drop zone for team cards (to remove from team or swap)
-      const teamCards = teamContainer.querySelectorAll('.character-card:not(.slot-empty)');
-      teamCards.forEach(card => {
-        const slotIndex = parseInt(card.dataset.slotIndex);
-        
-        card.addEventListener('dragstart', (e) => {
-          draggedChar = allCharacters.find(c => c.id == card.dataset.charId);
-          dragSource = 'team';
-          card.classList.add('dragging');
-          e.dataTransfer.effectAllowed = 'move';
-        });
-
-        card.addEventListener('dragend', (e) => {
-          card.classList.remove('dragging');
-        });
-
-        card.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-          card.classList.add('drag-over');
-        });
-
-        card.addEventListener('dragleave', (e) => {
-          card.classList.remove('drag-over');
-        });
-
-        card.addEventListener('drop', (e) => {
-          e.preventDefault();
-          card.classList.remove('drag-over');
-          if (draggedChar) {
-            if (dragSource === 'reserve') {
-              // From reserve to team slot - swap with occupant
-              const targetChar = allCharacters.find(c => c.teamSlot === slotIndex);
-              if (targetChar) {
-                // Swap: reserve char goes to slot, team char goes to reserve
-                draggedChar.teamSlot = slotIndex;
-                targetChar.teamSlot = null;
-              } else {
-                // Slot is empty, just put the reserve char there
-                draggedChar.teamSlot = slotIndex;
-              }
-              renderCharacters();
-              renderFishSelection();
-            } else if (dragSource === 'team') {
-              // Swap between team slots
-              const targetChar = allCharacters.find(c => c.teamSlot === slotIndex);
-              if (targetChar) {
-                // Swap their team slots
-                const tempSlot = draggedChar.teamSlot;
-                draggedChar.teamSlot = targetChar.teamSlot;
-                targetChar.teamSlot = tempSlot;
-                renderCharacters();
-                renderFishSelection();
-              }
-            }
-          }
-        });
-      });
 
       // Render reserve
       if (stackedReserveCharacters.length === 0) {
@@ -3139,21 +3105,6 @@
           reserveContainer.appendChild(card);
         });
       }
-
-      // Setup drop zone for reserve
-      reserveContainer.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-      });
-
-      reserveContainer.addEventListener('drop', (e) => {
-        e.preventDefault();
-        if (draggedChar && dragSource === 'team') {
-          draggedChar.teamSlot = null;
-          renderCharacters();
-          renderFishSelection();
-        }
-      });
 
       effectiveTeam.forEach(char => {
         totalIncomeBonus *= char.incomeMultiplier;
@@ -3656,6 +3607,19 @@
     function renderFishSelection() {
       renderSelectedFishSlots();
       renderFishCollection();
+      
+      // Update fish inventory count
+      const fishInventoryCount = document.getElementById('fishInventoryCount');
+      if (fishInventoryCount) {
+        fishInventoryCount.textContent = `${fishInventory.length}/${MAX_FISH_INVENTORY}`;
+      }
+      
+      // Show full message if inventory is full
+      const fishInventoryFullMessage = document.getElementById('fishInventoryFullMessage');
+      if (fishInventoryFullMessage) {
+        fishInventoryFullMessage.style.display = fishInventory.length >= MAX_FISH_INVENTORY ? 'block' : 'none';
+      }
+      
       if (fishSelectionNote) {
         const selectedCount = selectedFishUids.length;
         fishSelectionNote.textContent = selectedCount === MAX_FISH_SELECTION
@@ -3781,11 +3745,42 @@
     }
 
     // Initial render
-    const reserveSortSelect = document.getElementById('reserveSortSelect');
-    reserveSortSelect.addEventListener('change', () => {
-      reserveSortDirection = reserveSortSelect.value === 'asc' ? 'asc' : 'desc';
-      renderCharacters();
+    // Character reserve sort buttons
+    document.querySelectorAll('button[data-char-sort]').forEach((button) => {
+      button.addEventListener('click', function() {
+        const sortType = this.getAttribute('data-char-sort');
+        
+        // If clicking the same sort type, toggle direction
+        if (reserveSortMode === sortType) {
+          reserveSortDirection = reserveSortDirection === 'desc' ? 'asc' : 'desc';
+        } else {
+          // If clicking a different sort type, set it and use default direction
+          reserveSortMode = sortType;
+          reserveSortDirection = sortType === 'name' ? 'asc' : 'desc'; // Name defaults to A-Z, others to high-low
+        }
+        
+        // Update all button states and arrows
+        document.querySelectorAll('button[data-char-sort]').forEach(btn => {
+          btn.classList.remove('active-nav-button');
+          const btnSortType = btn.getAttribute('data-char-sort');
+          const isActive = btnSortType === reserveSortMode;
+          const arrow = (btnSortType === reserveSortMode && reserveSortDirection === 'asc') ? '↑' : '↓';
+          
+          if (isActive) {
+            btn.classList.add('active-nav-button');
+          }
+          
+          // Update button text with arrow
+          const baseText = btnSortType.charAt(0).toUpperCase() + btnSortType.slice(1);
+          btn.textContent = baseText + ' ' + arrow;
+        });
+        
+        renderCharacters();
+      });
     });
+
+    // Set initial active button
+    document.querySelector('button[data-char-sort="rarity"]').classList.add('active-nav-button');
 
     // Toggle buttons for reserves
     const toggleCharacterReserveBtn = document.getElementById('toggleCharacterReserveBtn');

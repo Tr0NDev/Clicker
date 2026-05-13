@@ -1080,6 +1080,8 @@
       fish.outStartedAtMs = 0;
       fish.outDurationMs = 0;
       fish.outStartValue = Math.max(Number(fish.currentValue) || 0, Number(fish.basePrice) || 0);
+      fish.outBonusPercent = null;
+      fish.outTargetValue = null;
     }
 
     function refreshFishValue(fish, now) {
@@ -1091,7 +1093,6 @@
       if (fish.storageState !== "out") {
         fish.currentValue = Math.max(
           Number(fish.currentValue) || 0,
-          Number(fish.outTargetValue) || 0,
           Number(fish.basePrice) || 0
         );
         return fish;
@@ -1148,7 +1149,11 @@
         return;
       }
 
-      const duration = 3;
+      if (fish.storageState === "out") {
+        return;
+      }
+
+      const duration = Math.max(1, Number(turns) || 3);
       const startValue = Math.max(Number(fish.currentValue) || 0, Number(fish.basePrice) || 0);
       const minBonus = OUT_GAIN_PER_10S_MIN * duration;
       const maxBonus = OUT_GAIN_PER_10S_MAX * duration;
