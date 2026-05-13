@@ -660,6 +660,18 @@
     }
 
     async function startDraw() {
+      // If there are pending recap results, commit them first (apply to reserve and update pity)
+      if (Array.isArray(tempDrawResults) && tempDrawResults.length > 0) {
+        for (const r of tempDrawResults) {
+          applyReward(r.char, r.talent);
+        }
+        tempDrawResults = [];
+        drawRecap.className = 'draw-recap';
+        const sellAllBtn = document.getElementById('sellAllRecapBtn'); if (sellAllBtn) sellAllBtn.style.display = 'none';
+        const skipBtn = document.getElementById('skipAnimBtn'); if (skipBtn) skipBtn.style.display = 'none';
+        updatePityUI();
+        refreshSummary();
+      }
       if (spinning || getReserveCount() >= RESERVE_MAX || getHooks() < DRAW_COST) return;
       const reward = pickRewardCharacter();
       if (!reward) return;
@@ -702,6 +714,18 @@
     async function startDraw10() {
       console.log('[DEBUG startDraw10] Button clicked!');
       console.log('[DEBUG] spinning:', spinning, 'reserve:', getReserveCount(), 'hooks:', getHooks());
+      // If there are pending recap results, commit them first (apply to reserve and update pity)
+      if (Array.isArray(tempDrawResults) && tempDrawResults.length > 0) {
+        for (const r of tempDrawResults) {
+          applyReward(r.char, r.talent);
+        }
+        tempDrawResults = [];
+        drawRecap.className = 'draw-recap';
+        const sellAllBtn = document.getElementById('sellAllRecapBtn'); if (sellAllBtn) sellAllBtn.style.display = 'none';
+        const skipBtn = document.getElementById('skipAnimBtn'); if (skipBtn) skipBtn.style.display = 'none';
+        updatePityUI();
+        refreshSummary();
+      }
       if (spinning || getReserveCount() + DRAW_10_TOTAL_DRAWS > RESERVE_MAX || getHooks() < DRAW_10_COST) {
         console.log('[DEBUG] Conditions failed, returning');
         return;
