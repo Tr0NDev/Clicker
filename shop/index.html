@@ -818,7 +818,14 @@
       saveReserveList(list);
       const sellValues = { 1: 10, 2: 25, 3: 120, 4: 400, 5: 1200, 6: 2000 };
       setHooks(getHooks() + (sellValues[lastRewardChar.stars] || 10));
-      drawRecapText.innerHTML = `Sold for <b>${sellValues[lastRewardChar.stars] || 10} Hooks</b>.`;
+      // Update pity as in other sell/commit flows: Legendary resets, others increment
+      const isLegendary = lastRewardChar.stars === 5;
+      if (isLegendary) { setPity(0); } else { setPity(getPity() + 1); }
+      updatePityUI();
+      const pityNote = isLegendary
+        ? " <span style='color:#ffa657'>✨ Pity reset!</span>"
+        : ` <span style='color:#7ea8b8'>(Pity: ${getPity()}/${PITY_MAX})</span>`;
+      drawRecapText.innerHTML = `Sold for <b>${sellValues[lastRewardChar.stars] || 10} Hooks</b>.${pityNote}`;
       document.getElementById("sellDrawBtn").style.display = "none";
       lastRewardChar = null; lastRewardTalent = null;
       refreshSummary();
